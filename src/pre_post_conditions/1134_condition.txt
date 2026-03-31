@@ -1,0 +1,163 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) for the program described in the statement.  
+All symbols are defined in the *Mathematical notation* section that follows.
+
+---
+
+## 1.  Mathematical notation  
+
+* **Input** – an (infinite) sequence of positive integers  
+
+\[
+\mathbf{s}= (s_0,s_1,s_2,\dots )\in (\mathbb N_{>0})^{\omega } .
+\]
+
+* **Valid codes**  
+
+\[
+\mathsf{valid}(x)\; \stackrel{\text{def}}{\Longleftrightarrow}\; x\in\{1,2,3,4\}.
+\]
+
+* **Stopping code**  
+
+\[
+\mathsf{stop}(x)\; \stackrel{\text{def}}{\Longleftrightarrow}\; x=4 .
+\]
+
+* **First‑stop index** – the least position where the code *4* occurs  
+
+\[
+\mathbf{n}\;=\;\min\{\,j\mid s_j =4\,\}\; .
+\]
+
+(The pre‑condition guarantees that this minimum exists.)
+
+* **Counters for the three fuels** (computed on the *prefix* that ends **just before** the first 4)
+
+\[
+\begin{aligned}
+A(\mathbf{s}) &:= \bigl|\{\,j\mid 0\le j<\mathbf n \;\wedge\; s_j =1 \bigr\}|,\\[2mm]
+G(\mathbf{s}) &:= \bigl|\{\,j\mid 0\le j<\mathbf n \;\wedge\; s_j =2 \bigr\}|,\\[2mm]
+D(\mathbf{s}) &:= \bigl|\{\,j\mid 0\le j<\mathbf n \;\wedge\; s_j =3 \bigr\}|.
+\end{aligned}
+\]
+
+* **Program variables** (used inside the loop)
+
+\[
+a,g,d\in\mathbb N \qquad\text{(current counters)}\; .
+\]
+
+* **Loop invariant** (holds after having examined the first *k* elements of the stream,
+   *k* may be larger than the number of *valid* elements that have been processed)
+
+\[
+\boxed{
+\mathsf{Inv}(k,a,g,d)\; \equiv\;
+\begin{cases}
+a = |\{\,j<k \mid s_j =1\}|,\\[1mm]
+g = |\{\,j<k \mid s_j =2\}|,\\[1mm]
+d = |\{\,j<k \mid s_j =3\}|,\\[1mm]
+\forall j<k\;.\;\neg\mathsf{stop}(s_j) .
+\end{cases}}
+\]
+
+---
+
+## 2.  Hoare triple (whole program)
+
+\[
+\boxed{\;
+\{\,\exists n\;.\;s_n =4\;\}\;
+\texttt{program}
+\;\{\,\texttt{output}= \bigl(\text{“MUITO OBRIGADO”},
+\text{“Alcool: }A(\mathbf{s})\text{”},
+\text{“Gasolina: }G(\mathbf{s})\text{”},
+\text{“Diesel: }D(\mathbf{s})\text{”}\bigr)\;}
+\tag{1}
+\]
+
+*Pre‑condition*  
+
+\[
+P\;:\; \exists n\;.\; s_n =4 .
+\]
+
+It says that the input stream eventually contains the terminating code 4 (the problem guarantees termination).
+
+*Post‑condition*  
+
+\[
+Q\;:\; 
+\begin{aligned}
+&\texttt{output} =\bigl(\text{“MUITO OBRIGADO”},
+\text{“Alcool: }A(\mathbf{s})\text{”},
+\text{“Gasolina: }G(\mathbf{s})\text{”},
+\text{“Diesel: }D(\mathbf{s})\text{”}\bigr)\\
+&\qquad\text{where }A(\mathbf{s}),G(\mathbf{s}),D(\mathbf{s})\text{ are defined above.}
+\end{aligned}
+\]
+
+Thus the program must print the fixed phrase followed by the three exact counters that correspond to the **valid** codes that appear **before** the first 4.
+
+---
+
+## 3.  Loop‑level specification  
+
+The core of the program is a `while` loop that reads one integer at a time until the code 4 is met.  
+The correctness of the loop is expressed by the invariant \(\mathsf{Inv}\) together with the
+termination condition.
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,\mathsf{Inv}(k,a,g,d)\,\}\\[1mm]
+\texttt{read }x;\\
+\texttt{if } \neg\mathsf{valid}(x) \texttt{ then continue; }\\
+\texttt{else if } x=1 \texttt{ then } a:=a+1;\\
+\quad\;\;\texttt{else if } x=2 \texttt{ then } g:=g+1;\\
+\quad\;\;\texttt{else if } x=3 \texttt{ then } d:=d+1;\\
+\quad\;\;\texttt{else /* x=4 */ skip;\\}
+\{\,\mathsf{Inv}(k+1,a',g',d')\land (\mathsf{stop}(x)\Rightarrow\texttt{break})\;\}
+\end{array}}
+\tag{2}
+\]
+
+*Explanation of (2)*  
+
+* **Preservation** – after processing the next element `x` the invariant still holds with the
+  updated counters (`a' , g' , d'`).  
+* **Progress** – the loop index `k` is increased by one regardless of whether `x` is valid; this
+  guarantees that the invariant can be applied to the *next* element of the stream.  
+* **Termination** – when `x = 4` the guard `\mathsf{stop}(x)` becomes true and the loop exits.
+  At that moment `k = \mathbf n` (the first‑stop index) and the invariant yields  
+
+\[
+a = A(\mathbf{s}),\qquad g = G(\mathbf{s}),\qquad d = D(\mathbf{s}).
+\]
+
+Consequently the statements that follow the loop (printing the phrase and the three counters)
+establish the post‑condition \(Q\).
+
+---
+
+## 4.  Summary of the formal specification  
+
+\[
+\boxed{
+\begin{aligned}
+&\textbf{Pre: }  P \; \equiv\; \exists n\;.\; s_n =4,\\[2mm]
+&\textbf{Loop invariant: } \mathsf{Inv}(k,a,g,d) \text{ as defined above},\\[2mm]
+&\textbf{Post: } Q \; \equiv\;
+\begin{cases}
+\texttt{output}= \bigl(\text{“MUITO OBRIGADO”},\\
+\qquad\text{“Alcool: }A(\mathbf{s})\text{”},\\
+\qquad\text{“Gasolina: }G(\mathbf{s})\text{”},\\
+\qquad\text{“Diesel: }D(\mathbf{s})\text{”}\bigr),\\[1mm]
+A(\mathbf{s}) = |\{j<\mathbf n\mid s_j =1\}|,\\
+G(\mathbf{s}) = |\{j<\mathbf n\mid s_j =2\}|,\\
+D(\mathbf{s}) = |\{j<\mathbf n\mid s_j =3\}|.
+\end{cases}
+\end{aligned}}
+\]
+
+The Hoare triple \(\{P\}\,\texttt{program}\,\{Q\}\) together with the invariant \(\mathsf{Inv}\) gives a **complete formal specification** of the required program in the style of Hoare logic.

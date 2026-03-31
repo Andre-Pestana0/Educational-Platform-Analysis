@@ -1,0 +1,102 @@
+**Hoare‑style specification**  
+
+We denote by  
+
+* `X , Y ∈ ℤ` – the two numbers read from the input,  
+* `output` – the whole text that the program writes to the standard output,  
+* `⌈·⌉` – ceiling, `⌊·⌋` – floor,  
+* `ℕ⁺ = {1,2,3,…}` – the set of positive integers,  
+
+and we use the usual list‑concatenation operator `·` and the *join‑by‑space* operator  
+
+\[
+\operatorname{join}(a_1,\dots ,a_k)=a_1\;‘ ’\;a_2\;‘ ’\;\dots\;‘ ’\;a_k .
+\]
+
+---
+
+### 1.  Pre‑condition  
+
+\[
+\boxed{P \;\equiv\; X\in\mathbb{N}^{+}\;\land\;Y\in\mathbb{N}^{+}
+      \;\land\; 1<X<20\;\land\; X<Y<100\,000 } .
+\]
+
+The program may be started only when the two integers satisfy the bounds given in the statement.
+
+---
+
+### 2.  Post‑condition  
+
+Let  
+
+\[
+n   \;=\; \big\lceil \frac{Y}{X}\big\rceil        \qquad\text{(number of printed lines)},
+\]
+\[
+\ell_i \;=\; \big\{ (i-1)X+1,\;(i-1)X+2,\dots ,\; \min(iX,\,Y) \big\}
+          \qquad\text{for } i = 1,\dots , n .
+\]
+
+Each `ℓ_i` is a (non‑empty) **block** of at most `X` consecutive integers, the last block possibly being shorter.
+
+Define the *i‑th line* that must appear on the screen:
+
+\[
+L_i \;=\; \operatorname{join}\big( (i-1)X+1,\;(i-1)X+2,\dots ,\min(iX,Y) \big)
+          \;\;‘\n’ .
+\]
+
+The required whole output is therefore the concatenation of all these lines:
+
+\[
+\boxed{ Q \;\equiv\; 
+        output \;=\; L_1 \;·\; L_2 \;·\; \dots \;·\; L_n } .
+\]
+
+Equivalently, the post‑condition can be expressed as the set of two logical properties:
+
+1. **Correct ordering**  
+
+   \[
+   \forall k\in\{1,\dots ,Y\}\;.\;
+   \text{the }k\text{‑th integer printed (ignoring spaces and new‑lines)} = k .
+   \]
+
+2. **Line‑break after every X‑th number**  
+
+   \[
+   \forall k\in\{1,\dots ,Y\}\;.\;
+   \bigl(k\bmod X = 0\bigr)\;\Longrightarrow\;
+   \text{a newline character follows the printed representation of }k .
+   \]
+
+   (If \(Y\bmod X\neq 0\) the final line ends after the last printed integer
+   \(\,Y\) – the specification does not require an extra blank line.)
+
+---
+
+### 3.  Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{read }X,Y;\;
+        \texttt{for }k=1\text{ to }Y\text{ do}
+        \begin{cases}
+            \texttt{print }k\\
+            \texttt{if }k\bmod X = 0\text{ then print ‘\n’}
+        \end{cases}
+        \; \{\,Q\,\}}
+\]
+
+The triple states that **if** the input satisfies the pre‑condition `P`,
+**then** after the execution of the program the output satisfies the post‑condition `Q`.  
+
+---
+
+### 4.  Remarks on the formalism  
+
+* The program is *total*: under `P` it always terminates because the loop variable `k` strictly increases from `1` to `Y`.  
+* The post‑condition `Q` is completely independent of any internal variables; it only talks about the observable effect (`output`).  
+* The two elementary clauses (ordering and line‑break) are often used in Hoare‑logic specifications when the result is a formatted text rather than a numeric value.  
+
+Thus the Hoare‑logic specification for the “X‑by‑Y grid” problem is precisely the pair \((P,Q)\) given above.

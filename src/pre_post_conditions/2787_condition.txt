@@ -1,0 +1,83 @@
+Below is a **Hoare‑logic style specification** for the program that reads the dimensions of a chessboard \(L\) (rows) and \(C\) (columns) and prints the colour of the lower‑right cell.
+
+---
+
+### Variables  
+
+* \(L, C \in \mathbb N\) – input integers (rows, columns)  
+* `col` – the integer that will be printed (the colour of the lower‑right cell)  
+
+We use the usual arithmetic modulo operator  
+
+\[
+x \bmod 2 = 
+\begin{cases}
+0 &\text{if }x\text{ is even}\\[2pt]
+1 &\text{if }x\text{ is odd}
+\end{cases}
+\]
+
+and the logical equivalence “\(\leftrightarrow\)”.
+
+---
+
+### Pre‑condition \(P\)
+
+\[
+P \; \equiv\; 
+\bigl(1\le L\le 1000\bigr)\;\land\;
+\bigl(1\le C\le 1000\bigr)\;\land\;
+L\in\mathbb N\;\land\;C\in\mathbb N
+\]
+
+The program may be started only when the two dimensions are natural numbers inside the limits required by the problem statement.
+
+---
+
+### Program fragment \(S\)
+
+```
+read L
+read C
+col := 1 - ((L + C) mod 2)      // compute colour
+print col
+```
+
+(The statement `col := 1 - ((L + C) mod 2)` is the only computational step; the two `read`s are assumed to respect the pre‑condition.)
+
+---
+
+### Post‑condition \(Q\)
+
+\[
+Q \; \equiv\;
+\bigl(col\in\{0,1\}\bigr)\;\land\;
+\bigl(col = 1 \;\leftrightarrow\; (L + C) \bmod 2 = 0\bigr)
+\]
+
+That is, the program outputs  
+
+* `1` (white) **iff** the sum \(L+C\) is even, and  
+
+* `0` (black) **iff** the sum \(L+C\) is odd.  
+
+The equivalence follows from the definition of a chessboard: the cell \((i,j)\) is white exactly when \(i+j\) is even; the upper‑left cell \((1,1)\) is white, so the lower‑right cell \((L,C)\) follows the same parity rule.
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\; \{P\}\; S\; \{Q\} \;}
+\]
+
+or, written out explicitly:
+
+\[
+\{\,1\le L\le1000\;\land\;1\le C\le1000\,\}\;
+\texttt{read }L;\;\texttt{read }C;\;
+\texttt{col := 1 - ((L+C) mod 2)}\;
+\{\,col\in\{0,1\}\;\land\;(col=1\;\leftrightarrow\;(L+C)\bmod2=0)\,\}
+\]
+
+The triple states that **whenever** the inputs satisfy the given bounds, after executing the program the variable `col` (and thus the printed integer) correctly represents the colour of the lower‑right square of an \(L\times C\) chessboard.

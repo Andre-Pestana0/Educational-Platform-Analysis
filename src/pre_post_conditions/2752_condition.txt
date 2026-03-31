@@ -1,0 +1,85 @@
+Below is a **Hoare‑logic style specification** for the program that produces exactly the eight lines shown in the statement.  
+Only the *pre‑condition* (what is known before the program starts) and the *post‑condition* (what must hold after the program terminates) are given – no implementation details are required.
+
+---
+
+### 1. Notation used
+
+* `⊤` – the always‑true proposition (used as a trivial pre‑condition).  
+* `⟨…⟩` – the (finite) sequence of characters (a string).  
+* `&` – concatenation of strings.  
+* `pad(k)` – the string consisting of `k` space characters (`' '`), i.e.  
+
+  \[
+  \operatorname{pad}(k)=\underbrace{\text{`` ``}\dots\text{`` ``}}_{k\ \text{times}}
+  \]
+
+* `\newline` – the line‑break character that separates output lines.  
+* `out` – the whole output produced by the program (a single string that contains the eight lines separated by `\newline`).  
+
+We also introduce two constant phrases that appear in the output
+
+\[
+\begin{aligned}
+S &:= \text{``AMO FAZER EXERCICIO NO URI''}\\[2mm]
+T &:= \text{``AMO FAZER EXERCICIO''}
+\end{aligned}
+\]
+
+---
+
+### 2. Definition of the eight output lines
+
+\[
+\begin{aligned}
+\ell_1 &:= \text{``<''} &\; &\!\!& S &\;\text{``>''} \\[1mm]
+\ell_2 &:= \text{``<''} &\; &\!\!& \operatorname{pad}(4) &\; S &\;\text{``>''} \\[1mm]
+\ell_3 &:= \text{``<''} &\; &\!\!& T &\; \operatorname{pad}(1) &\;\text{``>''} \\[1mm]
+\ell_4 &:= \ell_1 \\[1mm]
+\ell_5 &:= \text{``<''} &\; &\!\!& S &\; \operatorname{pad}(4) &\;\text{``>''} \\[1mm]
+\ell_6 &:= \ell_1 \\[1mm]
+\ell_7 &:= \text{``<''} &\; &\!\!& \operatorname{pad}(10) &\; T &\; \operatorname{pad}(1) &\;\text{``>''} \\[1mm]
+\ell_8 &:= \text{``<''} &\; &\!\!& T &\; \operatorname{pad}(11) &\;\text{``>''}
+\end{aligned}
+\]
+
+(Every `\text{``<''}` and `\text{``>''}` is a single angle‑bracket character.)
+
+---
+
+### 3. Post‑condition (what the program must output)
+
+The required final output is the **exact concatenation** of the eight lines, each terminated by a line‑break (except the last one, which may or may not be followed by a final newline – both conventions are accepted by most judges). Formally
+
+\[
+\boxed{
+\begin{aligned}
+\mathsf{post}\;(out) \;\equiv\; & out \;=\; \ell_1\;\newline\;
+                                 \ell_2\;\newline\;
+                                 \ell_3\;\newline\;
+                                 \ell_4\;\newline\;
+                                 \ell_5\;\newline\;
+                                 \ell_6\;\newline\;
+                                 \ell_7\;\newline\;
+                                 \ell_8
+\end{aligned}}
+\]
+
+---
+
+### 4. Hoare triple for the whole program
+
+Because the problem statement says **“Input: there is none”**, the only thing we know before execution is that no external data is read. Hence the pre‑condition is simply *true* (or `⊤`).
+
+\[
+\boxed{\;\; \{\,\top\,\}\;\; \textbf{Program}\;\; \{\,\mathsf{post}(out)\,\}\;\;}
+\]
+
+---
+
+### 5. Summary (in plain English)
+
+* **Pre‑condition**: there are no inputs; the program starts in an arbitrary state (`⊤`).  
+* **Post‑condition**: after termination, the program’s output `out` consists of the eight lines listed above, each line exactly as shown (including every space and the surrounding angle brackets).
+
+That specification, expressed in the usual Hoare‑logic notation, captures the whole requirement of the “no‑input / fixed‑output” exercise.

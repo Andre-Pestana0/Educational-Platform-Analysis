@@ -1,0 +1,19 @@
+Description: Read an integerN. This N will be the number of integer numbersXthat will be read.
+
+Input: The first line of input is an integerN(N< 10000), that indicates the total number of test cases.Each case is an integer numberX(-107<X< 107).
+
+Output: For each test case, print how many numbers are in and how many values are out of the interval.
+
+Examples:
+- Example 1:
+  Input:
+4
+14
+123
+10
+-25
+  Output:
+2 in
+2 out
+
+--

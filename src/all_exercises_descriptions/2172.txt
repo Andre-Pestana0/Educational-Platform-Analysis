@@ -1,0 +1,19 @@
+Description: Prog and Cackto recently started to play a role-playing game called Fortress. In this game, for player's evolve their level they need to defeat monsters, which gives a value of experience (XP) for player.
+
+Input: There will be several test cases. Each test case contains two values:X(0 <Xâ¤ 3) indicating the increase in value of EXP from monsters andM(10 â¤Mâ¤ 232-1) indicating the EXP value of the monster. The entry ends with valuesX== 0 andM== 0, in which should not be processed.
+
+Output: For each case, your program should show a valueE, value of new Monster EXP.
+
+Examples:
+- Example 1:
+  Input:
+1 544768710
+2 538533133
+3 38884958
+0 0
+  Output:
+544768710
+1077066266
+116654874
+
+--

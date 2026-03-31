@@ -1,0 +1,29 @@
+Description: Read 2 variables, namedAandBand make the sum of these two variables, assigning its result to the variableX. PrintXas shown below. Print endline after the result otherwise you will get âPresentation Errorâ.
+
+Input: The input file will contain 2 integer numbers.
+
+Output: Print the letterX(uppercase) with a blank space before and after the equal signal followed by the value of X, according to the following example.
+
+Examples:
+- Example 1:
+  Input:
+10
+9
+  Output:
+X = 19
+
+- Example 2:
+  Input:
+-10
+4
+  Output:
+X = -6
+
+- Example 3:
+  Input:
+15
+-7
+  Output:
+X = 8
+
+--

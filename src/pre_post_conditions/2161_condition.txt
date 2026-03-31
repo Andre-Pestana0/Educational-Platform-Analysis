@@ -1,0 +1,66 @@
+**Hoare‑style specification**
+
+Let  
+
+* \(N\in \mathbb N\) be the input variable (the number of repetitions).  
+* \(a_0 = 3\) and \(a_1 = 6\) – the coefficients of the periodic continued fraction for \(\sqrt{10}\).  
+
+Define a helper sequence \((I_k)_{k\ge 0}\) that builds the “inner” continued fraction:
+
+\[
+\begin{aligned}
+I_0 &:= a_1 ,\\[2mm]
+I_{k+1} &:= a_1 + \frac{1}{I_k}\qquad (k\ge 0).
+\end{aligned}
+\]
+
+Using this sequence we obtain the value of the continued fraction after exactly \(N\) repetitions:
+
+\[
+\operatorname{CF}(N) \;:=\;
+\begin{cases}
+a_0, & N = 0,\\[2mm]
+a_0 + \displaystyle\frac{1}{I_N}, & N\ge 1 .
+\end{cases}
+\tag{1}
+\]
+
+The required output is the decimal representation of \(\operatorname{CF}(N)\) **rounded to ten fractional digits**.  
+We denote this rounding operation by  
+
+\[
+\operatorname{round}_{10}(x) \;:=\; \text{the unique decimal number } y \text{ such that } 
+|y-x| \le \tfrac{1}{2}\,10^{-10}
+\text{ and } y \text{ has exactly }10\text{ digits after the point.}
+\]
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\{\,0\le N\le 100\,\}\;\; \texttt{contFracSqrt}(N)\;\; \{\,\texttt{out}= \operatorname{round}_{10}(\operatorname{CF}(N))\;\land\;
+\texttt{out}\text{ is a decimal string with exactly 10 digits after the point}\,\}}
+\]
+
+---
+
+### Explanation of the post‑condition
+
+* **\( \operatorname{CF}(N) \)** is the exact real value obtained from the periodic continued fraction  
+
+  \[
+  a_0+\cfrac{1}{\displaystyle a_1+\cfrac{1}{\displaystyle a_1+\cfrac{1}{\displaystyle a_1+\dots}}}
+  \]
+
+  where the denominator block “\(a_1\)” appears **\(N\)** times after the initial term \(a_0\).
+
+* **\( \operatorname{round}_{10}(\operatorname{CF}(N)) \)** is that real value rounded to the nearest multiple of \(10^{-10}\); the rounding rule is the usual “round‑half‑up”.
+
+* The predicate “\(\texttt{out}\) is a decimal string with exactly 10 digits after the point’’ guarantees that the program prints the result in the required format, e.g.  
+
+  * \(N=0 \;\Rightarrow\; \texttt{out}=3.0000000000\)  
+  * \(N=1 \;\Rightarrow\; \texttt{out}=3.1666666667\)  
+  * \(N=5 \;\Rightarrow\; \texttt{out}=3.1622776623\).
+
+Thus the Hoare triple above completely captures the required **pre‑condition** (input range) and **post‑condition** (exact numeric result and output format) of the problem.

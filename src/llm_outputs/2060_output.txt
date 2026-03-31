@@ -1,0 +1,35 @@
+0 Multiplo(s) de 2
+0 Multiplo(s) de 3
+0 Multiplo(s) de 4
+0 Multiplo(s) de 5
+
+1 Multiplo(s) de 2
+1 Multiplo(s) de 3
+1 Multiplo(s) de 4
+1 Multiplo(s) de 5
+
+2 Multiplo(s) de 2
+1 Multiplo(s) de 3
+1 Multiplo(s) de 4
+1 Multiplo(s) de 5
+
+5 Multiplo(s) de 2
+3 Multiplo(s) de 3
+4 Multiplo(s) de 4
+3 Multiplo(s) de 5
+
+1000 Multiplo(s) de 2
+1000 Multiplo(s) de 3
+1000 Multiplo(s) de 4
+1000 Multiplo(s) de 5
+
+2 Multiplo(s) de 2
+1 Multiplo(s) de 3
+1 Multiplo(s) de 4
+1 Multiplo(s) de 5
+
+5 Multiplo(s) de 2
+0 Multiplo(s) de 3
+0 Multiplo(s) de 4
+5 Multiplo(s) de 5
+

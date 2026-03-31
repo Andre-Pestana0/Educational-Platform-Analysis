@@ -1,0 +1,127 @@
+Below is a **Hoare‑logic style specification** of the program that solves the “par / impar” hop‑scotch problem.  
+All symbols are written in ordinary mathematical notation; the program body **S** is left abstract (it may be any algorithm that respects the specification).
+
+---
+
+### 1.  Types and auxiliary notation  
+
+* `ℕ` – the set of natural numbers (including 0).  
+* `ℕ⁺` – the set of positive natural numbers.  
+* `Σ = { a,…,z , A,…,Z }` – the alphabet of letters.  
+* `String_≤100 = { s ∈ Σ*  │  |s| ≤ 100 }` – the set of strings of length at most 100.  
+
+* `Choice = { PAR , IMPAR }`.  
+
+* For `x ∈ ℕ` let  
+
+\[
+\operatorname{par}(x)=\begin{cases}
+\text{true} & \text{if } x\bmod 2 =0\\[2mm]
+\text{false} & \text{if } x\bmod 2 =1
+\end{cases}
+\]
+
+so `par(x)` is true exactly when *x* is even.
+
+* For a pair of strings `p,q ∈ Choice` define  
+
+\[
+\operatorname{opp}(p,q) \; \equiv\; (p = PAR \land q = IMPAR)\;\lor\;(p = IMPAR \land q = PAR)
+\]
+
+i.e. the two choices are opposite.
+
+---
+
+### 2.  Input and output variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `QT` | number of test cases (a natural number) |
+| `name₁[i] , name₂[i]` | player names for test case *i* (`String_≤100`) |
+| `c₁[i] , c₂[i]` | the players’ choices for test case *i* (`Choice`) |
+| `N[i] , M[i]` | the two numbers supplied for test case *i* (`ℕ⁺`) |
+| `winner[i]` | the name that must be printed for test case *i* (`String_≤100`) |
+
+All indexed variables range over `i = 1 … QT`.
+
+---
+
+### 3.  Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \equiv\;& 1 \le QT \le 100 \\[2mm]
+&\land\;\forall i\;(1\le i \le QT) \; \bigl( \\
+&\qquad name₁[i]\in String_{≤100} \;\land\; name₂[i]\in String_{≤100} \\[1mm]
+&\qquad \land\; c₁[i]\in Choice \;\land\; c₂[i]\in Choice \\[1mm]
+&\qquad \land\; \operatorname{opp}(c₁[i],c₂[i]) \\[1mm]
+&\qquad \land\; 1 \le N[i] \le 10^{10} \\[1mm]
+&\qquad \land\; 1 \le M[i] \le 10^{10} \bigr)
+\end{aligned}
+\]
+
+The pre‑condition states exactly the restrictions given in the problem statement:
+
+* the number of test cases is between 1 and 100,
+* each name is a non‑empty string of at most 100 letters,
+* each player’s declared choice is either **PAR** or **IMPAR**, and the two choices are different,
+* the two numbers are positive and not larger than \(10^{10}\).
+
+---
+
+### 4.  Post‑condition  **Q**
+
+For every test case *i* the winner must be the player whose declared choice matches the parity of the sum `N[i] + M[i]`.  
+Formally:
+
+\[
+\begin{aligned}
+Q \equiv\;& \forall i\;(1\le i \le QT) \; \bigl( \\
+&\qquad \bigl(\operatorname{par}(N[i]+M[i]) \land c₁[i]=PAR\bigr) \;\lor\;
+\bigl(\lnot\operatorname{par}(N[i]+M[i]) \land c₁[i]=IMPAR\bigr) \\[1mm]
+&\qquad\; \Longrightarrow\; winner[i]=name₁[i] \\[2mm]
+&\qquad \bigl(\operatorname{par}(N[i]+M[i]) \land c₂[i]=PAR\bigr) \;\lor\;
+\bigl(\lnot\operatorname{par}(N[i]+M[i]) \land c₂[i]=IMPAR\bigr) \\[1mm]
+&\qquad\; \Longrightarrow\; winner[i]=name₂[i] \bigr)
+\end{aligned}
+\]
+
+Because the two choices are opposite (`opp(c₁[i],c₂[i])`), exactly one of the two implications is true, guaranteeing a **unique** winner for each test case.
+
+---
+
+### 5.  Hoare triple
+
+Putting the pieces together, the whole program **S** (reading the input, computing the winners, and printing them) must satisfy
+
+\[
+\boxed{\; \{\,P\,\}\; S\; \{\,Q\,\} \;}
+\]
+
+where  
+
+* **P** is the pre‑condition defined in § 3,  
+* **S** is any algorithm that reads the data described in **P**, computes for each *i* the parity of `N[i]+M[i]`, compares it with the players’ declared choices, and stores the appropriate name in `winner[i]`,  
+* **Q** is the post‑condition defined in § 4, i.e. the printed line for test case *i* is exactly `winner[i]`.
+
+---
+
+### 6.  Example of the logical evaluation (test case 2)
+
+*Input*: `name₁ = “Dami”`, `c₁ = PAR`, `name₂ = “Marcus”`, `c₂ = IMPAR`, `N = 12`, `M = 3`.
+
+* Compute `S = N+M = 15`.  
+* `par(S)` is **false** (odd).  
+
+Since `c₁ = PAR` does **not** match odd parity, the first implication of **Q** is false, and the second one (with player 2) is true:
+
+\[
+\bigl(\lnot\operatorname{par}(15) \land c₂ = IMPAR\bigr) \;\Longrightarrow\; winner = name₂ = \text{“Marcus”}.
+\]
+
+Thus the program must output **Marcus**, which agrees with the sample output.
+
+---
+
+The specification above is completely **formal**, uses only mathematical notation, and captures precisely the required behaviour of the program in Hoare‑logic style.

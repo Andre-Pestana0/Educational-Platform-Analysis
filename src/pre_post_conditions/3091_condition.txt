@@ -1,0 +1,75 @@
+Below is a **Hoare‑logic style specification** of the whole task (reading the two numbers, computing the remainder and printing it).  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true after it terminates) are given; the body of the program is left abstract (it can be any algorithm that satisfies the contract).
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `A`    | first integer read from the input |
+| `B`    | second integer read from the input |
+| `R`    | integer that will be printed (the remainder) |
+| `q`    | auxiliary integer (quotient) that may appear in the post‑condition |
+
+All variables range over the set of integers **ℤ**.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\boxed{P \;:=\; 
+\begin{aligned}
+& A \in \mathbb Z \;\land\; B \in \mathbb Z \\
+& \land\; 1 \le A \le 100\,000 \\
+& \land\; 1 \le B \le 100\,000
+\end{aligned}}
+\]
+
+Interpretation: the program receives two **valid** input integers, each between 1 and 100 000 inclusive.
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\boxed{Q \;:=\; 
+\begin{aligned}
+& R \in \mathbb Z \\
+& \land\; \exists q \in \mathbb Z \;.\; A = B\cdot q + R \\
+& \land\; 0 \le R < B
+\end{aligned}}
+\]
+
+Equivalently, \(R = A \bmod B\).  
+The three conjuncts guarantee:
+
+* `R` is an integer,
+* `A` can be expressed as `B·q + R` for some integer `q` (division algorithm),
+* the remainder lies in the canonical range \([0,\,B-1]\), which makes it **unique**.
+
+---
+
+### Hoare Triple
+
+\[
+\boxed{\{\,P\,\}\; \texttt{program}\; \{\,Q\,\}}
+\]
+
+where `program` is any sequence of statements that:
+
+1. reads `A`,
+2. reads `B`,
+3. computes a value `R` satisfying the conditions of \(Q\) (e.g. `R := A - B * \lfloor A / B \rfloor`),
+4. prints `R`.
+
+---
+
+### Remarks  
+
+* The pre‑condition restricts the domain exactly as required by the problem statement (`1 ≤ A,B ≤ 100 000`).  
+* The post‑condition captures the **whole** specification of the output: it is the *unique* remainder of the Euclidean division of `A` by `B`.  
+* No other side‑effects (e.g., extra output, modification of `A` or `B`) are permitted by the specification; they are implicitly forbidden because they are not mentioned in \(Q\).
+
+This formalisation can be used as the contract for verification, testing, or for proving the correctness of a concrete implementation (e.g., in C, Python, Java, etc.).

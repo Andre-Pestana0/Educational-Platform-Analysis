@@ -1,0 +1,149 @@
+Below is a **Hoare‑logic specification** of the required program.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true when the program terminates) are given – no implementation details are shown.
+
+---
+
+### Notation used
+
+* **Integers** are denoted by the set  \(\mathbb Z\);  \(\mathbb N\) denotes the non‑negative integers.  
+* For a year \(y\) let  
+
+\[
+\operatorname{leap}(y)\; \stackrel{\text{def}}{=}\;
+\bigl(y\bmod 4 =0 \land (y\bmod 100\neq 0 \lor y\bmod 400 =0)\bigr)
+\]
+
+* The number of days in a Gregorian year  
+
+\[
+\operatorname{days\_in\_year}(y)=
+\begin{cases}
+366 &\text{if } \operatorname{leap}(y)\\[2mm]
+365 &\text{otherwise}
+\end{cases}
+\]
+
+* Let  
+
+\[
+\operatorname{days\_between}(d_0,d) \;:=\;
+\#\{\,\text{calendar days from }d_0\text{ (exclusive) up to }d\text{ (inclusive)}\,\}
+\]
+
+* The **date addition** function  
+
+\[
+\operatorname{add\_days}(d_0,k) \;:=\;
+\text{the unique calendar date }d\text{ such that }
+\operatorname{days\_between}(d_0,d)=k .
+\]
+
+* The **average length of a Gregorian year** (including leap‑year corrections)  
+
+\[
+\overline{y}=365.2425\;\text{days}.
+\]
+
+* The **orbital periods** (in Earth years)  
+
+\[
+\begin{aligned}
+T_J &= 11.9\\
+T_S &= 29.6
+\end{aligned}
+\]
+
+* The **initial epoch** (the start of the count)  
+
+\[
+d_{\text{start}} = \text{2020‑12‑21}.
+\]
+
+* The rounding function \(\operatorname{rnd}(x)=\lfloor x+0.5\rfloor\) (round to the nearest integer).
+
+---
+
+### Program variables
+
+| Symbol | Meaning |
+|--------|---------|
+| \(N\) | input – ordinal number of revolutions (integer) |
+| \(d_J\) | number of Earth days elapsed after \(N\) revolutions of Jupiter |
+| \(d_S\) | number of Earth days elapsed after \(N\) revolutions of Saturn |
+| \(date_J\) | calendar date corresponding to \(d_J\) days after the start epoch |
+| \(date_S\) | calendar date corresponding to \(d_S\) days after the start epoch |
+
+All variables are of integer type except the two dates, which are ordered triples \((\text{year},\text{month},\text{day})\).
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\;
+\{\,P\,\}\; \text{program}\; \{\,Q\,\}
+\;}
+\]
+
+#### Pre‑condition  \(P\)
+
+\[
+P \; \equiv\;
+\bigl(N\in\mathbb Z \;\wedge\; 1\le N \le 50\bigr)
+\]
+
+The program may be invoked **only** with a positive integer \(N\) not larger than 50.
+
+#### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \; \equiv\; &
+\bigl(d_J = \operatorname{rnd}\bigl(N\cdot T_J\cdot \overline{y}\bigr)\bigr) \;\land\\
+&\bigl(d_S = \operatorname{rnd}\bigl(N\cdot T_S\cdot \overline{y}\bigr)\bigr) \;\land\\[2mm]
+&\bigl(date_J = \operatorname{add\_days}\bigl(d_{\text{start}},\,d_J\bigr)\bigr) \;\land\\
+&\bigl(date_S = \operatorname{add\_days}\bigl(d_{\text{start}},\,d_S\bigr)\bigr)
+\end{aligned}
+\]
+
+In words:
+
+* `d_J` is the **rounded** number of days obtained by multiplying the number of Jupiter revolutions \(N\) by its orbital period \(T_J\) (in Earth years) and by the average length of a Gregorian year \(\overline{y}\).  
+* `d_S` is defined analogously for Saturn.  
+* `date_J` (resp. `date_S`) is the calendar date that results from adding `d_J` (resp. `d_S`) days to the epoch date **2020‑12‑21**.
+
+The rounding step matches the values shown in the statement’s examples:
+
+\[
+\begin{aligned}
+N=1 &: \operatorname{rnd}(1\cdot 11.9\cdot 365.2425)=4346\\
+N=1 &: \operatorname{rnd}(1\cdot 29.6\cdot 365.2425)=10811\\
+\text{etc.}
+\end{aligned}
+\]
+
+The dates produced by `add_days` are required to be expressed in the ISO‑like format `yyyy‑mm‑dd`.
+
+---
+
+### Full Hoare specification
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,1\le N\le 50\;\land\;N\in\mathbb Z\,\}\\[2mm]
+\textbf{read }N;\\
+\textbf{compute }d_J := \operatorname{rnd}(N\cdot 11.9\cdot 365.2425);\\
+\textbf{compute }d_S := \operatorname{rnd}(N\cdot 29.6\cdot 365.2425);\\
+\textbf{compute }date_J := \operatorname{add\_days}(2020\!-\!12\!-\!21,\;d_J);\\
+\textbf{compute }date_S := \operatorname{add\_days}(2020\!-\!12\!-\!21,\;d_S);\\[2mm]
+\{\,d_J = \operatorname{rnd}(N\cdot 11.9\cdot 365.2425)\;\land\;
+d_S = \operatorname{rnd}(N\cdot 29.6\cdot 365.2425)\;\land\\
+\qquad\qquad
+date_J = \operatorname{add\_days}(2020\!-\!12\!-\!21,\;d_J)\;\land\;
+date_S = \operatorname{add\_days}(2020\!-\!12\!-\!21,\;d_S)\;}
+\end{array}
+}
+\]
+
+This Hoare triple completely characterises the required program: given a legal input \(N\) it must terminate with the two integer day counts and the two calendar dates that satisfy the mathematical relations above. The implementation may use any algorithm (e.g., a loop that adds one day at a time, or a direct conversion using the Gregorian calendar rules), provided the post‑condition holds.

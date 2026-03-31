@@ -1,0 +1,26 @@
+MEDIA = 0.0
+
+MEDIA = 10.0
+
+MEDIA = 2.0
+
+MEDIA = 3.0
+
+MEDIA = 5.0
+
+MEDIA = 8.0
+
+MEDIA = 7.0
+
+MEDIA = 5.0
+
+MEDIA = 6.8
+
+MEDIA = 6.1
+
+MEDIA = 6.3
+
+MEDIA = 4.7
+
+MEDIA = 8.5
+

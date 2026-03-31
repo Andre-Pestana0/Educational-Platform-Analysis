@@ -1,0 +1,39 @@
+Description: You will be given many input lines with strings. The value of each character in input is computed as follows:
+
+Input: The input contains many test cases. The first line of input contains an integerNthat indicates the amount of test cases. Each test case begin with an integerL(1 â¤Lâ¤ 100) that indicates the quantity of following lines. Each of theseLlines will contains a string with up to 50 uppercase letters ('A' - 'Z').
+
+Output: For each test case print the hash calculated according to the above explanation.
+
+Examples:
+- Example 1:
+  Input:
+5
+2
+CBA
+DDD
+1
+Z
+6
+A
+B
+C
+D
+E
+F
+6
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+1
+ZZZZZZZZZZ
+  Output:
+21
+25
+30
+4290
+295
+
+--

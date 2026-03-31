@@ -1,0 +1,92 @@
+Below is a **Hoare‑logic style specification** for the program described in the statement.  
+Only the **pre‑condition** (what must hold before the program starts) and the **post‑condition** (what must hold after the program terminates) are given; the body of the program is omitted.
+
+---
+
+### 1. Notation that will be used
+
+| Symbol | Meaning |
+|--------|----------|
+| `N` | Integer read from the first input line. |
+| `X[i]` | The *i*‑th integer read from the input, for `1 ≤ i ≤ N`. |
+| `out[i]` | The *i*‑th line that the program writes to the output (a string). |
+| `ℤ` | Set of all integers. |
+| `ℤ₊` | Set of positive integers (`{ x ∈ ℤ | x > 0 }`). |
+| `ℤ₋` | Set of negative integers (`{ x ∈ ℤ | x < 0 }`). |
+| `Even(x) ≡ (x mod 2 = 0)` | “x is even”. |
+| `Odd(x) ≡ ¬Even(x)` | “x is odd”. |
+| `Positive(x) ≡ (x ∈ ℤ₊)` | “x is positive”. |
+| `Negative(x) ≡ (x ∈ ℤ₋)` | “x is negative”. |
+| `NULL(x) ≡ (x = 0)` | “x is zero”. |
+| `Msg(e, s)` | The exact output string (in upper‑case) required for a value `x` that satisfies the two predicates `e` (even/odd) and `s` (sign). The definition is  
+
+\[
+\begin{aligned}
+\text{Msg}(\text{Odd},\text{Positive})   &= “\text{ODD POSITIVE}”\\
+\text{Msg}(\text{Odd},\text{Negative})   &= “\text{ODD NEGATIVE}”\\
+\text{Msg}(\text{Even},\text{Positive}) &= “\text{EVEN POSITIVE}”\\
+\text{Msg}(\text{Even},\text{Negative}) &= “\text{EVEN NEGATIVE}”\\
+\text{Msg}(\text{Even},\text{NULL})      &= “\text{NULL}”.\qquad(\text{the special rule for }0)
+\end{aligned}
+\]
+
+(Any other combination is impossible because `NULL` can occur only together with `Even`.)
+
+---
+
+### 2. Preconditions  
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\; & N \in \mathbb Z \;\land\; 0 < N < 10\,000 \\[2mm]
+            & \land\; \bigl(\forall i\;(1\le i \le N) \;.\; X[i] \in \mathbb Z \;\land\; -10^{7} < X[i] < 10^{7}\bigr)
+\end{aligned}}
+\]
+
+*Interpretation*: the first input line contains a positive integer `N` smaller than 10 000, and exactly `N` further integers are supplied, each lying strictly between \(-10^{7}\) and \(10^{7}\).
+
+---
+
+### 3. Postconditions  
+
+Let `out[1] … out[N]` be the sequence of lines the program writes (in the same order as the input numbers were read).  
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\; & \bigl(\forall i\;(1\le i \le N) \;.\; \\
+               & \qquad\bigl[\, NULL(X[i]) \;\rightarrow\; out[i] = \text{“NULL”} \,\bigr] \\
+               & \;\;\land\; \bigl[\, \neg NULL(X[i]) \;\rightarrow\;
+                     out[i] = \text{Msg}\bigl(
+                         \begin{cases}
+                             \text{Odd}   &\text{if } Odd(X[i])\\
+                             \text{Even}  &\text{if } Even(X[i])
+                         \end{cases},
+                         \begin{cases}
+                             \text{Positive} &\text{if } Positive(X[i])\\
+                             \text{Negative} &\text{if } Negative(X[i])
+                         \end{cases}
+                     \bigr) \,\bigr] \\
+               & \bigr)
+\end{aligned}}
+\]
+
+*Explanation of the clause*  
+
+* If `X[i] = 0` then the required line is exactly the string **“NULL”** (the special rule that suppresses the word *EVEN*).  
+* Otherwise the line must be the string returned by `Msg` according to the parity (`Odd`/`Even`) and the sign (`Positive`/`Negative`) of `X[i]`.  
+
+All strings are required to be **uppercase** and contain a single space between the two words, exactly as defined in `Msg`.
+
+---
+
+### 4. Hoare triple for the whole program  
+
+\[
+\boxed{\{ P \}\; \text{Program}\; \{ Q \}}
+\]
+
+The “Program’’ reads `N`, then reads the `N` integers `X[1] … X[N]`, computes for each `i` the appropriate message according to the rules above, and writes the sequence `out[1] … out[N]`.  
+
+If the implementation satisfies the Hoare triple, it is guaranteed to produce the exact output described in the problem statement for every admiss

@@ -1,0 +1,217 @@
+Below is a **complete Hoare‑logic proof** that the program
+
+```python
+X, EXP = map(int, input().split(' '))
+while X != 0 and EXP != 0:
+    print(X*EXP)
+    X, EXP = map(int, input().split(' '))
+```
+
+behaves exactly as the informal specification that is usually attached to the Beecrowd problem 2172:
+
+* **Pre‑condition** `P` : the two numbers supplied on the first line are integers.  
+  (No further restriction is required – the program works for any integer pair.)
+
+* **Post‑condition** `Q` :  
+  – For every pair `(x_i , e_i)` that has been read **before** the first occurrence of a zero in either component, the program has printed `x_i·e_i`.  
+  – The program terminates as soon as a pair `(x_k , e_k)` with `x_k = 0 ∨ e_k = 0` is read, and it does **not** print a product for that terminating pair.
+
+We will prove `{P}  prog  {Q}` by means of a **loop invariant** and the usual three steps of Hoare‑logic (initialisation, preservation, termination).
+
+---------------------------------------------------------------------
+
+## 1.  Notation
+
+* `⟨S⟩` denotes the Hoare triple `{pre} S {post}`.
+* `⌈e⌉` denotes the *value* of the expression `e` in the current state.
+* `read()` is the primitive that reads the next line from standard input and returns the two integers on that line.
+* `print(v)` is the primitive that prints the integer `v` followed by a newline.
+
+The program can be written in a language that makes the two primitives explicit:
+
+```
+1  (X,EXP) := read()                // line 1
+2  while (X ≠ 0 ∧ EXP ≠ 0) do
+3       print( X·EXP )               // line 3
+4       (X,EXP) := read()            // line 4
+5  od
+```
+
+---------------------------------------------------------------------
+
+## 2.  Loop invariant
+
+We choose the following invariant `I` for the `while` loop (lines 2‑5).
+
+```
+I ≡  (∀ i < k . printed_i = x_i·e_i)   ∧
+     (X = x_k) ∧ (EXP = e_k)           ∧
+     (X ≠ 0 ∧ EXP ≠ 0)
+```
+
+* `k` is the number of **iterations already completed** (i.e. the number of
+  pairs that have been *read* and whose product has already been printed).
+* `printed_i` denotes the value that was printed during the `i`‑th iteration.
+* `x_i , e_i` are the two integers that were read on the `i`‑th input line.
+
+In words:  
+
+> At the beginning of each loop iteration we have already printed the product
+> of the first `k` input pairs; the current values of the variables are the
+> `k`‑th pair `(x_k , e_k)`, and both components are non‑zero (otherwise the
+> loop would have stopped).
+
+---------------------------------------------------------------------
+
+## 3.  Proof structure
+
+We prove the Hoare triple
+
+```
+{P}  (X,EXP) := read();  while (X ≠ 0 ∧ EXP ≠ 0) do … od   {Q}
+```
+
+by the standard rule for while‑loops:
+
+```
+⟨I ∧ B⟩  body  ⟨I⟩        (preservation)
+⟨I ∧ ¬B⟩               (exit condition)
+─────────────────────────────────────────────────────
+⟨I⟩ while B do body od ⟨I ∧ ¬B⟩
+```
+
+where `B` is the loop guard `X ≠ 0 ∧ EXP ≠ 0` and `body` is the block
+(lines 3‑4).
+
+---------------------------------------------------------------------
+
+### 3.1  Initialization  (establishing the invariant before the first test)
+
+**Claim** : `{P} (X,EXP) := read() {I}`
+
+* After line 1 the program has read the **first** pair of integers.  
+  Call them `(x_0 , e_0)`.  
+* No product has been printed yet, therefore the universal quantifier in `I`
+  holds vacuously (`k = 0`).  
+* By definition of the assignment we have `X = x_0` and `EXP = e_0`.  
+* The guard `X ≠ 0 ∧ EXP ≠ 0` is *not* required for the invariant; the invariant
+  itself explicitly contains this conjunct, but it holds because it is
+  exactly the condition that will be tested in the very next step.  
+
+Thus the invariant `I` holds with `k = 0`. ∎
+
+
+
+---------------------------------------------------------------------
+
+### 3.2  Preservation  (showing that the body keeps the invariant)
+
+We must prove
+
+```
+⟨ I ∧ (X ≠ 0 ∧ EXP ≠ 0) ⟩
+    print( X·EXP );
+    (X,EXP) := read();
+⟨ I ⟩
+```
+
+Assume the invariant holds at the beginning of an iteration, i.e.
+
+* `∀ i < k . printed_i = x_i·e_i`          (induction hypothesis)
+* `X = x_k , EXP = e_k`
+* `x_k ≠ 0 ∧ e_k ≠ 0`                       (the guard is true)
+
+**Step 3 – `print( X·EXP )`**  
+
+The statement prints the value `x_k·e_k`. After it finishes we have
+
+```
+printed_k = x_k·e_k
+```
+
+and the other components of `I` are unchanged.
+
+**Step 4 – `(X,EXP) := read()`**  
+
+A new line is read; let it be `(x_{k+1} , e_{k+1})`. After the assignment
+
+```
+X = x_{k+1}
+EXP = e_{k+1}
+```
+
+The number of completed iterations becomes `k+1`.  
+All the conditions of `I` are now satisfied with `k` replaced by `k+1`:
+
+* For every `i < k+1` we have a printed product (`i < k` by the induction
+  hypothesis, `i = k` by the just‑executed `print`).  
+* The variables hold the new pair `(x_{k+1}, e_{k+1})`.  
+* The guard part `X ≠ 0 ∧ EXP ≠ 0` is *exactly* the loop condition that will be
+  re‑evaluated before the next iteration.
+
+Hence `I` holds again. ∎
+
+
+
+---------------------------------------------------------------------
+
+### 3.3  Termination (the loop exits with the post‑condition)
+
+When the loop finishes we have the **negation** of the guard:
+
+```
+¬(X ≠ 0 ∧ EXP ≠ 0)   ⇔   (X = 0 ∨ EXP = 0)
+```
+
+Together with the invariant we obtain the following state:
+
+* For every `i < k` the product `x_i·e_i` has been printed (the universal part of `I`).  
+* The current pair `(X,EXP)` is `(x_k , e_k)` and **at least one component is zero**.
+
+Because the guard is false, the program does **not** execute the body for this
+pair, i.e. it does **not** print `x_k·e_k`. This is precisely the required
+behaviour of the specification: the loop stops *exactly* when a zero appears
+in the input and all previous products have already been output.
+
+Consequently the post‑condition `Q` holds.
+
+---------------------------------------------------------------------
+
+## 4.  Full Hoare‑logic derivation
+
+Putting the three parts together we obtain the derivation tree:
+
+```
+{P}
+   (X,EXP) := read();
+   { I }                                    -- initialization (3.1)
+
+   while (X≠0 ∧ EXP≠0) do
+        { I ∧ (X≠0 ∧ EXP≠0) }
+        print(X·EXP);
+        (X,EXP) := read();
+        { I }                               -- preservation (3.2)
+   od
+   { I ∧ ¬(X≠0 ∧ EXP≠0) }                    -- while rule
+
+   ⇒ { Q }                                   -- because I ∧ ¬B is exactly Q
+```
+
+Thus we have proved the Hoare triple `{P} prog {Q}`; the program is **correct
+with respect to the given specification**.
+
+---------------------------------------------------------------------
+
+## 5.  Intuitive summary (for readers not familiar with formal notation)
+
+* The program reads a pair of integers.
+* As long as **both** numbers are non‑zero it prints their product and reads the
+  next pair.
+* The loop invariant guarantees that after `k` iterations the first `k`
+  products have already been printed and the current variables contain the
+  `(k+1)`‑st pair.
+* When a zero is encountered the invariant tells us that **all** earlier pairs
+  have been printed, and the loop stops without printing anything for the
+  terminating pair – exactly what the problem statement asks for.
+
+Hence the program satisfies the specification. ∎

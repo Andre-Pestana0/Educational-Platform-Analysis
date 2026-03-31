@@ -1,0 +1,118 @@
+1 nao eh perfeito
+
+496 eh perfeito
+
+8128 eh perfeito
+
+33550336 eh perfeito
+
+100000000 nao eh perfeito
+
+2 nao eh perfeito
+496 eh perfeito
+
+99991 nao eh perfeito
+12345678 nao eh perfeito
+99999999 nao eh perfeito
+
+1 nao eh perfeito
+2 nao eh perfeito
+3 nao eh perfeito
+4 nao eh perfeito
+5 nao eh perfeito
+6 eh perfeito
+7 nao eh perfeito
+8 nao eh perfeito
+9 nao eh perfeito
+10 nao eh perfeito
+11 nao eh perfeito
+12 nao eh perfeito
+13 nao eh perfeito
+14 nao eh perfeito
+15 nao eh perfeito
+16 nao eh perfeito
+17 nao eh perfeito
+18 nao eh perfeito
+19 nao eh perfeito
+20 nao eh perfeito
+21 nao eh perfeito
+22 nao eh perfeito
+23 nao eh perfeito
+24 nao eh perfeito
+25 nao eh perfeito
+26 nao eh perfeito
+27 nao eh perfeito
+29 nao eh perfeito
+30 nao eh perfeito
+31 nao eh perfeito
+32 nao eh perfeito
+33 nao eh perfeito
+34 nao eh perfeito
+35 nao eh perfeito
+36 nao eh perfeito
+37 nao eh perfeito
+38 nao eh perfeito
+39 nao eh perfeito
+40 nao eh perfeito
+41 nao eh perfeito
+42 nao eh perfeito
+43 nao eh perfeito
+44 nao eh perfeito
+45 nao eh perfeito
+46 nao eh perfeito
+47 nao eh perfeito
+48 nao eh perfeito
+49 nao eh perfeito
+50 nao eh perfeito
+51 nao eh perfeito
+52 nao eh perfeito
+53 nao eh perfeito
+54 nao eh perfeito
+55 nao eh perfeito
+56 nao eh perfeito
+57 nao eh perfeito
+58 nao eh perfeito
+59 nao eh perfeito
+60 nao eh perfeito
+61 nao eh perfeito
+62 nao eh perfeito
+63 nao eh perfeito
+64 nao eh perfeito
+65 nao eh perfeito
+66 nao eh perfeito
+67 nao eh perfeito
+68 nao eh perfeito
+69 nao eh perfeito
+70 nao eh perfeito
+71 nao eh perfeito
+72 nao eh perfeito
+73 nao eh perfeito
+74 nao eh perfeito
+75 nao eh perfeito
+76 nao eh perfeito
+77 nao eh perfeito
+78 nao eh perfeito
+79 nao eh perfeito
+80 nao eh perfeito
+81 nao eh perfeito
+82 nao eh perfeito
+83 nao eh perfeito
+84 nao eh perfeito
+85 nao eh perfeito
+86 nao eh perfeito
+87 nao eh perfeito
+88 nao eh perfeito
+89 nao eh perfeito
+90 nao eh perfeito
+91 nao eh perfeito
+496 eh perfeito
+8128 eh perfeito
+33550336 eh perfeito
+123456 nao eh perfeito
+999999 nao eh perfeito
+1000000 nao eh perfeito
+5000000 nao eh perfeito
+9999999 nao eh perfeito
+12345678 nao eh perfeito
+25000000 nao eh perfeito
+

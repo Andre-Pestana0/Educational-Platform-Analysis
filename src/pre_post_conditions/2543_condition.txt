@@ -1,0 +1,106 @@
+**Hoare‑style specification of the algorithm**
+
+We denote  
+
+* `N` – number of video records that follow (the first integer of a test case)  
+* `I` – the university‑ID of *you* (the second integer of the test case)  
+
+For each `k = 1 … N` we read a pair  
+
+\[
+(id_k ,\; f_k)\in\mathbb Z\times\{0,1\}
+\]
+
+where  
+
+* `id_k` is the ID of the player that appears in the *k*‑th video,  
+* `f_k = 1` means that the video is of a **Contra‑Strike** gameplay, and `f_k = 0` means it is not.
+
+The required answer for the test case is the number of videos that satisfy **both**
+
+\[
+id_k = I\quad\text{and}\quad f_k = 1 .
+\]
+
+---------------------------------------------------------------------
+
+### 1.  Pre‑condition  \(P\)
+
+\[
+\boxed{
+\begin{aligned}
+P \;\equiv\;& 1\le N \le 10^{4}\;\land\;1000\le I\le 9999 \\[2mm]
+        &\land\;\bigl(\forall k\in\{1,\dots ,N\}\bigr)\;
+               \bigl( 1000\le id_k\le 9999\;\land\; f_k\in\{0,1\}\bigr)
+\end{aligned}}
+\]
+
+(We only require that the input conforms to the limits given in the statement; the concrete values of the `id_k` and `f_k` are otherwise unrestricted.)
+
+---------------------------------------------------------------------
+
+### 2.  Post‑condition  \(Q\)
+
+Let  
+
+\[
+C \;:=\; \bigl|\{\,k\mid 1\le k\le N\;\land\;id_k = I\;\land\;f_k = 1\,\}\bigr|
+\]
+
+be the cardinality of the set of “your Contra‑Strike videos”.  
+The program must output exactly this number, i.e.
+
+\[
+\boxed{ Q \;\equiv\; \text{output}=C }
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Hoare triple for the whole program (one test case)
+
+\[
+\boxed{\{P\}\;\; \texttt{count\_CS\_videos}(N,I,\{(id_k,f_k)\}_{k=1}^{N})\;\; \{Q\}}
+\]
+
+---------------------------------------------------------------------
+
+### 4.  Sketch of the program that satisfies the specification  
+
+```
+counter ← 0
+for k = 1 to N do
+        read id_k , f_k
+        if (id_k = I) ∧ (f_k = 1) then
+                counter ← counter + 1
+        fi
+od
+print counter
+```
+
+*Loop invariant* (used for a formal proof)
+
+\[
+I_k:\;\; \text{counter} = 
+\bigl|\{\,j\mid 1\le j\le k\;\land\;id_j = I\;\land\;f_j = 1\,\}\bigr|
+\]
+
+*Initialization*: before the first iteration (`k = 0`) the set on the right‑hand side is empty, so `counter = 0` – `I_0` holds.  
+
+*Maintenance*: assuming `I_k` holds at the start of iteration `k+1`, the body either leaves `counter` unchanged (if the new pair does **not** satisfy the condition) or increments it by one (if it does). In both cases `I_{k+1}` becomes true.  
+
+*Termination*: after the loop `k = N`, thus `I_N` gives exactly the definition of `C`. The final `print` statement produces the value required by `Q`.
+
+---------------------------------------------------------------------
+
+### 5.  Whole‑input handling
+
+If the file contains several test cases, the same Hoare triple is applied repeatedly until end‑of‑file, each time with its own fresh variables `N, I, (id_k,f_k)`. The global pre‑condition is simply “the file consists of a (finite) sequence of well‑formed test cases”, and the global post‑condition is “for each test case the program prints the correct count”.
+
+---------------------------------------------------------------------
+
+**Summary**
+
+*Pre‑condition* guarantees a well‑formed test case (`N`, `I`, and each pair `(id_k,f_k)` respect the bounds).  
+*Post‑condition* guarantees that the printed number equals the cardinality of the set of records where the player ID equals `I` **and** the flag equals `1`.  
+
+Thus the Hoare triple `{P} program {Q}` precisely captures the required behaviour of the problem.

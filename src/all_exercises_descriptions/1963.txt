@@ -1,0 +1,26 @@
+Description: Welcome to the 3rdUFFSJuniorProgramming Contest. We sincerely hope the next hours are very productive to you, you get many balloons and, above all, you have fun! Remember that you can ask for a clarification whenever you are not sure that you understand a problem description. Remember also that at 17.30 the automatic judges will be turned off and the competition will enter blind mode, so that all submissions made during this period will begin to be judged only at 18.10. Please stay with us till the end of the competition, working on solutions for the problems till the last minute, because, as long as the contest is running, there is still hope!
+
+Input: The only input line consists of two valuesAandB(0.00 <Aâ¤Bâ¤ 1000.00), given with exactly two digits after the decimal point, which represent respectively the old and the new prices of the cinema tickets.
+
+Output: The only output line shall consist of a single value, representing as a percentage the ticket price increase. The value shall be followed by the symbol%and shall contain two digits after the decimal point.
+
+Examples:
+- Example 1:
+  Input:
+20.00 30.00
+  Output:
+50.00%
+
+- Example 2:
+  Input:
+50.00 100.00
+  Output:
+100.00%
+
+- Example 3:
+  Input:
+10.00 10.00
+  Output:
+0.00%
+
+--

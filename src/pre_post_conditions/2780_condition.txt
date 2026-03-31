@@ -1,0 +1,74 @@
+Below is a **Hoare‑logic specification** of the (very small) program that reads the distance `D` and writes the number of points `P`.  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what must be true when it finishes) are given – the body of the program itself can be any implementation that respects these two logical assertions.
+
+---
+
+### Variables  
+
+* `D` – integer input, distance of the robot from the start line (centimetres).  
+* `P` – integer output, the number of points awarded.
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{\,\mathsf{Pre}\;:\; 0 \le D \le 2000 \;\land\; D\in\mathbb Z\,}
+\]
+
+The program may be invoked only for a distance that lies inside the court (0 cm … 2000 cm) and is an integer, exactly as required by the statement of the problem.
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{\,\mathsf{Post}\;:\; 
+\begin{aligned}
+& P\in\{1,2,3\}\ \land\\[2mm]
+& \bigl( (D\le 800\ \land\ P=1) \;\lor\; 
+      (800 < D \le 1400\ \land\ P=2) \;\lor\; 
+      (1400 < D \le 2000\ \land\ P=3) \bigr)
+\end{aligned}}
+\]
+
+In words:  
+
+* `P` is one of the three admissible scores, **and**  
+* the value of `P` matches the interval in which the input distance `D` falls, exactly according to the three rules of the specification.
+
+---
+
+### Hoare triple (total correctness)
+
+\[
+\boxed{\;\{\,\mathsf{Pre}\,\}\; \textbf{program}\; \{\,\mathsf{Post}\,\}\;}
+\]
+
+Because the program consists of a finite number of conditional branches, termination is guaranteed; therefore the triple expresses **total correctness** (partial correctness + termination).
+
+---
+
+### Equivalent mathematical definition (for reference)
+
+If one prefers to view the specification as a pure mathematical function, it can be written as the piece‑wise function  
+
+\[
+f : \{0,\dots,2000\}\to\{1,2,3\},\qquad 
+f(D)=
+\begin{cases}
+1 &\text{if } D\le 800,\\[2mm]
+2 &\text{if } 800 < D \le 1400,\\[2mm]
+3 &\text{if } 1400 < D \le 2000 .
+\end{cases}
+\]
+
+The Hoare‑logic post‑condition above is precisely the statement  
+
+\[
+P = f(D).
+\]
+
+---
+
+Thus the formal specification of the problem is completely captured by the pre‑condition `0 ≤ D ≤ 2000` and the post‑condition that `P` equals the appropriate piece‑wise value of `D`. Any program that satisfies the Hoare triple `{Pre} program {Post}` will be a correct solution to the “Robot Basketball Olympiad” scoring task.

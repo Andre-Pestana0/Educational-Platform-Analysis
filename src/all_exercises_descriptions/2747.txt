@@ -1,0 +1,20 @@
+Description: Your programming teacher would like to make a screen with the following characteristics:
+
+Input: There is no.
+
+Output: The output will be printed as shown above.
+
+Examples:
+- Example 1:
+  Input:
+
+  Output:
+---------------------------------------
+|                                     |
+|                                     |
+|                                     |
+|                                     |
+|                                     |
+---------------------------------------
+
+--

@@ -1,0 +1,84 @@
+Below is a **Hoare‑logic style specification** for a program that reads a sequence of integers and prints, for each one, whether it is prime.  
+Only the **pre‑condition** (what must hold before the program starts) and the **post‑condition** (what must hold after it terminates) are given – the body of the program is omitted.
+
+---
+
+### Notation used  
+
+* `ℕ` – the set of natural numbers (including 0).  
+* `ℤ⁺` – the set of positive integers.  
+* `1 ≤ N ≤ 100` – the number of test cases.  
+* `X[i] ∈ ℤ⁺` – the *i*‑th input value (1‑indexed).  
+* `Prime(x)` – the usual arithmetic predicate  
+
+\[
+Prime(x) \;\equiv\; x>1 \;\wedge\; \forall d\;(1<d<x \;\rightarrow\; d\nmid x)
+\]
+
+* `out[i]` – the *i*‑th line that the program writes to the output stream.  
+  We treat the two possible strings as logical values  
+
+\[
+\begin{aligned}
+\text{YES}(x) &:= \text{``}x\;eh\;primo\text{''} \\[2pt]
+\text{NO}(x)  &:= \text{``}x\;nao\;eh\;primo\text{''}
+\end{aligned}
+\]
+
+* `↔` – logical equivalence.
+
+---
+
+## Specification
+
+\[
+\boxed{\{\,P\,\}\; \textbf{Program}\; \{\,Q\,\}}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \; \equiv\; &\exists N\in\mathbb N\;.\;
+   1 \le N \le 100\; \wedge \\[2pt]
+   &\exists X\;:\;[1..N]\rightarrow\mathbb Z^{+}\;.\;
+   \bigl(\forall i\;(1\le i\le N \;\rightarrow\; 1 < X(i) \le 10^{7})\bigr)
+\end{aligned}
+\]
+
+*Interpretation*:  
+There is a natural number `N` (the number of test cases) satisfying `1 ≤ N ≤ 100`, and there is a total function `X` that maps each index `i` in `{1,…,N}` to a positive integer `X(i)` with `1 < X(i) ≤ 10⁷`. These values are exactly the data that will be read from the input stream.
+
+---
+
+### Post‑condition \(Q\)
+
+\[
+\begin{aligned}
+Q \; \equiv\; &\bigl(\forall i\;(1\le i\le N)\; \rightarrow\; \\
+   &\qquad\bigl(out(i)=\text{YES}(X(i)) \;\leftrightarrow\; Prime(X(i))\bigr) \;\wedge\\
+   &\qquad\bigl(out(i)=\text{NO}(X(i)) \;\leftrightarrow\; \neg Prime(X(i))\bigr)\bigr)
+\end{aligned}
+\]
+
+*Interpretation*:  
+For every index `i` from `1` to `N` the program writes exactly one line `out(i)`.  
+That line is the string "`X(i) eh primo`" **iff** `X(i)` satisfies the predicate `Prime`, and it is the string "`X(i) nao eh primo`" **iff** `X(i)` is **not** prime.
+
+---
+
+## Full Hoare triple
+
+\[
+\boxed{
+\{\,\exists N\; (1\le N\le100)\;\wedge\;\exists X:[1..N]\to\mathbb Z^{+}\;
+      (\forall i\;1\le i\le N\;.\;1<X(i)\le10^{7})\,\}
+\; \textbf{Program}
+\; \{
+   \forall i\;(1\le i\le N)\;.\;
+   \bigl(out(i)=\text{YES}(X(i))\leftrightarrow Prime(X(i))\bigr)
+\}
+}
+\]
+
+The body of the program (the algorithm that actually tests primality) is **not** part of the specification; any implementation that, when started in a state satisfying the pre‑condition, terminates in a state satisfying the post‑condition is considered correct.

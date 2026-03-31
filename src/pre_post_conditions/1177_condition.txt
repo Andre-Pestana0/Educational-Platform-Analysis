@@ -1,0 +1,90 @@
+**Hoare‑style specification**
+
+We denote  
+
+* `T ∈ ℤ` – the integer read from the input,  
+* `N : {0,…,999} → ℤ` – the array (vector) that will hold the result,  
+* `out` – the finite sequence of strings that the program writes to the standard output.  
+
+The program consists of three logical parts  
+
+1. **Input** – read `T`.  
+2. **Computation** – fill the whole array `N`.  
+3. **Output** – print, for every index `i`, the line `N[i] = N[i]`.  
+
+Below we give a Hoare triple ` {P}  C  {Q}` where `C` is the whole program (steps 1‑3).
+
+---
+
+### Pre‑condition  `P`
+
+\[
+\boxed{
+P \;\; \equiv\;\;
+\bigl(2 \le T \le 50\bigr)\;\land\;
+\bigl(\operatorname{len}(N)=1000\bigr)
+}
+\]
+
+* `2 ≤ T ≤ 50` – the admissible range required by the statement.  
+* `len(N)=1000` – the array `N` is allocated with exactly 1000 cells (indices `0,…,999`).  
+  No assumption is made about the initial contents of `N`.
+
+---
+
+### Post‑condition  `Q`
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\; \equiv\;\; &\Bigl(\forall i\in\{0,\dots,999\}\;.\;
+        N[i] = i \bmod T\Bigr) \\[2mm]
+&\;\land\; 
+\Bigl(\forall i\in\{0,\dots,999\}\;.\;
+        \text{out}_{i}= \text{``}N[i] = \, N[i]\text{''}\Bigr)
+\end{aligned}
+}
+\]
+
+* **Array invariant** – after the computation each cell contains the remainder of the index divided by `T`.  
+  This is exactly the “repeat the numbers `0,…,T‑1`” requirement.  
+* **Output invariant** – the program prints, in order of increasing index, a line of the form  
+
+  \[
+  \text{``}N[i] = x\text{''}\quad\text{with }x=N[i].
+  \]
+
+  Hence the output sequence `out` consists of `1000` strings, one per array position.
+
+---
+
+### Hoare triple
+
+\[
+\boxed{
+\{ \;2 \le T \le 50 \;\land\; \operatorname{len}(N)=1000\; \}
+\;\; \textbf{Program} \;\;
+\{ \;
+\forall i\in\{0,\dots,999\}\!.\; N[i]=i\bmod T
+\;\land\;
+\forall i\in\{0,\dots,999\}\!.\; \text{out}_{i}=``N[i] =\; N[i]''\;
+\}
+}
+\]
+
+---
+
+### Remarks on the specification  
+
+* The **domain** `\{0,…,999\}` is written as `\{0,\dots,999\}` or equivalently `\mathbb{Z}_{1000}`.  
+* The **modulo** operator `\bmod` yields a value in `{0,…,T‑1}`; thus `i mod T` implements the required “repetition”.  
+* The output condition can be expressed more compactly as  
+
+  \[
+  \text{out}= \bigl\langle\,\text{``}N[0] = N[0]\text{''},\,
+                    \text{``}N[1] = N[1]\text{''},\dots,
+                    \text{``}N[999] = N[999]\text{''}\,\bigr\rangle .
+  \]
+
+* The triple is **partial‑correctness**: it states that *if* the program terminates, then the array and the printed lines satisfy the described properties.  
+  Termination follows from the simple bounded loops (at most 1000 iterations), which can be proved separately if desired.  

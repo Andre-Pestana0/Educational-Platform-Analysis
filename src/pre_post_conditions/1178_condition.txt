@@ -1,0 +1,90 @@
+Below is a **Hoare‑style specification** for a program that implements the described task.  
+Only the *pre‑condition* (**P**) and the *post‑condition* (**Q**) are given; the program body **S** (reading the input, filling the array, printing it) is understood to be any sequence of statements that satisfies the specification.
+
+---
+
+### Notation used  
+
+* `X` – the number read from the input (a double‑precision floating‑point value).  
+* `N[0..99]` – an array of length 100 of real numbers (the program may treat the elements as `double`).  
+* `i` – an integer index, `0 ≤ i ≤ 99`.  
+* `⌊·⌋₄` – “rounded to four decimal places’’ (the usual IEEE‑754 rounding mode for the output format).  
+* `print(i, v)` – the side‑effect of writing the line  
+
+```
+N[i] = v
+```
+
+to the standard output, where `v` is displayed with exactly four digits after the decimal point.  
+
+* `2^i` – the usual integer power of 2.  
+
+All quantifiers range over the indicated finite sets.
+
+---
+
+## Specification
+
+\[
+\{\,\underbrace{P}_{\text{pre‑condition}}\,\}\;\;S\;\;\{\,\underbrace{Q}_{\text{post‑condition}}\,\}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;&
+\bigl( X \in \mathbb{R} \bigr)                     &&\text{(the input is a real number)} \\[2mm]
+\land\;&
+\bigl(\text{the input is presented with exactly four decimal digits}\bigr) 
+      &&\text{(i.e. } X = \operatorname{round}_{4}(X)\text{)} \\[2mm]
+\land\;&
+\bigl( N[0..99] \text{ exists and is mutable} \bigr) .
+\end{aligned}
+\]
+
+(The pre‑condition does **not** impose any bound on the magnitude of `X`; any double‑precision value is admissible.)
+
+### Post‑condition \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\;&
+\bigl(\forall i \in \{0,\dots ,99\}\;:\; N[i] = \frac{X}{2^{\,i}}\bigr)   &&\text{(array filled correctly)} \\[2mm]
+\land\;&
+\bigl(\forall i \in \{0,\dots ,99\}\;:\; 
+      print(i,\; \operatorname{round}_{4}(N[i]))\bigr)               &&\text{(exact output)} \\[2mm]
+\land\;&
+\bigl(\text{the program terminates after printing the 100 lines}\bigr) .
+\end{aligned}
+\]
+
+---
+
+### Remarks  
+
+* The relation `N[i] = X / 2ⁱ` is equivalent to the recursive definition  
+
+  \[
+  N[0] = X,\qquad 
+  N[i] = \frac{N[i-1]}{2}\;\;(1\le i\le 99).
+  \]
+
+* The `print` clause guarantees that each line appears in the required format  
+  `N[i] = y` where `y` is the value of `N[i]` rounded to exactly four digits after the decimal point (the same formatting used in the examples).
+
+* The specification is **total**: for every admissible input `X` satisfying `P`, any execution of `S` that respects the Hoare triple will produce the array and the output described by `Q` and then terminate.
+
+---
+
+Thus the formal Hoare triple that captures the whole problem is
+
+\[
+\boxed{\;
+\{\,X\in\mathbb{R}\land X=\operatorname{round}_{4}(X)\,\}\;S\;
+\{\,\forall i\in[0,99]\;N[i]=X/2^{i}\;\land\;
+        \forall i\in[0,99]\;print(i,\operatorname{round}_{4}(N[i]))\;\}
+\;}
+\]
+
+where `S` is any implementation that reads `X`, fills the 100‑element array as prescribed, prints each entry, and then stops.

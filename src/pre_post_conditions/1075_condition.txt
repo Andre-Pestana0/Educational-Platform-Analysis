@@ -1,0 +1,83 @@
+Below is a **Hoare‑logic style specification** of the required program.  
+Only the *pre‑condition* \(P\) (what must be true before the program starts) and the *post‑condition* \(Q\) (what must be true when the program terminates) are given – the body of the program itself is omitted, as requested.
+
+---
+
+### Variables that appear in the specification  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(N\)   | the integer read from the input (the divisor) |
+| \(\text{out}\) | a finite sequence of integers that the program prints, one per line, in the order they are produced |
+| \(\mathbb Z\) | the set of all (mathematical) integers |
+| \(\operatorname{mod}(a,b)\) | the remainder of the Euclidean division of \(a\) by \(b\) (always \(0\le \operatorname{mod}(a,b)<b\)) |
+| \(\{\,x\mid \phi(x)\,\}\) | the set of all integers that satisfy the predicate \(\phi\) |
+| \(\operatorname{sort}\bigl(S\bigr)\) | the increasing‑order enumeration of a finite set \(S\) as a sequence |
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\boxed{P \; \equiv\; N\in\mathbb Z \;\wedge\; 1\le N < 10\,000}
+\]
+
+The program may be started only when an **integer** \(N\) has been read and it satisfies the bound required by the problem statement.
+
+---
+
+### Post‑condition  \(Q\)
+
+Let  
+
+\[
+S(N) \;=\;\bigl\{\,x\in\mathbb Z \mid 1\le x\le 10\,000 \;\wedge\; \operatorname{mod}(x,N)=2 \,\bigr\}.
+\]
+
+\(S(N)\) is exactly the set of numbers between 1 and 10 000 whose remainder upon division by \(N\) is 2.
+
+The post‑condition demands that the output sequence \(\text{out}\) is precisely the **sorted enumeration** of this set:
+
+\[
+\boxed{Q \; \equiv\; \text{out}= \operatorname{sort}\bigl(S(N)\bigr)}
+\]
+
+Equivalently, one can spell out the three properties that \(\text{out}\) must satisfy:
+
+1. **Coverage** – every element of \(\text{out}\) belongs to \(S(N)\)  
+
+   \[
+   \forall i\;(1\le i\le |\text{out}| \;\Rightarrow\; \text{out}_i\in S(N)).
+   \]
+
+2. **Exhaustiveness** – every element of \(S(N)\) appears in \(\text{out}\)  
+
+   \[
+   \forall x\;(x\in S(N) \;\Rightarrow\; \exists i\;(1\le i\le |\text{out}|\;\wedge\; \text{out}_i = x)).
+   \]
+
+3. **Strictly increasing order** (the “one per line” requirement)  
+
+   \[
+   \forall i\;(1\le i<|\text{out}| \;\Rightarrow\; \text{out}_i < \text{out}_{i+1}).
+   \]
+
+---
+
+### Hoare triple
+
+Putting the two parts together, the **formal specification** of the whole program is the Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\; \text{Program}\;\; \{\,Q\,\}}
+\]
+
+or, explicitly:
+
+\[
+\{\, N\in\mathbb Z \wedge 1\le N<10\,000 \,\}
+\;\;\text{read }N;\;\;\text{print each }x\text{ with }1\le x\le10\,000\text{ and }x\!\bmod N =2\;
+\{\,\text{out}= \operatorname{sort}\bigl(\{x\mid 1\le x\le10\,000\wedge x\bmod N=2\}\bigr) \,\}
+\]
+
+The triple states that **if** the input satisfies the pre‑condition, **then** after termination the program will have printed **exactly** the numbers required by the problem statement, each on its own line, in increasing order.

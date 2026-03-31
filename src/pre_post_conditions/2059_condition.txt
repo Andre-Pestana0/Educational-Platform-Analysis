@@ -1,0 +1,100 @@
+Below is a **Hoare‑logic style specification** for the program that solves the “Odd, Even or Cheating” problem.  
+Only the *pre‑condition* (what is guaranteed about the input) and the *post‑condition* (what must hold about the output) are given; the body of the program is omitted, because the request asked for the formal specification only.
+
+---
+
+### 1.   Variables  
+
+| Symbol | Meaning | Domain |
+|--------|---------|--------|
+| `p`    | parity chosen by **player 2** ( 0 = even, 1 = odd ) | `{0,1}` |
+| `j₁`   | number shown by **player 1** | `{1,…,100}` |
+| `j₂`   | number shown by **player 2** | `{1,…,100}` |
+| `r`    | “cheating flag’’ of **player 1** ( 1 means player 1 cheats) | `{0,1}` |
+| `a`    | “cheating flag’’ of **player 2** ( 1 means player 2 cheats) | `{0,1}` |
+| `w`    | winner that the program must output (`1` = player 1, `2` = player 2) | `{1,2}` |
+
+---
+
+### 2.   Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\text{Pre} \;\equiv\;& 
+0 \le p \le 1 \;\land\; 0 \le r \le 1 \;\land\; 0 \le a \le 1 \\
+&\land\; 1 \le j_{1} \le 100 \;\land\; 1 \le j_{2} \le 100 .
+\end{aligned}}
+\]
+
+The pre‑condition simply records the limits that appear in the problem statement.
+
+---
+
+### 3.   Auxiliary definitions (used in the post‑condition)
+
+*Parity of the sum*  
+
+\[
+s \;:=\; (j_{1}+j_{2}) \bmod 2 \;\in\;\{0,1\}.
+\]
+
+*Exclusive‑or of the cheating flags*  
+
+\[
+\operatorname{xor}(r,a) \;:=\; (r\neq a) .
+\]
+
+---
+
+### 4.   Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\text{Post} \;\equiv\;& 
+\bigl( r = a \bigr) \;\Longrightarrow\;
+   \bigl( w = 2 \;\iff\; s = p \bigr)                           \\
+&\;\;\land\;
+\bigl( r \neq a \bigr) \;\Longrightarrow\;
+   \bigl( w = 1 \;\iff\; r = 1 \bigr) \;\land\;
+   \bigl( w = 2 \;\iff\; a = 1 \bigr) .
+\end{aligned}}
+\]
+
+Explanation of the two cases:
+
+1. **Both players are honest or both cheat** (`r = a`).  
+   The winner is decided by the ordinary “odd‑or‑even’’ rule:  
+   *player 2* wins exactly when the parity of the sum (`s`) equals the parity that player 2 selected (`p`).  
+   Otherwise *player 1* wins.
+
+2. **Exactly one player cheats** (`r ≠ a`).  
+   The cheating player automatically wins:  
+   – if `r = 1` (player 1 cheats) then `w = 1`;  
+   – if `a = 1` (player 2 cheats) then `w = 2`.
+
+---
+
+### 5.   Hoare triple
+
+\[
+\boxed{
+\{\,\text{Pre}\,\}\;\; \texttt{OEC‑program}\;\; \{\,\text{Post}\,\}
+}
+\]
+
+Any implementation of the program that, starting from a state satisfying **Pre**, terminates in a state satisfying **Post** is a correct solution of the problem.  
+
+The post‑condition precisely captures the required output:
+
+* print **“Jogador 1 ganha!”** when `w = 1`;
+* print **“Jogador 2 ganha!”** when `w = 2`.
+
+---  
+
+#### Remarks  
+
+* The choice of `p` as the parity selected by *player 2* is the only interpretation that makes the three sample executions fit the specification (see the analysis in the answer’s pre‑amble).  
+* The specification is *total*: it defines the winner for **every** admissible input tuple `(p,j₁,j₂,r,a)`.  
+* The program body can be any algorithm that computes `s`, tests the two cases above, and prints the corresponding Portuguese message.

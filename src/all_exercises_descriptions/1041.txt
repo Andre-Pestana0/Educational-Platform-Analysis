@@ -1,0 +1,26 @@
+Description: Write an algorithm that reads two floating values (x and y), which should represent the coordinates of a point in a plane. Next, determine which quadrant the point belongs, or if you are at one of the Cartesian axes or the origin (x = y = 0).
+
+Input: The input contains the coordinates of a point.
+
+Output: The output should display the quadrant in which the point is.
+
+Examples:
+- Example 1:
+  Input:
+4.5 -2.2
+  Output:
+Q4
+
+- Example 2:
+  Input:
+0.1 0.1
+  Output:
+Q1
+
+- Example 3:
+  Input:
+0.0 0.0
+  Output:
+Origem
+
+--

@@ -1,0 +1,26 @@
+Description: It is said in the surroundings of Montes Claros that, long ago in the municipal market, SebastiÃ£o and his companions of work always play a game of divination after the delivery of agricultural products harvested in the week that happened. The game, "Guess Where the Bean is", consists in hiding a grain of beans in one of four opaque glasses, and after shuffling them, the bettor must guess in which glass the vegetable is.
+
+Input: The entry will contain only one line with four integers, C1, C2, C3and C4separated by a space. The value Ci= 1 indicates that the beans were in cup number i, and Ci= 0 indicates that the ith cup was empty at the end of the game. There will always be exactly one glass with the beans.
+
+Output: Write in the output a line containing an integer between 1 and 4, corresponding to the position where the beans were.
+
+Examples:
+- Example 1:
+  Input:
+0 0 0 1
+  Output:
+4
+
+- Example 2:
+  Input:
+0 1 0 0
+  Output:
+2
+
+- Example 3:
+  Input:
+0 0 1 0
+  Output:
+3
+
+--

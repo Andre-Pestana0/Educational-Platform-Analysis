@@ -1,0 +1,307 @@
+## 1.  What we have to prove  
+
+We are asked to **prove** that the program that follows the specification  
+
+*Pre‑condition*  
+
+```
+P :   1 ≤ n₀ ≤ 3999                (the input is a positive integer that can be written
+                                   with the usual Roman symbols)
+```
+
+*Post‑condition*  
+
+```
+Q :   the characters that are printed (in the order they appear) form a string S
+      such that  value(S) = n₀
+```
+
+where `value` is the usual interpretation of a Roman numeral (e.g. “MCMXCIV” = 1994).  
+
+The program is written in Python; we shall treat every statement as an elementary
+command of a simple imperative language **P** (assignments, `while`, `for`,
+`print`).  The proof is carried out in the style of **Hoare Logic**: we give a
+Hoare triple  
+
+```
+{ P }  program  { Q }
+```
+
+and we justify it by means of loop invariants, the assignment axiom and the
+consequence rule.
+
+--------------------------------------------------------------------
+
+## 2.  The program (rewritten in a more formal syntax)
+
+```
+1  numero := n₀                               // read the input
+2  for i in L do                              // L = [1000,900,500,400,100,90,50,40,10,9,5,4,1]
+3      while numero ≥ i do
+4          print( roman(i) )                 // roman(i) returns the Roman symbol for i
+5          numero := numero – i
+6      od
+7  od
+8  print( '\n' )
+```
+
+*Note*: `roman(i)` is a **pure** function that returns a constant string that
+represents the Roman “digit” of value `i`.  Its specification is
+
+```
+∀ i ∈ L .  value( roman(i) ) = i .
+```
+
+--------------------------------------------------------------------
+
+## 3.  The outer `for`‑loop is just syntactic sugar  
+
+The `for`‑loop iterates over a **fixed, finite list** `L`.  It can be replaced by a
+sequence of statements that execute the body for each element of `L` in order.
+Because the list is finite, the outer loop does not need a special invariant;
+its correctness follows from the correctness of the inner `while`‑loops that
+are executed for each element.
+
+--------------------------------------------------------------------
+
+## 4.  Invariant for the inner `while`‑loop  
+
+For a given value `i ∈ L` we define the following **loop invariant** `I(i)` :
+
+```
+I(i) ≡  (   printed_prefix  =  roman_string_of( n₀ – numero )
+         ∧ 0 ≤ numero < i_next )
+```
+
+* `printed_prefix` denotes the concatenation of all symbols that have already
+  been printed (the `print` statements that belong to the current iteration of
+  the `for`‑loop and to any previous iterations).
+* `roman_string_of(k)` is the (unique) Roman string whose value is `k`.  
+  (We do **not** need to know the exact string; we only need the fact that it
+   exists and that `value(roman_string_of(k)) = k`.)
+* `i_next` is the **next** element of the list `L` after `i`.  
+  If `i` is the last element (`i = 1`) we set `i_next = 0`.  
+
+Intuitively, `I(i)` says:
+
+*The characters already printed represent exactly the part of the original
+number that has been *subtracted* from `n₀`; the remaining value stored in
+`numero` is always smaller than the next Roman digit that we are going to try.*
+
+--------------------------------------------------------------------
+
+### 4.1  Initialization of `I(i)`
+
+Before the first test of the `while`‑condition (`numero ≥ i`) we have
+
+* `printed_prefix` is **empty**, i.e. the empty string `ε`.  
+  Therefore `printed_prefix = roman_string_of( n₀ – numero )` holds because
+  `n₀ – numero = 0`.
+* `numero` still contains the original input value `n₀`.  
+  Since the list `L` is sorted in **decreasing** order, we have `n₀ < i_next`
+  (the next larger value). Hence `0 ≤ numero < i_next` is true.
+
+Thus `I(i)` holds **initially**.
+
+--------------------------------------------------------------------
+
+### 4.2  Preservation of `I(i)`
+
+Assume that the invariant holds at the beginning of an iteration of the
+`while`‑loop and that the guard `numero ≥ i` is true.  
+The body executes two statements:
+
+1. `print( roman(i) )`.  
+   By the specification of `roman`, `value( roman(i) ) = i`.  
+   Consequently the new `printed_prefix` equals the old one concatenated with
+   `roman(i)`.  Hence the value represented by the new prefix is  
+
+   ```
+   (n₀ – numero) + i = n₀ – (numero – i) .
+   ```
+
+2. `numero := numero – i`.  
+
+   After the assignment `numero` becomes `numero' = numero – i`.  
+
+Putting the two together we obtain
+
+```
+new printed_prefix = roman_string_of( n₀ – numero' )
+```
+
+so the first part of `I(i)` is preserved.
+
+Because `i` is the **largest** value still ≤ `numero` (the `while` guard guarantees
+`numero ≥ i` and the loop condition will be false as soon as `numero < i`), after
+the subtraction we have
+
+```
+0 ≤ numero' < i .
+```
+
+Since `i ≤ i_next` (the list is decreasing) we also obtain  
+
+```
+0 ≤ numero' < i_next .
+```
+
+Thus the second part of the invariant is also preserved.
+
+--------------------------------------------------------------------
+
+### 4.3  Termination of the `while`‑loop  
+
+Inside the loop we execute `numero := numero – i`.  
+Because `i > 0`, the value of `numero` **strictly decreases** at each iteration.
+`numero` is a non‑negative integer, therefore after a finite number of steps we
+reach a state where `numero < i`.  At that point the guard of the `while`
+fails and the loop terminates.
+
+When the loop stops, the invariant `I(i)` still holds, and the guard is false,
+hence we have
+
+```
+numero < i .
+```
+
+--------------------------------------------------------------------
+
+### 4.4  Consequence of terminating the inner loop  
+
+From the invariant we know that after the loop finishes
+
+```
+printed_prefix = roman_string_of( n₀ – numero )
+```
+
+and from the guard we have `numero < i`.  
+Because the outer `for`‑loop will continue with the **next** element `i_next`
+(which is **strictly smaller** than the current `i`), the condition
+`numero < i` guarantees that the next inner `while`‑loop will **not** execute
+until a smaller digit can be subtracted.  In other words, the algorithm has
+removed from `numero` the largest possible Roman digit at each step, exactly as
+the usual greedy algorithm for Roman conversion does.
+
+--------------------------------------------------------------------
+
+## 5  Whole program correctness  
+
+We now combine the results for all values `i` of the list `L`.
+
+Let  
+
+```
+L = ( i₁ , i₂ , … , i₁₃ ) = (1000,900,500,400,100,90,50,40,10,9,5,4,1)
+```
+
+Define the **global invariant** after the `k`‑th iteration of the `for`‑loop
+(`k = 0 … 13`):
+
+```
+G(k) ≡ printed_prefix_k = roman_string_of( n₀ – numero_k )
+        ∧ 0 ≤ numero_k < i_{k+1}
+```
+
+where `i_{k+1}` is the next element of `L` (or `0` when `k = 13`).  
+
+* **Base case (`k = 0`)** – before the first `while`‑loop we have already shown
+  that `G(0)` holds (it is exactly the initialization of `I(i₁)`).
+
+* **Inductive step** – assuming `G(k‑1)` holds, the inner `while`‑loop for
+  `i_k` preserves the invariant `I(i_k)`, which is precisely `G(k)`.  When that
+  `while` finishes we also obtain `numero_k < i_k`, which yields the second clause
+  of `G(k)`.
+
+Thus by induction `G(k)` holds for every `k`.
+
+* **Termination of the outer loop** – after the last iteration (`k = 13`,
+  i.e. `i₁₃ = 1`) the invariant gives  
+
+  ```
+  printed_prefix_13 = roman_string_of( n₀ – numero_13 )
+  0 ≤ numero_13 < 0   ⇒   numero_13 = 0 .
+  ```
+
+  Hence  
+
+  ```
+  printed_prefix_13 = roman_string_of( n₀ )
+  ```
+
+  i.e. the string that has been printed is exactly the Roman representation of
+  the original input `n₀`.
+
+Finally the statement `print('\n')` only adds a line‑break and does not change the
+value of the printed string.  Therefore the **post‑condition** `Q` is satisfied.
+
+--------------------------------------------------------------------
+
+## 6  Formal Hoare triples  
+
+Putting everything together we obtain the following Hoare derivation.
+
+1. **Reading the input**
+
+   ```
+   { P }   numero := n₀   { P }
+   ```
+
+   (the assignment does not change the truth of the pre‑condition).
+
+2. **Outer loop** (unrolled as a sequence of 13 blocks)
+
+   For each `i ∈ L` we have the triple  
+
+   ```
+   { G(k‑1) ∧ numero ≥ i }   while numero ≥ i do
+                                 print(roman(i));
+                                 numero := numero – i
+                             od
+   { G(k) }
+   ```
+
+   The proof of this triple is exactly the invariant proof `I(i)` given in
+   Section 4.
+
+3. **After the last block**
+
+   ```
+   { G(13) }   print('\n')   { Q }
+   ```
+
+   Because `G(13)` tells us that the printed prefix equals `roman_string_of(n₀)`
+   and the extra `print('\n')` does not modify that prefix, `Q` follows.
+
+Consequently we have shown the Hoare triple  
+
+```
+{ 1 ≤ n₀ ≤ 3999 }   whole_program   { value(output) = n₀ }
+```
+
+which is exactly the required correctness proof.
+
+--------------------------------------------------------------------
+
+## 7  Summary  
+
+* The **pre‑condition** guarantees that the input is a positive integer that can
+  be expressed with the classical Roman symbols.
+* The **inner `while`‑loop** uses the invariant  
+
+  `printed_prefix = roman_string_of( n₀ – numero ) ∧ 0 ≤ numero < i_next`  
+
+  which is preserved because each iteration prints the symbol that represents
+  the current `i` and subtracts `i` from `numero`.
+* The **outer `for`‑loop** iterates over the decreasing list of Roman digit
+  values; after each inner loop the invariant holds with the next (smaller)
+  digit, guaranteeing that the algorithm always removes the greatest possible
+  Roman digit.
+* The program terminates because `numero` is a non‑negative integer that is
+  strictly decreased at each iteration of any `while`‑loop.
+* When the outer loop finishes we have `numero = 0` and the printed characters
+  form a Roman numeral whose value equals the original input, i.e. the
+  **post‑condition**.
+
+Thus, by Hoare logic, the program is **correct** with respect to the given
+formal specification.

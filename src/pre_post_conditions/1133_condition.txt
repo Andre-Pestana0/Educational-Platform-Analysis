@@ -1,0 +1,98 @@
+Below is a **Hoare‑style specification** for the required program.  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what must be true after it terminates) are given; the program body itself is omitted.
+
+---
+
+### Notation used  
+
+* `ℕ⁺` – the set of positive integers \(\{1,2,3,\dots\}\).  
+* `mod` – the remainder operator, e.g. \(n \bmod 5\).  
+* `min(x,y)` and `max(x,y)` – the smaller / larger of the two arguments.  
+* `|S|` – the length (number of elements) of a finite sequence `S`.  
+* `S[i]` – the *i*‑th element of a sequence `S` (1‑based indexing).  
+* `⊆` – set inclusion, `∈` – set membership.  
+
+---
+
+## Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\texttt{Program}\;\{\,Q\,\}}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+P \;:\; X \in \mathbb{N}^{+}\ \land\ Y \in \mathbb{N}^{+}
+\]
+
+The two input numbers are positive integers (the order is irrelevant).
+
+### Post‑condition \(Q\)
+
+Let  
+
+\[
+a \;=\; \min (X,Y),\qquad b \;=\; \max (X,Y)
+\]
+
+and let `Out` be the finite **sequence** printed by the program (the order in which the numbers appear on the output).  
+Then the following three properties must hold:
+
+1. **Range and remainder condition** – every element of `Out` lies between the
+   two inputs and leaves remainder 2 or 3 when divided by 5:
+
+   \[
+   \forall k\;(1 \le k \le |\,\text{Out}\,|)\;:\;
+   a \le \text{Out}[k] \le b\ \land\ 
+   (\text{Out}[k] \bmod 5) \in \{2,3\}
+   \tag{1}
+   \]
+
+2. **Strictly increasing order** – the sequence is sorted in ascending order:
+
+   \[
+   \forall k\;(1 \le k < |\,\text{Out}\,|)\;:\;
+   \text{Out}[k] < \text{Out}[k+1]
+   \tag{2}
+   \]
+
+3. **Exactness (completeness)** – the sequence contains **all** numbers that satisfy the
+   required property; no such number is omitted and none is added:
+
+   \[
+   \forall n \in \mathbb{Z}\;
+   \bigl(a \le n \le b \;\land\; (n \bmod 5) \in \{2,3\}\bigr)
+   \;\Longrightarrow\;
+   \exists k\;(1 \le k \le |\,\text{Out}\,|)\;:\; \text{Out}[k]=n
+   \tag{3}
+   \]
+
+   (If the set on the left‑hand side is empty, `Out` must be the empty sequence.)
+
+---
+
+### Compact set‑based formulation (equivalent to (1)–(3))
+
+\[
+\text{Out} \;=\; \bigl\{\, n \in \mathbb{Z}\mid a \le n \le b \;\land\; n \bmod 5 \in \{2,3\}\,\bigr\}
+\]
+written **as a sequence in increasing order**.
+
+---
+
+Thus the whole Hoare specification can be written succinctly as  
+
+\[
+\boxed{
+\{\,X>0 \land Y>0\,\}\;
+\texttt{Program}\;
+\Bigl\{
+\text{Out} = \operatorname{sort}\bigl(
+\{\,n\mid \min(X,Y)\le n \le \max(X,Y)\ \land\ n\bmod5\in\{2,3\}\}
+\bigr)
+\Bigr\}
+}
+\]
+
+which captures exactly the behaviour described in the natural‑language problem statement.

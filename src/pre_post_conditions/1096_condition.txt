@@ -1,0 +1,100 @@
+**Hoare‑logic specification**
+
+Let  
+
+* `out` be the (finite) list of strings that the program writes to the standard output,  
+* `I` and `J` be the loop variables that appear in the printed lines,  
+
+and define the two finite sets  
+
+\[
+\mathcal I = \{\,1,3,5,7,9\,\},\qquad 
+\mathcal J = \{\,7,6,5\,\}.
+\]
+
+We also define the *lexicographic* ordering on the Cartesian product  
+\(\mathcal I\times\mathcal J\) that is induced by the **outer** loop on `I` and the **inner** loop on `J` :
+
+\[
+\langle(i_0,j_0),\dots,(i_{14},j_{14})\rangle
+   =\bigl\langle (1,7),(1,6),(1,5),
+                (3,7),(3,6),(3,5),
+                (5,7),(5,6),(5,5),
+                (7,7),(7,6),(7,5),
+                (9,7),(9,6),(9,5)\bigr\rangle .
+\]
+
+For a pair \((i,j)\) we write the corresponding output line as  
+
+\[
+\operatorname{line}(i,j)=\text{``I="}\;||\;i\;||\;\text{`` J="}\;||\;j\;||\;\text{``\textbackslash n''}.
+\]
+
+---
+
+### Pre‑condition  
+
+Because the problem has **no input**, the only requirement before the program starts is that the
+output buffer is empty (or, equivalently, that we make no assumptions about the environment).
+
+\[
+\boxed{P\;:\; \text{true} \;\;\;(\text{or } out = \langle\rangle)}
+\]
+
+---
+
+### Post‑condition  
+
+After termination the output buffer must contain **exactly** the 15 lines listed above, in the
+order given by the lexicographic product \(\langle(i_k,j_k)\rangle_{k=0}^{14}\).
+
+\[
+\boxed{Q\;:\;
+\begin{aligned}
+out &= \big\langle\operatorname{line}(i_0,j_0),\,
+               \operatorname{line}(i_1,j_1),\dots,
+               \operatorname{line}(i_{14},j_{14})\big\rangle \\[2mm]
+    &\text{where } \langle(i_k,j_k)\rangle_{k=0}^{14}
+      =\big\langle (i,j)\mid i\in\mathcal I,\;j\in\mathcal J\big\rangle_{\text{lex}} .
+\end{aligned}}
+\]
+
+Equivalently, using explicit quantification:
+
+\[
+\begin{aligned}
+Q \equiv\;&\forall k\in\{0,\dots,14\}\;
+          \bigl(out[k]=\operatorname{line}(i_k,j_k)\bigr)\\
+        &\land\;|out|=15\\
+        &\land\;\bigl(i_k,j_k\bigr)=
+          \begin{cases}
+            (1,7) & k=0\\
+            (1,6) & k=1\\
+            (1,5) & k=2\\
+            (3,7) & k=3\\
+            (3,6) & k=4\\
+            (3,5) & k=5\\
+            \;\vdots\\
+            (9,5) & k=14
+          \end{cases}
+\end{aligned}
+\]
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\; \text{program}\;\; \{\,Q\,\}}
+\]
+
+where the *program* is the straightforward double‑loop implementation:
+
+```pseudo
+for I ← 1 to 9 step 2 do
+    for J ← 7 downto 5 do
+        print "I=" , I , " J=" , J
+```
+
+The Hoare triple asserts that, starting from any state (no input required), after the program
+terminates the only observable effect is the exact sequence of lines described in `Q`.

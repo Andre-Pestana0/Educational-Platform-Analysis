@@ -1,0 +1,82 @@
+**Hoare‑logic specification (pre‑condition / post‑condition)**  
+
+Let  
+
+* `Input` be a (finite) sequence of integer pairs  
+
+\[
+\mathit{Input}= \bigl\langle (X_{1},Y_{1}), (X_{2},Y_{2}),\dots ,(X_{n},Y_{n})\bigr\rangle ,
+\]
+
+* the last pair is the *terminating* pair, i.e.  
+
+\[
+X_{n}=Y_{n}\qquad\text{and}\qquad\forall i\;(1\le i < n)\;:\;X_{i}\neq Y_{i}.
+\]
+
+* `Output` be the sequence of strings that the program prints  
+
+\[
+\mathit{Output}= \bigl\langle O_{1},O_{2},\dots ,O_{n-1}\bigr\rangle .
+\]
+
+--------------------------------------------------------------------
+### Pre‑condition  
+
+\[
+\boxed{\;P\;}\;:\;
+\begin{cases}
+\text{`Input` is a non‑empty finite list of integer pairs,}\\[2mm]
+\exists n\ge 1\;.\; X_{n}=Y_{n}\ \land\ 
+\forall i\;(1\le i<n).\;X_{i}\neq Y_{i}.
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+### Post‑condition  
+
+\[
+\boxed{\;Q\;}\;:\;
+\begin{cases}
+|\mathit{Output}| = |\mathit{Input}|-1,\\[2mm]
+\forall i\;(1\le i<n).\;
+\bigl(O_{i}= \text{``Crescente''}\iff X_{i}<Y_{i}\bigr)\\
+\qquad\qquad\qquad\qquad\land\;
+\bigl(O_{i}= \text{``Decrescente''}\iff X_{i}>Y_{i}\bigr).
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+### Hoare triple for the whole program  
+
+\[
+\{P\}\; \texttt{read‑pairs‑and‑print}\; \{Q\}
+\]
+
+--------------------------------------------------------------------
+### Loop‑invariant (useful for a correctness proof)
+
+If the algorithm is written as a *while* loop that reads pairs one after another, a suitable invariant `I(k)` after having processed the first `k` pairs (`0 ≤ k < n`) is
+
+\[
+I(k) \;:\;
+\begin{cases}
+\text{The first }k\text{ pairs have already been consumed,}\\
+\text{and the first }k\text{ output strings satisfy }\\[1mm]
+\forall i\;(1\le i\le k).\;
+\bigl(O_{i}= \text{``Crescente''}\iff X_{i}<Y_{i}\bigr)
+\land
+\bigl(O_{i}= \text{``Decrescente''}\iff X_{i}>Y_{i}\bigr).
+\end{cases}
+\]
+
+The invariant holds initially (`k = 0`), is preserved by each iteration, and together with the termination condition `X_{k+1}=Y_{k+1}` yields the post‑condition `Q`.  
+
+--------------------------------------------------------------------
+**Interpretation of the specification**
+
+* The program must stop *exactly* when it reads a pair whose two components are equal.
+* For every preceding pair it must output **“Crescente”** if the first component is smaller than the second, otherwise **“Decrescente”**.
+* No output is produced for the terminating pair.  
+
+The above Hoare triple captures precisely the intended behaviour in mathematical notation

@@ -1,0 +1,162 @@
+**Hoare‑style specification**
+
+Let  
+
+* the input file be a finite sequence of integers  
+
+\[
+\mathbf{x}= \langle x_{1},x_{2},\dots ,x_{n},0\rangle ,\qquad n\ge 0,
+\]
+
+* the output file be the sequence  
+
+\[
+\mathbf{y}= \langle y_{1},y_{2},\dots ,y_{n}\rangle .
+\]
+
+For each input element \(x_{i}\;(1\le i\le n)\) we define  
+
+\[
+e_{i}= \begin{cases}
+x_{i}      & \text{if }x_{i}\equiv 0\pmod 2,\\[2mm]
+x_{i}+1    & \text{if }x_{i}\equiv 1\pmod 2,
+\end{cases}
+\qquad\text{(the smallest even number }\ge x_{i}\text{).}
+\]
+
+The required result for that line is the sum of the five consecutive even
+numbers beginning with \(e_{i}\):
+
+\[
+\boxed{y_{i}= \sum_{k=0}^{4}\bigl(e_{i}+2k\bigr)}
+      \;=\;5e_{i}+20.
+\tag{1}
+\]
+
+---
+
+### Whole‑program Hoare triple  
+
+\[
+\{\,P\,\}\;\; \textbf{program}\;\; \{\,Q\,\}
+\]
+
+*Pre‑condition*  
+
+\[
+\begin{aligned}
+P\;:\;&\exists n\ge 0\;\Bigl(
+   \mathbf{x}= \langle x_{1},\dots ,x_{n},0\rangle
+   \;\wedge\;
+   \forall i\in\{1,\dots ,n\}\;x_{i}\in\mathbb Z
+   \Bigr).
+\end{aligned}
+\tag{P}
+\]
+
+*Post‑condition*  
+
+\[
+\begin{aligned}
+Q\;:\;&\mathbf{y}= \langle y_{1},\dots ,y_{n}\rangle
+   \;\wedge\;
+   \forall i\in\{1,\dots ,n\}\;
+   y_{i}= \sum_{k=0}^{4}\bigl(e_{i}+2k\bigr)  \\
+   &\text{with }e_{i}= 
+     \begin{cases}
+        x_{i}      & x_{i}\equiv 0\pmod 2,\\
+        x_{i}+1    & x_{i}\equiv 1\pmod 2 .
+     \end{cases}
+\end{aligned}
+\tag{Q}
+\]
+
+Thus the program, when started in a state satisfying \(P\), terminates
+with an output file that satisfies \(Q\).
+
+---
+
+### Loop (read‑process‑print) specification  
+
+The program can be written as a **while** loop that repeatedly reads one
+integer, computes the sum (1) and prints it, stopping when the read value
+is zero.
+
+```
+i := 1;
+while (true) {
+    read x;
+    if (x = 0) break;
+    /* compute y = Σ_{k=0}^{4}(e+2k) */
+    print y;
+    i := i+1;
+}
+```
+
+Let  
+
+* \(i\) – number of already processed input values (so far \(0\le i\le n\));
+* \(x\) – the most recent integer read (still to be processed);
+* \(y\) – the value that will be printed for the current \(x\).
+
+**Loop invariant** \(I(i,x,\mathbf{y})\):
+
+\[
+\begin{aligned}
+I\;:\;&0\le i\le n\;\wedge\;
+      \mathbf{y}= \langle y_{1},\dots ,y_{i-1}\rangle \\
+      &\wedge\;
+      \bigl(\forall j\in\{1,\dots ,i-1\}\;
+         y_{j}= \sum_{k=0}^{4}(e_{j}+2k)\bigr) \\
+      &\wedge\;
+      \bigl(i\le n \;\Rightarrow\; x = x_{i}\bigr).
+\end{aligned}
+\tag{I}
+\]
+
+* **Initialization** – before the first iteration \(i=1\) and no output
+  has been produced, so \(I\) holds trivially.
+
+* **Maintenance** – assuming \(I\) holds at the start of an iteration
+  with \(i\le n\):
+  * the body computes  
+    \(e =\begin{cases}x & x\equiv0\pmod2\\ x+1 & x\equiv1\pmod2\end{cases}\)  
+    and \(y = \sum_{k=0}^{4}(e+2k)\);  
+    consequently the printed value satisfies (1) for \(x_{i}\).
+  * after `print y` the output list becomes
+    \(\langle y_{1},\dots ,y_{i-1},y\rangle\) and we set \(i:=i+1\).
+  * The next read fetches \(x_{i+1}\) (or 0 if \(i=n\)), thus restoring
+    the invariant for the new \(i\).
+
+* **Termination** – the loop exits exactly when the read value is
+  \(0\). At that moment \(i=n+1\) and the invariant yields  
+
+  \[
+  \mathbf{y}= \langle y_{1},\dots ,y_{n}\rangle
+  \quad\text{with each }y_{j}\text{ given by (1)}.
+  \]
+
+Hence the invariant together with the exit condition implies the
+post‑condition \(Q\).
+
+---
+
+### Compact mathematical statement of the program’s effect  
+
+\[
+\boxed{
+\forall i\in\{1,\dots ,n\}\;
+\Bigl(
+   y_{i}=5\bigl(2\lceil x_{i}/2\rceil\bigr)+20
+\Bigr)
+}
+\tag{★}
+\]
+
+Equation (★) is exactly the same as (1) because  
+\(e_{i}=2\lceil x_{i}/2\rceil\).  
+Therefore the Hoare‑logic specification \(\{P\}\,\textbf{program}\,\{Q\}\)
+captures the required behaviour: read an arbitrary (possibly empty)
+sequence of integers terminated by a zero, and for each non‑zero integer
+output the sum of the five consecutive even numbers beginning with the
+smallest even number not smaller than the input.

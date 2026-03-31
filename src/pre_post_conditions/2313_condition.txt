@@ -1,0 +1,110 @@
+Below is a **Hoare‑style specification** of the required program.  
+Only the *pre‑condition* (what may be assumed about the inputs) and the *post‑condition* (what must hold for the output) are given; the body of the program is omitted.
+
+---
+
+### 1.   Notation that will be used
+
+* Let  
+
+\[
+A,B,C\in \mathbb Z\qquad\text{with}\qquad 0<A,B,C<10^{5}
+\]
+
+be the three input integers.
+
+* Define the **triangle predicate**
+
+\[
+\mathsf{Tri}(A,B,C)\;:=\;(A+B>C)\land(A+C>B)\land(B+C>A)
+\]
+
+* Define the three *shape* predicates  
+
+\[
+\begin{aligned}
+\mathsf{Equil}(A,B,C) &:= (A=B)\land(B=C)\\[2mm]
+\mathsf{Iso}(A,B,C)   &:= \bigl[(A=B)\lor(B=C)\lor(A=C)\bigr]\land\neg\mathsf{Equil}(A,B,C)\\[2mm]
+\mathsf{Scal}(A,B,C)  &:= \neg\mathsf{Equil}(A,B,C)\land\neg\mathsf{Iso}(A,B,C)
+\end{aligned}
+\]
+
+* Let  
+
+\[
+\begin{aligned}
+\{a,b,c\}&:=\text{the multiset }\{A,B,C\}\text{ sorted increasingly}\\
+a &\le b \le c
+\end{aligned}
+\]
+
+* Define the **right‑triangle predicate**
+
+\[
+\mathsf{Right}(A,B,C)\;:=\;a^{2}+b^{2}=c^{2}
+\]
+
+* The program writes a **single line** (or two lines when the triangle is valid) to the output channel; we denote the whole output by a string variable `out`.
+
+---
+
+### 2.   Hoare triple
+
+\[
+\boxed{\{\,0<A,B,C<10^{5}\,\}\;\; P\;\; \{\,\mathsf{Post}(A,B,C,\text{out})\,\}}
+\]
+
+where `P` is the (unspecified) program and the **post‑condition** `Post` is the disjunction of the two possible cases:
+
+\[
+\begin{aligned}
+\mathsf{Post}(A,B,C,\text{out})\;\equiv\;&
+\bigl[\neg\mathsf{Tri}(A,B,C)\;\land\; \text{out}= \texttt{"Invalido"}\bigr] \\[2mm]
+&\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\)
+
+\[
+\begin{aligned}
+\mathsf{Post}(A,B,C,\text{out})\;\equiv\;&
+\bigl[\neg\mathsf{Tri}(A,B,C)\;\land\;\text{out}= \texttt{"Invalido"}\bigr] \\[4pt]
+&\;\;\;\lor\\[4pt]
+&\Bigl[\mathsf{Tri}(A,B,C)\;\land\;
+\bigl(\underbrace{\begin{cases}
+\texttt{"Valido-Equilatero"} & \text{if }\mathsf{Equil}(A,B,C)\\[2pt]
+\texttt{"Valido-Isoceles"}   & \text{if }\mathsf{Iso}(A,B,C)\\[2pt]
+\texttt{"Valido-Escaleno"}   & \text{if }\mathsf{Scal}(A,B,C)
+\end{cases}}_{\text{first line}}\bigr)\\[6pt]
+&\qquad\qquad\;\;\land\;
+\bigl(\underbrace{\begin{cases}
+\texttt{"Retangulo: S"} & \text{if }\mathsf{Right}(A,B,C)\\[2pt]
+\texttt{"Retangulo: N"} & \text{otherwise}
+\end{cases}}_{\text{second line}}\bigr)\\[4pt]
+&\qquad\qquad\;\;\land\;
+\text{out}= \text{first line}\;\Vert\;\text{"\n"}\;\Vert\;\text{second line}\Bigr]
+\end{aligned}
+\]
+
+*`\Vert`* denotes string concatenation and “\n” is the line‑break character.
+
+---
+
+### 3.   Full Hoare specification
+
+\[
+\boxed{
+\{\,0<A,B,C<10^{5}\,\}\;\; \textbf{TriangleClassifier}(A,B,C)\;\;
+\{\,\mathsf{Post}(A,B,C,\text{out})\,\}
+}
+\]
+
+The specification says:
+
+* **Pre‑condition** – each input is a positive integer smaller than \(10^{5}\).
+* **Post‑condition** – the program prints  
+
+  * “Invalido’’ iff the three lengths cannot be the sides of a triangle; otherwise  
+
+  * “Valido‑\<type\>’’ where \<type\> is *Equilatero*, *Isoceles* or *Escaleno* according to the equality relations among \(A,B,C\);  
+
+  * on the next line “Retangulo: S’’ if the sorted sides satisfy \(a^{2}+b^{2}=c^{2}\), otherwise “Retangulo: N’’.
+
+This formal Hoare triple captures **exactly** the behavior described in the natural‑language problem statement

@@ -1,0 +1,199 @@
+**Answer – A Hoare‑logic proof that the program prints the 1‑based position of the smallest element of the input list**
+
+Below we give a complete, step‑by‑step proof that the Python fragment
+
+```python
+_ = int(input())                     # line 1
+consequencias = [int(x) for x in input().split()]   # line 2
+minimo = consequencias.index(min(consequencias)) + 1   # line 3
+print(minimo)                        # line 4
+```
+
+satisfies the specification that was given in the statement of the problem:
+
+* **Pre‑condition  (P):**  
+  The program receives on standard input  
+
+  1. an integer `N` (the number of people) – we do **not** need it, it only has to be a non‑negative integer, and  
+  2. a line containing `N` integers `c₁,…,c_N` (the “consequências”).  
+
+  Formally  
+
+  \[
+  P \;\equiv\; N\in\mathbb N\;\land\; \bigl(N>0 \Rightarrow \exists\,c_1,\dots,c_N\in\mathbb Z\;.\; \text{input line}=c_1\;c_2\;\dots\;c_N\bigr)
+  \]
+
+* **Post‑condition (Q):**  
+  The program terminates printing the (1‑based) index `i` of a *minimum* element of the sequence, i.e.
+
+  \[
+  Q \;\equiv\; \exists\,i\in\{1,\dots,N\}\;.\;
+        \bigl(\forall j\in\{1,\dots,N\}\;.\;c_i\le c_j\bigr)
+        \;\land\; \text{output}=i
+  \]
+
+  (If the minimum occurs more than once, the smallest index is required – exactly what
+  Python’s `list.index` returns.)
+
+The proof proceeds by assigning a Hoare triple \(\{P\}\;S\;\{Q\}\) to the whole program
+and then decomposing it line‑by‑line using the standard Hoare‑logic rules
+(assignment, sequence, consequence, and the rule for the built‑in library calls
+`min` and `index`).  
+All variables are assumed to be fresh (no aliasing) and the Python statements are
+considered *atomic* for the purpose of the proof – this is the usual abstraction
+when reasoning about a high‑level language.
+
+---------------------------------------------------------------------
+
+## 1.  Hoare triples for the individual statements
+
+| line | statement | Hoare triple (derived) |
+|------|-----------|------------------------|
+| 1 | `_ = int(input())` | \(\{P\}\;_ = \text{int}(in_1)\;\{\;P\;\}\) – the value is stored in a dummy variable `_` that is never used again, therefore the state after the statement is exactly the same as before (the only effect is consumption of the first input token). |
+| 2 | `consequencias = [int(x) for x in input().split()]` | Let `C = (c₁,…,c_N)` be the list that is read. The assignment produces a list object that we denote `consequencias`.  The triple is \(\{P\}\;consequencias = C\;\{P' \}\) where  
+
+  \[
+  P' \equiv P\;\land\; \text{consequencias}=C .
+  \] |
+| 3 | `minimo = consequencias.index(min(consequencias)) + 1` | This line consists of three pure library calls:
+
+  1. `m = min(consequencias)` – returns the smallest value `m = \min\{c₁,…,c_N\}`.  
+  2. `k = consequencias.index(m)` – returns the *first* index (0‑based) `k` such that `consequencias[k] = m`. By definition of `index`,  
+
+     \[
+     (\forall j<k)\;consequencias[j]\neq m\quad\land\quad consequencias[k]=m .
+     \]  
+
+  3. `minimo = k + 1` – converts the 0‑based index to a 1‑based index.
+
+  Combining the three steps we obtain the triple  
+
+  \[
+  \{P'\}\;
+      minimo = \bigl(\text{consequencias.index}(\min(\text{consequencias}))\bigr)+1
+  \;
+  \{P''\}
+  \]
+
+  where  
+
+  \[
+  P'' \equiv P'\;\land\;
+          \bigl(\exists i\in\{1,\dots,N\}\;.\;
+                \forall j\in\{1,\dots,N\}\;.\;c_i\le c_j
+                \;\land\; minimo = i\bigr).
+  \]
+
+  (Notice that the index returned by `list.index` is *exactly* the smallest
+  position of the minimum, because the list is scanned left‑to‑right.) |
+| 4 | `print(minimo)` | The `print` statement does not modify the program state; it only produces the observable output. The Hoare triple is  
+
+  \[
+  \{P''\}\;print(minimo)\;\{P''\land\text{output}=minimo\}.
+  \]
+
+---------------------------------------------------------------------
+
+## 2.  Composition of the triples
+
+Using the **sequence rule** of Hoare logic:
+
+\[
+\frac{\{A\}\;S_1\;\{B\}\qquad\{B\}\;S_2\;\{C\}}{\{A\}\;S_1;S_2\;\{C\}}
+\]
+
+we can chain the four triples obtained above:
+
+1. From line 1 we have \(\{P\}\;S_1\;\{P\}\).
+2. From line 2 we have \(\{P\}\;S_2\;\{P'\}\).
+3. From line 3 we have \(\{P'\}\;S_3\;\{P''\}\).
+4. From line 4 we have \(\{P''\}\;S_4\;\{P''\land\text{output}=minimo\}\).
+
+Chaining them yields the overall Hoare triple
+
+\[
+\{P\}\;S_1;S_2;S_3;S_4\;\{P''\land\text{output}=minimo\}.
+\]
+
+Because `P''` contains exactly the property that `minimo` is the 1‑based index of a
+minimum element of the input list, the post‑condition of the whole program is
+
+\[
+\{P\}\; \text{program} \; \{Q\},
+\]
+
+with \(Q\) being precisely the specification we wanted to satisfy.
+
+---------------------------------------------------------------------
+
+## 3.  Reasoning about the library calls `min` and `index`
+
+The only non‑trivial part of the proof is the correctness of the two library
+functions.  In Hoare logic we treat them as *primitive specifications*:
+
+* **Specification of `min(L)`** (where `L` is a non‑empty list of integers):
+
+  \[
+  \{L\neq []\}\;\;m = \min(L)\;\;
+  \Bigl\{m = \min\{L[0],\dots,L[|L|-1]\}\Bigr\}.
+  \]
+
+* **Specification of `L.index(v)`** (where `v` occurs in `L`):
+
+  \[
+  \{v\in L\}\;\;k = L.\text{index}(v)\;\;
+  \Bigl\{0\le k < |L|\;\land\;L[k]=v\;\land\;
+        (\forall j<k)\;L[j]\neq v\Bigr\}.
+  \]
+
+Both specifications are provable from the usual definitions of the Python
+functions; they are therefore admissible as *axioms* in the Hoare system.
+Using them we derived the invariant `P''` above.
+
+---------------------------------------------------------------------
+
+## 4.  Dealing with the first input line (the “_” variable)
+
+The statement on line 1 reads an integer that is **ignored**.  Its Hoare triple
+has the form
+
+\[
+\{P\}\;_ = \text{int}(in_1)\;\{P\},
+\]
+
+because the dummy variable `_` never appears in any later expression.
+Consequently the value of `N` does not influence the rest of the computation,
+which is exactly what the problem statement requires (“não necessitamos da primeira entrada”).
+
+---------------------------------------------------------------------
+
+## 5.  Summary of the proof
+
+1. **Pre‑condition** `P` guarantees that a non‑empty list `consequencias` of length `N`
+   is read from the second input line.
+2. **Line 2** stores that list in the variable `consequencias` without changing any
+   other part of the state.
+3. **Line 3** (using the specifications of `min` and `index`) computes  
+
+   *`m = min(consequencias)`* – the smallest value in the list,
+   *`k = consequencias.index(m)`* – the smallest *0‑based* position of that value,
+   *`minimo = k+1`* – the required 1‑based position.
+4. **Line 4** prints the value of `minimo`.  The observable output therefore
+   equals the index `i` of a minimum element, which is exactly the post‑condition `Q`.
+
+By the **sequence rule** the Hoare triple \(\{P\}\; \text{program}\; \{Q\}\) holds,
+hence the program is *correct with respect to the given specification*.
+
+---------------------------------------------------------------------
+
+### Final statement
+
+> **The program satisfies the Hoare‑logic specification**  
+> \[
+> \{\,N\in\mathbb N,\;c_1,\dots,c_N\in\mathbb Z\,\}\;\;\text{program}\;\;\{
+>   \exists i\;(1\le i\le N\land \forall j\;(c_i\le c_j)\land\text{output}=i)
+> \}.
+> \]  
+
+Therefore the algorithm correctly prints the (1‑based) position of the smallest
+consequence value, exactly as required by the problem. ∎

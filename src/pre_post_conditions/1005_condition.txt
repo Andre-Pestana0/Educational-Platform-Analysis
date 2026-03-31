@@ -1,0 +1,82 @@
+Below is a **Hoare‑logic specification** (pre‑condition \(P\) and post‑condition \(Q\)) that captures exactly the behaviour described in the natural‑language statement.
+
+---
+
+### Variables used in the specification  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(A\)  | first grade read from the input (double‑precision) |
+| \(B\)  | second grade read from the input (double‑precision) |
+| \(M\)  | the value that has to be printed (the weighted average) |
+| \(\text{out}\) | the string that the program writes to *stdout* |
+| \(\mathsf{w}_A = 3.5\) | weight of grade \(A\) |
+| \(\mathsf{w}_B = 7.5\) | weight of grade \(B\) |
+| \(\mathsf{W}= \mathsf{w}_A+\mathsf{w}_B = 11.0\) | total weight |
+
+All arithmetic is performed in the set of real numbers \(\mathbb R\); the final printed value is rounded (or formatted) to **exactly five digits after the decimal point**.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\boxed{
+P \;\equiv\;
+\begin{cases}
+A\in\mathbb R,\; B\in\mathbb R \\[2pt]
+0\le A \le 10,\; 0\le B \le 10 \\[2pt]
+\text{(both numbers are supplied with exactly one decimal digit)}
+\end{cases}}
+\]
+
+The last line is a *semantic* restriction (it guarantees that the input conforms to the problem statement); it does not affect the arithmetic computation.
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\; &\; M = \frac{\mathsf{w}_A\;A + \mathsf{w}_B\;B}{\mathsf{W}}
+            = \frac{3.5\,A + 7.5\,B}{11.0} \\[4pt]
+            &\;\land\;
+            \text{out}= \texttt{"MEDIA = "} \;\|\; \textsf{format}(M,5) \\[2pt]
+            &\;\land\;
+            \textsf{format}(M,5) \text{ is the decimal representation of }M
+            \text{ with exactly five digits after the decimal point} \\[2pt]
+            &\;\land\;
+            \textsf{ends\_with\_newline}(\text{out}) .
+\end{aligned}}
+\]
+
+*Explanation of the components*
+
+* `format(M,5)` denotes the usual decimal formatting routine that rounds \(M\) to five fractional digits and returns a character string (e.g. \(6.43182\)).
+* The concatenation operator `\(\|\)` builds the final output line.  
+  The required blanks **before and after** the ‘=’ sign are part of the literal string `"\texttt{MEDIA = }"`.
+* `ends_with_newline(out)` asserts that the string finishes with the line‑feed character `\n` (the “end‑of‑line” required to avoid a Presentation Error).
+
+---
+
+### Hoare triple for the whole program
+
+\[
+\boxed{\{P\}\;\; \texttt{read}(A);\;\texttt{read}(B);\;
+        M \gets \frac{3.5\,A+7.5\,B}{11.0};\;
+        \texttt{print}(\text{"MEDIA = "}\;\|\;\textsf{format}(M,5))\;\{Q\}}
+\]
+
+---
+
+### Remarks  
+
+* The **weight sum** \(\mathsf{W}=11.0\) is a constant, therefore the formula for \(M\) can be written more compactly as  
+
+  \[
+  M = \frac{3.5\,A + 7.5\,B}{11.0}.
+  \]
+
+* The specification does **not** prescribe how the rounding to five decimal places is performed (nearest‑even, round‑half‑up, etc.); it only requires that the final string shown to the user matches the format illustrated in the examples.
+* The pre‑condition guarantees that the input values lie inside the admissible interval \([0,10]\); any program that satisfies the Hoare triple above will be correct for all such inputs.

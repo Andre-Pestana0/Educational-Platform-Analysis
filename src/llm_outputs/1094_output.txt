@@ -1,0 +1,56 @@
+Total: 1 cobaias
+Total de coelhos: 1
+Total de ratos: 0
+Total de sapos: 0
+Percentual de coelhos: 100.00 %
+Percentual de ratos: 0.00 %
+Percentual de sapos: 0.00 %
+
+Total: 3 cobaias
+Total de coelhos: 1
+Total de ratos: 1
+Total de sapos: 1
+Percentual de coelhos: 33.33 %
+Percentual de ratos: 33.33 %
+Percentual de sapos: 33.33 %
+
+Total: 60 cobaias
+Total de coelhos: 30
+Total de ratos: 15
+Total de sapos: 15
+Percentual de coelhos: 50.00 %
+Percentual de ratos: 25.00 %
+Percentual de sapos: 25.00 %
+
+Total: 7 cobaias
+Total de coelhos: 2
+Total de ratos: 3
+Total de sapos: 2
+Percentual de coelhos: 28.57 %
+Percentual de ratos: 42.86 %
+Percentual de sapos: 28.57 %
+
+Total: 2 cobaias
+Total de coelhos: 1
+Total de ratos: 1
+Total de sapos: 0
+Percentual de coelhos: 50.00 %
+Percentual de ratos: 50.00 %
+Percentual de sapos: 0.00 %
+
+Total: 120 cobaias
+Total de coelhos: 35
+Total de ratos: 40
+Total de sapos: 45
+Percentual de coelhos: 29.17 %
+Percentual de ratos: 33.33 %
+Percentual de sapos: 37.50 %
+
+Total: 30 cobaias
+Total de coelhos: 0
+Total de ratos: 30
+Total de sapos: 0
+Percentual de coelhos: 0.00 %
+Percentual de ratos: 100.00 %
+Percentual de sapos: 0.00 %
+

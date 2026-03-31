@@ -1,0 +1,20 @@
+Description: Read two integer values (A and B). After, the program should print the message"Sao Multiplos"(are multiples) or"Nao sao Multiplos"(arenât multiples), corresponding to the read values.
+
+Input: The input has two integer numbers.
+
+Output: Print the relative message to the input as stated above.
+
+Examples:
+- Example 1:
+  Input:
+6 24
+  Output:
+Sao Multiplos
+
+- Example 2:
+  Input:
+6 25
+  Output:
+Nao sao Multiplos
+
+--

@@ -1,0 +1,94 @@
+Below is a **Hoare‑logic style specification** for the program that reads an integer \(N\) and prints the first ten rows of its multiplication table.
+
+---
+
+### Variables / Notation  
+
+* \(N\) – the integer read from the input (the only *program variable* that survives after the read).  
+* \(\mathit{out}\) – the finite sequence of lines that the program prints, i.e.  
+
+\[
+\mathit{out}= \langle s_{1},s_{2},\dots ,s_{10}\rangle .
+\]
+
+* For each \(i\in\{1,\dots ,10\}\) we write  
+
+\[
+s_{i}= \text{``}i\;\times\;N\;=\;i\cdot N\text{''}
+\]
+
+(the exact lexical form of the line; any equivalent representation that contains the three values \(i\), \(N\) and the product \(i\cdot N\) in this order is admissible).
+
+* \(\mathbb Z\) – the set of all integers.  
+
+* \(\mathsf{read}()\) – the atomic command that reads a value from the input stream and stores it in \(N\).  
+
+* \(\mathsf{print}(s)\) – the atomic command that appends the string \(s\) to the output stream (i.e. to \(\mathit{out}\)).  
+
+* \(\mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;C\) – the usual bounded loop that iterates the command \(C\) with the loop variable \(i\) taking the values \(1,2,\dots ,10\) in order.
+
+---
+
+### Hoare Triple  
+
+\[
+\boxed{\; \{\,P\,\}\; \mathsf{read}();\;
+        \mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;
+            \mathsf{print}\bigl(i\;\times\;N\;=\;i\cdot N\bigr)\;
+        \{\,Q\,\}\;}
+\]
+
+---
+
+### Preconditions  \(P\)
+
+\[
+P \; \equiv\; 
+\bigl(N\in\mathbb Z \;\wedge\; 2 < N < 1000\bigr)
+\]
+
+*The program is invoked only when the input integer lies strictly between 2 and 1000.*
+
+---
+
+### Postconditions  \(Q\)
+
+\[
+\begin{aligned}
+Q \; \equiv\; &
+\bigl(\mathit{out}= \langle s_{1},s_{2},\dots ,s_{10}\rangle\bigr) \;\wedge \\[2mm]
+&\bigl(\forall i\in\{1,\dots ,10\}\;.\; 
+      s_{i}= \text{``}i\;\times\;N\;=\;i\cdot N\text{''}\bigr) \;\wedge \\[2mm]
+&\bigl(\text{the lines appear in the order }1,2,\dots ,10\text{)} .
+\end{aligned}
+\]
+
+In words:
+
+* After termination the output consists of exactly ten lines.  
+* The \(i\)-th line (for every \(i=1,\dots ,10\)) is the string “\(i \times N = i\cdot N\)”.  
+* The lines are printed in increasing order of \(i\).  
+
+---
+
+### Full Formal Specification
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,N\in\mathbb Z \;\wedge\; 2 < N < 1000\,\}\\[1mm]
+\mathsf{read}();\\
+\mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\\
+\qquad\mathsf{print}\bigl(i\;\times\;N\;=\;i\cdot N\bigr);\\[1mm]
+\{\,\mathit{out}= \langle s_{1},\dots ,s_{10}\rangle\;\wedge\;
+   \forall i\in\{1,\dots ,10\}\;.\; s_{i}= \text{``}i\;\times\;N\;=\;i\cdot N\text{''}\,\}
+\end{array}
+}
+\]
+
+This Hoare triple captures **exactly** the behaviour described in the natural‑language problem statement:  
+
+* **Precondition** ensures that the input satisfies the required range.  
+* **Postcondition** guarantees that the program produces the correct multiplication table, line by line, and nothing else.  
+
+No other side‑effects are specified, and the program is required to terminate (the bounded loop guarantees termination).

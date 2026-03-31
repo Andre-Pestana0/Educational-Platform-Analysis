@@ -1,0 +1,68 @@
+**Hoare‑logic specification**
+
+Let the program be denoted by `P`.  
+It reads three integers `A , B , C` and writes a single character `out` (`'S'` or `'N'`).  
+
+---
+
+### 1.  Pre‑condition  
+
+\[
+\boxed{\;{\sf Pre}\;:\;
+   A,B,C\in \mathbb N\;\land\;1\le A\le 1000\;\land\;1\le B\le 1000\;\land\;1\le C\le 1000\;}
+\]
+
+The three credits are given and each of them lies in the interval \([1,1000]\).
+
+---
+
+### 2.  Post‑condition  
+
+Define three “direction variables”
+
+\[
+\varepsilon_A,\;\varepsilon_B,\;\varepsilon_C \in\{-1,0,+1\}
+\]
+
+where  
+
+* \(\varepsilon_i = +1\) means “use credit \(i\) to go forward in time”,  
+* \(\varepsilon_i = -1\) means “use credit \(i\) to go backward in time”,  
+* \(\varepsilon_i = 0\) means “do not use credit \(i\)”.
+
+A *valid travel plan* is a choice of \(\varepsilon_A,\varepsilon_B,\varepsilon_C\) satisfying  
+
+\[
+\begin{aligned}
+&\text{(i)}\qquad \varepsilon_A A+\varepsilon_B B+\varepsilon_C C = 0 \\[2mm]
+&\text{(ii)}\qquad (\varepsilon_A\neq 0)\;\lor\;(\varepsilon_B\neq 0)\;\lor\;(\varepsilon_C\neq 0)
+\end{aligned}
+\]
+
+Condition (ii) guarantees that at least one trip is performed (the problem allows one, two or three trips; using at most three credits is automatic because we have only three).
+
+The post‑condition of `P` is therefore
+
+\[
+\boxed{\;{\sf Post}\;:\;
+   out\in\{\text{‘S’},\text{‘N’}\}\;\land\;
+   \Bigl(out=\text{‘S’}\;\Longleftrightarrow\;
+          \exists\,\varepsilon_A,\varepsilon_B,\varepsilon_C\in\{-1,0,+1\}\;
+          \bigl[(\varepsilon_A\neq0\lor\varepsilon_B\neq0\lor\varepsilon_C\neq0)
+                \land(\varepsilon_A A+\varepsilon_B B+\varepsilon_C C=0)\bigr]\Bigr)
+\;}
+\]
+
+In words:
+
+*The program prints ‘S’ **iff** there exists a selection of the three credits, each possibly taken forward (`+1`), backward (`‑1`) or not used (`0`), such that the signed sum of the chosen credits is exactly zero (i.e., we return to the present). Otherwise it prints ‘N’.*
+
+---
+
+### 3.  Hoare triple  
+
+\[
+\boxed{\;\{\,{\sf Pre}\,\}\;P\; \{\,{\sf Post}\,\}\;}
+\]
+
+This triple completely captures the required behaviour of the algorithm: any execution that starts with three admissible credits must terminate with the character ‘S’ precisely when a feasible combination of forward/backward trips exists, and with ‘N’ otherwise.

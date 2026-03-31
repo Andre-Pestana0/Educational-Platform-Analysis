@@ -1,0 +1,19 @@
+Description: Rock-paper -scissors - lizard - Spock is an expansion of the classical method of selection for playing rock-paper- scissors. It operates under the same basic principle , but includes two other additional weapons : the lizard (formed by the hand like a puppet 's mouth ) and Spock ( formed by greeting the Vulcans in Star Trek ) . This reduces the chances of a round end in a draw . The game was invented by Sam Kass and Karen Bryla like " Rock Paper Scissors Lizard Spock ." In this version, the possible outcomes are:
+
+Input: There are many test cases. The first number is an integer C, the number of test cases. Each test case contains two words in Portuguese, the weapons chosen by Rajesh and Sheldon, respectively.
+
+Output: For each test case, print who won, or "empate" if there was a tie.
+
+Examples:
+- Example 1:
+  Input:
+3
+spock spock
+tesoura spock
+lagarto spock
+  Output:
+empate
+sheldon
+rajesh
+
+--

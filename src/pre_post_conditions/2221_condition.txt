@@ -1,0 +1,86 @@
+Below is a **Hoare‑style specification** (pre‑condition \(P\) and post‑condition \(Q\)) that captures exactly the behaviour required by the statement of the problem.  
+All symbols are written in conventional mathematical notation; the program itself is denoted by the abstract command **`Solve`** (it reads the whole input, performs the calculations and writes the required lines of output).
+
+---
+
+### 1.   Vocabulary  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(T\) | number of test‑cases (instances). |
+| \(B_k\) | bonus for the *k‑th* instance, \(0\le B_k\le 100\). |
+| \(A^{\text{D}}_k,\;D^{\text{D}}_k,\;L^{\text{D}}_k\) | attack, defense and level of **Dabriel**’s Pomekon in instance *k*. |
+| \(A^{\text{G}}_k,\;D^{\text{G}}_k,\;L^{\text{G}}_k\) | attack, defense and level of **Guarte**’s Pomekon in instance *k*. |
+| \(\operatorname{val}(A,D,B)=\displaystyle\frac{A+D}{2}+B\) | the “value’’ of a Pomekon (the formula given in the statement). |
+| \(\mathit{out}_k\) | the string printed for instance *k* (`"Dabriel"`, `"Guarte"` or `"Empate"`). |
+| \(\mathbb N\) | set of non‑negative integers. |
+| \(\mathbb Z\) | set of all integers. |
+
+All variables are assumed to be **integer‑valued** (the division in the formula is exact because \((A+D)\) is always even – the problem statement guarantees the result is an integer).
+
+---
+
+### 2.   Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;&
+\underbrace{T\in\mathbb N \;\land\; T\ge 1}_{\text{at least one instance}} \\
+&\land\; \forall k\in\{1,\dots ,T\}\;.\;
+\Bigl(
+   0\le B_k\le 100 \\
+&\qquad\land\; 1\le A^{\text{D}}_k\le 100 \;\land\; 1\le D^{\text{D}}_k\le 100 \;\land\; 1\le L^{\text{D}}_k\le 50 \\
+&\qquad\land\; 1\le A^{\text{G}}_k\le 100 \;\land\; 1\le D^{\text{G}}_k\le 100 \;\land\; 1\le L^{\text{G}}_k\le 50
+\Bigr)
+\end{aligned}
+\]
+
+The pre‑condition merely states that the input conforms to the ranges given in the problem description.
+
+---
+
+### 3.   Post‑condition \(Q\)
+
+Let  
+
+\[
+\begin{aligned}
+V^{\text{D}}_k &:= \operatorname{val}\bigl(A^{\text{D}}_k, D^{\text{D}}_k, B_k\bigr)
+               = \frac{A^{\text{D}}_k + D^{\text{D}}_k}{2}+B_k,\\[2mm]
+V^{\text{G}}_k &:= \operatorname{val}\bigl(A^{\text{G}}_k, D^{\text{G}}_k, B_k\bigr)
+               = \frac{A^{\text{G}}_k + D^{\text{G}}_k}{2}+B_k .
+\end{aligned}
+\]
+
+The output list \(\bigl(\mathit{out}_1,\dots ,\mathit{out}_T\bigr)\) produced by the program must satisfy, for **every** instance \(k\),
+
+\[
+\boxed{
+\begin{aligned}
+\bigl(V^{\text{D}}_k > V^{\text{G}}_k \;\land\; \mathit{out}_k = \text{``Dabriel''}\bigr)
+\;\;\lor\;\;
+\bigl(V^{\text{G}}_k > V^{\text{D}}_k \;\land\; \mathit{out}_k = \text{``Guarte''}\bigr)\\[1mm]
+\;\;\lor\;\;
+\bigl(V^{\text{D}}_k = V^{\text{G}}_k \;\land\; \mathit{out}_k = \text{``Empate''}\bigr)
+\end{aligned}}
+\]
+
+In words: the program prints “Dabriel’’ exactly when Dabriel’s Pomekon value is strictly larger than Guarte’s; it prints “Guarte’’ exactly when Guarte’s value is strictly larger; and it prints “Empate’’ exactly when the two values are equal.  
+No other string may be printed and exactly one of the three alternatives holds for each \(k\).
+
+---
+
+### 4.   Hoare triple
+
+\[
+\boxed{\{\,P\,\}\;\; \textbf{Solve}\;\; \{\,Q\,\}}
+\]
+
+where **`Solve`** is the (unspecified) algorithm that
+
+1. reads the integer \(T\);
+2. iterates \(k = 1\) to \(T\) reading \(B_k\), the six integers \((A^{\text{D}}_k,D^{\text{D}}_k,L^{\text{D}}_k)\) and \((A^{\text{G}}_k,D^{\text{G}}_k,L^{\text{G}}_k)\);
+3. computes the two values \(V^{\text{D}}_k, V^{\text{G}}_k\) using the formula above;
+4. writes the appropriate string according to the condition in the post‑condition.
+
+The Hoare triple guarantees that, **provided the input satisfies the ranges of the pre‑condition**, the output will be exactly the list of winners prescribed by the problem statement.

@@ -1,0 +1,124 @@
+Below is a **Hoare‑logic style specification** for the whole program (the *while*‑loop that processes the *N* test cases).  
+Only the **pre‑condition** *P* (what is guaranteed to be true before the program starts) and the **post‑condition** *Q* (what must be true after the program terminates) are given; the body of the program is left implicit.
+
+---
+
+### 1. Notation
+
+* `ℕ` – the set of non‑negative integers.  
+* `ℝ₁₀ = { k/10 | k∈ℤ }` – the set of decimal numbers that have exactly one digit after the decimal point (the “one‑decimal” numbers).  
+* For a real number `x` we write  
+
+\[
+\operatorname{rnd}_{0.1}(x) \;:=\; \frac{\big\lfloor 10x + \tfrac12\big\rfloor}{10},
+\]
+
+i.e. **round to the nearest tenth** (round‑half‑up).  
+
+* Input file is a finite sequence  
+
+\[
+\mathbf{in}= \bigl(N,\; (a_1,b_1,c_1),\dots,(a_N,b_N,c_N)\bigr)
+\]
+
+with  
+
+\[
+N\in\mathbb N,\qquad 
+\forall i\in\{1,\dots ,N\}\;:\; a_i,b_i,c_i\in\mathbb R_{10}.
+\]
+
+* Output file is a finite sequence  
+
+\[
+\mathbf{out}= (o_1,\dots ,o_N)
+\]
+
+where each `o_i` is a decimal number with one digit after the point.
+
+---
+
+### 2. Pre‑condition  **P**
+
+\[
+\boxed{
+P \;\equiv\;
+\bigl(N\in\mathbb N\;\wedge\; N\ge 0\;\bigr)
+\;\wedge\;
+\Bigl(\forall i\in\{1,\dots ,N\}\;:\; a_i,b_i,c_i\in\mathbb R_{10}\Bigr)
+}
+\]
+
+In words: the input consists of a non‑negative integer `N` followed by exactly `N` triples of *one‑decimal* floating‑point numbers.
+
+---
+
+### 3. Post‑condition  **Q**
+
+Define the **exact weighted average** for the *i‑th* test case:
+
+\[
+\mu_i \;:=\; \frac{2a_i + 3b_i + 5c_i}{10}\qquad (i=1,\dots ,N).
+\]
+
+The required output value is the rounded average
+
+\[
+o_i \;=\; \operatorname{rnd}_{0.1}(\mu_i)
+      \;=\; \frac{\big\lfloor 10\mu_i + \tfrac12\big\rfloor}{10}.
+\]
+
+The post‑condition therefore is
+
+\[
+\boxed{
+Q \;\equiv\;
+\Bigl(\forall i\in\{1,\dots ,N\}\;:\;
+o_i = \operatorname{rnd}_{0.1}\!\Bigl(\frac{2a_i+3b_i+5c_i}{10}\Bigr)
+\Bigr)
+\;\wedge\;
+\bigl|\,\mathbf{out}\,\bigr| = N
+}
+\]
+
+i.e. the output file contains exactly `N` lines; the *i‑th* line is the weighted average of the three input numbers of the *i‑th* test case, rounded to one decimal place as defined above.
+
+---
+
+### 4. Hoare triple for the whole program
+
+\[
+\boxed{
+\{\,P\,\}\;\; \texttt{program}\; \{\,Q\,\}
+}
+\]
+
+The program is required to **terminate** (no infinite loop) and to satisfy the above `Q` for every execution that starts in a state satisfying `P`.
+
+---
+
+### 5. Sketch of the loop‑invariant (optional, to aid a formal proof)
+
+If the implementation uses a `for i = 1 … N` loop, a suitable invariant `I(i)` after processing the first `i‑1` test cases is:
+
+\[
+I(i)\;:\;
+\bigl(1\le i\le N+1\bigr)\;\wedge\;
+\Bigl(\forall j\in\{1,\dots ,i-1\}\;:\;
+o_j = \operatorname{rnd}_{0.1}\!\Bigl(\frac{2a_j+3b_j+5c_j}{10}\Bigr)\Bigr)
+\;\wedge\;
+\bigl|\mathbf{out}\bigr| = i-1 .
+\]
+
+*Initialization* (`i = 1`) makes `I(1)` true (no output produced yet).  
+*Maintenance* follows from the computation of `o_i` inside the loop body.  
+*Termination* (`i = N+1`) yields `I(N+1)`, which is exactly the post‑condition `Q`.
+
+---
+
+#### Summary
+
+- **Pre‑condition** `P` guarantees a well‑formed input (an integer `N` and `N` triples of one‑decimal numbers).  
+- **Post‑condition** `Q` guarantees that the program prints `N` one‑decimal numbers, each equal to the weighted average ` (2·a + 3·b + 5·c)/10 ` rounded to the nearest tenth.  
+
+This formal specification captures precisely the behaviour described in the natural‑language problem statement

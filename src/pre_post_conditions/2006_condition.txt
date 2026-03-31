@@ -1,0 +1,116 @@
+Below is a **Hoare‑logic style specification** of the whole “blind‑tea‑tasting” program.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what is guaranteed after the program terminates) are given; the body of the program is omitted because it is not needed for the specification.
+
+---
+
+### 1.   Notation that will be used  
+
+| Symbol | Meaning |
+|--------|---------|
+| \( \mathbb N \) | set of natural numbers (including 0) |
+| \( [P] \) | Iverson bracket – 1 if the proposition \(P\) is true, 0 otherwise |
+| \( \sum\limits_{i\in S} f(i) \) | ordinary finite sum over the set \(S\) |
+| \( \operatorname{read}() \) | input operation (returns the next integer from stdin) |
+| \( \operatorname{write}(x) \) | output operation (writes the integer \(x\) followed by a newline) |
+| \( \mathbf{Ans} = (A,B,C,D,E) \) | 5‑tuple of the contestants’ answers |
+| \( \mathbf{Ans}[k] \) | the \(k\)-th component of the tuple, i.e. \(A,B,C,D,E\) for \(k=1\ldots5\) |
+| \( \operatorname{cnt}(T,\mathbf{Ans}) \) | number of components of \(\mathbf{Ans}\) equal to the tea type \(T\) (definition given below) |
+
+\[
+\operatorname{cnt}(T,\mathbf{Ans}) \;\;=\;\; \sum_{k=1}^{5} [\,\mathbf{Ans}[k] = T\,]
+\tag{1}
+\]
+
+All variables are **immutable** after they are read – the program does not modify the input values.
+
+---
+
+### 2.   Variables that appear in the specification  
+
+| Variable | Scope | Type |
+|----------|-------|------|
+| \(T\) | input | \(T\in\{1,2,3,4\}\) |
+| \(A,B,C,D,E\) | input | each \( \in\{1,2,3,4\}\) |
+| \(R\) | output | integer (the result that will be printed) |
+
+---
+
+### 3.   Pre‑condition  
+
+The only requirements on the initial state are that the five answers and the tea type are valid codes (1 … 4).  
+
+\[
+\boxed{
+P \;\; \equiv\;\; 
+\bigl(T\in\{1,2,3,4\}\bigr)\;\land\;
+\bigl(A\in\{1,2,3,4\}\bigr)\;\land\;
+\bigl(B\in\{1,2,3,4\}\bigr)\;\land\;
+\bigl(C\in\{1,2,3,4\}\bigr)\;\land\;
+\bigl(D\in\{1,2,3,4\}\bigr)\;\land\;
+\bigl(E\in\{1,2,3,4\}\bigr)
+}
+\tag{2}
+\]
+
+(If one wishes to be explicit about the order of input, we can write the program’s first statements as  
+\(T := \operatorname{read}();\; (A,B,C,D,E) := \operatorname{read}();\) – but the Hoare triple does not need to mention the internal reads.)
+
+---
+
+### 4.   Post‑condition  
+
+After termination the program must have printed exactly the number of contestants whose answer matches the true tea type.
+
+\[
+\boxed{
+Q \;\; \equiv\;\; 
+\bigl(R = \operatorname{cnt}(T,(A,B,C,D,E))\bigr)
+}
+\tag{3}
+\]
+
+Using (1) this can be unfolded as  
+
+\[
+R = \sum_{k=1}^{5} [\,\mathbf{Ans}[k] = T\,]
+\;=\;[A=T] + [B=T] + [C=T] + [D=T] + [E=T].
+\tag{4}
+\]
+
+The output operation is required to write exactly this value:
+
+\[
+\operatorname{write}(R)
+\]
+
+---
+
+### 5.   Full Hoare triple  
+
+\[
+\boxed{
+\{\,P\,\}\;\; \texttt{
+    T  ← read();\\
+    (A,B,C,D,E) ← read();\\
+    R ← ([A=T] + [B=T] + [C=T] + [D=T] + [E=T]);\\
+    write(R);
+}\;\; \{\,Q\,\}
+}
+\tag{5}
+\]
+
+The triple (5) states formally:
+
+*If the input satisfies the pre‑condition (2), then after executing the program the integer printed is exactly the number of correct guesses, i.e. the value described by (3)–(4).*
+
+---
+
+### 6.   Remarks / Variations  
+
+* The Iverson bracket notation makes the counting expression concise; any equivalent definition (e.g. a loop that increments a counter when `answer_i == T`) is admissible as long as it yields the same functional relation.  
+* If one wishes to expose the intermediate **counter variable** `cnt` that is incremented inside a loop, the post‑condition can be written as `cnt = Σ_{k=1}^{5}[Ans[k]=T] ∧ R = cnt`.  
+* The specification is *total*: for every admissible input the program terminates (the body consists only of a finite number of deterministic operations).  
+
+---  
+
+**Thus the formal Hoare‑logic specification of the “Blind tea tasting” problem is given by the pre‑condition (2), the post‑condition (3) (or equivalently (4)), and the Hoare triple (5).**

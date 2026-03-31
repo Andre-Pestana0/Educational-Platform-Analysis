@@ -1,0 +1,68 @@
+Below is a **Hoare‑logic style specification** of the program that reads the four integers  
+\(A,B,C,D\) and prints one of the two messages  
+
+*“Valores aceitos”*  (Accepted values)  
+
+*“Valores nao aceitos”* (Values not accepted).
+
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what is guaranteed after it terminates) are given; the body of the program is omitted.
+
+---
+
+### 1.  Notation
+
+* \(A,B,C,D \in \mathbb Z\) – the four input integers.  
+* \(\operatorname{msg}\in\{\text{“Valores aceitos”},\;\text{“Valores nao aceitos”}\}\) – the string that the program finally writes.  
+* “\(x\) even’’ is written \(x\equiv 0\pmod 2\).  
+* Logical connectives: \(\land\) (and), \(\lor\) (or), \(\neg\) (not), \(\Rightarrow\) (implies), \(\Leftrightarrow\) (iff).  
+
+Define the **acceptance predicate**  
+
+\[
+\begin{aligned}
+P(A,B,C,D)\; \stackrel{\text{def}}{=}\;&
+\bigl(B>C\bigr) \;\land\;
+\bigl(D>A\bigr) \;\land\\[2pt]
+&\bigl(C+D > A+B\bigr) \;\land\;
+\bigl(C>0\bigr) \;\land\;
+\bigl(D>0\bigr) \;\land\\[2pt]
+&\bigl(A \equiv 0 \pmod 2\bigr) .
+\end{aligned}
+\]
+
+---
+
+### 2.  Hoare triple
+
+\[
+\boxed{\;\{\,\top\,\}\;\; \text{read }A,B,C,D;\; \text{if }P(A,B,C,D)\text{ then write “Valores aceitos” else write “Valores nao aceitos”}\;\; \{\,\Phi\,\}\;}
+\]
+
+where the **post‑condition** \(\Phi\) is
+
+\[
+\Phi \;\equiv\;
+\bigl(\operatorname{msg}= \text{“Valores aceitos”}\bigr) \;\Leftrightarrow\; P(A,B,C,D)
+\;\land\;
+\bigl(\operatorname{msg}= \text{“Valores nao aceitos”}\bigr) \;\Leftrightarrow\; \neg P(A,B,C,D).
+\]
+
+Equivalently, we can write the post‑condition more compactly as
+
+\[
+\Phi \;\equiv\;
+\operatorname{msg}= 
+\begin{cases}
+\text{“Valores aceitos”}      & \text{if } P(A,B,C,D),\\[4pt]
+\text{“Valores nao aceitos”} & \text{if } \neg P(A,B,C,D).
+\end{cases}
+\]
+
+---
+
+### 3.  Summary in words
+
+* **Pre‑condition** (\(\top\)): the program may be started with any four integer inputs.  
+* **Post‑condition** (\(\Phi\)): after execution the output string is exactly “Valores aceitos” **iff** all six conditions of \(P\) hold; otherwise the output is “Valores nao aceitos”.
+
+This Hoare‑logic specification captures precisely the natural‑language requirement given in the problem statement.

@@ -1,0 +1,232 @@
+## 1.  What we have to show  
+
+We are asked to **prove** that the program below satisfies a given *Hoare‑style* specification  
+
+```
+{ P }                     // pre‑condition
+L = int(input())
+C = int(input())
+if (L%2 == 0) then
+    if (C%2 == 0) then print(1) else print(0)
+else
+    if (C%2 == 0) then print(0) else print(1)
+{ Q }                     // post‑condition
+```
+
+The specification that is normally attached to the problem *“Beecrowd 2787 – Par ou Ímpar”* is  
+
+* **Pre‑condition** `P` : the two values read from the input are **integers** (the problem guarantees that the input consists of two lines, each containing a decimal integer).  
+
+  \[
+  P \;=\;  \bigl(L\in\mathbb Z\;\wedge\;C\in\mathbb Z\bigr)
+  \]
+
+* **Post‑condition** `Q` : the program prints the number **1** exactly when the parity of the two numbers is the same (both even or both odd); otherwise it prints **0**.  
+
+  \[
+  Q \;=\; \bigl(\text{output}=1 \;\leftrightarrow\; (L\bmod 2 = C\bmod 2)\bigr)
+  \]
+
+In Hoare‑logic notation we must establish  
+
+\[
+\{P\}\; \text{program}\; \{Q\}
+\]
+
+---
+
+## 2.  Hoare‑logic rules we shall use  
+
+| Rule | Shape | Meaning |
+|------|-------|---------|
+| **Assignment** | \(\{ Q[x:=E] \}\; x:=E\; \{ Q \}\) | Substituting the right‑hand side for the assigned variable in the post‑condition yields a valid pre‑condition. |
+| **Composition** | \(\{P\}\; S_1\; \{R\}\) and \(\{R\}\; S_2\; \{Q\}\) ⇒ \(\{P\}\; S_1;S_2\; \{Q\}\) | Sequential statements. |
+| **Conditional** | \(\{P\wedge B\}\; S_1\; \{Q\}\) and \(\{P\wedge\neg B\}\; S_2\; \{Q\}\) ⇒ \(\{P\}\; \textbf{if}\;B\;\textbf{then}\;S_1\;\textbf{else}\;S_2\;\{Q\}\) | Both branches must guarantee the same post‑condition. |
+| **Consequence** | From \(\{P'\}\; S\; \{Q'\}\) and \(P\Rightarrow P'\), \(Q'\Rightarrow Q\) infer \(\{P\}\; S\; \{Q\}\) | Weakening/strengthening of assertions. |
+
+The program consists of three *atomic* statements that we treat as assignments to the (implicit) variables `L`, `C` and `output`.  
+The two nested `if`s can be flattened into a single conditional with a *compound* guard:
+
+```
+if ( (L%2 == 0 ∧ C%2 == 0) ∨ (L%2 == 1 ∧ C%2 == 1) )
+        then print(1)
+        else print(0)
+```
+
+Because `x%2` yields either `0` (even) or `1` (odd), the guard is exactly the predicate  
+
+\[
+B \; \equiv\; (L\bmod 2 = C\bmod 2).
+\]
+
+Hence the program is equivalent to
+
+```
+output := 1   if B
+output := 0   otherwise
+```
+
+We will prove correctness for this *flattened* version; the same reasoning applies to the original nested version, as each branch of the outer `if` contains a correct inner `if`.
+
+---
+
+## 3.  Proof structure  
+
+1. **After the two input statements** we have the *state* `{ L∈ℤ ∧ C∈ℤ }`.  
+   This is exactly the pre‑condition `P`.  
+
+2. **Conditional part** – we show that both branches establish the post‑condition `Q`.  
+
+   *Branch 1* (`B` true): we execute `print(1)`.  
+   *Branch 2* (`¬B` true): we execute `print(0)`.  
+
+3. Use the **Conditional rule** to combine the two branches.
+
+---
+
+## 4.  Detailed Hoare derivation  
+
+### 4.1  Input statements  
+
+```
+L = int(input())
+C = int(input())
+```
+
+The input operation can be modelled as an *assignment* that brings the variables into the domain ℤ.  
+Using the **Assignment rule** with the post‑condition  
+
+\[
+R \;=\; (L\in\mathbb Z \wedge C\in\mathbb Z)
+\]
+
+we obtain the Hoare triples
+
+\[
+\{R\}\; L = \text{int}(input())\; \{R\}
+\qquad
+\{R\}\; C = \text{int}(input())\; \{R\}
+\]
+
+and by **Composition**  
+
+\[
+\{ P\}\; L = \text{int}(input());\; C = \text{int}(input())\; \{ R\}
+\]
+
+where `P` is simply `true` (the program can start in any state) and `R` is exactly our pre‑condition `P`.
+
+---
+
+### 4.2  The conditional (flattened version)
+
+Define  
+
+\[
+B \; \stackrel{\text{def}}{=}\; (L\bmod 2 = C\bmod 2)
+\]
+
+and let  
+
+\[
+Q \;=\; (\text{output}=1 \leftrightarrow B)
+\]
+
+We must prove  
+
+\[
+\{R\}\; \textbf{if}\; B\;\textbf{then}\; \text{print}(1)\;\textbf{else}\; \text{print}(0)\; \{Q\}
+\]
+
+Because `print(k)` is just an assignment `output := k`, we treat the two branches as assignments.
+
+#### 4.2.1  True branch (`B`)
+
+Goal:  
+
+\[
+\{R \wedge B\}\; \text{output} := 1\; \{Q\}
+\]
+
+Apply the **Assignment rule**: we need a pre‑condition that, after substituting `1` for `output` in `Q`, holds.
+
+\[
+Q[output:=1] \;=\; (1 = 1 \leftrightarrow B) \;\equiv\; ( \text{true} \leftrightarrow B) \;\equiv\; B
+\]
+
+Thus the required pre‑condition is simply `B`.  
+Since we already have `R ∧ B` as the antecedent, `B` follows immediately, so the triple holds.
+
+#### 4.2.2  False branch (`¬B`)
+
+Goal:  
+
+\[
+\{R \wedge \neg B\}\; \text{output} := 0\; \{Q\}
+\]
+
+Again substitute `0` for `output` in `Q`:
+
+\[
+Q[output:=0] \;=\; (0 = 1 \leftrightarrow B) \;\equiv\; (\text{false} \leftrightarrow B) \;\equiv\; \neg B
+\]
+
+Hence the required pre‑condition is `¬B`.  
+Our antecedent `R ∧ ¬B` entails `¬B`, so the triple is valid.
+
+#### 4.2.3  Combine the two branches  
+
+We have proved  
+
+\[
+\{R\wedge B\}\; \text{output}:=1\; \{Q\}
+\qquad
+\{R\wedge\neg B\}\; \text{output}:=0\; \{Q\}
+\]
+
+Therefore, by the **Conditional rule**,  
+
+\[
+\{R\}\; \textbf{if}\; B\;\textbf{then}\; \text{output}:=1\;\textbf{else}\; \text{output}:=0\; \{Q\}
+\]
+
+---
+
+### 4.3  Putting everything together  
+
+1. From the start we have `{ true }`.
+2. After the two input statements we reach `{ R }` (i.e. `L∈ℤ ∧ C∈ℤ`).
+3. From `{ R }` the conditional establishes `{ Q }`.
+
+Using **Composition** twice we obtain the overall Hoare triple
+
+\[
+\{\,\text{true}\,\}\;
+L = \text{int}(input());\;
+C = \text{int}(input());\;
+\textbf{if}\; (L\bmod 2 = C\bmod 2) \;\textbf{then}\; \text{print}(1)\;
+\textbf{else}\; \text{print}(0)
+\;\{\,\text{output}=1 \leftrightarrow (L\bmod 2 = C\bmod 2)\,\}
+\]
+
+Since the *true* pre‑condition is weaker than the problem’s stated pre‑condition `P` (`L∈ℤ ∧ C∈ℤ`), by the **Consequence rule** we can replace `true` with `P` and still have a valid triple.
+
+Thus we have proved
+
+\[
+\boxed{\{P\}\; \text{program}\; \{Q\}}
+\]
+
+which is exactly the required *correctness* according to the Hoare‑logic specification.
+
+---
+
+## 5.  Intuitive interpretation  
+
+The program computes the **parity** of the two inputs (`L%2` and `C%2`).  
+* If the two remainders are equal (both `0` → both even, or both `1` → both odd) the guard `B` is true and the program prints `1`.  
+* If the remainders differ (one even, one odd) the guard is false and the program prints `0`.
+
+Hence the printed value is `1` **iff** the two numbers have the same parity, which is precisely the post‑condition `Q`.  
+
+The Hoare‑logic proof above shows that this intuitive reasoning is formally justified. ∎

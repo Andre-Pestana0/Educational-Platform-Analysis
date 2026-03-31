@@ -1,0 +1,257 @@
+Below is a **Hoare‑logic proof** that the Python program given in the statement implements the specification required by the Beecrowd problem *1828 – “Iniciante – Nível 4”*.  
+The proof is completely **self‑contained**: we first state the specification (pre‑ and post‑conditions), then we exhibit a suitable **loop invariant**, and finally we show, by means of Hoare triples, that every command of the program preserves the invariant and that the invariant together with the termination condition yields the required post‑condition.
+
+--------------------------------------------------------------------
+
+## 1.  Specification
+
+### 1.1  Vocabulary  
+
+* `S = { "tesoura", "papel", "pedra", "lagarto", "Spock" }` – the set of admissible moves.  
+* `V ⊆ S × S` – the set of *Sheldon‑winning* ordered pairs.  
+  ```
+  V = { ("tesoura","papel"),
+        ("papel","pedra"),
+        ("pedra","lagarto"),
+        ("lagarto","Spock"),
+        ("Spock","tesoura"),
+        ("tesoura","lagarto"),
+        ("lagarto","papel"),
+        ("papel","Spock"),
+        ("Spock","pedra"),
+        ("pedra","tesoura") }
+  ```
+  (These are exactly the ten rules of “Rock‑Paper‑Scissors‑Lizard‑Spock”.)  
+
+* For a concrete test case *i* (1 ≤ i ≤ T) we denote the two strings read from the input by  
+  `c_i = (x_i , y_i) ∈ S × S`.  
+
+* The three possible textual results are  
+
+  * `R_B = "Bazinga!"` – Sheldon wins, i.e. `c_i ∈ V`.  
+  * `R_D = "De novo!"`   – tie, i.e. `x_i = y_i`.  
+  * `R_R = "Raj trapaceou!"` – Raj wins, i.e. `c_i ∉ V ∧ x_i ≠ y_i`.
+
+### 1.2  Pre‑condition  
+
+```
+P  ≡  (T ∈ ℕ) ∧ (0 ≤ T) ∧
+      ∀ i∈[1..T] .  c_i = (x_i , y_i) ∈ S × S
+```
+
+In words: the first line of the input contains a non‑negative integer `T`; the next `T` lines each contain **exactly two** tokens belonging to the set `S`.  No other assumptions are made about the concrete values of the tokens.
+
+### 1.3  Post‑condition  
+
+```
+Q  ≡  ∀ i∈[1..T] .
+        printed line i  =  "Caso #i: " ∘ result_i
+        where
+          result_i =  R_B  if c_i ∈ V
+                    =  R_D  if x_i = y_i
+                    =  R_R  otherwise
+```
+
+That is, after the program terminates it has printed **one line for each test case** and the line contains the correct message according to the rules of the game.
+
+--------------------------------------------------------------------
+
+## 2.  Program (annotated)
+
+```python
+1  T = int(input())                         # read T
+2  for caso in range(T):                    # loop over the cases
+3      escolhas = [x for x in input().split(" ")]
+4      vitoria = [ ["tesoura","papel"],
+5                  ["papel","pedra"],
+6                  ["pedra","lagarto"],
+7                  ["lagarto","Spock"],
+8                  ["Spock","tesoura"],
+9                  ["tesoura","lagarto"],
+10                 ["lagarto","papel"],
+11                 ["papel","Spock"],
+12                 ["Spock","pedra"],
+13                 ["pedra","tesoura"] ]
+14     empate = escolhas[0] == escolhas[1]
+15     if escolhas in vitoria:
+16         print(f"Caso #{caso+1}: Bazinga!")
+17     elif empate:
+18         print(f"Caso #{caso+1}: De novo!")
+19     else:
+20         print(f"Caso #{caso+1}: Raj trapaceou!")
+```
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+Let  
+
+```
+I(k)  ≡  (0 ≤ k ≤ T) ∧
+        (the variable  caso  currently holds the value k) ∧
+        (exactly the first k cases have already been printed,
+         each of them satisfying the specification Q for its index)
+```
+
+Intuitively, after the *k‑th* iteration (i.e. just before the next test case is read) we have already produced the correct output for cases `1,…,k`.  The invariant does **not** speak about the not‑yet‑read input lines; they remain untouched.
+
+--------------------------------------------------------------------
+
+## 4.  Proof by Hoare triples  
+
+We prove the Hoare triple  
+
+```
+{ P }  Program  { Q }
+```
+
+by the standard rule for *while/for* loops:
+
+```
+{ P }  init;   while B do C  od  { Q }
+```
+
+where we must show  
+
+* **Initialization** : `{P}` `init` `{I(0)}`
+* **Maintenance**   : `{I(k) ∧ k < T}` `C` `{I(k+1)}`
+* **Termination**   : `{I(T)}` ⇒ `{Q}`
+
+Below each step we give the corresponding Hoare triple.
+
+--------------------------------------------------------------------
+### 4.1  Initialization  
+
+`init` is the single statement `T = int(input())`.  
+From the pre‑condition `P` we already know that the read integer satisfies `0 ≤ T`.  
+Thus after this statement the invariant holds with `k = 0` (no case processed yet) and the loop variable `caso` is not yet defined, which is compatible with `I(0)`.
+
+```
+{ P }  T = int(input())  { I(0) }
+```
+
+--------------------------------------------------------------------
+### 4.2  Maintenance (body of the `for` loop)
+
+Assume the invariant `I(k)` holds at the beginning of an iteration and `k < T`.  
+The loop variable `caso` equals `k` (by definition of the `for` statement).  
+The body `C` consists of the statements 3–20.  
+We analyse them one by one.
+
+#### 4.2.1  Reading the two moves  
+
+```
+escolhas = [x for x in input().split(" ")]
+```
+
+Because of the pre‑condition, the *k+1‑st* line of the input is a pair  
+`c_{k+1} = (x_{k+1}, y_{k+1}) ∈ S × S`.  
+The list comprehension creates the Python list `escolhas = [x_{k+1}, y_{k+1}]`.  
+Thus after this line we have the exact representation of the current test case.
+
+#### 4.2.2  The constant table `vitoria`  
+
+Lines 4–13 merely allocate a constant list that is *identical* to the set `V` defined in the specification (the order of the pairs is irrelevant for the membership test). No variables used later are altered, therefore the invariant is preserved.
+
+#### 4.2.3  Detecting a tie  
+
+```
+empate = escolhas[0] == escolhas[1]
+```
+
+`empate` is true **iff** `x_{k+1} = y_{k+1}`.  This is precisely the definition of a tie in the specification.
+
+#### 4.2.4  The three mutually exclusive cases  
+
+The three branches are exhaustive because the three Boolean expressions
+
+* `escolhas in vitoria`
+* `empate`
+* `¬(escolhas in vitoria) ∧ ¬empate`
+
+cover all possibilities for a pair of moves.
+
+* **Case 1** (`escolhas in vitoria`):  
+  By construction of `vitoria` we have `escolhas ∈ V ⇔ c_{k+1} ∈ V`.  
+  Consequently the printed line  
+
+  ```
+  print(f"Caso #{caso+1}: Bazinga!")
+  ```
+
+  is exactly `"Caso #k+1: " ∘ R_B`, which is the required output for a Sheldon win.
+
+* **Case 2** (`empate`):  
+  Here `x_{k+1}=y_{k+1}` and `escolhas ∉ V` (otherwise the first branch would have been taken).  
+  The printed line  
+
+  ```
+  print(f"Caso #{caso+1}: De novo!")
+  ```
+
+  equals `"Caso #k+1: " ∘ R_D`, the correct output for a tie.
+
+* **Case 3** (the `else` branch):  
+  The antecedent of the `else` is the negation of the two previous predicates, i.e.  
+
+  ```
+  (escolhas ∉ V) ∧ (x_{k+1} ≠ y_{k+1})
+  ```
+
+  which is precisely the situation “Raj wins”.  
+  The printed line  
+
+  ```
+  print(f"Caso #{caso+1}: Raj trapaceou!")
+  ```
+
+  equals `"Caso #k+1: " ∘ R_R`.
+
+In each branch the program **adds exactly one correct line** to the output, namely the line belonging to case `k+1`.  All previously printed lines (for cases `1 … k`) remain unchanged, so after the execution of the whole body we have
+
+```
+{ I(k) ∧ k < T }   body   { I(k+1) }
+```
+
+The loop variable `caso` is automatically increased by the `for` construction; after the increment it holds the value `k+1`, which is precisely what the invariant requires.
+
+--------------------------------------------------------------------
+### 4.3  Termination  
+
+The `for` loop stops when the iterator has produced the value `T‑1`.  
+At that moment `caso = T‑1` has just been processed, the loop condition `caso < T` becomes false, and the invariant holds with `k = T`:
+
+```
+I(T)  ≡  (0 ≤ T ≤ T) ∧ (caso = T) ∧
+        (the first T cases have been printed correctly)
+```
+
+The conjunct “the first T cases have been printed correctly” is *exactly* the post‑condition `Q`.  Hence `I(T) ⇒ Q`.
+
+--------------------------------------------------------------------
+### 4.4  Summary of the Hoare derivation  
+
+```
+{ P }                              -- pre‑condition
+   T = int(input());               -- init
+   for caso in range(T):           -- loop
+        ... body ...               -- proved to preserve I(k)
+{ Q }                              -- post‑condition
+```
+
+Since we have shown **initialisation**, **maintenance**, and **termination**, the Hoare triple `{P} Program {Q}` is valid.  Consequently the program is *correct* with respect to the formal specification given in Section 1.
+
+--------------------------------------------------------------------
+
+## 5.  Remarks on the proof
+
+* The invariant does **not** involve the constant list `vitoria`; it is enough to know that this list is a faithful encoding of the mathematically defined set `V`.  The proof of that equivalence is trivial because the list contains *exactly* the ten ordered pairs that appear in the problem statement.
+* The only mutable state that persists across iterations is the output stream; the invariant explicitly records that the output generated so far is correct.  All other variables (`escolhas`, `empate`, the temporary loop variable `caso`) are re‑initialised each iteration, which makes the invariant easy to maintain.
+* The use of Python’s `in` operator on a list of two‑element lists implements the set‑membership test required by the specification; the proof treats it as a black‑box boolean predicate that is true exactly when the pair is present in `V`.
+
+--------------------------------------------------------------------
+
+### **Conclusion**
+
+We have exhibited a **formal Hoare‑logic proof** that the given Python program satisfies the specification of Beecrowd problem 1828.  The program reads the correct number of test cases, decides for each case whether Sheldon wins, the game ends in a tie, or Raj wins, and prints the required line in the required format.  Hence the program is **correct** with respect to its specification.

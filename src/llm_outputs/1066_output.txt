@@ -1,0 +1,40 @@
+5 valor(es) par(es)
+0 valor(es) impar(es)
+0 valor(es) positivo(s)
+0 valor(es) negativo(s)
+
+5 valor(es) par(es)
+0 valor(es) impar(es)
+5 valor(es) positivo(s)
+0 valor(es) negativo(s)
+
+0 valor(es) par(es)
+5 valor(es) impar(es)
+5 valor(es) positivo(s)
+0 valor(es) negativo(s)
+
+5 valor(es) par(es)
+0 valor(es) impar(es)
+0 valor(es) positivo(s)
+5 valor(es) negativo(s)
+
+0 valor(es) par(es)
+5 valor(es) impar(es)
+0 valor(es) positivo(s)
+5 valor(es) negativo(s)
+
+3 valor(es) par(es)
+2 valor(es) impar(es)
+2 valor(es) positivo(s)
+2 valor(es) negativo(s)
+
+4 valor(es) par(es)
+1 valor(es) impar(es)
+3 valor(es) positivo(s)
+1 valor(es) negativo(s)
+
+1 valor(es) par(es)
+4 valor(es) impar(es)
+2 valor(es) positivo(s)
+3 valor(es) negativo(s)
+

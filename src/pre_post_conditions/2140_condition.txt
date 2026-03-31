@@ -1,0 +1,140 @@
+Below is a **Hoare‑logic style specification** of the whole program.  
+All symbols are written in standard mathematical notation.  
+
+--------------------------------------------------------------------
+### 1.   Vocabulary  
+
+* **Variables**  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N , M` | integers read from the input (buy price and amount paid) |
+| `C`    | change to be returned, `C ≡ M – N` |
+| `out`  | the string printed for the current pair (`"possible"` or `"impossible"`) |
+| `stop` | Boolean flag that becomes **true** only when the sentinel pair `N = M = 0` is read |
+
+* **Data domain (set of legal bill denominations)**  
+
+\[
+\mathcal D \;=\;\{1,2,5,10,20,50,100,200,500\}\subseteq \mathbb N .
+\]
+
+* **Auxiliary predicate**  
+
+\[
+\mathbf{TwoDiffBills}(c) \; \stackrel{\text{def}}{=}\;
+\exists a,b\in\mathcal D\;.\;a\neq b\ \wedge\ a+b=c .
+\]
+
+--------------------------------------------------------------------
+### 2.   Global pre‑condition  
+
+The program is started with **no** assumptions on the input stream except that it is a finite
+sequence of integer pairs.  Formally  
+
+\[
+\boxed{ \; \mathsf{Pre}_{\text{prog}} \; \equiv\; \text{True} \;}
+\]
+
+--------------------------------------------------------------------
+### 3.   Loop invariant  
+
+The program reads the pairs one after another until the sentinel `0 0` is encountered.
+Let  
+
+\[
+\mathcal I(N,M,stop) \; \stackrel{\text{def}}{=}\;
+\bigl[stop = \text{false} \;\Rightarrow\; (0\le N < M \le 10^{4})\bigr]
+\;\land\;
+\bigl[stop = \text{true} \;\Rightarrow\; (N = M = 0)\bigr].
+\]
+
+`𝕀` is true **before** the first iteration, is preserved by each iteration, and together
+with `stop = true` characterises termination of the loop.
+
+--------------------------------------------------------------------
+### 4.   Body of one iteration  
+
+For a *single* pair `(N,M)` (with the sentinel excluded) the required post‑condition is  
+
+\[
+\boxed{
+\mathsf{Post}_{\text{pair}} \; \equiv\;
+\bigl[ out = \text{``possible''} \;\Leftrightarrow\; \mathbf{TwoDiffBills}(M-N) \bigr]
+}
+\tag{1}
+\]
+
+In Hoare‑logic notation the triple for the computation of `out` is  
+
+\[
+\{\, 0\le N < M \le 10^{4} \,\}
+\;\; \texttt{out := if } \mathbf{TwoDiffBills}(M-N) \texttt{ then ``possible'' else ``impossible''}
+\;\; \{\, \mathsf{Post}_{\text{pair}} \,\}.
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+### 5   Whole program specification  
+
+Let  
+
+* `Input` be the (finite) sequence of pairs \((N_i,M_i)_{i=1}^{k}\) read from *stdin*,
+  where the last pair is the sentinel \((0,0)\);
+* `Output` be the sequence of strings printed, one per non‑sentinel pair.
+
+The **total specification** is the Hoare triple  
+
+\[
+\boxed{
+\{\,\mathsf{Pre}_{\text{prog}}\,\}\;
+\texttt{while } \neg(stop) \texttt{ do}
+\begin{cases}
+\text{read } N,M;\\
+\text{if } (N=M=0) \text{ then } stop:=\text{true};\\
+\text{else } out:=\text{``possible'' if }\mathbf{TwoDiffBills}(M-N)\text{ else ``impossible''};\\
+\text{print } out
+\end{cases}
+\;\{\,\forall i\;(1\le i\le k-1)\;:\;
+\text{Output}_i = 
+\begin{cases}
+\text{``possible''} &\text{iff } \mathbf{TwoDiffBills}(M_i-N_i)\\[2mm]
+\text{``impossible''}&\text{otherwise}
+\end{cases}
+\;\}.
+}
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+### 6.   Explanation of the specification  
+
+* **Pre‑condition** – `True` – because the program must be correct for *any* input
+  (the input file may be empty, contain only the sentinel, or contain many pairs).
+
+* **Loop invariant** `𝕀` guarantees that while the loop continues (`stop = false`) the
+  current pair satisfies the problem constraints `0 ≤ N < M ≤ 10⁴`.  
+  When the sentinel is read, `stop` becomes `true` and `𝕀` forces `N = M = 0`,
+  thus terminating the loop.
+
+* **Post‑condition for a pair** (1) is exactly the English requirement:
+  the program prints *“possible”* **iff** the change `M‑N` can be expressed as the
+  sum of **two different** legal bills.
+
+* **Overall post‑condition** (3) states that the output sequence contains, for every
+  processed pair, the correct string according to the predicate `TwoDiffBills`.
+
+--------------------------------------------------------------------
+### 7.   Summary (in one Hoare triple)
+
+\[
+\boxed{
+\{\,\text{True}\,\}\;
+\texttt{read\_pairs\_and\_answer}
+\;\{\,\forall (N,M)\neq(0,0)\;.\;
+\bigl[\text{answer}(N,M)=\text{``possible''}\bigr]\iff\mathbf{TwoDiffBills}(M-N)\,\}.
+}
+\]
+
+This is the formal Hoare‑logic specification of the problem “Gilberto’s change with two
+different bills”.

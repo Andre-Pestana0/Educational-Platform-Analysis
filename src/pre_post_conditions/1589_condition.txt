@@ -1,0 +1,90 @@
+**Formal Hoare‑logic specification**
+
+Let  
+
+* `T` be the number of test cases,  
+* for each test case `i  (1 ≤ i ≤ T)` let the input pair be  
+  \(\;R_{1}^{(i)},R_{2}^{(i)}\in\mathbb N\) (the radii of the two cables),  
+* the program writes a sequence of `T` integers  
+  \(\;S^{(i)}\in\mathbb N\) (the radius of the required conduit for the *i*‑th case).
+
+We denote by  
+
+\[
+\mathbf{in} = \bigl(T,\,(R_{1}^{(1)},R_{2}^{(1)}),\dots,(R_{1}^{(T)},R_{2}^{(T)})\bigr)
+\]
+
+the whole input, and by  
+
+\[
+\mathbf{out}= \bigl(S^{(1)},\dots,S^{(T)}\bigr)
+\]
+
+the whole output.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P(\mathbf{in}) \; \equiv\;&
+\bigl(1\le T\le 10\,000\bigr) \;\land\\[2mm]
+&\forall i\in\{1,\dots ,T\}\;
+\bigl(R_{1}^{(i)}\in\mathbb N\;\land\;R_{2}^{(i)}\in\mathbb N\bigr)
+\end{aligned}
+\]
+
+(If a bound on the radii is required, e.g. \(R_{1}^{(i)},R_{2}^{(i)}\le M\), it can be added inside the universal quantifier.)
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q(\mathbf{in},\mathbf{out}) \; \equiv\;&
+\bigl|\mathbf{out}\bigr| = T \;\land\\[2mm]
+&\forall i\in\{1,\dots ,T\}\;
+\bigl(S^{(i)} = R_{1}^{(i)} + R_{2}^{(i)}\bigr)
+\end{aligned}
+\]
+
+That is, the program must output exactly one integer per test case, and each output integer must be the **sum of the two given radii**.
+
+---
+
+### Hoare triple for the whole program
+
+\[
+\boxed{\{\,P(\mathbf{in})\,\}\; \texttt{solve()} \; \{\,Q(\mathbf{in},\mathbf{out})\,\}}
+\]
+
+where `solve()` denotes the algorithm that
+
+1. reads `T`,
+2. iterates `i = 1 … T`,
+3. reads `R1,R2`,
+4. computes `S = R1 + R2`,
+5. prints `S`.
+
+---
+
+### Hoare triple for a single iteration (inner loop)
+
+For a fixed test case `i` let  
+
+\[
+\begin{aligned}
+P_i &\equiv\; R_{1}^{(i)}\in\mathbb N\;\land\;R_{2}^{(i)}\in\mathbb N,\\
+Q_i &\equiv\; S^{(i)} = R_{1}^{(i)} + R_{2}^{(i)} .
+\end{aligned}
+\]
+
+Then the body of the loop satisfies
+
+\[
+\boxed{\{\,P_i\,\}\; \texttt{S = R1 + R2; print(S)} \; \{\,Q_i\,\}} .
+\]
+
+These triples together constitute the complete formal (pre‑/post‑condition) specification of the problem in Hoare‑logic style.

@@ -1,0 +1,250 @@
+**Proof of partial‑correctness (Hoare logic) of the program**
+
+--------------------------------------------------------------------
+
+### 1.  Specification  
+
+*Let*  
+
+* `L = ⟨ℓ₀ ,ℓ₁ , … ,ℓₖ₋₁⟩` be the (finite) list of lines that are read from
+  `sys.stdin`.  
+* For a line `ℓ` let  
+
+  `len(ℓ)` be the number of characters **excluding** the final newline
+  (`ℓ[:-1]` in the program).  
+
+* `col(ℓ)` be the Excel column number that corresponds to the string `ℓ` :
+
+```
+   ℓ = c₁               →  col(ℓ) =  ord(c₁) – 64                     (1)
+   ℓ = c₁c₂             →  col(ℓ) = 26 + (ord(c₁)–65)·26 + (ord(c₂)–64) (2)
+   ℓ = c₁c₂c₃           →  col(ℓ) = 26 + 26·26
+                         + 26·((ord(c₁)–65)·26 + (ord(c₂)–65))
+                         + (ord(c₃)–64)                           (3)
+```
+
+* The *existing* columns are exactly those whose number is ≤ `col("XFD")`
+  (the last column of an Excel sheet).  
+  `col("XFD") = 16384`.  
+
+* The program must print, for each line `ℓ ∈ L`
+
+```
+   col(ℓ)               if ℓ is a correct column name (len ≤ 3 and col(ℓ) ≤ 16384)
+   "Essa coluna nao existe Tobias!" otherwise.
+```
+
+--------------------------------------------------------------------
+
+### 2.  Formal Hoare triple  
+
+```
+{  true  }   main   {  ∀ i < |L| .  output_i satisfies the specification }
+```
+
+The program consists of a **while‑loop** that reads the input line by line:
+
+```
+while (there is a next line ℓ) {
+    body(ℓ)
+}
+```
+
+We shall prove a loop invariant and then apply the Hoare rule for
+`while`.
+
+--------------------------------------------------------------------
+
+### 3.  Loop invariant  
+
+```
+I  ≜  "All lines already processed have produced the correct output."
+```
+
+Formally, after processing the first `j` lines (`0 ≤ j ≤ k`),
+
+```
+I(j)  ≜   ∀ i < j .  output_i = 
+          ( col(ℓ_i)                if ℓ_i is a valid column name
+            "Essa coluna nao existe Tobias!" otherwise )
+```
+
+*Base* (`j = 0`) – before the first iteration no line has been processed,
+hence `I(0)` holds trivially.
+
+*Maintenance* – assume `I(j)` holds before the iteration that processes
+`ℓ_j`.  We must show that after executing **body(ℓ_j)** the invariant
+`I(j+1)` holds, i.e. the output for `ℓ_j` is correct.
+
+--------------------------------------------------------------------
+
+### 4.  Verification of the body  
+
+The body consists of a cascade of `if … elif … else` statements.
+We prove, for each branch, that the printed value coincides with the
+specification.
+
+--------------------------------------------------------------------
+#### 4.1  One‑letter case  
+
+Condition: `len(ℓ_j) = 1`
+
+```
+print( umaLetra(ℓ_j) )
+```
+
+`umaLetra` is defined as  
+
+```
+umaLetra(ℓ) = ord(ℓ[0]) – 64
+```
+
+By (1) this equals `col(ℓ)`.  
+Since a one‑letter column is always ≤ 26 ≤ 16384, it is a *valid* column.
+Thus the printed value is exactly the required `col(ℓ_j)`.
+
+--------------------------------------------------------------------
+#### 4.2  Two‑letter case  
+
+Condition: `len(ℓ_j) = 2`
+
+```
+print( duasLetras(ℓ_j) )
+```
+
+`duasLetras` is  
+
+```
+duasLetras(ℓ) = 26 + (ord(ℓ[0])–65)·26 + (ord(ℓ[1])–64)
+```
+
+which is precisely formula (2), i.e. `col(ℓ)`.  
+All two‑letter columns lie in the interval `[27, 26+26·26] = [27, 702]`,
+hence are ≤ 16384 and therefore valid.  The printed value is correct.
+
+--------------------------------------------------------------------
+#### 4.3  Three‑letter case  
+
+Condition: `len(ℓ_j) = 3`
+
+The program first evaluates three Boolean predicates
+
+```
+c1 : ℓ[0] > 'X'
+c2 : ℓ[0] == 'X' and ℓ[1] > 'F'
+c3 : ℓ[0] == 'X' and ℓ[1] == 'F' and ℓ[2] > 'D'
+```
+
+and prints the error message if `c1 ∨ c2 ∨ c3` holds, otherwise it prints
+`treSletras(ℓ_j)`.
+
+*Lemma 1* – `c1 ∨ c2 ∨ c3`  ⇔  `col(ℓ) > col("XFD")`.
+
+*Proof.*  
+The lexicographic order of three‑letter strings coincides with the
+numeric order of their column numbers.  The maximal allowed column is
+`"XFD"` (`X` = 24th letter, `F` = 6th, `D` = 4th).  
+
+* If the first letter is larger than `X` (`c1`) the column is already
+  beyond `"XFD"`.  
+* If the first letter is exactly `X` but the second exceeds `F`
+  (`c2`) the column is larger than `"XFD"`.  
+* If the first two letters are `XF` and the third exceeds `D`
+  (`c3`) the column is larger than `"XFD"`.  
+
+Conversely, any string larger than `"XFD"` must satisfy one of the three
+conditions. ∎
+
+
+*Case a – error* (`c1 ∨ c2 ∨ c3`).  
+The program prints  
+
+```
+"Essa coluna nao existe Tobias!"
+```
+
+By Lemma 1 the column does **not** exist (its number would be > 16384),
+hence the printed message is exactly what the specification demands.
+
+*Case b – valid* (`¬(c1 ∨ c2 ∨ c3)`).  
+The program prints `tresLetras(ℓ_j)`.  
+
+```
+tresLetras(ℓ) = 26 + 26·26
+                + 26·((ord(ℓ[0])–65)·26 + (ord(ℓ[1])–65))
+                + (ord(ℓ[2])–64)
+```
+
+which is precisely formula (3), i.e. `col(ℓ)`.  
+Because the three predicates are false, Lemma 1 guarantees that
+`col(ℓ) ≤ col("XFD") = 16384`; therefore the column exists and the
+printed number is correct.
+
+--------------------------------------------------------------------
+#### 4.4  Length > 3 case  
+
+Condition: `len(ℓ_j) > 3`  
+
+The program prints the error message.  Any column name with more than
+three letters is outside the Excel alphabet (the largest column is
+`"XFD"`), so the specification also requires the error message.  
+
+Thus every possible branch of the `if‑elif‑else` chain yields an output
+that satisfies the specification for the processed line.
+
+Consequently, after executing the body we have `I(j+1)`.
+
+--------------------------------------------------------------------
+
+### 5.  Loop termination  
+
+The `for linha in sys.stdin` construct iterates over a **finite** input
+stream (the problem statement guarantees a finite number of test cases).
+Hence the loop terminates after the last line has been processed.
+No additional variant function is needed for partial correctness; the
+termination argument suffices for total correctness.
+
+--------------------------------------------------------------------
+
+### 6.  Hoare‑logic conclusion  
+
+We have shown
+
+* **Initialization** : `I(0)` holds before the first iteration.
+* **Maintenance**   : `{ I(j) ∧ (next line = ℓ_j) } body(ℓ_j) { I(j+1) }`
+  for every `j`.
+* **Termination**   : the loop finishes after `k = |L|` iterations.
+
+By the **while‑rule** of Hoare logic we obtain  
+
+```
+{ true }  while (next line exists) { body }  { I(k) }
+```
+
+`I(k)` is exactly the post‑condition required in the specification:
+*for each input line the program printed the correct column number, or
+the prescribed error message*.
+
+Therefore the Hoare triple  
+
+```
+{ true }  main  {  ∀ i < |L| .  output_i satisfies the specification }
+```
+
+holds, i.e. the program is **correct** with respect to the given
+pre‑ and post‑conditions.
+
+--------------------------------------------------------------------
+
+### 7.  Summary  
+
+* The auxiliary functions `umaLetra`, `duasLetras` and `tresLetras`
+  implement the three Excel column formulas (1)–(3).  
+* The three Boolean tests for a three‑letter string are exactly the
+  condition “column number > 16384”, which is the limit imposed by
+  Excel (`XFD`).  
+* The cascade of `if/elif/else` statements therefore produces the
+  required output for **every** possible line read from the input.  
+
+Consequently the program fulfills the formal specification, and the
+Hoare‑logic proof above establishes its correctness. ∎

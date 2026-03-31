@@ -1,0 +1,84 @@
+Below is a **Hoare‑logic style specification** for the program that reads exactly 100 distinct positive integers, determines the greatest one and the (1‑based) position at which it occurs, and prints the two values.
+
+---
+
+### 1.  Notation used  
+
+* `ℕ⁺` – the set of positive integers.  
+* `[1‥100]` – the index set `{1,2,…,100}`.  
+* A finite sequence of 100 numbers is written  
+
+\[
+\mathbf{x}= \langle x_1 ,x_2 ,\dots ,x_{100}\rangle .
+\]
+
+* `max( \mathbf{x} )` – the greatest element of the sequence.  
+* `argmax( \mathbf{x} )` – the **unique** index `p∈[1‥100]` such that  
+  `x_p = max( \mathbf{x} )`. (Uniqueness follows from the “distinct” hypothesis.)  
+* `out₁ , out₂` – the two values that the program finally prints.  
+* `↦` – “maps to”, used for the assignment of program variables.  
+
+---
+
+### 2.  Preconditions  
+
+\[
+\boxed{
+P \;\equiv\;
+\bigl(\forall i\in[1‥100]\,.\;x_i\in\mathbb N^{+}\bigr)
+\;\land\;
+\bigl(\forall i,j\in[1‥100]\;(i\neq j\;\Rightarrow\;x_i\neq x_j)\bigr)
+}
+\]
+
+*The input file contains exactly 100 **distinct** positive integers.*
+
+---
+
+### 3.  Postconditions  
+
+Let  
+
+\[
+m \;:=\; \max_{i\in[1‥100]} x_i ,\qquad
+p \;:=\; \operatorname*{arg\,max}_{i\in[1‥100]} x_i .
+\]
+
+Because the `x_i` are pairwise different, `p` exists and is unique.
+
+\[
+\boxed{
+Q \;\equiv\;
+\bigl(out_{1}=m\bigr)
+\;\land\;
+\bigl(out_{2}=p\bigr)
+\;\land\;
+\bigl(1\le p\le 100\bigr)
+}
+\]
+
+*The first printed number is the maximum of the 100 inputs; the second printed number is the (1‑based) position of that maximum.*
+
+---
+
+### 4.  Hoare triple  
+
+If we denote the whole program (reading, computing, printing) by the command `C`, the formal specification is the Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\; C\; \{\,Q\,\}}
+\]
+
+or, spelling out the internal variables `max` and `pos` that the program may use:
+
+\[
+\begin{aligned}
+\{\,P\,\}&\; \texttt{read }x_1,\dots ,x_{100};\\
+          &\; \texttt{max}\;\gets\;x_1;\; \texttt{pos}\;\gets\;1;\\
+          &\; \texttt{for }i = 2\textbf{ to }100\; \textbf{do}\\
+          &\qquad\texttt{if }x_i > \texttt{max }\textbf{then } \texttt{max}\;\gets\;x_i;\; \texttt{pos}\;\gets\;i;\\
+          &\; \texttt{print } \texttt{max},\; \texttt{pos};\; \{\,Q\,\}
+\end{aligned}
+\]
+
+The **precondition** `P` guarantees that the input satisfies the problem statement, and the **postcondition** `Q` guarantees that the program’s output is exactly the highest integer together with its input position. This completes the formal specification in Hoare‑logic notation.

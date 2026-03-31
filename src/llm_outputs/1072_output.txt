@@ -1,0 +1,27 @@
+1 in
+0 out
+
+0 in
+1 out
+
+1 in
+0 out
+
+0 in
+1 out
+
+2 in
+1 out
+
+0 in
+4 out
+
+4 in
+0 out
+
+2 in
+3 out
+
+50 in
+50 out
+

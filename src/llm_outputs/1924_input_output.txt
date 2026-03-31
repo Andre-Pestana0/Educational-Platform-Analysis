@@ -1,0 +1,6 @@
+"input": "1\nCiencia da Computacao", "output": "Ciencia da Computacao"
+"input": "1\nX", "output": "Ciencia da Computacao"
+"input": "2\nEngenharia Civil\nDireito", "output": "Ciencia da Computacao"
+"input": "2\nA\nB", "output": "Ciencia da Computacao"
+"input": "3\na\nb\nc", "output": "Ciencia da Computacao"
+"input": "4\nEngenharia Mecânica\nArquitetura\nDireito\nFilosofia", "output": "Ciencia da Computacao"

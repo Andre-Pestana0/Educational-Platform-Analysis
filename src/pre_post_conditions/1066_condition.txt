@@ -1,0 +1,88 @@
+**Hoare‑style specification**
+
+Let  
+
+\[
+A = (a_1,a_2,a_3,a_4,a_5)\in\mathbb Z^{5}
+\]
+
+be the five integer values that are read from the input.  
+During the execution the program stores four integer variables
+
+\[
+\text{ev},\;\text{od},\;\text{pos},\;\text{neg}\in\mathbb N .
+\]
+
+--------------------------------------------------------------------
+### 1.  Pre‑condition  
+
+\[
+\boxed{P\;:\;A\text{ is an arbitrary 5‑tuple of integers}}
+\]
+
+(there is no restriction on the values – the program must work for any
+\(A\in\mathbb Z^{5}\).)
+
+--------------------------------------------------------------------
+### 2.  Auxiliary definitions  
+
+\[
+\begin{aligned}
+E(A) &:= \bigl|\{\,i\mid 1\le i\le5\;\wedge\;a_i\equiv 0\pmod 2\,\}\bigr|  &&\text{(number of even elements)}\\[2mm]
+O(A) &:= \bigl|\{\,i\mid 1\le i\le5\;\wedge\;a_i\not\equiv 0\pmod 2\,\}\bigr|  &&\text{(number of odd elements)}\\[2mm]
+P(A) &:= \bigl|\{\,i\mid 1\le i\le5\;\wedge\;a_i>0\,\}\bigr|               &&\text{(number of positive elements)}\\[2mm]
+N(A) &:= \bigl|\{\,i\mid 1\le i\le5\;\wedge\;a_i<0\,\}\bigr|               &&\text{(number of negative elements)} .
+\end{aligned}
+\]
+
+Note that \(0\) is **even** but is neither positive nor negative, hence  
+
+\[
+E(A)+O(A)=5,\qquad P(A)+N(A)\le5 .
+\]
+
+--------------------------------------------------------------------
+### 3.  Post‑condition  
+
+\[
+\boxed{Q\;:\;
+\begin{cases}
+\text{ev}=E(A)\\[1mm]
+\text{od}=O(A)\\[1mm]
+\text{pos}=P(A)\\[1mm]
+\text{neg}=N(A)\\[2mm]
+\text{The program prints exactly the four lines}\\[1mm]
+\quad\text{“}\; \text{ev}\; \text{valor(es) par(es)}\text{”}\\
+\quad\text{“}\; \text{od}\; \text{valor(es) impar(es)}\text{”}\\
+\quad\text{“}\; \text{pos}\; \text{valor(es) positivo(s)}\text{”}\\
+\quad\text{“}\; \text{neg}\; \text{valor(es) negativo(s)}\text{”}
+\end{cases}}
+\]
+
+All letters in the output are lower‑case, exactly as shown above.
+
+--------------------------------------------------------------------
+### 4.  Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{CountEvenOddPosNeg}\; \{Q\}}
+\]
+
+where *CountEvenOddPosNeg* is the (imperative) program that
+
+1. reads the five integers \(a_1,\dots ,a_5\);
+2. iterates over them, incrementing the four counters \(\text{ev},\text{od},
+   \text{pos},\text{neg}\) according to the predicates  
+   \(\;a_i\equiv0\pmod2,\;a_i\not\equiv0\pmod2,\;a_i>0,\;a_i<0\);
+3. finally prints the four lines described in \(Q\).
+
+--------------------------------------------------------------------
+**Interpretation**
+
+- The **pre‑condition** simply states that the program receives any five
+  integers.
+- The **post‑condition** guarantees that after termination each counter
+  equals the mathematically defined cardinalities \(E(A),O(A),P(A),N(A)\)
+  and that the output format matches the specification.
+- Consequently the Hoare triple \(\{P\}\;S\;\{Q\}\) is a complete formal
+  specification of the required program.

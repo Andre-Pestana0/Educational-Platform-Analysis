@@ -1,0 +1,24 @@
+Description: Rolien and Naej are the developers of a big programming portal. To help the new site registration system, they requested your help. Your job is write a code that validates passwords that are registered on the portal, for that you should be aware for the following requirements:
+
+Input: The input contains several test cases and ends with EOF. Each line has a stringS, corresponding to the password that is entered by the user at registration.
+
+Output: The output contains a line, which can be "Senha valida.", if the password has all previously requested requirements, or "Senha invalida.", if one or more requirements arenât met.
+
+Examples:
+- Example 1:
+  Input:
+beecrowd
+AbcdEfgh99
+URIOnlineJudge12
+beecrowd 12
+Aass9
+Aassd9
+  Output:
+Senha invalida.
+Senha valida.
+Senha valida.
+Senha invalida.
+Senha invalida.
+Senha valida.
+
+--

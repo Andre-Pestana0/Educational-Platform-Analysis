@@ -1,0 +1,69 @@
+**Hoare‑logic specification**
+
+Let  
+
+* `n ∈ ℤ` be the integer read from the input file (the initial distance, in km);  
+* `v_X = 60` km/h, `v_Y = 90` km/h be the constant speeds of the two cars;  
+* `Δv = v_Y – v_X = 30` km/h be the relative speed;  
+* `c = 60` min/h be the conversion factor from hours to minutes;  
+
+The program computes a non‑negative integer `m` (the required time, in minutes) and prints the string  
+
+```
+⟨m⟩  " minutos"
+```
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{P \;=\; n \in \mathbb{N}}      \qquad(\text{the input distance is a non‑negative integer})
+\]
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+Q \;=\;&\; m = \frac{n}{\Delta v}\;c \;\land\; 
+      m = 2\,n \\[2mm]
+    &\;\land\; \text{output} = \operatorname{concat}\bigl(\operatorname{toString}(m),\; \text{" minutos"}\bigr)
+\end{aligned}}
+\]
+
+Explanation of the equalities  
+
+* The physical formula for the catching‑up time (in hours) is  
+
+  \[
+  t_{\text{h}} = \frac{n}{\Delta v}\;,
+  \]
+
+  because the cars close the distance `n` at the relative speed `Δv`.  
+
+* Converting to minutes (`c = 60` min/h) gives  
+
+  \[
+  m = t_{\text{h}}\;c = \frac{n}{30}\cdot 60 = 2n .
+  \]
+
+Thus the program must output exactly twice the input value, followed by the word *“ minutos”*.
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\; \textbf{Program}\; \{\,Q\,\}}
+\]
+
+where **Program** is any implementation that
+
+1. reads `n`,
+2. computes `m := 2*n`,
+3. prints `m` concatenated with the literal `" minutos"`.
+
+The triple is valid because, under the pre‑condition `n ∈ ℕ`, the computation `m = 2n` satisfies the post‑condition `Q`.

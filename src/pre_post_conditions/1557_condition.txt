@@ -1,0 +1,135 @@
+Below is a **Hoare‑logic style specification** of the whole program and of the
+inner routine that prints a single matrix.  
+All symbols are defined in the “Definitions” block; the specification uses only
+first‑order logic and the usual Hoare triple notation  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\}
+\]
+
+---
+
+## 1.  Definitions  
+
+| Symbol | Meaning |
+|--------|---------------------------------------------------------------|
+| \( \mathbb N\) | set of non‑negative integers |
+| \(N\) | the integer read from the input (the order of the matrix) |
+| \(0\le N\le 15\) | admissible range (the problem guarantees it) |
+| \(\operatorname{pow2}(k)=2^{k}\) | ordinary exponentiation |
+| \(\mathbf A_N :\{0,\dots ,N-1\}\times\{0,\dots ,N-1\}\rightarrow\mathbb N\)  \(\displaystyle\mathbf A_N(i,j)=\operatorname{pow2}(i+j)\) | element \((i,j)\) of the matrix that has to be printed |
+| \(\operatorname{digits}(x)=\bigl\lfloor \log_{10}x \bigr\rfloor+1\) (for \(x>0\)) | number of decimal digits of a positive integer |
+| \(\displaystyle w(N)=\operatorname{digits}\bigl(\mathbf A_N(N-1,N-1)\bigr)=\operatorname{digits}\bigl(2^{2(N-1)}\bigr)\) | field width required for the *largest* entry of the matrix |
+| \(\operatorname{fmt}(x,w)\) | the string obtained by right‑justifying the decimal representation of
+\(x\) in a field of width \(w\) (no leading “+”, no extra spaces) |
+| \(\operatorname{row}_N(i)=\bigl(\operatorname{fmt}(\mathbf A_N(i,0),w(N))\,
+\operatorname{sep}\,
+\operatorname{fmt}(\mathbf A_N(i,1),w(N))\,
+\operatorname{sep}\,\dots\,
+\operatorname{fmt}(\mathbf A_N(i,N-1),w(N))\bigr)\) | the string that must be printed for row \(i\) (the separator is a single blank; there is **no** blank after the last entry) |
+| \(\operatorname{matrix}_N=\bigl(\operatorname{row}_N(0)\,\nl\,
+\operatorname{row}_N(1)\,\nl\,
+\ldots\,
+\operatorname{row}_N(N-1)\bigr)\) | the whole matrix as a single string (each row terminated by a newline) |
+| \(\operatorname{output}_N=\operatorname{matrix}_N\,\nl\) | the matrix followed by a **blank line** (i.e. an extra newline) |
+| \(\operatorname{read}()\) | primitive that returns the next integer from the input stream |
+| \(\operatorname{write}(s)\) | primitive that prints the string \(s\) (without adding any extra characters) |
+
+---
+
+## 2.  Specification of the *inner* routine (printing one matrix)
+
+\[
+\boxed{\;\{\,P(N)\,\}\; \texttt{PrintMatrix}(N)\; \{\,Q(N)\,\}\;}
+\]
+
+*Pre‑condition*  
+
+\[
+P(N)\; \equiv\; N\in\mathbb N \;\wedge\; 1\le N\le 15 .
+\]
+
+*Post‑condition*  
+
+\[
+\begin{aligned}
+Q(N)\; \equiv\;&\; \texttt{PrintMatrix}(N) \text{ terminates and produces the output }\\
+&\operatorname{output}_N .
+\end{aligned}
+\]
+
+In words: the routine must write exactly the string `output_N`, i.e.
+
+*   for every row index \(i\;(0\le i<N)\) it writes `row_N(i)` followed by a newline,
+*   after the last row it writes an additional newline (the required blank line),
+*   each number printed is the value \(\mathbf A_N(i,j)=2^{\,i+j}\) right‑justified in a
+    field of width \(w(N)=\operatorname{digits}(2^{2(N-1)})\),
+*   no extra blanks appear after the last element of a row.
+
+---
+
+## 3.  Specification of the whole program (reading several orders)
+
+\[
+\boxed{\;\{\,\top\,\}\; \texttt{Main}\; \{\,\top\,\}\;}
+\]
+
+The program consists of the following loop (written in a pseudo‑imperative
+language for clarity):
+
+```text
+while true do
+    N := read();
+    if N = 0 then break;
+    { P(N) } PrintMatrix(N) { Q(N) };
+od
+```
+
+*Loop invariant* \(I\) (used to justify the Hoare proof of the `while`):
+
+\[
+\begin{aligned}
+I \equiv\;&\; \text{All numbers already read from the input are either }0
+            \text{ (terminating) or satisfy }1\le N\le 15,\\
+          &\;\text{and for each such }N\neq 0\text{ the corresponding matrix}
+            \text{ has been printed exactly once according to }Q(N).
+\end{aligned}
+\]
+
+*Termination* follows because the input is finite and the loop stops as soon
+as the sentinel value `0` is read.
+
+Consequently, the program satisfies the natural‑language specification:
+
+* it reads a (possibly empty) sequence of integers \(N_1,N_2,\dots ,N_k\) with
+  \(1\le N_i\le 15\) terminated by a `0`,
+* for each \(N_i\) it prints the matrix \(\mathbf A_{N_i}\) with the required
+  right‑justified formatting and a blank line after the matrix,
+* no extra characters are printed.
+
+---
+
+### Summary of the Hoare triples  
+
+1. **Single matrix**  
+
+\[
+\{\,1\le N\le 15\,\}\; \texttt{PrintMatrix}(N)\; \{\,\operatorname{output}_N\,\}
+\]
+
+2. **Whole program**  
+
+\[
+\{\,\top\,\}\;
+\begin{array}{l}
+\texttt{while }(\text{true})\; \{\\
+\qquad N:=\text{read}();\\
+\qquad\text{if }N=0\text{ then break};\\
+\qquad\{\,1\le N\le 15\,\}\;\texttt{PrintMatrix}(N)\;\{\,\operatorname{output}_N\,\}\\
+\}
+\end{array}
+\; \{\,\top\,\}
+\]
+
+These triples constitute a **formal Hoare‑logic specification** of the
+problem statement, expressed entirely in mathematical notation.

@@ -1,0 +1,296 @@
+**Goal**  
+
+We want to prove, in the style of Hoare‑logic, that the Python program `P` satisfies the specification  
+
+\[
+\{\,\text{Pre}\,\}\;P\;\{\,\text{Post}\,\}
+\]
+
+where  
+
+* **Pre** – the standard input contains a (possibly empty) sequence of *records*.  
+  A record consists of two lines:  
+
+  1. an arbitrary line (the program discards it);  
+  2. a line that contains a non‑empty list of real numbers  
+
+  \[
+  x_{0},x_{1},\dots ,x_{n-1}\qquad (n\ge 2)
+  \]
+
+* **Post** – for every record that appears in the input the program prints, on a single line,
+  the *sample standard deviation* of the numbers of that record, i.e.
+
+  \[
+  \sqrt{\frac{1}{n-1}\sum_{i=0}^{n-1}(x_i-\bar x)^{2}}
+  \qquad\text{where}\qquad
+  \bar x = \frac{1}{n}\sum_{i=0}^{n-1}x_i
+  \]
+
+  and the value is printed with exactly five digits after the decimal point.
+
+---------------------------------------------------------------------
+
+## 1.  The outer loop  
+
+```python
+while True:
+    try:
+        _ = input()                # line 1 of a record (ignored)
+        sensor = list(map(float, input().split(' ')))   # line 2 of a record
+        ...                        # computation and printing
+    except EOFError:
+        break
+```
+
+### Loop invariant  
+
+\[
+\mathcal I_{\text{out}} \; \equiv\;
+\begin{array}{l}
+\text{All records that have already been read from the input have been processed}\\
+\text{correctly (the required standard deviation has been printed).}\\[2mm]
+\text{If the program is about to execute the `try`‑block, the next unread line}
+\\\text{(if any) is the first line of the next record.}
+\end{array}
+\]
+
+*Initialization* – before the first iteration no record has been read, therefore  
+\(\mathcal I_{\text{out}}\) holds vacuously.
+
+*Maintenance* – Assume \(\mathcal I_{\text{out}}\) holds at the beginning of an iteration.
+
+1. The statement `_ = input()` reads the first line of the next record; the line is
+   discarded – the invariant is still true because we have not yet processed the
+   second line.
+
+2. The second `input()` reads the line that contains the list of numbers.  
+   After the statements that follow (proved below) the program prints exactly the
+   required standard deviation for **that** record.  
+   Consequently the set of *processed* records is enlarged by one and the invariant
+   holds again when the loop jumps back to its header.
+
+*Termination* – The loop terminates only when the `input()` that reads the first line
+raises `EOFError`. At that moment there is no unread line, i.e. every record that
+appeared in the file has been processed. By the invariant we obtain the post‑condition
+`Post`.
+
+Thus the outer `while` loop is correct once we can show that the *body* of the loop
+(steps marked `...` above) indeed prints the required value for a single record.
+
+---------------------------------------------------------------------
+
+## 2.  Computation for a single record  
+
+From now on we consider a **fixed** record, i.e. the list  
+
+\[
+\text{sensor}= [x_0,x_1,\dots ,x_{n-1}]
+\qquad (n = \text{len(sensor)}\ge 2)
+\]
+
+The program executes the following statements (the body of the `try`‑block):
+
+```python
+media = sum(sensor) / len(sensor)          # (1)
+soma  = 0                                   # (2)
+for i in sensor:                           # (3)
+    soma += (i - media) ** 2                # (4)
+print(f'{(soma/(len(sensor)-1))**(0.5):.5f}')
+```
+
+We prove, using Hoare triples, that after statement (4) finishes we have
+
+\[
+\text{soma}= \sum_{k=0}^{n-1}(x_k-\bar x)^2,
+\qquad\text{where }\bar x = \text{media}.
+\tag{A}
+\]
+
+### 2.1  Assignment (1) – computing the mean  
+
+Let  
+
+\[
+\mathcal I_1 \equiv \text{media}= \frac{1}{n}\sum_{k=0}^{n-1}x_k .
+\]
+
+The command `media = sum(sensor) / len(sensor)` is an ordinary assignment; by the
+assignment axiom we obtain the Hoare triple  
+
+\[
+\{\,\text{True}\,\}\; \text{media}= \frac{\text{sum(sensor)}}{\text{len(sensor)}}\;
+\{\mathcal I_1\}
+\]
+
+because `sum(sensor)` evaluates to \(\sum_{k=0}^{n-1}x_k\) and `len(sensor)` to \(n\).
+
+### 2.2  Assignment (2) – initializing the accumulator  
+
+Let  
+
+\[
+\mathcal I_2 \equiv \text{soma}=0 .
+\]
+
+Again, the assignment axiom yields  
+
+\[
+\{\mathcal I_1\}\; \text{soma}=0\; \{\mathcal I_2\land\mathcal I_1\}.
+\]
+
+Thus after (2) we know the mean (1) and that the accumulator is zero.
+
+### 2.3  The `for`‑loop – invariant  
+
+The loop
+
+```python
+for i in sensor:
+    soma += (i - media) ** 2
+```
+
+is syntactic sugar for the while‑loop
+
+```python
+k = 0
+while k < n:
+    i = sensor[k]
+    soma = soma + (i - media) ** 2
+    k = k + 1
+```
+
+We use the following invariant, expressed in terms of the loop counter `k`:
+
+\[
+\mathcal I_{\text{for}}(k) \equiv
+\begin{cases}
+0\le k\le n,\\[1mm]
+\displaystyle
+\text{soma}= \sum_{j=0}^{k-1} (x_j-\text{media})^{2}.
+\end{cases}
+\tag{I}
+\]
+
+*Initialization* – before the first iteration `k` is set to `0` and `soma` is `0`;
+the empty sum is `0`, therefore \(\mathcal I_{\text{for}}(0)\) holds.
+
+*Maintenance* – Assume \(\mathcal I_{\text{for}}(k)\) holds at the top of the loop.
+The body executes
+
+```
+i = sensor[k]               # i = x_k
+soma = soma + (i - media)**2
+k = k + 1
+```
+
+Using the assignment rule we obtain after the first assignment  
+
+\[
+\text{soma}= \sum_{j=0}^{k-1}(x_j-\text{media})^{2} + (x_k-\text{media})^{2}
+            = \sum_{j=0}^{k}(x_j-\text{media})^{2}.
+\]
+
+After the increment `k:=k+1` we have the invariant with the new counter value
+\(k+1\). Consequently \(\mathcal I_{\text{for}}(k+1)\) holds.
+
+*Termination* – The loop stops when `k = n`. By (I) we then have  
+
+\[
+\text{soma}= \sum_{j=0}^{n-1}(x_j-\text{media})^{2},
+\]
+
+which is exactly statement (A).
+
+Thus the whole `for`‑loop is proved correct with respect to the specification
+that `soma` contains the sum of squared deviations from the mean.
+
+### 2.4  Final printing  
+
+After the loop we execute
+
+```python
+print(f'{(soma/(len(sensor)-1))**(0.5):.5f}')
+```
+
+Because `len(sensor)=n` and by (A) we know
+
+\[
+\frac{\text{soma}}{n-1}= \frac{1}{n-1}\sum_{k=0}^{n-1}(x_k-\bar x)^{2},
+\]
+
+the expression `(soma/(len(sensor)-1))**(0.5)` evaluates to  
+
+\[
+\sqrt{\frac{1}{n-1}\sum_{k=0}^{n-1}(x_k-\bar x)^{2}},
+\]
+
+i.e. the sample standard deviation of the record.  
+The `print` statement therefore produces exactly the value demanded by the
+post‑condition (formatted with five digits after the decimal point).  
+
+Consequently we have proved the Hoare triple  
+
+\[
+\{\mathcal I_{\text{out}}\land\text{a record is available}\}\;
+\text{body of the `try`} \;
+\{\mathcal I_{\text{out}}\land\text{the required value has been printed}\}.
+\]
+
+---------------------------------------------------------------------
+
+## 3.  Putting the pieces together  
+
+The overall correctness proof is a composition of the three parts described
+above.  In Hoare‑logic notation we obtain the following derivation:
+
+\[
+\begin{array}{c}
+\{\,\text{Pre}\,\}\\
+\displaystyle\frac{
+   \displaystyle
+   \begin{array}{c}
+   \{\,\mathcal I_{\text{out}}\,\}\;
+   \textbf{while True do}\\
+   \qquad\textbf{try}\\
+   \qquad\qquad\text{(body)}\\
+   \qquad\textbf{except EOFError: break}
+   \end{array}
+}{
+   \{\,\text{Post}\,\}
+}
+\end{array}
+\]
+
+* The outer `while`‑rule uses the invariant \(\mathcal I_{\text{out}}\) proved in
+  Section&nbsp;1.
+* The `try / except` construct is treated as a conditional: the `break` is taken
+  precisely when an `EOFError` is raised, i.e. when the input is exhausted.
+* The body of the `try` is correct by the reasoning of Sections&nbsp;2.1–2.4.
+
+Since every rule of Hoare‑logic (consequence, sequence, assignment, while,
+conditional) has been applied with a valid invariant, the derived triple is
+sound.  Hence the program satisfies the specification:
+
+\[
+\boxed{\{\,\text{Pre}\,\}\;P\;\{\,\text{Post}\,\}}
+\]
+
+---------------------------------------------------------------------
+
+### Summary  
+
+* The outer loop invariant guarantees that after each iteration the program has
+  correctly processed one whole record and that the next unread line (if any)
+  starts a new record.
+* The inner `for`‑loop invariant guarantees that, when the loop finishes,
+  `soma` equals the sum of squared deviations from the previously computed mean.
+* Using the invariant we obtain that the printed value is exactly the sample
+  standard deviation required by the specification.
+* By the termination condition (`EOFError`) the outer loop eventually stops,
+  leaving no unprocessed record, which yields the required post‑condition.
+
+Therefore the given Python program is *partially correct* with respect to the
+formal Hoare‑logic specification, and, because the loops always terminate
+(EOF is eventually reached and the `for`‑loop iterates over a finite list),
+the program is *totally correct*.

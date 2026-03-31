@@ -1,0 +1,113 @@
+Below is a **Hoare‑logic style specification** (pre‑condition 𝑃, post‑condition 𝑄) that captures exactly the natural‑language description of the task.  
+All symbols are written in standard mathematical notation; the specification is deliberately kept *implementation‑neutral* – it only talks about the values that must be read and the value that must be produced.
+
+---
+
+## 1.  Vocabulary  
+
+| Symbol | Meaning |
+|--------|---------|
+| `name` | a non‑empty word over the alphabet of printable characters (`name ∈ Σ⁺`). It is only read, never used in the computation. |
+| `s`    | the **fixed salary** of the seller, a real number (`s ∈ ℝ_{\ge 0}`). |
+| `v`    | the **total value of sales** made by the seller during the month, a real number (`v ∈ ℝ_{\ge 0}`). |
+| `r`    | the **raw (unrounded) total remuneration**: `r = s + 0.15·v`. |
+| `⌊·⌋`   | the usual floor function. |
+| `round₂(x)` | **round‑to‑nearest with two decimal places** (banker‑independent):  
+
+\[
+\operatorname{round}_2(x) \;=\; \frac{\big\lfloor 100·x + 0.5\big\rfloor}{100}
+\]
+
+  (i.e. “multiply by 100, add 0.5, take the floor, then divide by 100”). |
+| `total`| the **final salary that must be printed**, a real number with exactly two decimal digits (`total = round₂(r)`). |
+| `out`  | the string that the program writes to the output stream.  |
+
+---
+
+## 2.  Hoare Triple  
+
+\[
+\boxed{\{\,\mathsf{Pre}\,\}\; \texttt{program}\; \{\,\mathsf{Post}\,\}}
+\]
+
+### 2.1  Pre‑condition 𝑃  
+
+\[
+\mathsf{Pre}\;:\;
+\begin{cases}
+\text{The input stream contains, in this order,}\\[2mm]
+\quad\text{a line }L_1 \text{ such that } name = L_1,\\
+\quad\text{a line }L_2 \text{ that can be parsed as a double } s,\\
+\quad\text{a line }L_3 \text{ that can be parsed as a double } v,\\[2mm]
+s \ge 0,\;\; v \ge 0 .
+\end{cases}
+\]
+
+In words: the program receives a **first name** (any non‑empty string) and two non‑negative real numbers.
+
+---
+
+### 2.2  Post‑condition 𝑄  
+
+\[
+\mathsf{Post}\;:\;
+\begin{cases}
+\text{The program terminates, and writes exactly one line}\\[1mm]
+\quad out = \texttt{"TOTAL = R\$ "} \;\Vert\; \text{format}(total,\,2) \\[2mm]
+\text{where}\\[1mm]
+\quad r      = s + 0.15\;v,\\
+\quad total  = \operatorname{round}_2(r),\\[1mm]
+\text{and } \text{format}(x,2) \text{ denotes the decimal representation of }x\\
+\text{with exactly two digits after the decimal point (e.g. }700.00\text{).}
+\end{cases}
+\]
+
+Equivalently, using an explicit equality on the numeric value:
+
+\[
+\exists\; total\in\mathbb{R}\;.\;
+\Bigl(\; total = \operatorname{round}_2\bigl(s + 0.15\,v\bigr)
+\;\wedge\;
+out = \texttt{"TOTAL = R\$ "} \; \Vert\; \text{printf}("%.2f",\,total) \Bigr)
+\]
+
+The string concatenation operator “\(\Vert\)” is used only to describe the final output line; no extra whitespace or additional lines may appear.
+
+---
+
+## 3.  Full Specification in Hoare‑logic style  
+
+\[
+\boxed{
+\begin{aligned}
+\{ &\; \text{read}(name),\; \text{read}(s),\; \text{read}(v) \\
+   &\; s\ge 0 \wedge v\ge 0 \;\} \\
+\texttt{program} \\
+\{ &\; out = \texttt{"TOTAL = R\$ "} \Vert \text{printf}("%.2f",\,\operatorname{round}_2(s+0.15v)) \;}
+\end{aligned}
+}
+\]
+
+---
+
+### Remarks on the specification  
+
+* **Rounding** – The problem statement requires the result to be printed with *two decimal places*.  The `round₂` function defined above captures the usual “round‑half‑up” rule that most programming languages (e.g. C’s `printf`, Java’s `System.out.printf`, Python’s `format`) implement when formatting a floating‑point number with `%.2f`.  If an implementation uses a different rounding mode, the post‑condition would have to be adapted accordingly.  
+
+* **Name is irrelevant** – `name` appears only in the pre‑condition because the program must read it, but it does not influence the post‑condition.  This matches the natural‑language description, which says the name is merely an input field.
+
+* **Determinism** – Given the same input values `s` and `v`, the post‑condition determines a unique numeric `total` and therefore a unique output line.  Hence the specification describes a *total* (i.e. always terminating) deterministic program.
+
+* **Domain restrictions** – The pre‑condition forces `s` and `v` to be non‑negative.  If a negative value were supplied, the specification does **not** guarantee any particular behaviour; such inputs are considered *outside the domain* of the program.
+
+---
+
+### 4.  Example verification  
+
+| Example | Input values | Computation (raw) | `round₂` result | Output line |
+|---------|--------------|-------------------|----------------|-------------|
+| 1 | `s = 500.00`, `v = 1230.30` | `r = 500 + 0.15·1230.30 = 684.545` | `round₂(684.545) = 684.54` | `TOTAL = R$ 684.54` |
+| 2 | `s = 700.00`, `v = 0.00`   | `r = 700 + 0 = 700.00` | `round₂(700.00) = 700.00` | `TOTAL = R$ 700.00` |
+| 3 | `s = 1700.00`, `v = 1230.50`| `r = 1700 + 0.15·1230.50 = 1884.575` | `round₂(1884.575) = 1884.58` | `TOTAL = R$ 1884.58` |
+
+All three satisfy the post‑condition, confirming that the Hoare‑logic specification faithfully captures the intended behaviour.

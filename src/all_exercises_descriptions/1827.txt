@@ -1,0 +1,30 @@
+Description: Your work in this program is to read an integer number that is the size of a square matrix (width and height) to be filled as follows: the outer part is filled with 0 in the inner part is filled with 1, the main diagonal is filled with 2, the secondary diagonal is filled with 3 and the central element is 4, as the examples below.
+
+Input: The input contains a number of test cases and ends withEOF(end of file). Each test case consists of an odd integer numberN(5 â¤Nâ¤ 101) that is the size of the array. For each test case, print the corresponding array as below. After each test case, print a blank line.
+
+Output: For each test case, print the corresponding array as below. After each test case, print a blank line.
+
+Examples:
+- Example 1:
+  Input:
+5
+11
+  Output:
+20003
+01110
+01410
+01110
+30002
+20000000003
+02000000030
+00200000300
+00011111000
+00011111000
+00011411000
+00011111000
+00011111000
+00300000200
+03000000020
+30000000002
+
+--

@@ -1,0 +1,29 @@
+Description: JoÃ£o aprendeu na escola que a mÃ©dia de dois nÃºmeros Ã© o valor da soma desses dois nÃºmeros dividido por dois. Ou seja, a mÃ©dia de dois nÃºmerosAeBÃ©M=(A+B)/2.
+
+Input: A primeira linha contÃ©m um nÃºmero inteiroA, indicando a nota de uma prova. A segunda linha contÃ©m um nÃºmero inteiroM, indicando a mÃ©dia entre as duas notas das provas.
+
+Output: Seu programa deve produzir uma Ãºnica linha, com apenas um nÃºmero inteiro, a nota da outra prova, que JoÃ£o nÃ£o consegue recordar.
+
+Examples:
+- Example 1:
+  Input:
+100
+70
+  Output:
+40
+
+- Example 2:
+  Input:
+80
+75
+  Output:
+70
+
+- Example 3:
+  Input:
+1
+50
+  Output:
+99
+
+--

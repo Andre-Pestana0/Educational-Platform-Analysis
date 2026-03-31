@@ -1,0 +1,69 @@
+**Hoare‑logic specification**
+
+Let  
+
+* `out` be the (finite) sequence that the program writes to the standard output,  
+* `len(out)` be its length,  
+* `out[i]` (for `1 ≤ i ≤ len(out)`) be the *i*‑th line (interpreted as an integer),  
+
+and define  
+
+\[
+\operatorname{Even}(n)\;\;:\;\; n\;\bmod 2 = 0 .
+\]
+
+---
+
+### Pre‑condition  
+
+There is no input, therefore the only requirement before the program starts is that the output buffer is empty:
+
+\[
+\boxed{P\; \equiv\; \text{true}\qquad(\text{or } out = \langle\rangle )}
+\]
+
+---
+
+### Post‑condition  
+
+After termination the program must have printed **exactly** the even integers from 1 to 100, one per line, in increasing order.  This can be expressed in two equivalent ways.
+
+1. **Explicit sequence form**
+
+\[
+\boxed{Q\; \equiv\; 
+\begin{aligned}
+&\; len(out)=50,\\[2pt]
+&\; \forall k\in\{1,\dots,50\}\;:\; out[k]=2k .
+\end{aligned}}
+\]
+
+Thus  
+
+\[
+out = \langle 2,4,6,\dots ,100\rangle .
+\]
+
+2. **Set‑and‑order form**
+
+\[
+\boxed{Q\; \equiv\;
+\begin{aligned}
+&\; \{\, out[i]\mid 1\le i\le len(out)\,\}= \{\, n\in\mathbb N \mid 1\le n\le 100\land \operatorname{Even}(n)\,\},\\[2pt]
+&\; \forall i\in\{1,\dots,len(out)-1\}\;:\; out[i] < out[i+1].
+\end{aligned}}
+\]
+
+Both formulations guarantee that the output consists of **all** even numbers in the interval \([1,100]\), each appearing **once**, and that they appear in **ascending order**, one per line.
+
+---
+
+### Hoare triple  
+
+Putting the pre‑ and post‑conditions together, the specification of the whole program is the Hoare triple  
+
+\[
+\boxed{\{\,\text{true}\,\}\;\; \text{Program}\;\; \{\,Q\,\}}
+\]
+
+where `Program` is any implementation that writes the sequence `out` satisfying the predicate `Q` above.

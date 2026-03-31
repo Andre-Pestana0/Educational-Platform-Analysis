@@ -1,0 +1,48 @@
+**Hoare‑logic specification**
+
+Let  
+
+* `N ∈ ℕ` – the number of minutes left before the deadline,  
+* `a , b ∈ ℕ` – the minutes required to manufacture the two gifts,  
+* `out ∈ { “Farei hoje!” , “Deixa para amanha!” }` – the string that the program prints.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P \;\equiv\;
+\bigl( 2 \le N \le 100 \bigr)
+\;\land\;
+\bigl( 0 \le a \le N \bigr)
+\;\land\;
+\bigl( 0 \le b \le N \bigr)
+\]
+
+(The bounds on `a` and `b` are the natural ones that make the problem well‑defined: each gift needs a non‑negative amount of time that cannot exceed the whole interval `N`.)
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\; &\bigl( out = \text{“Farei hoje!”} \;\;\Longleftrightarrow\;\; a + b \le N \bigr) \\[2mm]
+            &\land\;
+              \bigl( out = \text{“Deixa para amanha!”} \;\;\Longleftrightarrow\;\; a + b > N \bigr)
+\end{aligned}
+\]
+
+Thus the program must print **“Farei hoje!”** exactly when the total required time does not exceed the available time, and **“Deixa para amanha!”** otherwise.
+
+---
+
+### Hoare triple for the whole algorithm
+
+\[
+\boxed{ \{P\}\; \texttt{read } N; \texttt{read } a; \texttt{read } b;
+       \texttt{if } (a+b \le N) \texttt{ then print “Farei hoje!” else print “Deixa para amanha!”}
+       \; \{Q\} }
+\]
+
+In words: **under the pre‑condition** that the input numbers satisfy the given bounds, **the program** reads the three integers, decides whether \(a+b\le N\), and prints the appropriate message, **guaranteeing** the post‑condition that the printed string correctly reflects the feasibility of manufacturing both gifts before the deadline.

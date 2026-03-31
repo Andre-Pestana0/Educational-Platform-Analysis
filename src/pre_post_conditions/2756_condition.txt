@@ -1,0 +1,119 @@
+Below is a **Hoare‑logic style specification** for the program that prints the picture shown in the statement.
+
+---
+
+### 1.  Notation that will be used
+
+* `ℕ` – the set of natural numbers (including 0).  
+* For a natural number `k`, `repeat(c,k)` denotes the string consisting of the character `c` written `k` times.  
+* `ε` denotes the empty string.  
+* `∘` denotes string concatenation.  
+* `chr(x)` denotes the ASCII character whose code is `x`.  
+* `out` is the whole text that the program writes to the standard output (including the final newline after each line).  
+
+We fix the size of the picture  
+
+\[
+n \;:=\;5                         \tag{1}
+\]
+
+(the example goes from **A** up to the 5‑th letter **E** and then back down).
+
+---
+
+### 2.  Auxiliary definitions
+
+For every line index `i` with `1 ≤ i ≤ n` we define  
+
+\[
+\begin{aligned}
+L_i &:= \text{chr}(\text{code}('A') + i-1)                     &&\text{(the printed letter)}\\[2mm]
+S_i &:= \text{repeat}(' ',\,n-i)                               &&\text{(leading blanks)}\\[2mm]
+I_i &:= 
+\begin{cases}
+\varepsilon & i = 1\\[1mm]
+\text{repeat}(' ',\,2i-3) & i > 1
+\end{cases}
+\end{aligned}\tag{2}
+\]
+
+The **i‑th line** of the upper half of the picture is then
+
+\[
+\text{Line}(i) \;:=\; S_i \;\circ\; L_i \;\circ\; I_i \;\circ\;
+\begin{cases}
+\varepsilon            & i = 1\\
+L_i                     & i > 1
+\end{cases}
+\;\;\text{followed by a newline }(\!\!\\\! ) .\tag{3}
+\]
+
+The lower half of the picture consists of the same lines in reverse order, i.e.  
+
+\[
+\text{Line}^\downarrow(i) \;:=\; \text{Line}(i),\qquad
+i = n-1,n-2,\dots ,1 .\tag{4}
+\]
+
+Finally we define the **complete output string**
+
+\[
+\boxed{
+\; \mathit{PATTERN}_n \;:=\;
+\Bigl(\;\bigcup_{i=1}^{n}\;\text{Line}(i)\Bigr)\;
+\circ\;
+\Bigl(\;\bigcup_{i=n-1}^{1}\;\text{Line}(i)\Bigr)
+}\tag{5}
+\]
+
+For the concrete instance required in the exercise, `n = 5`, and  
+
+\[
+\mathit{PATTERN}_5 = 
+\begin{array}{l}
+\text{A}\\
+\text{␣␣␣␣B␣B}\\
+\text{␣␣␣C␣␣␣C}\\
+\text{␣␣D␣␣␣␣␣D}\\
+\text{␣E␣␣␣␣␣␣␣E}\\
+\text{␣␣D␣␣␣␣␣D}\\
+\text{␣␣␣C␣␣␣C}\\
+\text{␣␣␣␣B␣B}\\
+\text{␣␣␣␣␣A}
+\end{array}
+\]  
+
+(the blanks are shown as `␣` for clarity).
+
+---
+
+### 3.  Hoare triple (pre‑ and post‑condition)
+
+The program **has no input**, therefore the pre‑condition is simply `true`.
+
+\[
+\boxed{\{\,\top\,\}\;\; \mathit{printPattern}()\;\; \{\, out = \mathit{PATTERN}_5 \,\}}
+\tag{6}
+\]
+
+* **Pre‑condition** `⊤` (true) – the program may be started in any state; there are no input variables to constrain.  
+
+* **Post‑condition** `out = PATTERN₅` – after termination the whole output stream equals the exact string described by (5) with `n = 5`.  
+
+* **Termination** is implicit in Hoare logic: the triple is understood to hold only for terminating executions.  
+
+---
+
+### 4.  Remarks
+
+* If one wishes to make the size of the picture a *parameter* of the program, the specification can be written with a universally quantified `n` (≥ 1) :
+
+  \[
+  \{\,\top\,\}\; \mathit{printPattern}(n)\; \{\, out = \mathit{PATTERN}_n \,\}.
+  \]
+
+* The definition (3) captures the two different forms of a line:
+  * the first and last line contain a single letter,
+  * all intermediate lines contain the same letter twice, separated by an inner block of blanks whose width grows by two blanks per step.
+
+* The Hoare triple (6) completely characterises the required behaviour of the program: **no other observable effect** (no input, no side‑effects) and **exactly** the illustrated diamond of letters.

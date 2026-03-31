@@ -1,0 +1,21 @@
+Description: Like many Computer Science students, you like to play the most popular electronic games nowadays: Liga of Legendas (LOL) and Contra-Strike (CS). Although you also play LOL, what you really like to do is to use all your skills to defeat the terrorist forces in Contra-Strike! You are so good at combating terror that you are often compared with the president of the USA who announced the capture of a famous real-life terrorist.
+
+Input: The input contains several test cases. The first line of each test case contains two integersNandI(1 â¤Nâ¤ 104, 1000 â¤Iâ¤ 9999), the number of gameplays published by the page and your university ID, respectively.
+
+Output: For each test case, print a single line containing a number indicating how many videos of you playing Contra-Strike were published by the page.
+
+Examples:
+- Example 1:
+  Input:
+7 5558
+5693 1
+5558 0
+6009 1
+5558 1
+1566 0
+5558 0
+8757 1
+  Output:
+2
+
+--

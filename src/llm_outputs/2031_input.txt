@@ -1,0 +1,16 @@
+7
+pedra
+papel
+papel
+pedra
+pedra
+ataque
+ataque
+pedra
+papel
+ataque
+papel
+papel
+ataque
+ataque
+

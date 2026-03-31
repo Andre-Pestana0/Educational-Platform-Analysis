@@ -1,0 +1,105 @@
+**Hoare‑style specification (pre‑ and post‑conditions only)**  
+
+We model the whole program as a single command  
+
+\[
+\texttt{solve}\;:\; \text{(read }C_a,B_a,P_a,C_r,B_r,P_r\text{)}\;\rightarrow\;N
+\]
+
+where  
+
+* \(C_a , B_a , P_a\) – numbers of meals **available** for chicken, beef and pasta,  
+* \(C_r , B_r , P_r\) – numbers of meals **requested** (i.e. the passengers that would like) chicken, beef and pasta,  
+* \(N\) – the integer that the program prints (the number of passengers that *surely* will not obtain the meal they asked for).
+
+All variables range over the set of natural numbers \(\mathbb N\).
+
+---
+
+### 1.  Pre‑condition  
+
+\[
+\begin{aligned}
+\mathbf{Pre}\; \equiv\;& 
+0 \le C_a \le 100 \;\land\;
+0 \le B_a \le 100 \;\land\;
+0 \le P_a \le 100 \\
+&\land\;
+0 \le C_r \le 100 \;\land\;
+0 \le B_r \le 100 \;\land\;
+0 \le P_r \le 100 .
+\end{aligned}
+\]
+
+(Every input integer is guaranteed to be inside the limits given in the statement.)
+
+---
+
+### 2.  Post‑condition  
+
+Define for each meal type \(t\in\{c,b,p\}\) the *shortage*  
+
+\[
+\operatorname{shortage}(t) \;:=\; \max\bigl(0,\;R_t-A_t\bigr),
+\]
+
+where  
+
+\[
+(R_c,R_b,R_p) = (C_r,B_r,P_r),\qquad
+(A_c,A_b,A_p) = (C_a,B_a,P_a).
+\]
+
+The required output is the total shortage:
+
+\[
+\mathbf{Post}\; \equiv\;
+N = \operatorname{shortage}(c) + \operatorname{shortage}(b) + \operatorname{shortage}(p).
+\]
+
+Equivalently, expanding the definition of `max`:
+
+\[
+\boxed{
+N = 
+\bigl(C_r-C_a\bigr)^{+}
+\;+\;
+\bigl(B_r-B_a\bigr)^{+}
+\;+\;
+\bigl(P_r-P_a\bigr)^{+}
+}
+\]
+
+where for any integer \(x\),
+
+\[
+x^{+} \;:=\; \max(0,x) .
+\]
+
+From the definition we also obtain the obvious bounds that follow from the post‑condition:
+
+\[
+0 \le N \le C_r + B_r + P_r .
+\]
+
+---
+
+### 3.  Hoare triple  
+
+Putting the two conditions together, the whole program satisfies the Hoare triple  
+
+\[
+\boxed{\;\{\,\mathbf{Pre}\,\}\;\texttt{solve}\;\{\,\mathbf{Post}\,\}\;}
+\]
+
+i.e. **if** the input numbers respect the limits expressed in \(\mathbf{Pre}\), **then** after execution the printed number \(N\) is exactly the sum of the individual shortages, which is precisely “the number of passengers that will surely not receive their selection for a meal”.
+
+---
+
+### 4.  Remarks on the specification  
+
+* The specification is *total*: it gives a concrete value for the output for **every** admissible input (the program never diverges nor raises an error).  
+* The function computed is deterministic and pure; no auxiliary variables are needed in the post‑condition.  
+* The expression uses only elementary arithmetic and the `max` (or “positive part”) operator, which is standard in Hoare‑logic specifications.  
+
+Thus the natural‑language problem is captured completely by the pre‑ and post‑conditions above.

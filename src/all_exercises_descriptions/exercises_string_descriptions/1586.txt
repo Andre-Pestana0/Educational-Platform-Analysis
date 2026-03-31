@@ -1,0 +1,40 @@
+Description: At 2013 ACM ICPC Regional South America/Brazil Contest in UberlÃ¢ndia, during a period of leisure, Prof. Carlinhos (USP) came up with an activity for all the students. He first organised the students in ascending lexicographical order, considering only the first name and ignoring diacritics. Then, he drew a student and assembled two teams, A and B: team A would consist of those students in order up to the drawn student; team B would in turn consist of those students who came after the drawn student in the order. Both teams would compete in a traditional tug of war, and the winners would win a coffee.
+
+Input: The input consists of many test cases. The first line of each test case consists of a single integerN(1 â¤Nâ¤ 105), which represents the number of students. Follow thenNlines, each one containing the first name of the student. The names of the students are given according to the ascending lexicographical order, and at least 1 and at most 10 latin letters form the name of a student. There is no test case with two students with the same first name, and the first letter of a name is always capital, while the other letters are small.N= 0 ends the input.
+
+Output: Print the name of the student who, if drawn, would make the teamsAandBto tie. If there is no such student, just print the line: âImpossibilidade de empate.â (without the quotation marks).
+
+Examples:
+- Example 1:
+  Input:
+9
+Ana
+Bruna
+Cro
+Digory
+Emerson
+Fiaror
+Geomar
+Iago
+Zacarias
+14
+Aule
+Este
+Lorien
+Mandos
+Manwe
+Nessa
+Nienna
+Orome
+Tulkas
+Ulmo
+Vaire
+Vana
+Varda
+Yavanna
+0
+  Output:
+Emerson
+Impossibilidade de empate.
+
+--

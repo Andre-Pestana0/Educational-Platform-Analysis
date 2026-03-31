@@ -1,0 +1,109 @@
+Below is a **Hoare‑logic specification** (pre‑condition \(P\) and post‑condition \(Q\)) that captures exactly the behaviour described in the natural‑language problem.  
+All symbols are defined in the “Notation” block that follows.
+
+---
+
+## 1.  Notation  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(\mathbb N\) | Set of non‑negative integers \(\{0,1,2,\dots\}\). |
+| \(\mathbb R_{\ge 0}\) | Set of non‑negative real numbers. |
+| \(\operatorname{input} = (n,h,r)\) | The three values that are read from the input file, in the order *employee number*, *worked hours*, *hourly rate*. |
+| \(n\) | Employee number (integer). |
+| \(h\) | Number of hours worked in the month (integer). |
+| \(r\) | Amount received per hour (real). |
+| \(\operatorname{salary} = h\cdot r\) | Exact (un‑rounded) salary. |
+| \(\operatorname{round2}(x)\) | Rounding of a real number \(x\) to **exactly two decimal places** using the usual “round‑to‑nearest, ties‑to‑even” rule (i.e. the value that would be printed by `printf("%.2f",x)` in C). |
+| \(\operatorname{fmt2}(x)\) | Decimal representation of \(\operatorname{round2}(x)\) with exactly two digits after the decimal point (e.g. \(\operatorname{fmt2}(550)=\text{“550.00”}\)). |
+| \(\operatorname{out}\) | The whole text that the program writes to standard output (including the line‑break between the two lines). |
+| \(\operatorname{concat}(a,b)\) | String concatenation. |
+| \(\#\) | New‑line character (line break). |
+
+---
+
+## 2.  Hoare Triple  
+
+\[
+\boxed{\{P\}\; \textbf{program}\; \{Q\}}
+\]
+
+where the **program** is the sequence  
+
+```
+read n
+read h
+read r
+s ← round2(h * r)               // s is the salary that will be printed
+print "NUMBER = "  ++ n ++ "\n"
+print "SALARY = U$ " ++ fmt2(s)
+```
+
+---
+
+### 2.1  Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\; & \exists\, n\in\mathbb N,\; h\in\mathbb N,\; r\in\mathbb R_{\ge 0} \\
+            &\;\;\; \bigl(\operatorname{input}= (n,h,r)\bigr)
+\end{aligned}
+\]
+
+*Explanation*: the input file must contain **exactly three** values, the first two integers (non‑negative) and the third a non‑negative real number. No other constraints are required.
+
+---
+
+### 2.2  Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\; & \exists\, s\in\mathbb R_{\ge 0}\;.\;
+\bigl(s = \operatorname{round2}(h\cdot r)\bigr) \\
+            &\;\;\wedge\;
+\bigl(\operatorname{out}= 
+\operatorname{concat}\bigl(
+   \operatorname{concat}\bigl(\text{“NUMBER = ”},\; \text{toString}(n)\bigr),\; \#\bigr) \\
+            &\qquad\qquad\qquad\qquad\;
+   \operatorname{concat}\bigl(\text{“SALARY = U$ ”},\; \operatorname{fmt2}(s)\bigr)
+\bigr)\bigr)
+\end{aligned}
+\]
+
+*Explanation*  
+
+* The variable `s` that is printed is the **rounded** product of hours and hourly rate.  
+* The first line of the output is exactly the literal string **“NUMBER = ”** followed by the decimal representation of `n` and a line break.  
+* The second line is exactly **“SALARY = U$ ”** followed by the two‑decimal‑place representation of `s`.  
+* No extra characters (spaces, tabs, trailing blanks) appear other than the single blank that is part of the literal strings shown above.
+
+---
+
+## 3.  Full Specification in Hoare‑logic Form
+
+\[
+\boxed{
+\underbrace{
+\exists n\in\mathbb N,\;h\in\mathbb N,\;r\in\mathbb R_{\ge 0}\;.\;
+\operatorname{input}=(n,h,r)
+}_{P}
+\;\; \textbf{program} \;\;
+\underbrace{
+\exists s\in\mathbb R_{\ge 0}\;.\;
+\bigl(s = \operatorname{round2}(h\cdot r)\bigr) \,\wedge\,
+\operatorname{out}= 
+\bigl(\text{“NUMBER = ”}\,||\,\text{toString}(n)\,||\,\#\,||\,\text{“SALARY = U$ ”}\,||\,\operatorname{fmt2}(s)\bigr)
+}_{Q}
+}
+\]
+
+---
+
+### 4.  Remarks  
+
+* The specification is **exactly** what the problem statement requires: it reads three numbers, computes the salary as the product of hours and hourly rate, rounds the result to two decimal places, and prints the two lines with the prescribed spacing.  
+* The Hoare triple can be used as the basis for a formal proof of correctness: each assignment and each `print` statement can be shown to preserve the invariant that the eventual output will satisfy \(Q\) once execution terminates.  
+
+---  
+
+**Thus the formal Hoare‑logic pre‑ and post‑conditions for the described program are given above.**

@@ -1,0 +1,43 @@
+**Hoare‑style specification**
+
+Let  
+
+* `L , C ∈ ℤ` be the width and length of the room (input);  
+* `T₁ , T₂ ∈ ℤ` be the numbers of tiles of type 1 and type 2 that the program must output.
+
+The program is required to satisfy the following Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\; \texttt{program}\; \{\,Q\,\}}
+\]
+
+where  
+
+\[
+\begin{aligned}
+P &\;=\; \bigl(1 \le L \le 100 \;\wedge\; 1 \le C \le 100 \;\wedge\; L\in\mathbb Z \;\wedge\; C\in\mathbb Z\bigr) \\[4pt]
+Q &\;=\; \bigl(
+      T_{1}\in\mathbb Z_{\ge 0}\;\wedge\;T_{2}\in\mathbb Z_{\ge 0}\;\wedge \\[2pt]
+      \;\;\;T_{1}=L\cdot C+(L-1)\cdot(C-1)\;\wedge \\[2pt]
+      \;\;\;T_{2}=2\,(L+C)-4\;\bigr)
+\end{aligned}
+\]
+
+---
+
+### Remarks  
+
+* The four corner pieces of type 3 are **not** part of the output; their total area is  
+  \(\displaystyle 4\cdot\frac{1}{8}= \frac12\) m².  
+
+* The area covered by the tiles that are counted in the output is  
+
+  \[
+  \frac12\,T_{1}+\frac14\,T_{2}
+  =\frac12\bigl(L\cdot C+(L-1)(C-1)\bigr)+\frac14\bigl(2(L+C)-4\bigr)
+  =L\cdot C-\frac12,
+  \]
+
+  so together with the four corner pieces the whole floor area \(L\cdot C\) is exactly covered.
+
+Thus the pre‑condition \(P\) guarantees that the inputs are admissible, and the post‑condition \(Q\) precisely describes the required values of `T₁` (type 1 tiles) and `T₂` (type 2 tiles). The Hoare triple above is the formal specification of the program.

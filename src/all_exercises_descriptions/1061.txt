@@ -1,0 +1,20 @@
+Description: Peter is organizing an event in his University. The event will be in April month, beginning and finishing within April month. The problem is: Peter wants to calculate the event duration in seconds, knowing obviously the begin and the end time of the event.
+
+Input: The first line of the input contains information about the beginning day of the event in the format: âDia xxâ. The next line contains the start time of the event in the format presented in the sample input. Follow 2 input lines with same format, corresponding to the end of the event.
+
+Output: Your program must print the following output, one information by line, considering that if any information is null for example, the number 0 must be printed in place of W, X, Y or Z:W dia(s)X hora(s)Y minuto(s)Z segundo(s)Obs: Consider that the event of the test case have the minimum duration of one minute. âdiaâ means day, âhoraâ means hour, âminutoâ means minute and âSegundoâ means second in Portuguese.
+
+Examples:
+- Example 1:
+  Input:
+Dia 5
+08 : 12 : 23
+Dia 9
+06 : 13 : 23
+  Output:
+3 dia(s)
+22 hora(s)
+1 minuto(s)
+0 segundo(s)
+
+--

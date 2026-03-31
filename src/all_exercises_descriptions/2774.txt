@@ -1,0 +1,18 @@
+Description: The teacher is teaching you about sensors. This is a very important element in many applications. To better understand the concepts of precision, the teacher asked to perform a practical assembly of the Thermo Ind v4.0 sensor in the new Automation laboratory.
+
+Input: There are several test cases, each case consisting of two lines. The first one contains two valuesHandM. The second consists of the floating point valuesXiindicating the value of each sensor measurement.
+
+Output: For each test case, print a single line with a number indicating the sensor's accuracy. The calculated value must be displayed with 5 digits after the decimal point.
+
+Examples:
+- Example 1:
+  Input:
+1 10
+2.99 2.94 3.02 2.91 3.05 3.11
+2 16
+5.00 5.00 5.00 5.00 5.00 5.00 5.00
+  Output:
+0.07312
+0.00000
+
+--

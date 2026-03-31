@@ -1,0 +1,27 @@
+media = 6.00
+
+nota invalida
+media = 9.00
+
+nota invalida
+nota invalida
+media = 5.00
+
+media = 5.00
+
+media = 0.00
+
+media = 10.00
+
+media = 7.33
+
+media = 7.34
+
+nota invalida
+nota invalida
+media = 5.00
+
+media = 5.00
+
+media = 2.50
+

@@ -1,0 +1,87 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “command” `S`).  
+Only the pre‑condition (`P`) and the post‑condition (`Q`) are given – the body of `S` is omitted because the request is for the formal specification, not the implementation.
+
+---
+
+### Vocabulary  
+
+* Let  
+
+\[
+\mathbf{x}= (x_{1},x_{2},x_{3},x_{4},x_{5})\in\mathbb Z^{5}
+\]
+
+be the five integer values that the program reads from the input stream.  
+
+* Define the *even‑indicator* (Iverson bracket)
+
+\[
+\operatorname{even}(x)\;:=\;
+\begin{cases}
+1 & \text{if } x\bmod 2 =0,\\[2mm]
+0 & \text{otherwise.}
+\end{cases}
+\]
+
+* Let  
+
+\[
+c \;:=\; \sum_{i=1}^{5}\operatorname{even}(x_{i})
+\]
+
+be the number of even inputs.  
+
+* Let `out` be the *sole* string written to the output stream by the program.  
+  The concatenation of a natural number and a literal string is denoted by `⟦c⟧·" valores pares"` (the number is first converted to its decimal representation).
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\;\{\,P\,\}\;S\; \{\,Q\,\}\;}
+\]
+
+with  
+
+\[
+\begin{aligned}
+P &\;:=\; \bigl(\forall i\in\{1,\dots,5\}\;.\;x_{i}\in\mathbb Z\bigr) \qquad 
+      \text{(the program receives exactly five integers)} \\[4pt]
+Q &\;:=\; \bigl(\text{out}= \bigl\lfloor c \big\rfloor\;\text{`` valores pares''}\bigr)
+      \;\land\;
+      \bigl(c = \sum_{i=1}^{5}\operatorname{even}(x_{i})\bigr) \\[4pt]
+  &\; \land\; \text{the program terminates.}
+\end{aligned}
+\]
+
+In words, **if** the input consists of five (arbitrary) integers, **then** after execution the program terminates and prints exactly the decimal representation of the number of even inputs followed by a single space and the literal text `valores pares`.
+
+---
+
+### Full specification in Hoare‑logic notation  
+
+\[
+\begin{array}{l}
+\displaystyle
+\{\,\forall i\in\{1,\dots,5\}\;.\;x_{i}\in\mathbb Z\,\}\;\\[4pt]
+\texttt{
+\begin{tabular}{l}
+read $x_{1},\dots,x_{5}$;\\
+$c\gets0$;\\
+\textbf{for } $i\gets1$ \textbf{to } $5$ \textbf{do}\\
+\qquad \textbf{if } $x_{i}\bmod 2 =0$ \textbf{then } $c\gets c+1$;\\
+\textbf{od};\\
+print $\bigl\lfloor c\bigr\rfloor\;``\;valores\;pares\;''$;
+\end{tabular}}
+\;\\[8pt]
+\{\,\text{out}= \bigl\lfloor c\bigr\rfloor\;\text{`` valores pares ''} 
+   \;\land\;c =\sum_{i=1}^{5}\operatorname{even}(x_{i})\,\}
+\end{array}
+\]
+
+The triple above captures **exactly** the natural‑language specification:
+
+* read five integers,
+* count how many of them are even,
+* output the count followed by the phrase *“valores pares”* (all lower‑case).

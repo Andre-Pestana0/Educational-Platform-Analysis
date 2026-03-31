@@ -1,0 +1,252 @@
+Below is a **complete Hoare‑logic proof sketch** that the program you posted satisfies the (implicit) specification that it
+
+* reads an integer `n ≥ 0`,
+* reads exactly `n` triples  `(x , y , z)`  with  
+  `0 ≤ x ≤ 23` (hour), `0 ≤ y ≤ 59` (minute) and `z ∈ {0,1}` (sensor),
+* prints **one line for each triple** in the exact format required by the statement of the problem:
+
+```
+hh:mm - A porta abriu!   // when z == 1
+hh:mm - A porta fechou!  // when z == 0
+```
+
+where `hh` and `mm` are two‑digit decimal numbers (a leading ‘0’ is added when the
+value is < 10).
+
+The proof proceeds in the classic three‑step fashion:
+
+1. **State the pre‑ and post‑conditions**,
+2. **Identify a suitable loop invariant**,
+3. **Prove initialization, preservation and termination**.
+
+---
+
+## 1.  Specification (pre‑ and post‑conditions)
+
+```
+{ P }  program  { Q }
+```
+
+*Pre‑condition* `P`
+
+```
+P  ≡  n ∈ ℕ                 // the first input line is a non‑negative integer
+   ∧  (∀k∈[0,n)  ∃x_k , y_k , z_k .
+        input_k = (x_k , y_k , z_k) ∧
+        0 ≤ x_k ≤ 23 ∧ 0 ≤ y_k ≤ 59 ∧ z_k ∈ {0,1} )
+```
+
+In words: the program receives a well‑formed input consisting of a natural
+number `n` followed by `n` triples `(x_k , y_k , z_k)` that respect the
+domain constraints of hour, minute and sensor.
+
+*Post‑condition* `Q`
+
+```
+Q  ≡  (∀k∈[0,n) .
+        printed_k  =  format(x_k , y_k)  ◦
+                      ( if z_k = 1 then " - A porta abriu!"
+                        else               " - A porta fechou!" ) )
+```
+
+where  
+
+```
+format(x , y) = 
+    (if x < 10 then "0" else "") ◦ str(x) ◦ ":" ◦
+    (if y < 10 then "0" else "") ◦ str(y)
+```
+
+Thus after termination the program has produced exactly `n` lines, each line
+containing the correctly zero‑padded time followed by the appropriate message.
+
+---
+
+## 2.  Loop invariant
+
+The only non‑trivial part of the program is the `for`‑loop.  
+We introduce the following **loop invariant** `I(i)` that talks about the loop
+counter `i` (the value of the Python variable `i` after the `i`‑th iteration has
+finished).
+
+```
+I(i)  ≡   0 ≤ i ≤ n
+        ∧ (∀k∈[0,i) .
+              printed_k = format(x_k , y_k) ◦
+                           ( if z_k = 1 then " - A porta abriu!"
+                             else               " - A porta fechou!" ) )
+```
+
+In words: after `i` iterations the program has already printed the correct line
+for the first `i` input triples, and no other output has been produced.
+
+---
+
+## 3.  Proof obligations
+
+We must show three things:
+
+* **(Init)** `P ⇒ I(0)` – the invariant holds before the first iteration.
+* **(Pres)** `{ I(i) ∧ i < n }  body  { I(i+1) }` – one loop iteration preserves the invariant.
+* **(Term)** `I(n) ⇒ Q` – when the loop finishes (`i = n`) the invariant entails the post‑condition.
+
+Below we discharge each obligation with a Hoare‑logic derivation.
+
+---
+
+### 3.1  Initialization
+
+Before the loop starts we have `i = 0`.  
+`P` guarantees that `n` is a natural number, therefore `0 ≤ 0 ≤ n`.  
+The universal quantifier in `I(0)` ranges over the empty set `[0,0)`, so the
+conjunctive part is trivially true. Consequently
+
+```
+P  ⇒  (0 ≤ 0 ≤ n) ∧ (∀k∈∅ . …)  ≡  I(0)
+```
+
+Thus **Init** holds.
+
+---
+
+### 3.2  Preservation (the body)
+
+Assume `I(i)` holds and `i < n`.  
+The body of the loop is exactly the fragment that reads the *i‑th* triple,
+formats it, and prints the appropriate line.
+
+```
+x_i , y_i , z_i = map(int, input().split())
+```
+
+By the pre‑condition `P` we know that the read triple satisfies the domain
+constraints, i.e. `0 ≤ x_i ≤ 23`, `0 ≤ y_i ≤ 59`, `z_i ∈ {0,1}`.
+
+The subsequent `if … elif … else` chain is a **case analysis** that matches
+the four possible situations concerning the leading‑zero requirement:
+
+| condition on (x_i , y_i) | printed string |
+|--------------------------|----------------|
+| `x_i < 10 ∧ y_i < 10`    | `"0"+x_i+":0"+y_i` |
+| `x_i < 10 ∧ y_i ≥ 10`    | `"0"+x_i+":"+y_i` |
+| `x_i ≥ 10 ∧ y_i < 10`    | `x_i+":0"+y_i` |
+| otherwise                | `x_i+":"+y_i`   |
+
+Each branch appends either  
+
+```
+" - A porta abriu!"   if z_i == 1
+" - A porta fechou!"  if z_i == 0
+```
+
+Hence, **independently of the branch taken**, the produced line is exactly  
+
+```
+format(x_i , y_i) ◦ ( if z_i = 1 then " - A porta abriu!"
+                       else               " - A porta fechou!" )
+```
+
+The line is printed **once** (the `print` statement is executed exactly once per
+iteration). Therefore after the iteration we have
+
+```
+(∀k∈[0,i) . printed_k = …)        // unchanged from the invariant
+∧ printed_i = format(x_i , y_i) ◦ ( … )   // newly added line
+```
+
+and the loop counter becomes `i+1`. Consequently
+
+```
+I(i) ∧ i < n   ⟹   I(i+1)
+```
+
+which is precisely the **Pres** condition.
+
+Formally, the Hoare triple for the body is derived as
+
+```
+{ I(i) ∧ i < n }
+    x_i , y_i , z_i = …
+    if … elif … else …
+        print( … )
+{ I(i+1) }
+```
+
+using the rule of **conditional composition** together with the rule for a
+simple assignment (`x_i , y_i , z_i = …`) that does not affect the already
+printed output.
+
+---
+
+### 3.3  Termination
+
+The loop is a Python `for i in range(n):`.  
+The semantics of `range(n)` guarantee that the loop executes exactly `n` times,
+so the condition `i < n` eventually becomes false when `i = n`.  
+Because `i` is increased by one at the end of each iteration, the loop is
+*bounded* and therefore **terminates**.
+
+When the loop exits we have `i = n`.  Instantiating the invariant with `i = n`
+gives
+
+```
+I(n)  ≡   0 ≤ n ≤ n   ∧   (∀k∈[0,n) .
+          printed_k = format(x_k , y_k) ◦
+                      ( if z_k = 1 then " - A porta abriu!"
+                        else               " - A porta fechou!" ) )
+```
+
+The first conjunct is trivially true; the second conjunct is exactly the
+post‑condition `Q`. Hence **Term** holds:
+
+```
+I(n) ⇒ Q
+```
+
+---
+
+## 4.  Concluding Hoare triple
+
+Putting the three proof obligations together we obtain the classic Hoare‑logic derivation:
+
+```
+{ P }
+    n = int(input())
+    for i in range(n):
+        x, y, z = map(int, input().split())
+        if (x<10) and (y<10):
+            if z==1: print(f'0{x}:0{y} - A porta abriu!')
+            else:    print(f'0{x}:0{y} - A porta fechou!')
+        elif (x<10) and (y>=10):
+            if z==1: print(f'0{x}:{y} - A porta abriu!')
+            else:    print(f'0{x}:{y} - A porta fechou!')
+        elif (x>=10) and (y<10):
+            if z==1: print(f'{x}:0{y} - A porta abriu!')
+            else:    print(f'{x}:0{y} - A porta fechou!')
+        else:
+            if z==1: print(f'{x}:{y} - A porta abriu!')
+            else:    print(f'{x}:{y} - A porta fechou!')
+{ Q }
+```
+
+Thus, **the program is correct with respect to the specification**: starting
+from a well‑formed input it terminates after `n` iterations and produces exactly
+the required `n` lines, each line containing a correctly zero‑padded time and
+the appropriate message according to the sensor value.
+
+---
+
+## 5.  Remarks on the proof style
+
+* The invariant `I(i)` is *exactly* the property we want to hold after each
+  iteration – a classic “partial correctness” invariant for a printing loop.
+* The case analysis in the program mirrors the definition of `format(x,y)`;
+  proving that the four branches are exhaustive and mutually exclusive is
+  straightforward arithmetic on the conditions `x<10` and `y<10`.
+* The proof does **not** rely on any hidden side‑effects; Python’s `print`
+  is treated as an atomic statement that appends a line to the output stream.
+* Total correctness (termination) follows from the fact that `range(n)` is a
+  finite iterator; no additional variant function is needed.
+
+With the invariant established and all three obligations discharged, the Hoare‑logic
+proof is complete. ∎

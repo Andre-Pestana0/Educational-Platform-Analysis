@@ -1,0 +1,101 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “statement” **S** that reads the data, computes the amount to be paid and prints it).  
+Only the **pre‑condition** **P** (what must be true before the program starts) and the **post‑condition** **Q** (what is guaranteed after it finishes) are given; the body of **S** is left implicit because the task is only to formalise the specification.
+
+---
+
+### Notation used
+
+| Symbol | Meaning |
+|--------|----------|
+| `ℤ`    | set of all integers |
+| `ℕ`    | set of non‑negative integers (`0,1,2,…`) |
+| `ℕ⁺`   | set of positive integers (`1,2,…`) |
+| `ℝ`    | set of real numbers |
+| `ℚ₂`   | set of rational numbers that have at most two decimal digits, i.e.  `x∈ℝ` such that `100·x ∈ ℤ` |
+| `⌊·⌋`  | floor (integer part) |
+| `⟦·⟧₂` | “rounded to two decimal digits” (banker’s rounding is not needed here because all inputs already have two digits) |
+| `⋅`    | ordinary multiplication |
+| `+`    | ordinary addition |
+| `∘`    | string concatenation |
+| `format₂(y)` | the decimal representation of a rational `y∈ℚ₂` with exactly two digits after the point (e.g. `format₂(15.5) = "15.50"`). |
+| `output(s)` | the observable effect of printing the string `s`. |
+| `↦`   | “maps to”, used for the input relation. |
+
+---
+
+## Variables that appear in the specification
+
+```
+c₁ , c₂ ∈ ℤ               – product codes (any integer, sign does not matter)
+q₁ , q₂ ∈ ℕ⁺              – quantities of each product (must be positive)
+p₁ , p₂ ∈ ℚ₂              – unit prices, each given with exactly two decimal digits
+total   = q₁·p₁ + q₂·p₂   – exact amount to be paid (a rational with at most two decimals)
+payStr  = "VALOR A PAGAR: R$ " ∘ format₂(total)
+```
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\{\,P\,\}\;S\;\{\,Q\,\}}
+\]
+
+### Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \;\equiv\; &
+\bigl(\; (c_1,q_1,p_1) , (c_2,q_2,p_2) \; \text{are the two input lines} \;\bigr) \\[2mm]
+&\;\land\; c_1 ,c_2 \in \mathbb{Z} \\[1mm]
+&\;\land\; q_1 , q_2 \in \mathbb{N}^{+} \\[1mm]
+&\;\land\; p_1 , p_2 \in \mathbb{Q}_{2}
+      \;\;(\text{i.e. }100p_i\in\mathbb{Z},\;p_i\ge 0) .
+\end{aligned}
+\]
+
+In words: the program receives **exactly** two lines; each line contains an integer product code, a positive integer quantity and a non‑negative price with two decimal digits.
+
+---
+
+### Post‑condition **Q**
+
+\[
+\begin{aligned}
+Q \;\equiv\; &
+\bigl( total = q_1\cdot p_1 + q_2\cdot p_2 \bigr) \\[1mm]
+&\;\land\; \bigl( payStr = "VALOR A PAGAR: R$ " \;\circ\; format_{2}(total) \bigr) \\[1mm]
+&\;\land\; output(payStr) .
+\end{aligned}
+\]
+
+That is, after termination the program prints **exactly** the string  
+
+```
+VALOR A PAGAR: R$ <total with two decimal digits>
+```  
+
+where  
+
+\[
+\text{total}=q_{1}p_{1}+q_{2}p_{2}
+\]
+
+and the numeric part is shown with two digits after the decimal point (the same formatting required by the statement).
+
+---
+
+## Full specification in Hoare‑logic notation
+
+\[
+\boxed{
+\begin{array}{l}
+\{\, (c_1,q_1,p_1),(c_2,q_2,p_2) \in (\mathbb{Z}\times\mathbb{N}^{+}\times\mathbb{Q}_{2})^{2}\,\} \\
+\qquad\qquad S\;=\;\text{read two lines; compute }total:=q_{1}p_{1}+q_{2}p_{2};\\
+\qquad\qquad\qquad\;\;\; \text{print } "VALOR A PAGAR: R$ " \circ format_{2}(total) \\
+\{\, output\bigl("VALOR A PAGAR: R$ " \circ format_{2}(total)\bigr)\,\}
+\end{array}
+}
+\]
+
+The triple above completely characterises the required behaviour of the program in mathematical (Hoare‑logic) form.

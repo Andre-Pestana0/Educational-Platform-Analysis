@@ -1,0 +1,22 @@
+Description: Rafael recently won a scholarship and is studying outside of Brazil, where he met several people from several different nationalities. The native language of this country is English, and all the people that Rafael met speak English as either first or second language.
+
+Input: The first line will contain an integerN, representing the number of test cases to follow.
+
+Output: Print one line, containing a stringS, representing the most appropriate language for the situation.
+
+Examples:
+- Example 1:
+  Input:
+2
+3
+portugues
+chines
+portugues
+2
+espanhol
+espanhol
+  Output:
+ingles
+espanhol
+
+--

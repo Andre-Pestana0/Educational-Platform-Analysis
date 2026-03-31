@@ -1,0 +1,106 @@
+**Hoare‑logic specification**
+
+We describe the program only by its pre‑condition (what is known about the
+input) and its post‑condition (what must hold for the three numbers that are
+printed).  
+All auxiliary variables that the program may use are quantified in the
+post‑condition, therefore the specification is *purely declarative*.
+
+---
+
+### 1.   Vocabulary  
+
+* `L = ⟨l₁ , … , l_n⟩` – the whole input, a finite sequence of *tokens*.  
+
+* `B = { b ∈ {'‑','*'}³ }` – the set of **blink** tokens (three characters,
+each either ‘‑’ or ‘*’).  
+
+* `S = { “caw caw” }` – the unique **scream** token.  
+
+* `val : B → ℕ` – conversion of a blink into a decimal number, interpreting
+‘‑’ as binary 0 and ‘*’ as binary 1, most‑significant bit on the left:
+
+\[
+\begin{aligned}
+\text{val}(b_1b_2b_3) &=
+\mathbf 1_{b_1='*'}\;2^{2}
++ \mathbf 1_{b_2='*'}\;2^{1}
++ \mathbf 1_{b_3='*'}\;2^{0} \\[2mm]
+&\qquad\bigl(\mathbf 1_{P}=1\text{ if }P\text{ true, }0\text{ otherwise}\bigr)
+\end{aligned}
+\]
+
+* `g(i) = |\{ j\le i \mid l_j\in S\}|` – number of screams that appear **up to**
+position `i`.  Thus `g(i)=k` means that the token `l_i` lies in the
+*(k+1)‑st* group of blinks (the groups are delimited by screams).
+
+* `R₁ , R₂ , R₃ ∈ ℕ` – the three results that the program must output.
+
+---
+
+### 2.   Pre‑condition  
+
+\[
+\boxed{
+\begin{array}{l}
+\text{Pre} \equiv
+\bigl(L = \langle l_1,\dots ,l_n\rangle\ \wedge\ 
+\forall i\;(1\le i\le n\;\Rightarrow\; l_i\in B\ \lor\ l_i\in S)\bigr)
+\\[1mm]
+\text{(the input consists only of blink tokens and the token “caw caw”).}
+\end{array}}
+\]
+
+No further assumption is required – the program must work for *any*
+finite sequence of such tokens (there may be 0, 1, 2 or 3 screams, any
+order).
+
+---
+
+### 3.   Post‑condition  
+
+For each \(k\in\{1,2,3\}\) the result \(R_k\) equals the sum of the
+numeric values of all blinks that belong to the *k‑th* group (i.e. the
+blinks that appear after the \((k-1)^{\text{st}}\) scream and before the
+\(k^{\text{th}}\) scream).  If a group does not exist, its sum is defined
+to be 0.
+
+\[
+\boxed{
+\begin{aligned}
+\text{Post} \equiv\;&
+\bigl(R_1,R_2,R_3\bigr)\text{ are printed (one per line)}\\[1mm]
+&\wedge\;
+\forall k\in\{1,2,3\}\;:\;
+R_k = \sum_{i=1}^{n}
+\Bigl[\,l_i\in B\ \wedge\ g(i)=k-1\,\Bigr]\;\cdot\;\text{val}(l_i)
+\end{aligned}}
+\]
+
+The bracket \([P]\) is the Iverson‑bracket (1 if the predicate \(P\) holds,
+0 otherwise).  Consequently:
+
+* `R₁` is the sum of the values of all blinks occurring **before the first
+  “caw caw”**,
+* `R₂` is the sum of the values of all blinks occurring **between the first
+  and the second “caw caw”**,
+* `R₃` is the sum of the values of all blinks occurring **between the second
+  and the third “caw caw”**.
+
+If fewer than three groups appear, the corresponding sums are empty and
+therefore equal to 0, which matches the required output in the examples.
+
+---
+
+### 4.   Hoare triple  
+
+Putting the two parts together we obtain the formal specification of the
+program:
+
+\[
+\boxed{\;\{\,\text{Pre}\,\}\; \text{Program} \; \{\,\text{Post}\,\}\;}
+\]
+
+Any implementation that, when started in a state satisfying *Pre*, terminates
+and leaves the state satisfying *Post* (i.e. prints the three numbers
+\(R_1,R_2,R_3\)) is correct with respect to the problem description.

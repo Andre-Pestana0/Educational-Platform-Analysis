@@ -1,0 +1,282 @@
+Below is a **step‑by‑step Hoare‑logic proof** that the given Python program satisfies the natural specification that “for a non‑negative integer `n` read from the first line of the input, the program reads exactly `n` further lines (the *questions*) and prints the word **`gzuz`** once for each of those lines, i.e. exactly `n` times”.
+
+---
+
+## 1.  Specification
+
+| Symbol | Meaning |
+|--------|---------|
+| `n`    | Integer read from the first input line |
+| `i`    | Loop counter (0‑based) |
+| `Q`    | The whole program |
+| `P`    | Pre‑condition |
+| `R`    | Post‑condition |
+
+```
+P  ≜  n ∈ ℕ   ∧   input contains at least n+1 lines
+R  ≜  The program has printed the string “gzuz” exactly n times,
+      each on its own line, and has consumed exactly n+1 input lines.
+```
+
+In Hoare‑logic we want to prove  
+
+\[
+\{P\}\; Q\; \{R\}
+\]
+
+---
+
+## 2.  Program (annotated)
+
+```python
+1   n = int(input())                #  A₁
+2   i = 0                            #  A₂
+3   while i < n:                     #  W
+4       input()                     #  B₁   (ignore the question)
+5       print('gzuz')               #  B₂
+6       i = i + 1                   #  B₃
+```
+
+*Lines 1‑2 are simple assignments.*  
+*Lines 4‑6 constitute the **loop body**.*  
+
+The only statement that produces output is the `print` on line 5; the `input()` on line 4 is only used to consume a line of the input stream.
+
+---
+
+## 3.  Loop invariant
+
+A good invariant for a “count‑down” loop that prints once per iteration is
+
+\[
+\boxed{I(i) \;≜\; 0 \le i \le n \;\land\;
+       \text{“gzuz” has been printed exactly } i \text{ times}}
+\]
+
+Formally we can write  
+
+\[
+I(i) \;≜\; (0 \le i \le n) \;\land\;
+        (\#\text{prints of }'gzuz' = i)
+\]
+
+The invariant captures **both** the numeric progress of the counter *and* the observable effect on the output.
+
+---
+
+## 4.  Proof outline (Hoare rules)
+
+We will use the following Hoare‑logic rules (standard notation):
+
+* **Assignment axiom**  
+
+  \[
+  \{\,P[E/x]\,\}\; x := E\; \{\,P\,\}
+  \]
+
+* **Composition**  
+
+  \[
+  \{P\}\; S_1\; \{Q\},\;\{Q\}\; S_2\; \{R\}
+  \Longrightarrow
+  \{P\}\; S_1;S_2\; \{R\}
+  \]
+
+* **While rule**  
+
+  \[
+  \{I \land B\}\; S\; \{I\}
+  \Longrightarrow
+  \{I\}\; \textbf{while } B\; \textbf{do } S\; \{I \land \neg B\}
+  \]
+
+* **Consequence** (strengthening/weakening of pre‑/post‑conditions).
+
+The proof proceeds in three stages:
+
+1. **Initialization** – establish the invariant before entering the loop.
+2. **Maintenance** – show that one iteration preserves the invariant.
+3. **Termination** – combine the invariant with the negated guard to obtain the post‑condition.
+
+---
+
+### 4.1  Initialization (lines 1‑2)
+
+**Line 1** (`n = int(input())`)
+
+The pre‑condition `P` guarantees that the first input line contains a non‑negative integer.  
+Applying the assignment axiom with the substitution `n := int(input())` we obtain
+
+\[
+\{P\}\; n = int(input())\; \{\, n \in \mathbb N \,\}
+\]
+
+**Line 2** (`i = 0`)
+
+We need the invariant `I(i)` *before* the loop starts, i.e. with `i = 0`.  
+Using the assignment axiom again:
+
+\[
+\{\, n \in \mathbb N \,\}\; i = 0\; \{\, I(i) \,\}
+\]
+
+Indeed, after `i := 0` we have  
+
+* `0 ≤ i ≤ n` because `i = 0` and `n ≥ 0`.  
+* The number of printed `"gzuz"` strings is `0`.
+
+Thus the invariant holds immediately before the `while`.
+
+---
+
+### 4.2  Maintenance (loop body)
+
+We must prove  
+
+\[
+\{\, I(i) \land i < n \,\}\; \text{body}\; \{\, I(i') \,\}
+\]
+
+where `i'` denotes the value of `i` after the body (i.e. `i+1`).  
+
+The body consists of three statements:
+
+| Statement | Hoare triple we need |
+|-----------|----------------------|
+| `input()` | does not affect `I` (it only consumes a line) |
+| `print('gzuz')` | increments the count of printed strings by 1 |
+| `i = i + 1` | increments `i` by 1 |
+
+We treat them sequentially.
+
+#### 4.2.1  `input()` (line 4)
+
+`input()` has the effect *only* on the input stream; it does not modify any program variable that appears in the invariant. Hence it is **transparent** for `I`. Formally we can use the **skip** rule:
+
+\[
+\{\, I(i) \land i < n \,\}\; \text{input()}\; \{\, I(i) \land i < n \,\}
+\]
+
+#### 4.2.2  `print('gzuz')` (line 5)
+
+Let `p` be the (mathematical) variable that records how many times the word `"gzuz"` has been printed so far.  
+The invariant contains the predicate `p = i`.  
+`print('gzuz')` changes `p` to `p+1` while leaving `i` unchanged. Therefore we can write the triple
+
+\[
+\{\, p = i \land i < n \,\}\; \text{print('gzuz')}\; \{\, p = i+1 \land i < n \,\}
+\]
+
+(again, the guard `i < n` is untouched).
+
+#### 4.2.3  `i = i + 1` (line 6)
+
+Now we update the loop counter:
+
+\[
+\{\, p = i+1 \land i < n \,\}\; i := i+1\; \{\, p = i \land 0 \le i \le n \,\}
+\]
+
+Explanation of the substitution:
+
+*Before* the assignment we have the relation `p = i+1`.  
+After `i := i+1` the new value of `i` (call it `i'`) satisfies  
+
+\[
+p = (i') \quad\text{and}\quad i' = i+1.
+\]
+
+Since the guard ensured `i < n`, after the increment we get `i' ≤ n`.  
+Also `i' ≥ 0` because `i ≥ 0`.  
+Thus the post‑condition is exactly the invariant `I(i')`.
+
+#### 4.2.4  Composition of the three steps
+
+Using the **composition rule** we chain the three triples:
+
+\[
+\{\, I(i) \land i < n \,\}\;
+\bigl(\text{input(); print('gzuz'); i:=i+1}\bigr)
+\; \{\, I(i') \,\}
+\]
+
+Hence the **maintenance condition** of the while‑rule is proved.
+
+---
+
+### 4.3  Termination (while rule)
+
+The while‑rule tells us that if the invariant holds before the loop and is preserved by the body, then after the loop we obtain  
+
+\[
+\{\, I(i) \,\}\; \textbf{while } i < n \textbf{ do body }\; \{\, I(i) \land \neg(i < n) \,\}
+\]
+
+The negated guard `¬(i < n)` is equivalent to `i ≥ n`.  
+Together with the invariant `0 ≤ i ≤ n` we obtain `i = n`.  
+
+At that point the invariant tells us:
+
+* `i = n`
+* the number of printed `"gzuz"` strings equals `i`, i.e. equals `n`.
+
+Thus after the loop we have exactly the post‑condition `R`:
+
+\[
+\{\,\#\text{prints of }'gzuz' = n \,\}
+\]
+
+The loop also has consumed exactly `n` additional input lines (one per iteration) plus the first line that supplied `n`. Hence the total number of consumed lines is `n+1`, as required by `R`.
+
+---
+
+## 5.  Full Hoare derivation
+
+Putting the pieces together:
+
+1. **Pre‑condition** `P` → after line 1 (`n = int(input())`) we have `n ∈ ℕ`.  
+2. After line 2 (`i = 0`) we have invariant `I(0)`.  
+3. By the **while rule** with invariant `I` and the maintenance proof above, we get  
+
+   \[
+   \{I(0)\}\; \textbf{while } i < n \textbf{ do body }\; \{\, i = n \land \#\text{prints}=n \,\}
+   \]
+
+4. The final state therefore satisfies `R`.  
+
+Consequently we have proved the Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; Q\; \{\,R\,\}}
+\]
+
+i.e. **the program is correct with respect to the specification**.
+
+---
+
+## 6.  Remarks on the proof
+
+* The proof does **not** rely on any Python‑specific side‑effects (e.g. buffering). It uses only the abstract semantics of `input()` (consume one line) and `print()` (produce one line of output).  
+* The loop invariant is the *minimal* one that captures the observable effect (the number of printed strings) together with the numeric progress of the counter. Any stronger invariant (e.g. also mentioning the exact contents of the consumed lines) would also work but is unnecessary.  
+* Termination follows from the fact that `i` is a non‑negative integer that is increased by 1 each iteration and the guard `i < n` is false as soon as `i = n`. In Hoare logic this is expressed by the variant function `V = n - i`, which is a natural number that strictly decreases on each iteration.
+
+---
+
+### TL;DR
+
+*Pre‑condition*: the first input line is a non‑negative integer `n`.  
+*Post‑condition*: the program prints the word **`gzuz`** exactly `n` times, each on its own line.
+
+Using the invariant  
+
+\[
+I(i) \equiv 0 \le i \le n \;\land\; (\text{# prints of }'gzuz' = i)
+\]
+
+we showed:
+
+1. `I` holds after the initialization (`i ← 0`).  
+2. One loop iteration (read a line, print, increment `i`) transforms `I ∧ i < n` into `I`.  
+3. When the loop finishes (`i = n`) the invariant yields the required post‑condition.
+
+Hence the program satisfies its specification.

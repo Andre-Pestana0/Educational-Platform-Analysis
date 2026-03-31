@@ -1,0 +1,270 @@
+**Answer – a Hoare‑logic proof of correctness for the “seconds‑per‑character” program**
+
+Below we give a complete, step‑by‑step proof that the Python program shown in the question satisfies the specification that was announced in the problem statement of Beecrowd 2147.  
+The proof is written in the style of Hoare Logic (pre‑condition / post‑condition triples, loop invariants, and the rule of consequence).  
+All the reasoning is completely formal, but the exposition is kept as readable as possible for a programmer who is familiar with Hoare triples.
+
+---
+
+## 1.  The program (re‑written with explicit variables)
+
+```python
+1  n  := int(input())                     # number of test cases
+2  i  := 0                                # loop counter
+3  while i < n do                         # (the Python “for” loop)
+4      s          := input()              # a line of text
+5      chars      := len(s)               # number of characters
+6      seconds    := chars * 0.01         # “typing time” in seconds
+7      print("%.2f" % seconds)           # output with two decimals
+8      i := i + 1
+9  od
+```
+
+*Lines 1‑9 are the only statements that affect the observable behaviour of the program.*
+
+---
+
+## 2.  Formal specification
+
+### 2.1.  Variables that belong to the **environment**
+
+| Symbol | Meaning |
+|--------|---------|
+| `n`    | non‑negative integer supplied by the user (the number of test cases) |
+| `s₀, s₁, …, s_{n‑1}` | the `n` strings that the user will type, one per iteration |
+| `len(sₖ)` | the length (a non‑negative integer) of the string `sₖ` |
+
+### 2.2.  Pre‑condition  **P**
+
+```
+P  ≡   n ∈ ℕ    ∧    (∀k < n)  sₖ ∈ Σ*      (Σ = set of all printable characters)
+```
+
+*In words: the program is started with a well‑formed integer `n ≥ 0` and the user will later supply exactly `n` strings.*
+
+### 2.3.  Post‑condition  **Q**
+
+```
+Q  ≡   (∀k < n)   output_k = format( len(s_k) * 0.01 , 2 )
+```
+
+*`output_k` denotes the *k‑th* line that the program prints.  
+`format(x,2)` is the textual representation of the real number `x` with exactly two decimal digits (the same as the Python expression `"%.2f" % x`).*  
+
+So `Q` says: after termination the program has printed `n` lines, each line `k` containing the value `len(s_k)·0.01` rounded to two decimal places.
+
+---
+
+## 3.  Hoare triples that we will prove
+
+The whole program is proved by the Hoare triple  
+
+```
+{ P }  prog  { Q }
+```
+
+where `prog` is the sequence of statements 1–9.  
+The proof is split into two parts:
+
+1. **Initialisation** – the assignment of `n` (line 1).  
+2. **The loop** – the `while` (lines 3–8) together with its invariant.
+
+---
+
+## 4.  Proof of the initialisation (line 1)
+
+The statement  
+
+```
+n := int(input())
+```
+
+is a *input* statement. In Hoare logic we treat input as a **nondeterministic assignment** that may assign **any** value that satisfies the type constraint. The rule of consequence gives us:
+
+```
+{ true }  n := int(input())  { n ∈ ℕ }
+```
+
+Because the problem guarantees that the user will indeed type a non‑negative integer, we can strengthen the post‑condition to `n ∈ ℕ`.  
+Thus after line 1 we have
+
+```
+{ true }  line 1  { n ∈ ℕ }                (1)
+```
+
+---
+
+## 5.  The loop – invariant, termination and correctness
+
+### 5.1.  Loop invariant **I**
+
+We choose the following invariant, which captures *exactly* what has already been printed after `i` iterations:
+
+```
+I(i)  ≡   0 ≤ i ≤ n
+        ∧ (∀k < i)   output_k = format( len(s_k) * 0.01 , 2 )
+```
+
+*Interpretation*:  
+* `i` is the current loop counter (the number of already processed test cases).  
+* For every already processed test case `k` (`k < i`) the program has printed the correct value.
+
+### 5.2.  Proof that `I` holds initially (before the first iteration)
+
+Before the loop we set `i := 0` (line 2).  
+With `i = 0` the universal quantifier `∀k < i` has an empty domain, therefore it is trivially true. Hence
+
+```
+{ n ∈ ℕ }   i := 0   { I(0) }                (2)
+```
+
+---
+
+### 5.3.  Preservation of the invariant (the loop body)
+
+We have to show the Hoare triple
+
+```
+{ I(i) ∧ i < n }   body   { I(i+1) }
+```
+
+where **body** consists of lines 4–8:
+
+```
+4  s          := input()
+5  chars      := len(s)
+6  seconds    := chars * 0.01
+7  print("%.2f" % seconds)
+8  i := i + 1
+```
+
+#### 5.3.1.  Input of the next string
+
+The statement `s := input()` is again a nondeterministic assignment that yields an arbitrary string `s_i`. By the specification we know that the environment will indeed supply the *i‑th* test string `s_i`. Therefore after line 4 we have the factual knowledge  
+
+```
+s = s_i
+```
+
+and no other property of `s` is required.
+
+#### 5.3.2.  Computing the length
+
+`chars := len(s)` yields `chars = len(s_i)`. This is a pure functional computation, so the Hoare triple is trivial:
+
+```
+{ true }  chars := len(s)  { chars = len(s_i) }          (3)
+```
+
+#### 5.3.3.  Multiplying by 0.01
+
+`seconds := chars * 0.01` gives `seconds = len(s_i) * 0.01`. Again a pure arithmetic assignment:
+
+```
+{ chars = len(s_i) }  seconds := chars * 0.01
+{ seconds = len(s_i) * 0.01 }                         (4)
+```
+
+#### 5.3.4.  Printing the result
+
+`print("%.2f" % seconds)` produces exactly the textual representation required by the specification:
+
+```
+output_i = format( seconds , 2 )
+          = format( len(s_i) * 0.01 , 2 )
+```
+
+Thus after line 7 we have added the *i‑th* correct line to the output.
+
+#### 5.3.5.  Increment of the counter
+
+`i := i + 1` changes the counter from `i` to `i+1`.  
+
+Putting the pieces together, starting from the invariant `I(i)` and the loop guard `i < n` we obtain after the whole body:
+
+```
+I(i+1)  ≡   0 ≤ i+1 ≤ n
+          ∧ (∀k < i+1)  output_k = format( len(s_k) * 0.01 , 2 )
+```
+
+The first conjunct follows from `0 ≤ i < n` (by the guard) and the increment.  
+The second conjunct holds because:
+
+* for every `k < i` the induction hypothesis (the invariant) already guarantees the correct output;
+* for `k = i` we have just proved (line 7) that the newly printed line is correct.
+
+Hence the preservation triple is proved:
+
+```
+{ I(i) ∧ i < n }   body   { I(i+1) }                (5)
+```
+
+### 5.4.  Termination (the loop condition)
+
+The loop guard is `i < n`.  
+From the invariant we know `0 ≤ i ≤ n`.  
+Each iteration increases `i` by exactly one (line 8).  
+Therefore `i` is a natural number that strictly increases and is bounded above by `n`.  
+Consequently after at most `n` iterations the guard becomes false and the loop terminates.  
+
+Formally we can use the **variant** `V = n - i`.  
+`V` is a non‑negative integer that decreases by one on each iteration, so by the standard variant rule the loop terminates.
+
+### 5.5.  Post‑condition after the loop
+
+When the loop exits we have `¬(i < n)`, i.e. `i = n`.  
+From the invariant we obtain:
+
+```
+I(n)  ⇒   (∀k < n)  output_k = format( len(s_k) * 0.01 , 2 )
+```
+
+Exactly the required post‑condition `Q`. Hence we have proved
+
+```
+{ I(0) }   while i < n do body od   { Q }           (6)
+```
+
+---
+
+## 6.  Putting the pieces together – the whole program
+
+The Hoare triples we have proved are:
+
+1. **Input of `n`** : (1) `{ true }  line 1  { n ∈ ℕ }`
+2. **Initialisation of `i`** : (2) `{ n ∈ ℕ }  i := 0  { I(0) }`
+3. **Loop correctness** : (5) `{ I(i) ∧ i < n }  body  { I(i+1) }`
+4. **Loop termination** : variant `V = n - i`
+5. **Loop post‑condition** : (6) `{ I(0) }  while …  { Q }`
+
+By the **rule of composition** (sequencing) we combine (1) → (2) → (6) and obtain the final Hoare triple for the whole program:
+
+```
+{ true }   prog   { Q }
+```
+
+Since the pre‑condition `true` is weaker than the specification’s pre‑condition `P` (the program never relies on any extra hypothesis), by the **rule of consequence** we finally have
+
+```
+{ P }   prog   { Q }
+```
+
+which is exactly the statement of *correctness* demanded by the problem.
+
+---
+
+## 7.  Summary of the proof (in plain language)
+
+* The program first reads a non‑negative integer `n`.  
+* It then iterates `i = 0 … n‑1`.  
+* In each iteration it reads a line `s_i`, computes its length `len(s_i)`, multiplies that length by `0.01`, and prints the result with two decimal digits.  
+* The loop invariant guarantees that after processing `i` lines the first `i` outputs are already the correct values.  
+* The invariant is true initially (`i = 0`) and is preserved by the body of the loop (the new line is printed correctly).  
+* Because the loop counter grows by one each time and can never exceed `n`, the loop terminates after exactly `n` iterations.  
+* When the loop finishes, `i = n` and the invariant tells us that **all** `n` lines have been printed correctly.  
+
+Thus the program meets the specification: for every test case it outputs the “typing time” `len(string)·0.01` seconds, formatted to two decimal places.
+
+---
+
+**Q.E.D.** (the program is correct with respect to the given Hoare‑logic specification).

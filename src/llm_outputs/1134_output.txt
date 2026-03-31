@@ -1,0 +1,50 @@
+MUITO OBRIGADO
+Alcool: 0
+Gasolina: 0
+Diesel: 0
+
+MUITO OBRIGADO
+Alcool: 0
+Gasolina: 0
+Diesel: 0
+
+MUITO OBRIGADO
+Alcool: 1
+Gasolina: 1
+Diesel: 1
+
+MUITO OBRIGADO
+Alcool: 1
+Gasolina: 3
+Diesel: 2
+
+MUITO OBRIGADO
+Alcool: 1
+Gasolina: 1
+Diesel: 1
+
+MUITO OBRIGADO
+Alcool: 20
+Gasolina: 20
+Diesel: 20
+
+MUITO OBRIGADO
+Alcool: 1
+Gasolina: 1
+Diesel: 1
+
+MUITO OBRIGADO
+Alcool: 1
+Gasolina: 0
+Diesel: 0
+
+MUITO OBRIGADO
+Alcool: 0
+Gasolina: 0
+Diesel: 0
+
+MUITO OBRIGADO
+Alcool: 0
+Gasolina: 2
+Diesel: 2
+

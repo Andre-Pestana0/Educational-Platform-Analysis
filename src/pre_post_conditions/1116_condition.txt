@@ -1,0 +1,89 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “big‑step’’ that reads the whole input, performs the N divisions and prints the N lines of output).  
+Only the *pre‑condition* **P** (what must hold before the program starts) and the *post‑condition* **Q** (what is guaranteed after the program terminates) are given; the body of the program is omitted.
+
+---
+
+### Notation used
+
+| Symbol | Meaning |
+|--------|---------|
+| \( \mathbb N\) | set of natural numbers (including 0) |
+| \( \mathbb Z\) | set of integers |
+| \( \mathbb R\) | set of real numbers |
+| \( \lfloor r \rfloor\) | floor (greatest integer ≤ r) |
+| \( \operatorname{round}_{0.1}(r)\) | the real number obtained by rounding \(r\) to the nearest **tenth** (one decimal digit). Formally  \(\operatorname{round}_{0.1}(r)=\frac{\lfloor 10 r+0.5\rfloor}{10}\). |
+| \( \operatorname{fmt}(r)\) | the string that prints the value of \(r\) with exactly one digit after the decimal point (e.g.  \(\operatorname{fmt}(‑1.5) =\) “‑1.5”). |
+| \( \mathbf{imposs}\) | the constant string “divisao impossivel”. |
+| \( \mathbf{out}_i\) | the *i‑th line* that the program prints (a string). |
+| \( X_i , Y_i\) | the *i‑th* dividend and divisor read from the input (both integers). |
+| \( N\) | the number of test cases (the first integer of the input). |
+| \( \mathbf{in}\) | the whole input sequence \((N, X_1,Y_1,\dots ,X_N,Y_N)\). |
+| \( \mathbf{out}\) | the whole output sequence \((\mathbf{out}_1,\dots ,\mathbf{out}_N)\). |
+
+---
+
+## 1.  Pre‑condition  **P**
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\; & N \in \mathbb N \;\wedge\; N \ge 1 \\[2mm]
+            & \wedge\; \bigl(\forall i\in\{1,\dots ,N\}\;.\; X_i\in\mathbb Z \;\wedge\; Y_i\in\mathbb Z\bigr) \\[2mm]
+            & \wedge\; \mathbf{in}= (N, X_1,Y_1,\dots ,X_N,Y_N)
+\end{aligned}}
+\]
+
+The pre‑condition states that the program receives a well‑formed input: a positive number of test cases followed by exactly \(N\) integer pairs \((X_i,Y_i)\).
+
+---
+
+## 2.  Post‑condition  **Q**
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\; & \mathbf{out}= (\mathbf{out}_1,\dots ,\mathbf{out}_N) \\[2mm]
+              & \wedge\; \bigl(\forall i\in\{1,\dots ,N\}\;.\;
+                 \bigl( Y_i \neq 0 \;\rightarrow\;
+                       \mathbf{out}_i = \operatorname{fmt}\bigl(\operatorname{round}_{0.1}(X_i/Y_i)\bigr) \bigr) \\[2mm]
+              & \hspace{30pt}\;\;\;\wedge\;
+                 \bigl( Y_i = 0 \;\rightarrow\;
+                       \mathbf{out}_i = \mathbf{imposs}\bigr) \bigr)
+\end{aligned}}
+\]
+
+Explanation of the two cases inside the universal quantifier:
+
+* **Division possible** (\(Y_i\neq 0\)):  
+  – Compute the exact real quotient \(q_i = X_i / Y_i\).  
+  – Round it to the nearest tenth, obtaining \(\operatorname{round}_{0.1}(q_i)\).  
+  – Convert that rounded number to a string with exactly one decimal digit; this string is \(\mathbf{out}_i\).
+
+* **Division impossible** (\(Y_i = 0\)):  
+  – The program must print the literal message “divisao impossivel”, i.e. \(\mathbf{out}_i = \mathbf{imposs}\).
+
+The post‑condition guarantees that **every line of the output** corresponds to the specification above and that the order of the lines matches the order of the input pairs.
+
+---
+
+## 3.  Hoare triple for the whole program
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}}
+\]
+
+where `program` denotes the (unspecified) sequence of commands that:
+
+1. reads the integer \(N\);  
+2. for each \(i = 1,\dots ,N\) reads the pair \((X_i,Y_i)\);  
+3. produces the output lines \(\mathbf{out}_i\) according to the rule expressed in \(Q\).
+
+---
+
+### Remarks
+
+* The rounding rule \(\operatorname{round}_{0.1}\) matches the usual “print with one digit after the decimal point’’ required by the problem statement (e.g. \(3/‑2 = -1.5\), \(-8/4 = -2.0\), \(0/8 = 0.0\)).  
+* The specification is *total*: it covers both the case where the divisor is zero (impossible division) and the case where it is non‑zero (valid division).  
+* No side‑effects other than the printed output are mentioned, so the post‑condition only speaks about the observable output sequence.  
+
+Thus the Hoare‑logic pre‑ and post‑conditions above fully capture the natural‑language description of the problem in precise mathematical notation.

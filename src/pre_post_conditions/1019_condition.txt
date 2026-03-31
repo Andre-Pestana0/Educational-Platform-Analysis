@@ -1,0 +1,100 @@
+Below is a **Hoare‑logic style specification** of the program that reads a single integer `N` (the duration in seconds) and prints the same duration expressed as  
+
+```
+hours : minutes : seconds
+```
+
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true after the program terminates) are given – no implementation details, loop invariants, etc.
+
+---
+
+### Notation used  
+
+* `ℕ` – the set of non‑negative integers `{0,1,2,…}`.  
+* `⌊x⌋` – floor (integer part) of a real number `x`.  
+* `div` – Euclidean integer division (quotient).  
+* `mod` – Euclidean remainder, defined by  
+
+\[
+a = (a\;{\rm div}\;b)\;b + (a\;{\rm mod}\;b),\qquad
+0 \le a\;{\rm mod}\;b < b .
+\]
+
+* `⟦e⟧` – the *value* of the expression `e`.  
+* `⟨s⟧` – the *string* that results from converting a natural number `s` to its decimal representation (no leading zeroes, except that `0` is represented by the single character “0”).  
+* `⊕` – string concatenation.  
+
+---
+
+## Specification
+
+\[
+\boxed{\{\,P\,\}\;\;{\tt read\;N;}\;{\tt compute\;h,m,s;}\;{\tt print\;out;}\;\{\,Q\,\}}
+\]
+
+### Pre‑condition  \(P\)
+
+\[
+P \;:\; N \in \mathbb N
+\]
+
+The only requirement on the input is that it be a **non‑negative integer** (the number of seconds).  
+(If the problem statement allows negative values, replace `N∈ℕ` by `N∈\mathbb Z` and the post‑condition stays the same.)
+
+---
+
+### Post‑condition  \(Q\)
+
+Let  
+
+\[
+\begin{aligned}
+h &:= N\;{\rm div}\;3600,\\[2mm]
+r_1 &:= N\;{\rm mod}\;3600,\\[2mm]
+m &:= r_1\;{\rm div}\;60,\\[2mm]
+s &:= r_1\;{\rm mod}\;60 .
+\end{aligned}
+\]
+
+Then  
+
+\[
+\begin{aligned}
+Q \;:\; &\;{\tt out}= \; \bigl\langle h \bigr\rangle \;\; \oplus\; ":"\;\; \oplus\; \bigl\langle m \bigr\rangle \;\; \oplus\; ":"\;\; \oplus\; \bigl\langle s \bigr\rangle,\\[2mm]
+     &\; h = \big\lfloor N/3600 \big\rfloor,\\[1mm]
+     &\; m = \big\lfloor (N \bmod 3600)/60 \big\rfloor,\\[1mm]
+     &\; s = N \bmod 60 .
+\end{aligned}
+\]
+
+In words:
+
+* `h` is the **whole number of hours** contained in `N` seconds.  
+* `m` is the **whole number of minutes** left after removing those hours.  
+* `s` is the **remaining seconds** after removing both hours and minutes.  
+
+The program’s output string `out` is exactly the three decimal numbers `h`, `m`, `s` separated by the colon character `:`; no extra spaces or leading zeroes are printed (the conversion function `⟨·⟧` guarantees that).
+
+---
+
+## Full Hoare triple
+
+\[
+\boxed{
+\{\,N\in\mathbb N\,\}\;
+\begin{array}{l}
+\texttt{read } N;\\
+h := N\;{\rm div}\;3600;\\
+r_1 := N\;{\rm mod}\;3600;\\
+m := r_1\;{\rm div}\;60;\\
+s := r_1\;{\rm mod}\;60;\\
+\texttt{print } (\langle h\rangle\; \oplus\; ":"\; \oplus\; \langle m\rangle\; \oplus\; ":"\; \oplus\; \langle s\rangle);
+\end{array}
+\{\,\texttt{out}= \langle h\rangle\!:\!\langle m\rangle\!:\!\langle s\rangle
+\;\wedge\;h = N\,{\rm div}\,3600\;
+\wedge\;m = (N\,{\rm mod}\,3600)\,{\rm div}\,60\;
+\wedge\;s = N\,{\rm mod}\,60\,\}
+}
+\]
+
+The triple states precisely that **any execution** starting with a non‑negative integer `N` will terminate with the correct “hours:minutes:seconds” representation of that number of seconds.

@@ -1,0 +1,88 @@
+**Hoare‑logic specification (pre‑ and post‑conditions only)**  
+
+Let  
+
+* `N ∈ ℕ` be the number of test cases.  
+* `X[1…N] , Y[1…N]` be the two integer vectors read from the input,  
+  where for every `i (1 ≤ i ≤ N)`  
+
+\[
+X_i \in \mathbb Z ,\qquad Y_i \in \mathbb N .
+\]
+
+* `O[1…N]` be the vector of values that the program must **print**, one per line,
+  in the same order as the test cases.
+
+Define the *first odd number not smaller than* `X_i` :
+
+\[
+\begin{aligned}
+X_i' &\;:=\; 
+\begin{cases}
+X_i      & \text{if } X_i \bmod 2 = 1,\\[2mm]
+X_i + 1  & \text{if } X_i \bmod 2 = 0 .
+\end{cases}
+\end{aligned}
+\]
+
+(The expression `X_i \bmod 2` denotes the remainder of the Euclidean division of `X_i` by `2`.)
+
+The required sum for test case `i` is the sum of `Y_i` consecutive odd numbers
+starting with `X_i'`.  Using the arithmetic‑progression formula we obtain a
+closed form:
+
+\[
+\boxed{\,O_i \;=\; \sum_{k=0}^{Y_i-1}\bigl(X_i' + 2k\bigr)
+        \;=\; Y_i\bigl(X_i' + Y_i - 1\bigr)\,}.
+\]
+
+--------------------------------------------------------------------
+
+### Hoare triple  
+
+\[
+\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}
+\]
+
+*Pre‑condition* `P`
+
+\[
+\begin{aligned}
+P \;\equiv\; & N \in \mathbb N \;\wedge\; N \ge 0 \\
+            & \wedge\; \bigl(\forall i\in\{1,\dots ,N\}\bigr)\;
+                \bigl(X_i\in\mathbb Z \;\wedge\; Y_i\in\mathbb N\bigr).
+\end{aligned}
+\]
+
+*Post‑condition* `Q`
+
+\[
+\begin{aligned}
+Q \;\equiv\; & \bigl(\forall i\in\{1,\dots ,N\}\bigr)\;
+                O_i = Y_i\bigl(X_i' + Y_i - 1\bigr) \\[2mm]
+            & \text{where } 
+                X_i' = X_i + \bigl(1 - (X_i \bmod 2)\bigr) .
+\end{aligned}
+\]
+
+Equivalently, the post‑condition may be written with the explicit sum:
+
+\[
+\forall i\in\{1,\dots ,N\}\;:\;
+O_i = \sum_{k=0}^{Y_i-1}\bigl(X_i + (1-(X_i\bmod 2)) + 2k\bigr).
+\]
+
+--------------------------------------------------------------------
+
+### Interpretation for the programmer  
+
+* **Input** – the program reads `N` and then the pairs `(X_i , Y_i)` for
+  `i = 1 … N`.  
+* **Computation** – for each `i` it computes `X_i'` (the first odd ≥ `X_i`)
+  and then the sum of `Y_i` successive odd numbers, which is exactly the
+  value given by the formula `Y_i·(X_i' + Y_i – 1)`.  
+* **Output** – the program prints `O_i` on its own line, preserving the order
+  of the test cases.
+
+The Hoare triple `{P} program {Q}` therefore fully captures the intended
+behaviour of the specification in mathematical notation.

@@ -1,0 +1,90 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) that captures exactly what the program has to do for the problem *“add the extra parity bit B to the binary message S”*.
+
+---
+
+### 1.  Notation used  
+
+* Let `Σ = {0,1}` be the binary alphabet.  
+* For a word `w ∈ Σ*` we write  
+
+  * `|w|` – its length,  
+  * `w[i]` – the *i*‑th bit (1‑based indexing),  
+  * `w·b` – concatenation of `w` with a single bit `b ∈ Σ`.  
+
+* The **parity** (even‑parity) of a word `w` is  
+
+\[
+\operatorname{par}(w) \;=\; \Bigl(\sum_{i=1}^{|w|} w[i]\Bigr)\bmod 2 \in \{0,1\}.
+\]
+
+* `⊕` denotes addition modulo 2 (XOR).
+
+---
+
+### 2.  Hoare triple  
+
+\[
+\boxed{\;\{\,P\,\}\; \texttt{program}\; \{\,Q\,\}\;}
+\]
+
+where  
+
+* **Pre‑condition** `P` (what the input guarantees)
+
+\[
+P \;:=\; S \in \Sigma^{*}\;\land\;1 \le |S| \le 100 .
+\]
+
+* **Program** (the algorithm we intend to prove correct)
+
+```
+read   S                     // a binary string satisfying P
+B ← ( Σ_{i=1}^{|S|} S[i] ) mod 2   // parity bit (0 if even number of 1’s, 1 otherwise)
+T ← S·B                     // append the bit
+print  T
+```
+
+* **Post‑condition** `Q` (what must hold after termination)
+
+\[
+\begin{aligned}
+Q \;:=\; &\; T = S\cdot B                                    &&\text{(output is S with one extra bit)}\\
+          &\land\; B\in\Sigma                                 &&\text{(B is a bit)}\\[2mm]
+          &\land\; \bigl(\operatorname{par}(S) \oplus B\bigr)=0 &&\text{(even parity of the whole message)}\\[2mm]
+          &\land\; |T| = |S|+1                               &&\text{(output length increased by one)} .
+\end{aligned}
+\]
+
+Because `par(S) = ( Σ_{i=1}^{|S|} S[i] ) mod 2`, the clause  
+\(\operatorname{par}(S) \oplus B = 0\) is equivalent to  
+
+\[
+\bigl(\sum_{i=1}^{|S|} S[i] + B\bigr) \equiv 0 \pmod 2 .
+\]
+
+Thus the post‑condition states precisely that the produced word `T` is the original word `S` followed by a **single parity bit** `B` such that the total number of `1`‑bits in `T` is even.
+
+---
+
+### 3.  Full specification in Hoare‑logic form  
+
+\[
+\boxed{
+\{\, S \in \{0,1\}^{*} \land 1 \le |S| \le 100 \,\}
+\;
+\begin{array}{l}
+\texttt{read } S;\\
+B \leftarrow \bigl(\sum_{i=1}^{|S|} S[i]\bigr) \bmod 2;\\
+T \leftarrow S\cdot B;\\
+\texttt{print } T;
+\end{array}
+\;
+\{\, T = S\cdot B \;\land\; B\in\{0,1\} \;\land\; (\sum_{i=1}^{|S|} S[i] + B) \equiv 0\;(\bmod 2) \;\land\; |T| = |S|+1 \,\}
+}
+\]
+
+This Hoare triple completely captures the required behaviour of the program:  
+
+* it accepts any binary string of length between 1 and 100,  
+* it appends exactly one bit `B` chosen so that the resulting string has **even parity**, and  
+* it outputs that extended string.

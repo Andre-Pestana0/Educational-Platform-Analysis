@@ -1,0 +1,83 @@
+Below is a **Hoare‑logic style** specification of the program that solves the problem.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what is guaranteed to be true after the program terminates) are given; the body of the program is omitted because the request asked for the formal specification only.
+
+---
+
+### Variables used in the specification  
+
+| Symbol | Meaning |
+|--------|---------|
+| `C`    | Number of test cases (input). |
+| `A[1‥C]` | Input array – for each `i (1 ≤ i ≤ C)`, `A[i]` is the integer read for the *i*‑th living being. |
+| `S[1‥C]` | Output array – for each `i`, `S[i]` is the string that must be printed for the *i*‑th test case. |
+| `out`  | The (ordered) sequence of lines that the program writes to the standard output. |
+| `ℕ`    | Set of natural numbers (including 0). |
+| `ℤ`    | Set of integers. |
+| `⊢`    | Hoare triple separator, i.e. `{ P }  prog  { Q }`. |
+
+The two possible output strings are written exactly as required by the statement  
+
+```
+Mais de 8000!
+Inseto!
+```
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P\; \equiv\;& C\in\mathbb{N}\ \land\ C\ge 1\ \land\\[2mm]
+&\bigl(\forall i\in\{1,\dots ,C\}\bigr)\;
+\bigl(A[i]\in\mathbb{Z}\ \land\ 100\le A[i]\le 100000\bigr)
+\end{aligned}
+\]
+
+*Interpretation*:  
+- The first line of the input contains a positive integer `C`.  
+- Exactly `C` further integers are supplied; each of them lies in the interval \([100,100000]\).
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q\; \equiv\;&\bigl(\forall i\in\{1,\dots ,C\}\bigr)\;
+\Bigl(
+   S[i]=\text{``Mais de 8000!''}\;\Longleftrightarrow\;A[i]>8000
+\Bigr)\\[2mm]
+&\land\;
+\Bigl(
+   S[i]=\text{``Inseto!''}\;\Longleftrightarrow\;A[i]\le 8000
+\Bigr)\\[2mm]
+&\land\; \text{out}= \langle S[1],S[2],\dots ,S[C]\rangle
+\end{aligned}
+\]
+
+*Interpretation*:  
+
+For every test case `i`:
+
+* if the read energy `A[i]` is **strictly larger** than `8000` then the program must produce the line *“Mais de 8000!”*;
+* otherwise (i.e. `A[i] ≤ 8000`) it must produce the line *“Inseto!”*.
+
+The output `out` is exactly the list of those `C` lines, each on its own line, in the same order as the inputs.
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\ \texttt{solve\_energy\_levels}\ \{\,Q\,\}\;}
+\]
+
+where `solve_energy_levels` denotes the (imperative) program that
+
+1. reads `C`,
+2. reads the `C` integers into `A[1‥C]`,
+3. builds the array `S[1‥C]` according to the rule in `Q`,
+4. prints `S[1] … S[C]` each on a new line.
+
+The triple states that **any execution** starting from a state satisfying the pre‑condition `P` will terminate in a state satisfying the post‑condition `Q`.  This is the complete formal (pre/post) specification of the problem in mathematical (Hoare‑logic) notation.

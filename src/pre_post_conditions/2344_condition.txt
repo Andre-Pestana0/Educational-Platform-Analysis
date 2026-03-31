@@ -1,0 +1,81 @@
+**Hoare‑style specification**
+
+Let  
+
+* `N ∈ ℤ` be the integer read from the input,  
+* `C ∈ {A,B,C,D,E}` be the character that the program writes to the output,  
+
+and define the *concept function*  
+
+\[
+\mathit{conc} : \{0,\dots ,100\}\longrightarrow\{A,B,C,D,E\}
+\]
+
+by the piece‑wise rule that is used in the statement of the problem (the same rule that appears in the original URI / Beecrowd problem 2344):
+
+\[
+\mathit{conc}(N)=
+\begin{cases}
+E & \text{if } N = 0,\\[2mm]
+D & \text{if } 1 \le N \le 35,\\[2mm]
+C & \text{if } 36 \le N \le 60,\\[2mm]
+B & \text{if } 61 \le N \le 85,\\[2mm]
+A & \text{if } 86 \le N \le 100 .
+\end{cases}
+\]
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{P \; \equiv\; 0 \le N \le 100}
+\]
+
+The program may be invoked only when the input integer satisfies the above bound (the problem guarantees it, but the specification makes it explicit).
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{Q \; \equiv\; C = \mathit{conc}(N)\ \land\ C \in \{A,B,C,D,E\}}
+\]
+
+After termination the output character must be exactly the value returned by `conc` for the (original) input `N`.
+
+---
+
+### Hoare triple  
+
+\[
+\{\,0 \le N \le 100\,\}\;\; \texttt{program}\;\; \{\,C = \mathit{conc}(N)\ \land\ C\in\{A,B,C,D,E\}\,\}
+\]
+
+Any implementation that reads an integer `N`, computes the piece‑wise function `conc(N)` as shown above, and prints the resulting character satisfies the triple.
+
+---
+
+### Optional auxiliary specification (useful for a loop‑free implementation)
+
+If the program is expressed as a sequence of assignments, e.g.
+
+```pseudo
+read N
+if N = 0          then C ← 'E'
+else if N ≤ 35    then C ← 'D'
+else if N ≤ 60    then C ← 'C'
+else if N ≤ 85    then C ← 'B'
+else               C ← 'A'
+print C
+```
+
+the correctness of each conditional branch can be stated as individual Hoare triples, all of which together imply the global triple above.  
+
+For instance, the first branch:
+
+\[
+\{\,0\le N\le100\ \land\ N=0\,\}\;C\gets 'E'\;\{\,C='E'\,\}
+\]
+
+and similarly for the other four branches, with the guard of each branch guaranteeing that the corresponding interval of `N` holds. The disjunction of the guard predicates is exactly the pre‑condition `0 ≤ N ≤ 100`, therefore the whole program satisfies the specification.

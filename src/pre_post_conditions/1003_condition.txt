@@ -1,0 +1,92 @@
+Below is a **Hoare‑logic style specification** for the program described in the statement.  
+Only the *pre‑condition* (what is assumed about the input) and the *post‑condition* (what must hold after the program finishes) are given; the body of the program is shown only to make the connection between the two clear.
+
+---
+
+### 1. Notation used  
+
+| Symbol | Meaning |
+|--------|----------|
+| \( \mathbb Z \) | the set of all (mathematical) integers |
+| \(A,B\) | logical variables that denote the two numbers **read** from the input file |
+| \(SOMA\) | logical variable that denotes the integer stored in the program’s accumulator after the addition |
+| \(\text{out}\) | the *complete* string that the program writes to the standard output (including the final line‑break) |
+| \( \operatorname{read}() \) | abstract I/O primitive that returns the next integer from the input stream |
+| \( \operatorname{print}(s) \) | abstract I/O primitive that appends the string \(s\) (without an extra line‑break) to the output stream |
+| \( \operatorname{nl} \) | the newline character “\(\backslash n\)” |
+| \( \langle P\rangle\;C\;\langle Q\rangle \) | Hoare triple: if the pre‑condition \(P\) holds before executing command \(C\), then after termination the post‑condition \(Q\) holds. |
+| \( \mathit{toString}(x) \) | the decimal representation of the integer \(x\) (without leading spaces or signs except for a leading “‑’’ when \(x<0\)). |
+
+---
+
+### 2. Pre‑condition  
+
+The only requirement on the input is that it consists of **exactly two** integer values.  
+Formally we write
+
+\[
+\boxed{
+\langle\; P \;\rangle \qquad
+P \;:=\; \exists a,b\in\mathbb Z\;.\;
+\bigl(\text{input stream}= [a,b]\bigr)
+}
+\]
+
+In words: there exist integers \(a\) and \(b\) such that the input file contains the sequence \([a,b]\).  
+No other constraints (range limits, overflow, etc.) are imposed – the program must work for any pair of integers.
+
+---
+
+### 3. Post‑condition  
+
+After the program terminates we must have
+
+* the variable `SOMA` equal to the arithmetic sum of the two read numbers, and
+* the only text written to the output stream be the line  
+
+  \[
+  \text{``SOMA = } \; (a+b) \; \text{''}\;\text{followed by a newline}.
+  \]
+
+Hence
+
+\[
+\boxed{
+\langle\; Q \;\rangle \qquad
+\begin{aligned}
+Q \;:=\;& \bigl(SOMA = a+b\bigr) \;\land\\[2mm]
+&\bigl(\text{out}= \text{``SOMA = ''}\;\Vert\;\mathit{toString}(a+b)\;\Vert\;\text{nl}\bigr)
+\end{aligned}
+}
+\]
+
+where “\(\Vert\)” denotes string concatenation.
+
+---
+
+### 4. Hoare triple for the whole program  
+
+Putting the two together, the **formal specification** of the required algorithm is
+
+\[
+\boxed{
+\langle P\rangle\;
+\begin{array}{l}
+A \;\;:=\; \operatorname{read}();\\[1mm]
+B \;\;:=\; \operatorname{read}();\\[1mm]
+SOMA := A + B;\\[1mm]
+\operatorname{print}(\text{``SOMA = ''}\;\Vert\;\mathit{toString}(SOMA)\;\Vert\;\text{nl})
+\end{array}
+\;\langle Q\rangle
+}
+\]
+
+---
+
+### 5. Commentary  
+
+* The pre‑condition does **not** require any particular order of magnitude; the program must be correct for all \(a,b\in\mathbb Z\).  
+* The post‑condition captures **exactly** the format demanded by the problem statement: the word *SOMA* in capital letters, a single space before and after the ‘=’, the integer result, and a terminating newline.  
+* With this Hoare triple one can apply standard Hoare‑logic proof rules (assignment, sequencing, etc.) to show that the concrete implementation satisfies the specification.  
+
+Thus the above mathematical notation constitutes a complete formal (pre‑/post‑condition) specification of the “SOMA” problem.

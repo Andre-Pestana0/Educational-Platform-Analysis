@@ -1,0 +1,18 @@
+Description: During his great adventure in Westeros, little Jon found a holy book that, according to the legends, was written by the old gods themselves. A particular sentence drawn the attention of the young adventurer:
+
+Input: The input contains several test cases. The only line of each test case contains a string in the formR+L=J. If the value of a variable is known, such value appears in the string instead the variable itself. Otherwise, the letter that indicate the variable appears normally.
+
+Output: For each test case, print a single line containing the value of the unknown variable.
+
+Examples:
+- Example 1:
+  Input:
+3+8=J
+5+L=5
+R+7=5
+  Output:
+11
+0
+-2
+
+--

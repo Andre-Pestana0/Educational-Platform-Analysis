@@ -1,0 +1,259 @@
+## 1.  What we have to prove  
+
+We are asked to **prove that the program satisfies its specification** (pre‑condition → post‑condition) using the reasoning style of Hoare‑logic (pre‑ and post‑conditions, loop invariants, and the Hoare‑triples  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+for each statement *S*).
+
+The program (Python‑like syntax) is  
+
+```python
+contador_soma = 0                     # (1)
+
+for i in range(97, 123):              # (2)
+    print(f'{i+contador_soma} e {chr(i+contador_soma)}')   # (3)
+```
+
+The only observable effect of the program is the text that it prints.  
+The intended **post‑condition** (what must appear on the output) is:
+
+> **Post** : the program prints exactly the 26 lines  
+
+\[
+97\; e\; a,\; 98\; e\; b,\; \dots ,\; 122\; e\; z
+\]
+
+in this order (one line per iteration).
+
+The **pre‑condition** is simply that no variable is defined before the program starts, i.e.
+
+\[
+\text{Pre} :\; \text{true}
+\]
+
+(there are no constraints on the environment; the program itself creates the variables it needs).
+
+To prove the program correct we will:
+
+1. state a **loop invariant** for the `for`‑loop,
+2. show that the invariant holds initially (initialisation),
+3. show that it is preserved by one loop iteration (maintenance),
+4. use the invariant together with the loop‑exit condition to obtain the post‑condition (termination).
+
+---
+
+## 2.  Hoare‑logic notation used
+
+* `⟦S⟧` denotes the *semantic* effect of statement *S* (assignment, loop, …).  
+* `{P}` … `{Q}` denotes a Hoare‑triple: if the state before `S` satisfies *P*, then after executing `S` the state satisfies *Q*.  
+* `Inv(i)` denotes the **loop invariant** that we will define.  
+* `out` is the (abstract) output buffer; `out := out ⧺ line` means “append *line* to the output”.
+
+We treat the `print` statement as the atomic command  
+
+\[
+\text{print}(x) \equiv out := out\;⧺\;x\;\text{⟨newline⟩}
+\]
+
+so that reasoning about the produced text is straightforward.
+
+---
+
+## 3.  The loop invariant
+
+During the execution of the `for`‑loop the variable `i` takes the successive values  
+
+\[
+97, 98, \dots , 122 .
+\]
+
+We define the invariant `Inv(i)` as the conjunction of two facts:
+
+| Symbol | Meaning |
+|--------|---------|
+| `I1`   | `contador_soma = 0` (the variable never changes) |
+| `I2`   | For every integer `k` such that `97 ≤ k < i` the line  `k e chr(k)` has already been appended to `out`. |
+
+Formally  
+
+\[
+\boxed{\;Inv(i) \; \equiv\; (contador\_soma = 0)\;\land\;\bigl(\forall k\;(97 \le k < i \;\rightarrow\; \text{line}(k) \in out)\bigr)\;}
+\]
+
+where  
+
+\[
+\text{line}(k) \;=\; \text{string}(k) \;+\; " e " \;+\; chr(k)
+\]
+
+and `chr(k)` is the ASCII character with code *k*.
+
+Intuitively: **when the loop head is reached with current value `i`, we have already printed all the lines for the smaller codes, and `contador_soma` is still zero**.
+
+---
+
+## 4.  Proof steps
+
+### 4.1  Initialisation (`contador_soma = 0`)
+
+Statement (1) is an assignment.
+
+\[
+\{\,\text{true}\,\}\; contador\_soma := 0 \;\{\, contador\_soma = 0 \,\}
+\]
+
+This gives us the first part of the invariant (`I1`).  
+At this point the loop has not been entered, so the quantified part (`I2`) is vacuously true (there is no *k* with `97 ≤ k < 97`).  
+Hence after (1) we have  
+
+\[
+\{\,\text{true}\,\}\; (1) \;\{\,Inv(97)\,\}
+\]
+
+because the loop variable `i` will start with the value `97` (the first element of `range(97,123)`).
+
+---
+
+### 4.2  Loop entry and body  
+
+The `for`‑loop in Python is equivalent to the following while‑loop (the standard encoding used in Hoare‑logic):
+
+```python
+i = 97
+while i < 123:
+    print(f'{i+contador_soma} e {chr(i+contador_soma)}')
+    i = i + 1
+```
+
+We will reason about this while‑loop; the `range` abstraction does not change the logic.
+
+#### 4.2.1  Preservation of the invariant  
+
+Assume the invariant holds at the beginning of an iteration, i.e.
+
+\[
+Inv(i) \equiv (contador\_soma = 0) \land
+\bigl(\forall k\;(97 \le k < i \rightarrow \text{line}(k) \in out)\bigr)
+\tag{IH}
+\]
+
+The body consists of the `print` followed by `i := i+1`.
+
+* **Print**  
+
+  Because `contador_soma = 0` (by `IH`), the expression `i+contador_soma` equals `i`.  
+  The command  
+
+  \[
+  out := out \;⧺\; \text{line}(i)
+  \]
+
+  appends exactly the line `i e chr(i)` to the output.  
+  Therefore after the `print` we have  
+
+  \[
+  (contador\_soma = 0) \land
+  \bigl(\forall k\;(97 \le k \le i \rightarrow \text{line}(k) \in out)\bigr)
+  \tag{A}
+  \]
+
+  (notice the new `≤ i` instead of `< i`).
+
+* **Increment `i`**  
+
+  The assignment `i := i+1` changes the loop variable from `i` to `i' = i+1`.  
+  Applying the substitution rule for assignments we obtain from (A):
+
+  \[
+  (contador\_soma = 0) \land
+  \bigl(\forall k\;(97 \le k < i' \rightarrow \text{line}(k) \in out)\bigr)
+  \]
+
+  which is exactly `Inv(i')`.
+
+Thus we have shown  
+
+\[
+\{Inv(i) \land i < 123\}\; \text{body}\; \{Inv(i+1)\}
+\]
+
+i.e. the invariant is **maintained**.
+
+#### 4.2.2  Loop termination  
+
+The loop condition is `i < 123`.  
+When the condition becomes false we have `i = 123`.  
+Using the invariant with `i = 123` we get  
+
+\[
+Inv(123) \equiv (contador\_soma = 0) \land
+\bigl(\forall k\;(97 \le k < 123 \rightarrow \text{line}(k) \in out)\bigr)
+\]
+
+The range `97 ≤ k < 123` is precisely the set `{97,98,…,122}` (26 numbers).  
+Hence **every** line `k e chr(k)` for `k = 97 … 122` is present in the output, and no other lines have been produced (the program never prints anything else).
+
+Consequently the post‑condition holds:
+
+\[
+\{Inv(123)\} \;\Longrightarrow\; \text{output = the required 26 lines}
+\]
+
+---
+
+### 4.3  Whole program
+
+Putting the pieces together:
+
+```
+{ true }                     -- pre‑condition
+contador_soma = 0            -- (1)
+{ Inv(97) }                  -- by 4.1
+
+i = 97
+while i < 123 do             -- (2)
+    print(i)                 -- (3)
+    i = i + 1
+od
+{ Inv(123) }                 -- invariant + termination
+{ post }                     -- by 4.2.2
+```
+
+Thus we have derived the Hoare‑triple
+
+\[
+\boxed{\;\{\,\text{true}\,\}\; P\; \{\,\text{post}\,\}\;}
+\]
+
+which is exactly the statement “the program is correct with respect to its specification”.
+
+---
+
+## 5.  Summary of the proof
+
+| Step | Statement | Hoare‑triple proved |
+|------|-----------|---------------------|
+| 1 | `contador_soma = 0` | `{true} \; contador\_soma := 0 \; {contador\_soma = 0}` |
+| 2 | Loop invariant holds initially | `{true} \; (1) \; {Inv(97)}` |
+| 3 | Invariant preservation | `{Inv(i) ∧ i < 123} \; body \; {Inv(i+1)}` |
+| 4 | Loop exit gives invariant with `i = 123` | `{Inv(123)} ⇒ post` |
+| 5 | Composition (sequencing) | `{true} \; P \; {post}` |
+
+The proof uses only the standard Hoare‑logic rules:
+
+* **Assignment axiom**,
+* **Consequence rule**,
+* **While‑rule** (invariant + termination condition).
+
+Because every rule is sound, the derived triple is sound: **the program prints exactly the numbers 97‑122 together with their corresponding lower‑case letters, and nothing else**. This matches the specification, so the program is *correct*.
+
+---
+
+### 6.  Remarks on the original code
+
+* The variable `contador_soma` is never modified; the invariant `contador_soma = 0` is therefore trivial but necessary to keep the proof simple.
+* The loop `for i in range(97,123):` is a concise Python idiom for the while‑loop we used in the proof; the semantics are identical, so the same invariant applies.
+* If one wished to *use* `contador_soma` as a “running sum” (as the comment in the source suggests), the invariant would have to be strengthened to relate `contador_soma` to the iteration count. In the current program the comment is misleading; the proof shows that `contador_soma` stays zero throughout.

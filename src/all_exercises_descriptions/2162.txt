@@ -1,0 +1,29 @@
+Description: Professor MC realized that at each 100 meter interval there is a peak in the Nlogony landscape. And that at exactly half way of each two peaks there is a valley. That means that at each 50 meters there is a valley or a peak and, alongside the landscape, there is not a peak followed by another peak neither there is a valley followed by another valley.
+
+Input: The input is given in two lines. The first one has the numberNof landscape measures (1 <Nâ¤ 100). The second line hasNintegers: the heightHiof each measure (-10000 â¤Hiâ¤ 10000, for allHi, such that 1 â¤iâ¤N). A measure is considered a peak if it is higher than the previous measure. A measure is considered a valley if it is lower than the previous measure.
+
+Output: The output is given in one single line. If the landscape has the same pattern of Nlogony it must be shown the number 1. Otherwise, the number 0 must be shown.
+
+Examples:
+- Example 1:
+  Input:
+3
+1 4 -2
+  Output:
+1
+
+- Example 2:
+  Input:
+5
+100 99 112 -8 -7
+  Output:
+1
+
+- Example 3:
+  Input:
+4
+1 2 2 1
+  Output:
+0
+
+--

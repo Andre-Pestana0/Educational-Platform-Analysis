@@ -1,0 +1,114 @@
+Below is a **Hoare‑logic style specification** for a (single‑case) program that, given an integer `N`, builds the required “factorial‑rate” sequence and prints it together with its length.  
+All symbols are defined in the *Mathematical Pre‑lude* that follows.
+
+---
+
+### 1.  Mathematical pre‑lude  
+
+* `ℕ` – the set of non‑negative integers.  
+* `0 ≤ N ≤ 200` – the admissible range for the input.  
+* `⌊x⌋` – the greatest integer ≤ `x`.  
+* `|S|` – the cardinality (length) of a finite sequence `S`.  
+* `S[i]` – the element of `S` at index `i` (0‑based).  
+* `count_S(i) = |{ j ∈ ℕ | 0 ≤ j < |S| ∧ S[j] = i }|` – the number of occurrences of the value `i` in `S`.  
+
+We also use the usual logical connectives `∧` (and), `∨` (or), `¬` (not), `→` (implies), `↔` (iff) and quantifiers `∀` (for all) and `∃` (exists).
+
+---
+
+### 2.  Variables used by the program  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N`    | input integer (read from stdin) |
+| `L`    | length of the produced sequence |
+| `S`    | the sequence that will be printed (`S : [0 … L‑1] → ℕ`) |
+| `case` | the ordinal number of the test case (starts at 1) – *auxiliary* |
+
+---
+
+### 3.  Pre‑condition  
+
+\[
+\boxed{P \; \equiv\;  N \in \mathbb{N}\;\wedge\; N \le 200 }
+\]
+
+The program may be started only when the input satisfies the above bound.
+
+---
+
+### 4.  Post‑condition  
+
+Let  
+
+\[
+L \;=\;1+\sum_{k=1}^{N}k \;=\;1+\frac{N(N+1)}{2}.
+\]
+
+The post‑condition states everything that must hold **after** the program terminates (i.e. after the sequence has been built and printed).
+
+\[
+\boxed{
+\begin{aligned}
+Q\; \equiv\; &\bigl(|S| = L\bigr)                                   &&\text{(correct length)} \\[2mm]
+            &\wedge\;\bigl(S[0]=0\bigr)                               &&\text{(the first element)}\\[2mm]
+            &\wedge\;\forall i\in\{1,\dots ,N\}\;
+                     \bigl(count_S(i)=i\bigr)                       &&\text{(value *i* appears *i* times)}\\[2mm]
+            &\wedge\;\bigl(count_S(0)=1\bigr)                        &&\text{(value 0 appears once)}\\[2mm]
+            &\wedge\;\forall j\in\{0,\dots ,L-2\}\;
+                     \bigl(S[j]\le S[j+1]\bigr)                     &&\text{(non‑decreasing order)}\\[2mm]
+            &\wedge\;\text{output format is } 
+                     \text{``Caso }case\text{: }L\text{ numero(s)''}\\
+            &\qquad\qquad\text{followed by the elements of }S\text{ separated by a single space,}\\
+            &\qquad\qquad\text{and a blank line after each case.}
+\end{aligned}}
+\]
+
+*Explanation of the clauses*  
+
+1. **Length** – the sequence contains exactly the number of elements that the problem statement calls “the number of numbers”.  
+2. **First element** – the sequence always starts with the single `0`.  
+3. **Multiplicity** – for every integer `i` with `1 ≤ i ≤ N` the value `i` occurs **exactly `i` times**.  
+4. **Multiplicity of 0** – `0` occurs once (the base of the construction).  
+5. **Order** – the construction described in the statement yields a non‑decreasing list, which is required for the printed representation.  
+
+The final two lines merely translate the mathematical conditions into the required textual output format.
+
+---
+
+### 5.  Hoare triple  
+
+Putting the pieces together, the specification of the whole algorithm (for one test case) is the Hoare triple  
+
+\[
+\boxed{ \{\,P\,\}\; \text{Algorithm}(N,case)\; \{\,Q\,\} } .
+\]
+
+If the program is executed repeatedly until EOF, the same triple holds for each iteration, with `case` being incremented after each successful execution.
+
+---
+
+### 6.  Derivable concrete formula for the length  
+
+From the definition of `L` we obtain the closed‑form expression that can be used directly inside the program:
+
+\[
+\boxed{ L = 1 + \frac{N(N+1)}{2} } .
+\]
+
+Consequently the sequence can be built by a straightforward double loop:
+
+```
+S ← [0]                         // first element
+for i ← 1 to N do
+    repeat i times
+        append i to S
+    end repeat
+end for
+```
+
+The loop invariant that guarantees the post‑condition is exactly the clauses of `Q` above; proving it follows the usual Hoare‑logic steps (initialisation, preservation, termination).
+
+---
+
+**Thus the formal specification—pre‑condition `P` and post‑condition `Q`—captures precisely the natural‑language problem in Hoare‑logic notation.**

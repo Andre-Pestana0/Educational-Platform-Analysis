@@ -1,0 +1,102 @@
+Below is a **Hoare‑logic specification** (pre‑condition \(P\) and post‑condition \(Q\)) for a program that solves the “Guess Where the Bean is” problem.  
+All symbols are written in standard mathematical notation (LaTeX‑style) and the specification is deliberately *pure* – it does not prescribe any particular algorithm, only the relationship between the input values and the required output.
+
+---
+
+### 1. State variables
+
+| Symbol | Meaning |
+|--------|---------|
+| \(C_1, C_2, C_3, C_4\) | Input integers (read from the single line of the file). |
+| \(out\) | Integer variable that the program writes to the output (the guessed position). |
+| \(\mathbb{N}\) | Set of natural numbers \(\{0,1,2,\dots\}\). |
+| \([1..4]\) | The set \(\{1,2,3,4\}\). |
+| \(\mathbf{1}_{\{A\}}\) | Indicator function: \(\mathbf{1}_{\{A\}} = 1\) if predicate \(A\) holds, otherwise \(0\). |
+
+---
+
+### 2. Pre‑condition \(P\)
+
+The input line must contain **exactly one** `1` and three `0`s.  
+Formally
+
+\[
+\boxed{
+P \; \equiv\;
+\Bigl(\forall i\in[1..4] \; (C_i \in\{0,1\})\Bigr)
+\;\land\;
+\Bigl(\sum_{i=1}^{4} C_i = 1\Bigr)
+}
+\]
+
+*Explanation*  
+
+* each \(C_i\) is a Boolean (0 or 1);  
+* the sum of the four values equals 1, guaranteeing that there is **precisely one** glass containing the bean.
+
+---
+
+### 3. Post‑condition \(Q\)
+
+The program must output the unique index \(i\) whose corresponding \(C_i\) equals 1.  
+Because of the pre‑condition we can compute this index as the weighted sum  
+
+\[
+\operatorname{idx}(C_1,\dots ,C_4) \;=\; \sum_{i=1}^{4} i\cdot C_i .
+\]
+
+Hence the post‑condition is
+
+\[
+\boxed{
+Q \; \equiv\;
+\bigl(out \in [1..4]\bigr)
+\;\land\;
+\bigl(out = \sum_{i=1}^{4} i\cdot C_i\bigr)
+\;\land\;
+\bigl(C_{out}=1\bigr)
+\;\land\;
+\bigl(\forall j\in[1..4],\, j\neq out \;\Rightarrow\; C_j = 0\bigr)
+}
+\]
+
+*Explanation*  
+
+* `out` is guaranteed to be one of the four possible positions;  
+* the equality \(out = \sum i\cdot C_i\) extracts the position of the single `1`;  
+* the last two conjuncts state explicitly that the chosen position really contains the bean and all others are empty (these follow from the previous equality but are written for clarity).
+
+---
+
+### 4. Hoare triple
+
+Putting the two parts together, the whole specification of the program \(S\) (read the four numbers, write the answer) is
+
+\[
+\boxed{\;\{\,P\,\}\; S\; \{\,Q\,\}\;}
+\]
+
+where  
+
+* \(P\) is the pre‑condition defined in § 2,  
+* \(Q\) is the post‑condition defined in § 3.
+
+---
+
+### 5. Remarks / Alternative forms
+
+* **Alternative expression of the post‑condition** – using the *arg‑max* operator:
+
+  \[
+  Q\; \equiv\; out = \operatorname{argmax}_{i\in[1..4]} C_i .
+  \]
+
+  Because the pre‑condition guarantees a unique maximum, `argmax` is well‑defined.
+
+* **Correctness proof sketch** – given \(P\) holds, exactly one \(C_k = 1\). The weighted sum \(\sum i\cdot C_i\) evaluates to that unique \(k\), so the program that sets `out` to that sum satisfies all conjuncts of \(Q\).
+
+* The specification is *implementation‑independent*: any algorithm that reads the four integers and writes the index satisfying \(Q\) is correct (e.g., a linear scan, a series of `if` statements, a lookup table, etc.).
+
+--- 
+
+**Thus, the formal Hoare‑logic specification for “Guess Where the Bean is” is the Hoare triple \(\{P\}\,S\,\{Q\}\) with the pre‑ and post‑conditions shown above.**

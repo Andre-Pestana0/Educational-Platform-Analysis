@@ -1,0 +1,85 @@
+**Hoare‑logic specification**
+
+Let  
+
+* `s` – integer read as the *start* hour of the game,  
+* `e` – integer read as the *end*   hour of the game,  
+
+and let  
+
+\[
+\operatorname{mod}_{24}(x)=x-24\Big\lfloor \frac{x}{24}\Big\rfloor
+\]
+
+be the remainder of the division by 24 (so that \(\operatorname{mod}_{24}(x)\in\{0,\dots ,23\}\)).
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P\;\equiv\; 0\le s\le 23\;\land\;0\le e\le 23
+\]
+
+The program is invoked only with two integer hours that belong to the usual 24‑hour clock.
+
+---
+
+### Auxiliary definition (duration)
+
+\[
+d\;:=\;\begin{cases}
+\operatorname{mod}_{24}(e-s) &\text{if }\operatorname{mod}_{24}(e-s)\neq 0,\\[4pt]
+24 &\text{if }\operatorname{mod}_{24}(e-s)=0 .
+\end{cases}
+\tag{1}
+\]
+
+Equivalently, using a single expression:
+
+\[
+d\;=\; \bigl(\operatorname{mod}_{24}(e-s)+24\bigr)\bmod 24\;+\; \bigl[\,\operatorname{mod}_{24}(e-s)=0\,\bigr]\cdot 24,
+\]
+
+where \([\,\phi\,]\) is the Iverson bracket (1 if the predicate \(\phi\) is true, 0 otherwise).  
+From (1) we obtain the important property
+
+\[
+1\le d\le 24 .
+\tag{2}
+\]
+
+---
+
+### Post‑condition  \(Q\)
+
+Let `out` be the string that the program prints.  
+
+\[
+Q\;\equiv\; 
+\begin{aligned}
+&\text{out}= \underbrace{\texttt{"O JOGO DUROU "}}_{\text{fixed prefix}}
+            \;\|\;\underbrace{\text{toString}(d)}_{\text{decimal representation of }d}
+            \;\|\;\underbrace{\texttt{" HORA(S)"} }_{\text{fixed suffix}}\\
+&\quad\land\;1\le d\le 24 .
+\end{aligned}
+\tag{3}
+\]
+
+(The operator “\(\|\)” denotes string concatenation.)
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\;\; \text{Program}\;\; \{\,Q\,\}\;}
+\]
+
+where **Program** is the imperative fragment that
+
+1. reads the two integers `s` and `e`,
+2. computes `d` according to (1) (i.e., the elapsed time, allowing the game to cross midnight, with a maximum of 24 h),
+3. prints the string described in (3).
+
+The triple guarantees that, for every admissible pair of hours \((s,e)\) satisfying the pre‑condition, the program terminates with exactly the required Portuguese message and a duration `d` that lies in the interval \([1,24]\).

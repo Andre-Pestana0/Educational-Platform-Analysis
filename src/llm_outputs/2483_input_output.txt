@@ -1,0 +1,8 @@
+"input": "2"
+"output": "Feliz nataal!"
+
+"input": "3"
+"output": "Feliz nataaal!"
+
+"input": "10"
+"output": "Feliz nataaaaaaaaaal!"

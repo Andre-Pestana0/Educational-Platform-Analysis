@@ -1,0 +1,26 @@
+Description: Binet's formula is a way to calculate Fibonacci numbers.
+
+Input: The input is a natural numbern(0 <nâ¤ 50).
+
+Output: The output is the value of Fibonacci(n) with 1 decimal place using the given Binet's formula.
+
+Examples:
+- Example 1:
+  Input:
+1
+  Output:
+1.0
+
+- Example 2:
+  Input:
+2
+  Output:
+1.0
+
+- Example 3:
+  Input:
+3
+  Output:
+2.0
+
+--

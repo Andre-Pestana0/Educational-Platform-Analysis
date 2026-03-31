@@ -1,0 +1,61 @@
+**Hoare‑style specification**
+
+Let  
+
+\[
+\mathbf{T}= (T_{1},T_{2},T_{3},T_{4})\in\mathbb Z^{4}
+\qquad\text{and}\qquad
+R\in\mathbb Z
+\]
+
+be the variables that the program reads (the four integers of the input) and
+writes (the single integer that is printed).
+
+---
+
+### Pre‑condition  
+
+\[
+P \;\; \equiv\;\; 
+\bigl(\forall i\in\{1,2,3,4\}\; :\; 2\le T_{i}\le 6 \bigr)
+\]
+
+i.e. each of the four numbers supplied on the input line is an integer
+between 2 and 6 (inclusive).
+
+---
+
+### Post‑condition  
+
+\[
+Q \;\; \equiv\;\; 
+\Bigl(R \;=\; \sum_{i=1}^{4} T_{i}\;-\;3\Bigr)
+\]
+
+The result printed by the program is the total number of sockets of the
+four strips minus the three sockets that are used to inter‑connect the
+strips (the first strip is plugged directly into the wall).
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\;\{P\}\;\; \texttt{solve()} \;\;\{Q\}\;}
+\]
+
+where `solve()` denotes the (deterministic) algorithm that
+
+1. reads the four integers \(T_{1},T_{2},T_{3},T_{4}\) from standard input,
+2. computes the value  
+
+   \[
+   R \;:=\; \bigl(T_{1}+T_{2}+T_{3}+T_{4}\bigr)-3,
+   \]
+
+3. writes the integer \(R\) to standard output and terminates.
+
+The triple states that, assuming the input satisfies the bounds
+\(2\le T_{i}\le 6\), the algorithm always terminates and produces exactly the
+maximum number of devices that can be simultaneously powered, namely
+\(\displaystyle\sum_{i=1}^{4} T_{i}-3\).

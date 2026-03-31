@@ -1,0 +1,26 @@
+Description: The method of periodic continued fractions is one of the many ways to calculate the square root of a natural number. This method uses as denominator a repetition for fractions. This repetition can be done by a fixed number of times.
+
+Input: The input is a natural numberN(0 â¤Nâ¤ 100) that indicates the quantity of denominator repetitions in the continued fraction.
+
+Output: The output is the approximate value of the square root with 10 decimal places.
+
+Examples:
+- Example 1:
+  Input:
+0
+  Output:
+1.0000000000
+
+- Example 2:
+  Input:
+1
+  Output:
+1.5000000000
+
+- Example 3:
+  Input:
+5
+  Output:
+1.4142857143
+
+--

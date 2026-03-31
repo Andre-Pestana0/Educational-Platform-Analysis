@@ -1,0 +1,233 @@
+**Answer – a Hoare‑logic proof of the program**
+
+Below we give a complete Hoare‑logic proof that the program shown in the statement
+computes exactly the value required by the specification.  
+The proof follows the usual structure:
+
+* a **pre‑condition** that describes the state before the program starts,
+* a **loop invariant** that is true before the first iteration, is preserved
+  by the body of the loop and together with the termination condition
+  yields the required **post‑condition**,
+* the application of the Hoare rules for assignment, sequential composition,
+  the `if–elif–else` chain and the `for` loop (which we treat as a `while`).
+
+--------------------------------------------------------------------
+
+## 1.   Specification
+
+Let the five inputs that the program reads be denoted  
+
+```
+q0 , q1 , q2 , q3 , q4   ∈  ℤ            (the value entered at the i‑th iteration)
+```
+
+Define the *price* (the factor that multiplies the quantity) for each guest:
+
+```
+price(0) = 300          price(1) = 1500
+price(2) = 600          price(3) = 1000
+price(4) = 150
+```
+
+The intended result is the total amount of “mandioca” after all guests have
+been processed:
+
+```
+Mfinal = 225 + Σi=0..4 price(i)·qi                (1)
+```
+
+Hence we aim to prove the Hoare triple  
+
+```
+{ true }   Program   { Mandioca = Mfinal }       (2)
+```
+
+(The pre‑condition can be taken as the trivial `true`; if we want to be
+more precise we may require that each `qi` be an integer, i.e.
+`∀i∈{0,…,4}. qi ∈ ℤ`.  The proof below works for any integer inputs.)
+
+--------------------------------------------------------------------
+
+## 2.   Program (in a form convenient for verification)
+
+```text
+1   Mandioca := 225;
+2   Convidados := 5;
+3   i := 0;
+4   while i < Convidados do
+5       if i = 0 then
+6           qi := input();               // read q0
+7           Mandioca := Mandioca + 300·qi
+8       else if i = 1 then
+9           qi := input();               // read q1
+10          Mandioca := Mandioca + 1500·qi
+11      else if i = 2 then
+12          qi := input();               // read q2
+13          Mandioca := Mandioca + 600·qi
+14      else if i = 3 then
+15          qi := input();               // read q3
+16          Mandioca := Mandioca + 1000·qi
+17      else                               // i = 4
+18          qi := input();               // read q4
+19          Mandioca := Mandioca + 150·qi
+20      fi;
+21      i := i + 1
+22  od;
+23  print(Mandioca)
+```
+
+The only difference with the original Python program is the explicit
+initialisation of the loop counter `i` and the translation of the `for`
+into a `while`.
+
+--------------------------------------------------------------------
+
+## 3.   Loop invariant
+
+We propose the following invariant `I(i)` for the `while` loop (the
+statement just before the test `i < Convidados` is executed):
+
+```
+I(i) ≡   0 ≤ i ≤ 5
+        ∧ Mandioca = 225 + Σj=0..i‑1 price(j)·qj                (3)
+```
+
+*For `i = 0` the sum is empty, therefore `Mandioca = 225`, which is true
+after line 1.*
+
+The invariant captures exactly the partial total after the first `i`
+guests have been processed.
+
+--------------------------------------------------------------------
+
+## 4.   Proof that the invariant holds
+
+We use the Hoare rules **(Assign)**, **(Seq)**, **(If)** and **(While)**.
+
+### 4.1  Initialization (lines 1‑3)
+
+```
+{ true }  Mandioca := 225;  Convidados := 5;  i := 0
+{ I(0) }
+```
+
+*Proof.*  
+After line 1 we have `Mandioca = 225`.  
+After line 2 `Convidados = 5` (the value of `Convidados` does not appear in
+`I`).  
+After line 3 `i = 0`.  Substituting `i = 0` in (3) the sum is empty; therefore
+`Mandioca = 225` satisfies the right‑hand side of `I(0)`.  Hence `I(0)` holds.
+
+### 4.2  Preservation of the invariant (body of the loop)
+
+Assume the invariant holds at the beginning of an iteration, i.e.
+
+```
+{ I(i) ∧ i < 5 }   … loop body …   { I(i+1) }
+```
+
+We have two cases, according to the value of `i`.
+
+*Case `i = 0`* (lines 5‑8).  
+The `if` condition is true, we execute:
+
+```
+q0 := input();                // a new integer value
+Mandioca := Mandioca + 300·q0
+```
+
+Using the assignment axiom we obtain after the two assignments
+
+```
+Mandioca = 225 + Σj=0..-1 price(j)·qj + 300·q0
+         = 225 + price(0)·q0
+```
+
+which is exactly the right‑hand side of `I(1)` (the sum now runs from
+`j = 0` to `0`).  The subsequent statement `i := i+1` makes `i = 1`,
+hence `I(1)` holds.
+
+*Case `i = 1`* (lines 8‑11).  
+Analogously we read `q1` and add `1500·q1` (which is `price(1)·q1`) to
+`Mandioca`.  By the induction hypothesis `Mandioca` before the addition equals  
+
+```
+225 + Σj=0..0 price(j)·qj   = 225 + price(0)·q0 .
+```
+
+After the addition we obtain  
+
+```
+225 + price(0)·q0 + price(1)·q1
+ = 225 + Σj=0..1 price(j)·qj .
+```
+
+After the increment `i := i+1` we have `i = 2` and therefore `I(2)` holds.
+
+*The same reasoning works for `i = 2`, `i = 3` and `i = 4`*,
+because each branch of the `if–elif–else` adds exactly `price(i)·qi`
+to the current total.  In each sub‑case we obtain
+
+```
+Mandioca = 225 + Σj=0..i price(j)·qj
+```
+
+and after `i := i+1` the invariant `I(i+1)` is true.
+
+Thus the invariant is preserved for every iteration.
+
+### 4.3  Termination condition
+
+The loop guard is `i < Convidados` and we know from the initialization that
+`Convidados = 5`.  The loop body always increments `i` by one, therefore the
+loop terminates after the smallest `i` that falsifies the guard, i.e.
+after `i = 5`.  At that moment the invariant `I(5)` holds:
+
+```
+Mandioca = 225 + Σj=0..4 price(j)·qj                (4)
+```
+
+Equation (4) is precisely the expression (1) required in the post‑condition.
+
+### 4.4  Final statement
+
+The last statement `print(Mandioca)` does not modify the program state, so the
+post‑condition follows immediately from (4).
+
+--------------------------------------------------------------------
+
+## 5.   Hoare triple for the whole program
+
+Putting the pieces together we have the following derivation (using the
+Hoare rule for `while`):
+
+```
+{ true }                         // pre‑condition
+   Mandioca := 225;
+   Convidados := 5;
+   i := 0;
+   while i < Convidados do
+        (body)
+   od
+   print(Mandioca)
+{ Mandioca = 225 + Σi=0..4 price(i)·qi }    // post‑condition
+```
+
+All the intermediate verification conditions have been discharged, hence the
+triple is proved.
+
+--------------------------------------------------------------------
+
+## 6.   Conclusion
+
+We have exhibited a formal loop invariant, proved its initialization,
+preservation, and termination, and shown that after the loop the variable
+`Mandioca` contains exactly  
+
+```
+225 + 300·q0 + 1500·q1 + 600·q2 + 1000·q3 + 150·q4 .
+```
+
+Therefore the program satisfies the specification (2).  In Hoare‑logic
+terms, the program is **correct** with respect to the given pre‑ and
+post‑conditions. ∎

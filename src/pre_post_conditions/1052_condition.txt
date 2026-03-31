@@ -1,0 +1,90 @@
+**Hoare‑style specification**
+
+Let  
+
+* `x`  – the integer that is read from the input stream (the program variable that stores the user’s number).  
+* `m`  – the string that is sent to the output stream (the program variable that stores the month name).  
+
+Define the *month‑lookup* function  
+
+\[
+\begin{aligned}
+M : \{1,\dots ,12\}\longrightarrow \text{String} \\
+M(i)=\begin{cases}
+\text{“January”}   & i=1\\
+\text{“February”}  & i=2\\
+\text{“March”}     & i=3\\
+\text{“April”}     & i=4\\
+\text{“May”}       & i=5\\
+\text{“June”}      & i=6\\
+\text{“July”}      & i=7\\
+\text{“August”}    & i=8\\
+\text{“September”}& i=9\\
+\text{“October”}   & i=10\\
+\text{“November”}  & i=11\\
+\text{“December”}  & i=12
+\end{cases}
+\end{aligned}
+\]
+
+---
+
+### Hoare triple for the whole program  
+
+\[
+\boxed{\{\, P \;\; \mathsf{S}\; \; Q\,}
+\]
+
+* **Pre‑condition** `P` (what must hold before the program starts)
+
+\[
+P \; \equiv\; x\in\mathbb Z \;\land\; 1\le x\le 12
+\]
+
+* **Program** `\mathsf{S}` (the sequence “read the integer, compute the month name, print it”)
+
+\[
+\mathsf{S}\;=\;
+\begin{array}{l}
+\textbf{read}(x) ;\\[2mm]
+m \;\gets\; M(x) ;\\[2mm]
+\textbf{print}(m)
+\end{array}
+\]
+
+* **Post‑condition** `Q` (what must hold after `\mathsf{S}` terminates)
+
+\[
+\begin{aligned}
+Q \;\equiv\;&\; m = M(x) \\[2mm]
+      &\land\; \textbf{printed}(m)\\[2mm]
+      &\land\; \bigl(m\in\text{String}\bigr)
+\end{aligned}
+\]
+
+---
+
+### Full Hoare‑logic specification  
+
+\[
+\boxed{\;
+\underbrace{1\le x\le 12}_{\text{Pre}}
+\;\; \mathsf{S}
+\;\underbrace{m = M(x)\ \land\ \textbf{printed}(m)}_{\text{Post}}
+\;}
+\]
+
+In words: *If the program receives an integer `x` that lies between 1 and 12, then after executing the program the variable `m` equals the month name corresponding to `x` (according to the mapping `M`) and that string has been sent to the output stream.*
+
+---
+
+### Optional auxiliary assertions (useful when proving correctness)
+
+* **Domain preservation**  
+  \[
+  \{arrow\; 1\le x\le 12\;\Rightarrow\; m\in\{\text{“January”},\dots ,\text{“December”}\}
+  \]
+
+* **Termination** – the program consists of a finite sequence of assignments, therefore it always terminates.
+
+These formulas constitute the complete Hoare‑logic (pre‑ and post‑conditions) formal specification of the given problem.

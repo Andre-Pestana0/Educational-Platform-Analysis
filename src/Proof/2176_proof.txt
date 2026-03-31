@@ -1,0 +1,246 @@
+**Goal**  
+
+Show that the program satisfies the specification that is usually written for the
+Beecrowd “par‑ou‑impar” problem:
+
+*Pre‑condition*  
+
+```
+P  :  true                      (any string may be supplied on the input)
+```
+
+*Post‑condition*  
+
+```
+Q  :  out = S ◦ b                (out is the string printed by the program)
+      where  b = "0"  if  #1(S) is even
+                     "1"  otherwise
+      and   #1(S) = |{ i | 0 ≤ i < |S|  ∧  S[i] = '1' }|
+```
+
+In Hoare‑logic notation we want to prove the Hoare triple  
+
+```
+{ true }  PROGRAM  { out = S ◦ ( #1(S) mod 2 ) }
+```
+
+Below we give a step‑by‑step proof using the usual Hoare rules
+(assignment, sequencing, conditional and while‑loop with an invariant).
+
+--------------------------------------------------------------------
+
+## 1.  Notation used in the proof  
+
+* `S` – the string read from *stdin* (treated as a logical variable).  
+* `digitos` – integer variable used by the program to count the digit ‘1’.  
+* `out` – logical variable that denotes the string that the program finally
+  prints (`print` is modelled as an assignment to `out`).  
+
+The Python `for i in S:` loop is rewritten as an explicit while‑loop so that we
+can apply the while‑rule:
+
+```
+i := 0
+while i < |S| do
+    c := S[i]                // the current character
+    if c = "1" then
+        digitos := digitos + 1
+    else
+        skip
+    fi
+    i := i + 1
+od
+```
+
+The rest of the program stays unchanged.
+
+--------------------------------------------------------------------
+
+## 2.  Loop invariant  
+
+```
+I(i, digitos)  ≡
+   0 ≤ i ≤ |S|                     ∧
+   digitos = |{ j | 0 ≤ j < i  ∧  S[j] = '1' }|
+```
+
+*Interpretation* – after the first *i* characters of `S` have been examined,
+`digitos` equals the number of ‘1’s among those *i* characters.
+
+--------------------------------------------------------------------
+
+## 3.  Proof of the while‑loop  
+
+### 3.1  Initialization  
+
+Before the loop we have the statements  
+
+```
+digitos := 0
+i       := 0
+```
+
+*Hoare reasoning*  
+
+```
+{ true }                digitos := 0          { digitos = 0 }
+{ digitos = 0 }         i       := 0          { i = 0 ∧ digitos = 0 }
+```
+
+Because `0 ≤ 0 ≤ |S|` and the set `{ j | 0 ≤ j < 0 ∧ S[j] = '1' }` is empty,
+the invariant `I` holds:
+
+```
+{ true }  init‑stmts  { I(i, digitos) }
+```
+
+### 3.2  Preservation  
+
+Assume `I(i, digitos)` holds at the top of the loop and that the guard
+`i < |S|` is true.  
+
+*Case 1 – the current character is ‘1’* (`c = "1"`).  
+
+```
+c := S[i]                (c = "1")
+digitos := digitos + 1
+i       := i + 1
+```
+
+From the induction hypothesis we know that before the body
+
+```
+digitos = |{ j | 0 ≤ j < i  ∧  S[j] = '1' }|
+```
+
+After the increment we obtain
+
+```
+digitos' = digitos + 1
+        = |{ j | 0 ≤ j < i  ∧  S[j] = '1' }| + 1
+        = |{ j | 0 ≤ j ≤ i  ∧  S[j] = '1' }|
+```
+
+and after `i := i+1` we have `i' = i+1`.  Hence
+
+```
+digitos' = |{ j | 0 ≤ j < i'  ∧  S[j] = '1' }|
+```
+
+and `0 ≤ i' ≤ |S|` still holds.  Thus `I(i', digitos')` is true.
+
+*Case 2 – the current character is not ‘1’* (`c ≠ "1"`).  
+
+The statement `digitos := digitos` leaves `digitos` unchanged, while `i` is
+still increased by one.  Consequently
+
+```
+digitos' = digitos
+        = |{ j | 0 ≤ j < i  ∧  S[j] = '1' }|
+        = |{ j | 0 ≤ j < i'  ∧  S[j] = '1' }|
+```
+
+and again `I(i', digitos')` holds.
+
+Therefore the invariant is preserved:
+
+```
+{ I ∧ i < |S| }   body   { I }
+```
+
+### 3.3  Termination  
+
+When the loop exits we have `¬(i < |S|)`, i.e. `i = |S|`.  Using the invariant we
+obtain
+
+```
+digitos = |{ j | 0 ≤ j < |S| ∧ S[j] = '1' }|
+        = #1(S)                         (definition of #1)
+```
+
+Hence after the loop
+
+```
+{ I ∧ i = |S| }   ⇒   { digitos = #1(S) }          (call this assertion A)
+```
+
+--------------------------------------------------------------------
+
+## 4.  The conditional that prints the answer  
+
+The program now executes
+
+```
+if digitos % 2 == 0 then
+    out := S + "0"
+else
+    out := S + "1"
+fi
+```
+
+From assertion **A** we know `digitos = #1(S)`.  
+Two cases have to be considered.
+
+*Case 1 – `digitos % 2 = 0`* (i.e. `#1(S)` is even).  
+
+The then‑branch assigns `out = S ◦ "0"`.  Because the condition guarantees that
+`#1(S) mod 2 = 0`, the post‑condition `out = S ◦ ( #1(S) mod 2 )` holds.
+
+*Case 2 – `digitos % 2 ≠ 0`* (i.e. `#1(S)` is odd).  
+
+The else‑branch assigns `out = S ◦ "1"`.  Here `#1(S) mod 2 = 1`, so again the
+post‑condition holds.
+
+By the Hoare rule for conditionals we obtain
+
+```
+{ digitos = #1(S) }   conditional   { out = S ◦ ( #1(S) mod 2 ) }
+```
+
+--------------------------------------------------------------------
+
+## 5.  Whole program  
+
+Putting together the three parts (initialisation, while‑loop, conditional) we
+have the following Hoare derivation:
+
+```
+{ true }                                         -- pre‑condition
+    digitos := 0 ;
+    i       := 0 ;
+    while i < |S| do
+        c := S[i] ;
+        if c = "1" then
+            digitos := digitos + 1
+        else
+            skip
+        fi ;
+        i := i + 1
+    od
+    if digitos % 2 == 0 then
+        out := S + "0"
+    else
+        out := S + "1"
+    fi
+{ out = S ◦ ( #1(S) mod 2 ) }                    -- post‑condition
+```
+
+All the intermediate Hoare triples have been proved (initialisation,
+loop invariant, preservation, termination, conditional).  Consequently the
+overall Hoare triple is valid, which means **the program is correct with
+respect to the given specification**.
+
+--------------------------------------------------------------------
+
+## 6.  Summary in natural language  
+
+* The program reads a string `S`.  
+* It counts how many times the character `'1'` occurs in `S`.  
+* After the loop the variable `digitos` equals that count (`#1(S)`).  
+* If the count is even the program prints `S` followed by `0`; otherwise it
+  prints `S` followed by `1`.  
+
+Thus the printed string is exactly `S` concatenated with the parity bit of the
+number of `'1'` characters, which is precisely what the specification demands.  
+
+∎

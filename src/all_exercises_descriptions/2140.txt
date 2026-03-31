@@ -1,0 +1,25 @@
+Description: Gilberto is a famous sfiha vendor. However, although everyone likes his sfihas, he can only give the change with two different bills, i.e., it's not always possible to get the right change. In order to make Gil's life easier, write a program for him to check whether it's possible to give the exact change using two different bills.
+
+Input: The input contains an integerNrepresenting the buy price and then an integerMrepresenting the price paid by the costumer (N<Mâ¤ 104). Read input untilN=M= 0.
+
+Output: Print "possible" if it's possible to give the exact change or "impossible" if it's not.
+
+Examples:
+- Example 1:
+  Input:
+11 23
+500 650
+100 600
+9948 9963
+1 2
+2 4
+0 0
+  Output:
+possible
+possible
+impossible
+possible
+impossible
+impossible
+
+--

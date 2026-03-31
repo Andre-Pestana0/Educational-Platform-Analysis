@@ -1,0 +1,25 @@
+Description: Computers have made their way into a significant percentage of the homes in the world, and as programmers we are responsible for designing user interfaces that everyone can use. User interfaces need to be flexible so that if a user makes some non-fatal error, the interface can still figure out what the user meant.
+
+Input: Each line of input is one test case and contains one string n. This n will contain between 0 and 50, inclusive, letters, numbers, spaces, or commas.
+
+Output: For each test case in the input, your program must print the integer represented by n or "error" if n is not a valid non-negative integer.Note: an empty string does not represent a valid integer.
+
+Examples:
+- Example 1:
+  Input:
+lo6
+234,657
+hi
+,,,,,5,,5,    4
+2200000000
+00
+  Output:
+106
+234657
+error
+error
+554
+error
+0
+
+--

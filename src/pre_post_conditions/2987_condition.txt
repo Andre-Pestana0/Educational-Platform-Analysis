@@ -1,0 +1,46 @@
+**Hoare‑style specification (pre‑ and post‑conditions only)**  
+
+Let  
+
+* \(\Sigma = \{\,A,B,\dots ,Z\,\}\) – the set of uppercase English letters,  
+* \(\operatorname{code} : \Sigma \rightarrow \{65,\dots ,90\}\) – the usual ASCII (or Unicode) code of a character,  
+* \(\operatorname{pos} : \Sigma \rightarrow \{1,\dots ,26\}\) be the *position* function defined by  
+
+\[
+\operatorname{pos}(c)\;=\;1+\bigl(\operatorname{code}(c)-\operatorname{code}('A')\bigr)
+\qquad(\forall c\in\Sigma).
+\]
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\;\{\,L\in\Sigma\,\}\;\;S\;\; \{\,\text{out}= \operatorname{pos}(L)\,\}}
+\]
+
+where  
+
+* **Pre‑condition** \(P\) : \(L\in\Sigma\) (the input character is an uppercase letter),  
+
+* **Post‑condition** \(Q\) : \(\text{out}\in\{1,\dots ,26\}\) **and**  
+
+\[
+\text{out}=1+\bigl(\operatorname{code}(L)-\operatorname{code}('A')\bigr)
+\;\; \text{(equivalently } \text{out}= \operatorname{pos}(L)\text{)}.
+\]
+
+---
+
+### Expanded mathematical form of the post‑condition
+
+\[
+\begin{aligned}
+Q \equiv\;&\exists n\in\mathbb{N}\;.\;
+\bigl(1\le n\le 26\bigr)\;\wedge\;\\
+&\bigl(n = 1 + (\operatorname{code}(L)-\operatorname{code}('A'))\bigr)
+\;\wedge\;(\text{out}=n).
+\end{aligned}
+\]
+
+Thus the specification states that **any program** \(S\) satisfying the Hoare triple will, for every valid input letter \(L\), terminate with the integer \(\text{out}\) equal to the alphabetical position of \(L\) (A → 1, B → 2, …, Z → 26).

@@ -1,0 +1,126 @@
+Below is a **Hoare‑logic style specification** of the program that reads the statistics of a volleyball team and prints the three total success‑rate percentages (service, block, attack).  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true when it terminates) are given; the body of the program is omitted.
+
+---
+
+### 1.   Notation
+
+| Symbol | Meaning |
+|--------|----------|
+| `ℕ`    | set of non‑negative integers (including 0) |
+| `1‥N`  | the set `{1,2,…,N}` |
+| `Σ_{i=1}^{N} x_i` | sum of the sequence `x₁,…,x_N` |
+| `⌊·⌉₂` | rounding to two decimal digits (nearest, ties to even – the usual “printf “%.2f”’’ behaviour) |
+| `format(p,2)` | the decimal string of the real number `p` with exactly two digits after the decimal point |
+| `output(str)` | writes the string `str` to the standard output (in the order shown) |
+
+For each player `i ∈ 1‥N` we introduce the following input variables  
+
+* attempts : `S_i , B_i , A_i ∈ ℕ` (service, block, attack attempts)  
+* successes: `s_i , b_i , a_i ∈ ℕ` (service, block, attack points)  
+
+All variables are **read‑only** for the program (they are supplied by the input).
+
+---
+
+### 2.   Pre‑condition  `P`
+
+\[
+\begin{aligned}
+P \;\equiv\;& 
+\bigl( N \in \mathbb{N}\;\land\;1 \le N \le 100 \bigr) \\
+&\;\land\;
+\forall i\in 1‥N\; \bigl(
+   0 \le S_i \le 10\,000 \;\land\;
+   0 \le B_i \le 10\,000 \;\land\;
+   0 \le A_i \le 10\,000 \\
+&\qquad\qquad\qquad\;\;\land\;
+   0 \le s_i \le S_i \;\land\;
+   0 \le b_i \le B_i \;\land\;
+   0 \le a_i \le A_i
+\bigr)
+\end{aligned}
+\]
+
+*Interpretation*: the number of players is between 1 and 100; for every player the three attempt counters are legal (0 … 10 000) and the three success counters are non‑negative and never exceed the corresponding attempts.
+
+---
+
+### 3.   Derived totals (used in the post‑condition)
+
+\[
+\begin{aligned}
+S_{\text{tot}} &= \sum_{i=1}^{N} S_i , &
+B_{\text{tot}} &= \sum_{i=1}^{N} B_i , &
+A_{\text{tot}} &= \sum_{i=1}^{N} A_i ,\\[2mm]
+s_{\text{tot}} &= \sum_{i=1}^{N} s_i , &
+b_{\text{tot}} &= \sum_{i=1}^{N} b_i , &
+a_{\text{tot}} &= \sum_{i=1}^{N} a_i .
+\end{aligned}
+\]
+
+If any denominator is zero we define the corresponding percentage to be `0.00`.
+
+\[
+\begin{aligned}
+p_{\text{svc}} &=
+  \begin{cases}
+    0 &\text{if } S_{\text{tot}} = 0,\\[1mm]
+    \bigl\lfloor 100\cdot \frac{s_{\text{tot}}}{S_{\text{tot}}}\bigr\rceil_{2}
+      &\text{otherwise;}
+  \end{cases}\\[2mm]
+p_{\text{blk}} &=
+  \begin{cases}
+    0 &\text{if } B_{\text{tot}} = 0,\\[1mm]
+    \bigl\lfloor 100\cdot \frac{b_{\text{tot}}}{B_{\text{tot}}}\bigr\rceil_{2}
+      &\text{otherwise;}
+  \end{cases}\\[2mm]
+p_{\text{atk}} &=
+  \begin{cases}
+    0 &\text{if } A_{\text{tot}} = 0,\\[1mm]
+    \bigl\lfloor 100\cdot \frac{a_{\text{tot}}}{A_{\text{tot}}}\bigr\rceil_{2}
+      &\text{otherwise.}
+  \end{cases}
+\end{aligned}
+\]
+
+`⌊·⌉₂` denotes rounding to the nearest hundredth (the same rule used by `printf("%.2f")`).
+
+---
+
+### 4.   Post‑condition  `Q`
+
+\[
+\begin{aligned}
+Q \;\equiv\;&
+\text{output}\bigl(
+   \text{``Pontos de Saque: ''} \;+\; \text{format}(p_{\text{svc}},2) \;+\; \text{`` \%.''}
+\bigr) \\
+&\;\land\;
+\text{output}\bigl(
+   \text{``Pontos de Bloqueio: ''} \;+\; \text{format}(p_{\text{blk}},2) \;+\; \text{`` \%.''}
+\bigr) \\
+&\;\land\;
+\text{output}\bigl(
+   \text{``Pontos de Ataque: ''} \;+\; \text{format}(p_{\text{atk}},2) \;+\; \text{`` \%.''}
+\bigr) .
+\end{aligned}
+\]
+
+The three strings must be printed **in the order shown** (service, block, attack), each terminated by a newline (or by the end‑of‑line convention of the platform).
+
+---
+
+### 5.   Hoare Triple
+
+Putting the two parts together, the specification of the whole program is the Hoare triple  
+
+\[
+\boxed{\;\{P\}\;\; \text{program}\;\; \{Q\}\;}
+\]
+
+where  
+
+* `program` reads the input, computes the totals and the three percentages as defined above, and finally executes the three `output` statements described in `Q`.  
+
+Any implementation that respects the pre‑condition `P` and, after termination, guarantees `Q` is **correct** with respect to the problem statement.

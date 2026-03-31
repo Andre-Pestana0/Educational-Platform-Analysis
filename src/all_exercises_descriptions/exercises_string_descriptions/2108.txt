@@ -1,0 +1,26 @@
+Description: Matheus was talking to his bride by text message, when she sent the following message:1-4-3He did not understand the message, so he asked what it meant, and she said it means 'I Love You', and soon he realized that each separate number by a ' - ' is the number of letters for each of words composing the phrase. With that, he had the idea of creating a program that entering certain phrase, it calculates the size of each word and separates the values by ' - '. But he still had the idea that the program should receive several phrases line by line and at the end of the program the word with the greatest number of characters should be displayed.
+
+Input: The input consists of several test cases. The first line of a test case contains a 1 â¤Stringâ¤ 100 with a single word or a phrase. Test cases will be processed when the number 0 is received. There can be no more than a space separating each word.
+
+Output: For each test case, display the number of characters in each word that makes up the received phrase. Divide the number of characters of each word for ' - '. Also display, the word with the greatest number of characters of all received phrases.
+
+Examples:
+- Example 1:
+  Input:
+i love you
+squirtle squirtle squirtle
+chondrocraniums
+coal is so dark
+lacing your dreams
+te t e te t e te t e te
+0
+  Output:
+1-4-3
+8-8-8
+15
+4-2-2-4
+6-4-6
+2-1-1-2-1-1-2-1-1-2
+The biggest word: chondrocraniums
+
+--

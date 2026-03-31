@@ -1,0 +1,83 @@
+Below is a **Hoare‑logic style specification** (pre‑condition `P` and post‑condition `Q`) that captures exactly the behaviour described in the statement.
+
+---
+
+### Notation used  
+
+* `ℤ` – set of (mathematical) integers, `ℕ = {0,1,2,…}` – non‑negative integers.  
+* `ℝ` – set of real numbers.  
+* `⌊·⌋` – floor function.  
+* `round₂(y)` – “round to two decimal places” :
+
+\[
+\operatorname{round}_{2}(y)=\frac{\big\lfloor 100\,y+0.5\big\rfloor}{100}
+\qquad(\text{so } \operatorname{round}_{2}(y)\in\mathbb{R},\;
+\operatorname{round}_{2}(y) \text{ has exactly two decimal digits}).
+\]
+
+* The program reads two **input variables** `N` and `X` (both appearing on the first line of the input) and writes a **single output variable** `days`.  
+
+* The symbol `⊢` denotes a Hoare triple:  
+
+\[
+\{P\}\;C\;\{Q\}
+\]
+
+means “if the pre‑condition `P` holds before executing command `C`, then the post‑condition `Q` holds after `C` terminates”.
+
+---
+
+## Formal specification
+
+\[
+\boxed{
+\begin{aligned}
+\{ & P \}\\[2mm]
+&\texttt{read } N, X;\\
+&\texttt{days }:=\operatorname{round}_{2}\!\Bigl(\frac{X}{\,N+2\,}\Bigr);\\
+&\texttt{print } days;\\[2mm]
+\{ & Q \}
+\end{aligned}}
+\]
+
+### Pre‑condition `P`
+
+\[
+\begin{aligned}
+P \;:\;& N\in\mathbb{N}\;\land\; X\in\mathbb{N} \\
+      &\;\land\; N\ge 0 \;\land\; X\ge 0 \\
+      &\;\land\; N+2\neq 0      \qquad(\text{division by zero is impossible})
+\end{aligned}
+\]
+
+*The input line must contain two non‑negative integers; the denominator `N+2` is always positive, so the division is well‑defined.*
+
+### Post‑condition `Q`
+
+\[
+\begin{aligned}
+Q \;:\;&\exists\,d\in\mathbb{R}\;
+      \bigl(\; \text{output is } d \\
+      &\qquad\land\; d = \operatorname{round}_{2}\!\bigl(\tfrac{X}{N+2}\bigr) \;\bigr)
+\end{aligned}
+\]
+
+Equivalently, after termination the program prints the value
+
+\[
+\boxed{\displaystyle
+\operatorname{round}_{2}\!\Bigl(\frac{X}{N+2}\Bigr)
+}
+\]
+
+i.e. the exact real quotient `X/(N+2)` rounded to two decimal places (the required “two‑decimal‑place” format).
+
+---
+
+### Intuitive reading
+
+* **Pre‑condition**: we are given a non‑negative integer `N` (the number of dwarves) and a non‑negative integer `X` (the distance to the Lonely Mountain).  
+* **Computation**: the effective daily travel “speed’’ is `N + 2` (the `N` dwarves together with Gandalf and Bilbo contribute 2 extra “units’’ per day). The raw travel time is `X/(N+2)` days.  
+* **Post‑condition**: the program outputs that travel time rounded to exactly two decimal digits.
+
+Thus the Hoare triple above completely formalises the natural‑language problem.

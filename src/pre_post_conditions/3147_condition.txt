@@ -1,0 +1,99 @@
+**Hoare‑style specification**
+
+We describe the program that receives the six integer inputs  
+
+\[
+H,E,A,O,W,X\in\mathbb Z
+\]
+
+(the numbers of humans, elves, dwarves, orcs, wargs and eagles) and prints one of the two
+messages
+
+* `Middle‑earth is safe.`  
+* `Sauron has returned.`  
+
+The specification is given only by a **pre‑condition** \(P\) and a **post‑condition** \(Q\).
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\boxed{
+P \;\equiv\; 
+\bigl(H\ge 0\;\wedge\;E\ge 0\;\wedge\;A\ge 0\;\wedge\;O\ge 0\;\wedge\;W\ge 0\;\wedge\;X\ge 0\bigr)
+}
+\]
+
+All six inputs are non‑negative integers (the natural numbers \(\mathbb N\)).  
+No other assumptions are made.
+
+---
+
+### Auxiliary definitions (used in the post‑condition)
+
+\[
+\begin{aligned}
+G &:= H + E + A          &&\text{(initial “good” army)}\\[2mm]
+B &:= O + W              &&\text{(initial “evil” army)}\\[2mm]
+\Delta &:= 
+\begin{cases}
+X & \text{if } G \le B \\[1mm]
+0 & \text{if } G > B
+\end{cases}
+&&\text{(size of the “eagle” reinforcement)}\\[2mm]
+G' &:= G + \Delta        &&\text{(final good army after possible reinforcement)}
+\end{aligned}
+\]
+
+---
+
+### Post‑condition  \(Q\)
+
+Let `out` be the string printed by the program.  
+The post‑condition states precisely which string must be produced:
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\; &\bigl(out = \text{``Middle‑earth is safe.''}\bigr) 
+               \;\;\Longleftrightarrow\;\;
+               G' \;\ge\; B \\[1mm]
+             &\;\;\wedge\;
+               \bigl(out = \text{``Sauron has returned.''}\bigr) 
+               \;\;\Longleftrightarrow\;\;
+               G' \;<\; B
+\end{aligned}
+}
+\]
+
+In words:
+
+* If the **final good army** (the original good army plus the eagles, but only when the
+  original good army does **not** already dominate the evil army) is **greater than or
+  equal to** the evil army, the program must output  
+
+  `Middle‑earth is safe.`
+
+* Otherwise (the final good army is strictly smaller) the program must output  
+
+  `Sauron has returned.`
+
+---
+
+### Hoare triple
+
+Putting the pieces together, the whole program is specified by the Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{BattleOfFiveArmies}\; \{Q\}}
+\]
+
+where `BattleOfFiveArmies` denotes any algorithm that:
+
+1. reads the six non‑negative integers \(H,E,A,O,W,X\);
+2. computes the quantities \(G,B,\Delta,G'\) as defined above;
+3. prints `Middle‑earth is safe.` iff \(G' \ge B\), otherwise prints `Sauron has returned.`
+
+The triple guarantees that **every** execution that starts in a state satisfying the
+pre‑condition will terminate with an output satisfying the post‑condition. ∎

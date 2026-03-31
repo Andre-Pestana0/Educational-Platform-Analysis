@@ -1,0 +1,26 @@
+Description: The popularity of WiFi networks increased the loss rate of data being transferred, as several environment factors can easily compromise the data during traffic. The main goal of URI, Unity of Recovery of Information, is to identify and correct errors in messages being sent through WiFi networks.
+
+Input: Each test case consists of one line containing the message S, which has at least 1 and at most 100 bits.
+
+Output: Print one line containing the message S with the extra bit B.
+
+Examples:
+- Example 1:
+  Input:
+10
+  Output:
+101
+
+- Example 2:
+  Input:
+000110
+  Output:
+0001100
+
+- Example 3:
+  Input:
+0
+  Output:
+00
+
+--

@@ -1,0 +1,26 @@
+Description: Finally, the team from the University managed to qualify for the Finals of the SBC Programming Marathon. The three members of the team and their coach are looking forward to represent the university, and besides trainining very much, prepare with every detail your trip to SÃ£o Paulo, where will be held the National Final.
+
+Input: The input consists of a line with four integersT1,T2,T3,T4, indicating the number of taken from each of the four strips (2 â¤Tiâ¤ 6).
+
+Output: Your program should produce a single line containing a single integer indicating the maximum number of devices that can be connected to the energy in the same instant.
+
+Examples:
+- Example 1:
+  Input:
+2 4 3 2
+  Output:
+8
+
+- Example 2:
+  Input:
+6 6 6 6
+  Output:
+21
+
+- Example 3:
+  Input:
+2 2 2 2
+  Output:
+5
+
+--

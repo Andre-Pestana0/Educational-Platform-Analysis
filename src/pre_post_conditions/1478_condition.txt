@@ -1,0 +1,186 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition only) for the whole program and for the two logical sub‑routines that actually do the work:
+
+---
+
+## 1.   Global specification  
+
+Let  
+
+* `I = ⟨n₁ , n₂ , … , nₖ , 0⟩` be the (finite) input stream read from *stdin*,
+* `out` be the (finite) sequence of characters written on *stdout*,
+* `MAX = 100`.
+
+### Pre‑condition  
+
+\[
+\boxed{
+P_{\text{global}} \; \equiv\;
+   I = \langle n_{1},\dots ,n_{k},0\rangle \;\land\;
+   (\forall r\; (1\le r\le k \Rightarrow 1\le n_{r}\le \text{MAX}))
+}
+\]
+
+The program receives a non‑empty list of integers, each in the interval
+\([1,100]\), terminated by a zero.
+
+### Post‑condition  
+
+\[
+\boxed{
+Q_{\text{global}} \; \equiv\;
+   out = \big\lVert_{r=1}^{k}
+          \; \text{PrintMatrix}\big(A^{(r)},n_{r}\big)\big\|
+}
+\]
+
+where  
+
+* for every `r` we define a **square matrix**  
+
+  \[
+  A^{(r)} = \bigl[ a^{(r)}_{i,j}\bigr]_{1\le i,j\le n_{r}}
+  \qquad\text{with}\qquad
+  a^{(r)}_{i,j}=|i-j|+1 .
+  \]
+
+* `PrintMatrix(A,n)` is the textual representation demanded by the statement
+  (right‑justified width 3, a single space between entries, **no** trailing space
+  at the end of a row, a newline after each row, and an extra blank line after the
+  last row).
+
+Thus the program must output, *in the order they appear in the input*, exactly the
+matrices defined by the above formula.
+
+---
+
+## 2.   Specification of the **construction** routine  
+
+```
+Build(N, A)          // N  ∈ ℕ, 1 ≤ N ≤ 100
+```
+
+### Pre‑condition  
+
+\[
+\boxed{
+P_{\text{build}} \equiv 1\le N\le 100 \;\land\; A\; \text{is an uninitialised } N\times N\text{ array}
+}
+\]
+
+### Post‑condition  
+
+\[
+\boxed{
+Q_{\text{build}} \equiv
+   (\forall i,j\; (1\le i,j\le N \Rightarrow A[i,j]=|i-j|+1))
+}
+\]
+
+The routine fills the whole matrix with the “distance‑plus‑one’’ rule.
+
+---
+
+## 3.   Specification of the **printing** routine  
+
+```
+PrintMatrix(A,N)     // A is an N×N array, N ≥ 1
+```
+
+### Pre‑condition  
+
+\[
+\boxed{
+P_{\text{print}} \equiv
+   N\ge 1 \;\land\;
+   (\forall i,j\; (1\le i,j\le N \Rightarrow A[i,j]\in\mathbb Z))
+}
+\]
+
+### Post‑condition  
+
+\[
+\boxed{
+Q_{\text{print}} \equiv
+   \text{out\_inc}= 
+   \big\langle
+      \text{row}_{1},\dots ,\text{row}_{N},
+      \text{blank\_line}
+   \big\rangle
+}
+\]
+
+where for each row  
+
+\[
+\text{row}_{i}= \big\langle 
+   \operatorname{fmt}(A[i,1]),\,
+   \operatorname{fmt}(A[i,2]),\dots ,
+   \operatorname{fmt}(A[i,N])
+\big\rangle
+\]
+
+and  
+
+* \(\operatorname{fmt}(x)\) is the decimal representation of \(x\) **right‑justified
+  in a field of width 3** (i.e. padded on the left with blanks if necessary),
+* the elements of a row are separated by a **single blank**,
+* **no** blank follows the last element of a row,
+* each row ends with a newline character,
+* after the \(N\)-th newline a further newline (the “blank line’’) is emitted.
+
+The routine appends exactly this fragment to the global output stream.
+
+---
+
+## 4.   Hoare triple for the whole program  
+
+Using the two procedures above, the main loop can be written as
+
+```
+while true do
+    N := read()
+    if N = 0 then break
+    Build(N, A)
+    PrintMatrix(A, N)
+od
+```
+
+The Hoare triple that captures the whole algorithm is
+
+\[
+\boxed{
+\{P_{\text{global}}\}\; \textbf{while}\; (N\neq0)\; \textbf{do}
+   \bigl( N:=\text{read}();\;
+          \textbf{if } N\neq0\;
+          \textbf{then } Build(N,A); PrintMatrix(A,N)\;
+          \textbf{fi}\bigr)
+\; \textbf{od}\; \{Q_{\text{global}}\}
+}
+\]
+
+The invariant that makes the above triple provable is simply the
+concatenation of the already‑printed matrices, i.e.
+
+\[
+I_{\text{inv}} \equiv
+   (\exists\, r\;(0\le r\le k)\;
+      \; out = \big\lVert_{t=1}^{r}
+               \text{PrintMatrix}(A^{(t)}, n_{t})\big\| )
+\]
+
+which is true initially (`r = 0`) and is preserved by each iteration
+because `Build` creates the correct matrix and `PrintMatrix` appends its
+proper textual representation.
+
+---
+
+### Summary  
+
+* **Pre‑condition** – the input consists of a finite list of integers
+  \(1\le n_i\le 100\) terminated by a zero.
+* **Post‑condition** – for every such integer the program outputs the
+  \(n_i\times n_i\) matrix whose entry \((i,j)\) equals \(|i-j|+1\),
+  formatted exactly as required.
+
+These three Hoare triples (global, `Build`, `PrintMatrix`) give a complete
+formal, mathematical description of the program’s required behaviour.

@@ -1,0 +1,28 @@
+Description: The students at your university have lately picked up the annoying habit of missing classes. To fix this problem your board has decided to only allow students with 75% or higher attendance to sit for the exams.
+
+Input: The input contains several test cases. The first input line will contain an integerTindicating the number of test cases that follow.Each test case is composed of three input lines:
+
+Output: For each test case print out the names of all the students who do not meet the attendance requirements, separated by a single space character. Do not leave trailing spaces in the end of each line.
+
+Examples:
+- Example 1:
+  Input:
+4
+1
+Justin
+PAAPP
+2
+Justin Chris
+PAAPP PPPPA
+1
+Sunny
+PPPAM
+4
+Mansi Arjun Nikhil Taneja
+PPPPMPPAPP AAMAAPP PPPPAAP PPPAAAMPP
+  Output:
+Justin
+Justin
+Arjun Nikhil Taneja
+
+--

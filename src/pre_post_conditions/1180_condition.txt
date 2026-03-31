@@ -1,0 +1,98 @@
+Below is a **Hoare‑style specification** of the whole program (the only statement that we reason about is the whole program, not the internal loop).  
+All symbols are written in ordinary first‑order / set‑theoretic notation; the meaning of each symbol is given afterwards.
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}}
+\]
+
+---
+
+### 1.  Vocabulary  
+
+| Symbol | Meaning |
+|--------|---------|
+| \( \mathbb N \) | set of natural numbers (including 0) |
+| \( N\in\mathbb N \) | number of elements that will be read |
+| \( X : \{0,\dots ,N-1\}\rightarrow\mathbb Z \) | the input array (total function) |
+| \( \operatorname{min}(X) \) | \(\displaystyle \min_{0\le i<N} X(i)\) |
+| \( \operatorname{argmin}(X) \) | the **unique** index \(p\) such that \(X(p)=\operatorname{min}(X)\) (uniqueness follows from the “no repetitions’’ condition) |
+| \( out_1,out_2\in\mathbb Z\) | the two integer values that the program prints (the textual part of the output is fixed, therefore we only need to specify the numbers) |
+| \( \texttt{print}(a,b) \) | the I/O effect “write the line *Menor valor:* \(a\) followed by the line *Posicao:* \(b\)’’ |
+
+---
+
+### 2.  Preconditions  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;&
+\bigl(1 < N < 1000\bigr) \;\land\\[2mm]
+&\bigl(\forall i,j\; (0\le i<N \land 0\le j<N \land i\neq j)\;\Rightarrow\; X(i)\neq X(j)\bigr)
+\end{aligned}
+\]
+
+*Explanation.*  
+\(N\) must be an integer strictly between 1 and 1000, and the input array must contain **pairwise distinct** integers (the statement “no input will have repeated numbers’’).
+
+---
+
+### 3.  Postconditions  \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\;&
+\bigl(out_1 = \operatorname{min}(X)\bigr) \;\land\\[2mm]
+&\bigl(out_2 = \operatorname{argmin}(X)\bigr) \;\land\\[2mm]
+&\texttt{print}(out_1,out_2)
+\end{aligned}
+\]
+
+*Explanation.*  
+
+* \(out_1\) is the smallest value that occurs in the array.  
+* \(out_2\) is the (unique) index where that smallest value occurs; the array is **zero‑based**, therefore the first element has index 0.  
+* The program produces exactly the two required output lines; the textual part of the lines is fixed, so we only have to guarantee the numeric values.
+
+---
+
+### 4.  Whole Hoare Triple
+
+\[
+\boxed{
+\bigl\{\,P\,\bigr\}\;
+\underbrace{
+\texttt{
+read }N;\;
+\texttt{read }X[0\ldots N-1];\;
+\texttt{// compute min and its position}\;
+\texttt{print(min, pos)}
+}_{\text{the program}}
+\;
+\bigl\{\,Q\,\bigr\}
+}
+\]
+
+---
+
+### 5.  Optional “loop‑invariant” (for a concrete implementation)
+
+If one wishes to show that a concrete **for‑loop** indeed satisfies the above specification, a suitable invariant \(I(i,cur\_min,cur\_pos)\) for the loop variable \(i\) (processed elements are \(0,\dots,i-1\)) is:
+
+\[
+\begin{aligned}
+I(i,cur\_min,cur\_pos) \;\equiv\;&
+0\le i\le N \;\land\\
+&\bigl(cur\_min = \min_{0\le k<i} X(k)\bigr) \;\land\\
+&\bigl(cur\_pos = \operatorname{argmin}_{0\le k<i} X(k)\bigr).
+\end{aligned}
+\]
+
+The invariant holds initially (with \(i=0,\;cur\_min=X(0),\;cur\_pos=0\)), is preserved by the loop body, and together with the termination condition \(i=N\) yields exactly the post‑condition \(Q\).
+
+---
+
+Thus the **formal Hoare‑logic specification** of the problem is the triple  
+
+\[
+\{\,1<N<1000\;\land\;\text{all }X(i)\text{ distinct}\,\}\;\; \texttt{program}\;\; \{\,\texttt{print}(\min X,\arg\min X)\,\}.
+\]

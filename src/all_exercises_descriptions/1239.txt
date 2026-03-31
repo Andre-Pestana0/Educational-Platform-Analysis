@@ -1,0 +1,22 @@
+Description: You are helping to develop a weblog-management system called bloggo. Although bloggo pushes all content to the front end of a website in HTML, not all content authors enjoy using HTML tags in their text. To make their lives easier, bloggo offers a simple syntax calledshortcutsto achieve some HTML textual effects. Your job is to take a document written with shortcuts and translate it into proper HTML.
+
+Input: The input contains several test cases. Each test case is composed by one line that contais a stringtext, containing zero or more usages of the italic and boldface shortcuts. Eachtextis between 1 and 50 characters long, inclusive. The only characters allowed intextare the alphabetic characters 'a' to 'z' and 'A' to 'Z', the underscore '_', the asterisk '*', the space character, and the punctuation symbols ',', ';', '.', '!', '?', '-', '(', and ')'. The underscore '_' occurs intextan even number of times. The asterisk '*' occurs intextan even number of times. No substring oftextenclosed by a balanced pair of underscores or by a balanced pair of asterisks may contain any further underscores or asterisks.The end of input is determined by EOF.
+
+Output: Translate each inputtextinto HTML as demonstrated by the examples above (and below). To render a span of text in italics in HTML, you must start with the <i> tag and end with the </i> tag. For boldface text, start with <b> and end with </b>. Print onetranslated textper line at standard output.
+
+Examples:
+- Example 1:
+  Input:
+You _should_ see the new walrus at the zoo!
+Move it from *Accounts Payable* to *Receiving*.
+I saw _Chelydra serpentina_ in *Centennial Park*.
+_ _ __ _ yabba dabba _ * dooooo * ****
+_now_I_know_*my*_ABC_next_time_*sing*it_with_me
+  Output:
+You <i>should</i> see the new walrus at the zoo!
+Move it from <b>Accounts Payable</b> to <b>Receiving</b>.
+I saw <i>Chelydra serpentina</i> in <b>Centennial Park</b>.
+<i> </i> <i></i> <i> yabba dabba </i> <b> dooooo </b> <b></b><b></b>
+<i>now</i>I<i>know</i><b>my</b><i>ABC</i>next<i>time</i><b>sing</b>it<i>with</i>me
+
+--

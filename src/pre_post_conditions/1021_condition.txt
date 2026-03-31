@@ -1,0 +1,101 @@
+Below is a **Hoare‑logic specification** of the program that reads a monetary amount and prints the minimum number of bank‑notes and coins that compose it.
+
+---
+
+## 1.  Vocabulary  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N` | input amount (real), given with exactly two decimal digits |
+| `c` | integer number of **cents** : `c = 100·N` (so `c ∈ ℕ`) |
+| `d₁,…,d₁₂` | denominations expressed in **cents**  
+
+```
+d₁ = 10000   (R$ 100.00)      d₇  =   100   (R$   1.00)
+d₂ =  5000   (R$  50.00)      d₈  =    50   (R$   0.50)
+d₃ =  2000   (R$  20.00)      d₉  =    25   (R$   0.25)
+d₄ =  1000   (R$  10.00)      d₁₀ =    10   (R$   0.10)
+d₅ =   500   (R$   5.00)      d₁₁ =     5   (R$   0.05)
+d₆ =   200   (R$   2.00)      d₁₂ =     1   (R$   0.01)
+```
+
+| Symbol | Meaning |
+|--------|---------|
+| `q₁,…,q₁₂` | non‑negative integer variables that store the **quantity** of each denomination (`q₁` = number of 100‑reais notes, `q₈` = number of 0.50‑reais coins, …) |
+| `Σq` | total number of pieces: `Σq = Σ_{i=1}^{12} q_i` |
+| `⌊·⌋` | floor (integer part) |
+| `rem(x,d)` | remainder of the Euclidean division of `x` by `d` (`rem(x,d) = x - d·⌊x/d⌋`, 0 ≤ `rem` < `d`) |
+
+---
+
+## 2.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+P \;\equiv\;& 0 \le N \le 1\,000\,000.00 \\
+          &\land\; \exists k\in\mathbb N\;(k\le 100\,000\,000\;\land\; N = \frac{k}{100})\\
+          &\land\; c = 100\,N \quad (\text{so }c\in\mathbb N)
+\end{aligned}}
+\]
+
+The input is a monetary value in the interval \([0,10^{6}]\) and it has at most two decimal places (i.e. it can be represented exactly as an integer number of cents).
+
+---
+
+## 3.  Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\;& \exists (q_1,\dots ,q_{12})\in\mathbb N^{12}\; \Bigl[ \\
+          &\qquad\text{(i)  Exact decomposition: } 
+                \sum_{i=1}^{12} d_i \, q_i \;=\; c \\[2mm]
+          &\qquad\text{(ii) Minimal number of pieces: } 
+                \forall (q'_1,\dots ,q'_{12})\in\mathbb N^{12}\;[\\
+          &\qquad\qquad\bigl(\sum_{i=1}^{12} d_i q'_i = c\bigr) 
+                \;\Longrightarrow\; 
+                \sum_{i=1}^{12} q'_i \;\ge\; \sum_{i=1}^{12} q_i\bigr] \\[2mm]
+          &\qquad\text{(iii) Greedy construction (the algorithmic definition): }\\
+          &\qquad\begin{aligned}
+                q_1 &= \Bigl\lfloor \frac{c}{d_1}\Bigr\rfloor, &
+                r_1 &= \operatorname{rem}(c,d_1) \\[1mm]
+                q_2 &= \Bigl\lfloor \frac{r_1}{d_2}\Bigr\rfloor, &
+                r_2 &= \operatorname{rem}(r_1,d_2) \\[1mm]
+                &\vdots \\[1mm]
+                q_{12} &= \Bigl\lfloor \frac{r_{11}}{d_{12}}\Bigr\rfloor,
+          \end{aligned}
+          \\
+          &\qquad\text{where } r_{i}= \operatorname{rem}(r_{i-1},d_i) \text{ for } i=2,\dots ,12\\[2mm]
+          &\qquad\text{(iv)  Output format: the program prints the fixed strings}\\
+          &\qquad\text{      “NOTAS:” followed by the six lines } 
+                (q_1,\dots ,q_6) \text{ with their respective labels,}\\
+          &\qquad\text{      then “MOEDAS:” followed by the six lines }
+                (q_7,\dots ,q_{12}) \text{ with their respective labels.}
+          \Bigr]
+\end{aligned}}
+\]
+
+*Condition (i)* guarantees that the reported quantities really represent the input amount.  
+*Condition (ii)* expresses **optimality**: no other feasible decomposition uses fewer total pieces.  
+*Condition (iii)* is the constructive definition that the program implements – the classic **greedy** algorithm that, for a canonical set of denominations, yields the optimal solution.  
+*Condition (iv)* binds the abstract variables to the concrete textual output required by the problem statement.
+
+---
+
+## 4.  Hoare triple  
+
+\[
+\boxed{\{P\}\;\; \texttt{solve\_change()} \;\; \{Q\}}
+\]
+
+where `solve_change()` denotes the whole program (read `N`, compute the twelve `q_i`, and print the two blocks “NOTAS:” and “MOEDAS:” exactly as shown in the examples).
+
+---
+
+### Remarks  
+
+* Because all denominations are multiples of the smallest one (1 cent) and they form a *canonical* system, the greedy construction (iii) is provably optimal; therefore the existence of a tuple satisfying (i)–(iii) automatically satisfies (ii).  
+* The specification is *implementation‑independent*: any algorithm that, from a value satisfying `P`, produces integers `q_i` that meet the four clauses of `Q` is correct.  
+
+This completes the formal Hoare‑logic specification of the problem.

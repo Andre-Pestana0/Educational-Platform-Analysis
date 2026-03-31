@@ -1,0 +1,112 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) for a program that solves the described problem.  
+All symbols are defined in the *Mathematical Preliminaries* section that follows the specification.
+
+---
+
+## 1.  Hoare triple
+
+\[
+\boxed{\{\,\mathsf{Pre}\,\}\; \mathtt{MjolnirLift}\; \{\,\mathsf{Post}\,\}}
+\]
+
+where  
+
+* \(\mathtt{MjolnirLift}\) is the whole algorithm (read the input, process every test case and print the required characters).  
+
+* \(\mathsf{Pre}\) and \(\mathsf{Post}\) are the predicates given in Sections 2 and 3.
+
+---
+
+## 2.  Pre‑condition \(\mathsf{Pre}\)
+
+\[
+\begin{aligned}
+\mathsf{Pre}\;\; \equiv\;&
+\bigl(C\in\mathbb N\;\wedge\;C\ge 1\bigr) \;\wedge\\[2mm]
+&\Bigl(\forall i\in\{1,\dots ,C\}\;.\;
+\bigl(\text{name}_i\in\mathsf{Str}\bigr)\;\wedge\;
+\bigl(N_i\in\mathbb N\bigr)\;\wedge\;
+1\le N_i\le 25000\Bigr)
+\end{aligned}
+\]
+
+* \(C\) – number of test cases supplied on the first line of the input.  
+* \(\text{name}_i\) – the first word of the *i*‑th test case (the person’s name).  
+* \(N_i\) – the integer that follows the name, the upward force in Newtons.  
+* \(\mathsf{Str}\) denotes the set of all finite strings over the ASCII alphabet (the problem does not restrict the alphabet).  
+
+The pre‑condition simply states that the input conforms to the format described in the statement: a positive integer \(C\) followed by exactly \(C\) pairs \((\text{name}_i,N_i)\) with the force bounded between 1 and 25 000.
+
+---
+
+## 3.  Post‑condition \(\mathsf{Post}\)
+
+Let  
+
+\[
+\text{out}_i\in\{\,\mathtt{'Y'},\mathtt{'N'}\,\}\quad (1\le i\le C)
+\]
+
+be the character printed for the *i*‑th test case (in the same order as the input).  
+
+Define the **lifting predicate**  
+
+\[
+\mathsf{Lift}(\text{name},N)\; \equiv\; 
+\bigl(\text{name} = \mathtt{"Thor"}\bigr)
+\]
+
+(the problem’s narrative tells us that only Thor can raise Mjölnir, irrespective of the applied force; the example confirms this interpretation).  
+
+Then
+
+\[
+\boxed{
+\mathsf{Post}\;\equiv\;
+\Bigl(\forall i\in\{1,\dots ,C\}\;.\;
+\text{out}_i = \mathtt{'Y'}
+\;\Longleftrightarrow\;
+\mathsf{Lift}(\text{name}_i,N_i)\Bigr)
+\;\wedge\;
+\bigl|\text{out}_1\text{out}_2\cdots\text{out}_C\bigr| = C
+}
+\]
+
+In words:
+
+* For every test case *i*, the program prints **‘Y’** **iff** the person’s name is exactly the string *“Thor”* (the value of the force \(N_i\) is irrelevant).  
+* Exactly one output character is produced per test case, so the output length equals the number of test cases.
+
+---
+
+## 4.  Mathematical preliminaries (notation)
+
+| Symbol | Meaning |
+|--------|----------|
+| \(\mathbb N\) | Set of natural numbers \(\{0,1,2,\dots\}\). |
+| \(\mathsf{Str}\) | Set of all finite strings over the ASCII alphabet. |
+| \(\forall\) / \(\exists\) | Usual universal / existential quantifiers. |
+| \(\wedge,\;\vee,\;\Longrightarrow,\;\Longleftrightarrow\) | Logical conjunction, disjunction, implication, bi‑implication. |
+| \(|s|\) | Length of a string \(s\). |
+| \(\{1,\dots ,C\}\) | The set \(\{i\mid 1\le i\le C\}\). |
+| \(\mathtt{'Y'},\mathtt{'N'}\) | The two output characters required by the specification. |
+| \(\mathtt{"Thor"}\) | The literal string *Thor* (case‑sensitive). |
+
+---
+
+## 5.  Complete Hoare specification
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,C\in\mathbb N,\;C\ge1,\;\forall i\in\{1,\dots ,C\}\,
+(\text{name}_i\in\mathsf{Str}\;\wedge\;N_i\in\mathbb N\;\wedge\;1\le N_i\le25000)\,\}\\[2mm]
+\qquad\mathtt{MjolnirLift}\\[2mm]
+\{\,\forall i\in\{1,\dots ,C\}\,
+(\text{out}_i = \mathtt{'Y'} \Longleftrightarrow \text{name}_i = \mathtt{"Thor"})\,
+\wedge\;|\text{out}_1\cdots\text{out}_C| = C\,\}
+\end{array}
+}
+\]
+
+This Hoare triple completely captures the **formal specification** of the problem: the allowed shape of the input (pre‑condition) and the exact relationship between each input pair \((\text{name}_i,N_i)\) and the corresponding output character (post‑condition).

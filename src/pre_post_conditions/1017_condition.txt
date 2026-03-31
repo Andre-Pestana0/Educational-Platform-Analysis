@@ -1,0 +1,75 @@
+**Hoare‑logic specification (pre‑ and post‑conditions only)**  
+
+Let  
+
+* `t` – time spent on the trip (hours) – an integer read from the input,  
+* `v` – average speed during the trip (km / h) – an integer read from the input,  
+* `c = 12` – the car’s fuel‑efficiency (km per litre),  
+* `d` – travelled distance (km),  
+* `ℓ` – the amount of fuel (litres) that has to be printed,  
+
+and let `⌊·⌋` denote the floor function.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P \;\equiv\; 
+\bigl(t\in\mathbb Z \;\wedge\; v\in\mathbb Z\bigr) 
+\;\wedge\;
+\bigl(t\ge 0 \;\wedge\; v\ge 0\bigr)
+\]
+
+The program may assume that the two input values are non‑negative integers (the problem statement guarantees that they are “two integers”).
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+Q \;\equiv\;
+\Bigl(
+   d = t\cdot v
+\Bigr)
+\;\wedge\;
+\Bigl(
+   \ell = 
+   \frac{\displaystyle\Bigl\lfloor
+          1000\;\frac{d}{c}+ \tfrac12
+        \Bigr\rfloor}{1000}
+\Bigr)
+\;\wedge\;
+\bigl(\text{output of the program is the decimal representation of }\ell
+      \text{ with exactly three digits after the point}\bigr)
+\]
+
+The term  
+
+\[
+\frac{\lfloor 1000\frac{d}{c}+ \tfrac12\rfloor}{1000}
+\]
+
+is the mathematically precise way to say “round \(\frac{d}{c}\) to three decimal places”.  
+Equivalently, one may write  
+
+\[
+\ell = \operatorname{round}\!\Bigl(\frac{t\;v}{12},\,3\Bigr)
+\]
+
+where \(\operatorname{round}(x,3)\) denotes rounding to the nearest multiple of \(10^{-3}\).
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\;\{P\}\; \textbf{read }t; \textbf{read }v;
+          \; \ell \gets 
+          \frac{\lfloor 1000\frac{t\,v}{12}+ \tfrac12\rfloor}{1000};
+          \;\textbf{print } \ell\; \{Q\}\;}
+\]
+
+*The program terminates because it consists of a finite sequence of deterministic statements.*  
+
+Thus the formal specification of Little John’s fuel‑calculator is completely captured by the pre‑condition \(P\) (valid input) and the post‑condition \(Q\) (the printed value equals the correctly rounded fuel consumption).

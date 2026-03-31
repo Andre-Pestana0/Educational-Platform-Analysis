@@ -1,0 +1,32 @@
+Description: Read an integer value corresponding to a person's age (in days) and print it in years, months and days, followed by its respective message âano(s)â, âmes(es)â, âdia(s)â.
+
+Input: The input file contains 1 integer value.
+
+Output: Print the output, like the following example.
+
+Examples:
+- Example 1:
+  Input:
+400
+  Output:
+1 ano(s)
+1 mes(es)
+5 dia(s)
+
+- Example 2:
+  Input:
+800
+  Output:
+2 ano(s)
+2 mes(es)
+10 dia(s)
+
+- Example 3:
+  Input:
+30
+  Output:
+0 ano(s)
+1 mes(es)
+0 dia(s)
+
+--

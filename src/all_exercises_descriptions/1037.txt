@@ -1,0 +1,32 @@
+Description: You must make a program that read a float-point number and print a message saying in which of following intervals the number belongs: [0,25] (25,50], (50,75], (75,100]. If the read number is less than zero or greather than 100, the program must print the message âFora de intervaloâ that means "Out of Interval".
+
+Input: The input file contains a floating-point number.
+
+Output: The output must be a message like following example.
+
+Examples:
+- Example 1:
+  Input:
+25.01
+  Output:
+Intervalo (25,50]
+
+- Example 2:
+  Input:
+25.00
+  Output:
+Intervalo [0,25]
+
+- Example 3:
+  Input:
+100.00
+  Output:
+Intervalo (75,100]
+
+- Example 4:
+  Input:
+-25.02
+  Output:
+Fora de intervalo
+
+--

@@ -1,0 +1,110 @@
+Below is a **Hoare‑logic specification** of the program that, given the start‑ and end‑time of an event that occurs entirely inside the month of April, prints the duration of the event expressed as  
+
+\[
+\text{days }(d),\;\text{hours }(h),\;\text{minutes }(m),\;\text{seconds }(s)
+\]
+
+(one line for each component, printing **0** when a component is null).
+
+---
+
+## 1.   Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(d_s,\;h_s,\;m_s,\;s_s\) | day, hour, minute, second of the **start** of the event |
+| \(d_e,\;h_e,\;m_e,\;s_e\) | day, hour, minute, second of the **end** of the event |
+| \(T_s,\;T_e\) | total number of seconds elapsed from the beginning of 1 April 00 : 00 : 00 up to the start / end instant |
+| \(\Delta\) | \(T_e-T_s\) – total duration in seconds |
+| \(d,\;h,\;m,\;s\) | the four components of the duration that will be printed |
+| \(N\) | the number of days in April (30) – used only to bound the days |
+
+All variables are integer‑valued.
+
+---
+
+## 2.   Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \equiv\; &
+ 1 \le d_s \le N \;\wedge\; 1 \le d_e \le N                           \tag{1}\\
+ &\wedge\; 0 \le h_s < 24 \;\wedge\; 0 \le h_e < 24                    \tag{2}\\
+ &\wedge\; 0 \le m_s < 60 \;\wedge\; 0 \le m_e < 60                    \tag{3}\\
+ &\wedge\; 0 \le s_s < 60 \;\wedge\; 0 \le s_e < 60                    \tag{4}\\
+ &\wedge\; (d_s,h_s,m_s,s_s) \le_{\text{lex}} (d_e,h_e,m_e,s_e)       \tag{5}\\
+ &\wedge\; \Delta \; \ge\; 60                                         \tag{6}
+\end{aligned}
+\]
+
+*Explanation*  
+
+* (1)–(4) guarantee that every component lies in the legal range for the month of April.  
+* (5) guarantees that the end instant is **not earlier** than the start instant (lexicographic order on the 4‑tuple).  
+* (6) enforces the statement in the problem that the event has **minimum duration of one minute** (i.e. 60 s).  
+
+Using the definitions that will be introduced in the program body, condition (6) can be written as  
+
+\[
+\Delta = ((d_e-d_s)\cdot 24\cdot 3600
+          +(h_e-h_s)\cdot 3600
+          +(m_e-m_s)\cdot 60
+          +(s_e-s_s)) \;\ge\; 60 .
+\]
+
+---
+
+## 3.   Program (the “body” of the Hoare triple)
+
+```
+T_s := ((d_s-1)*24 + h_s)*3600 + m_s*60 + s_s;      // seconds from 1‑Apr‑00:00:00 to start
+T_e := ((d_e-1)*24 + h_e)*3600 + m_e*60 + s_e;      // seconds from 1‑Apr‑00:00:00 to end
+Δ   := T_e - T_s;                                   // total duration in seconds
+
+d   := Δ div 86400;           // whole days   (86400 = 24·3600)
+Δ   := Δ mod 86400;
+
+h   := Δ div 3600;            // whole hours
+Δ   := Δ mod 3600;
+
+m   := Δ div 60;              // whole minutes
+s   := Δ mod 60;              // remaining seconds
+```
+
+All arithmetic operators are the usual integer division (`div`) and remainder (`mod`).
+
+---
+
+## 4.   Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \equiv\;
+& d = \big\lfloor \frac{\Delta_0}{86400}\big\rfloor,                                   \tag{7}\\
+& \Delta_1 = \Delta_0 \bmod 86400,                                                   \\
+& h = \big\lfloor \frac{\Delta_1}{3600}\big\rfloor,                                   \tag{8}\\
+& \Delta_2 = \Delta_1 \bmod 3600,                                                    \\
+& m = \big\lfloor \frac{\Delta_2}{60}\big\rfloor,                                     \tag{9}\\
+& s = \Delta_2 \bmod 60,                                                             \tag{10}\\[4pt]
+& \text{output lines are } d\;\text{“dia(s)”, } h\;\text{“hora(s)”, } 
+   m\;\text{“minuto(s)”, } s\;\text{“segundo(s)”.}
+\end{aligned}
+\]
+
+where \(\Delta_0 = T_e-T_s\) is the *original* duration in seconds (the value of \(\Delta\) **before** it is overwritten by the successive `mod` operations).
+
+The post‑condition states precisely how each component of the duration is obtained from the total number of seconds, and that those components are printed (with the literal “0” automatically appearing when a component is null).
+
+---
+
+## 5.   Hoare Triple
+
+Putting the pieces together we obtain the formal specification:
+
+\[
+\boxed{\; \{P\}\; \texttt{ComputeDuration}\; \{Q\}\;}
+\]
+
+where `ComputeDuration` denotes the program fragment shown in section 3.
+
+The triple guarantees that **any** execution that starts from a state satisfying the pre‑condition (valid April dates, proper ordering, at least one‑minute duration) will terminate with the four integers \(d, h, m, s\) that correctly represent the elapsed time, ready to be printed exactly as required by the problem statement.

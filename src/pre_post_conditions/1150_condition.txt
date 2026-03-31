@@ -1,0 +1,125 @@
+**Hoare‑logic specification**
+
+Let  
+
+\[
+\mathbf{in}= (a_{0},a_{1},a_{2},\dots )\qquad a_{i}\in\mathbb Z
+\]
+
+be the (potentially infinite) sequence of integers that the program can read
+(one integer per line).  
+
+The program uses the following logical variables  
+
+* `X` – the first integer read (`X = a_{0}`),  
+* `Z` – the first integer after `X` that satisfies `Z > X`,  
+* `n` – the number that has to be printed,  
+
+and the auxiliary arithmetic functions  
+
+\[
+\begin{aligned}
+S(k) &:=\sum_{i=0}^{k-1}(X+i) 
+      = k\cdot X+\frac{k(k-1)}2 ,\qquad k\in\mathbb N,\\[2mm]
+\operatorname{firstGT}(X,\mathbf{in}) &:= 
+   \min\{j>0\mid a_{j}>X\}.
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+### Pre‑condition  
+
+\[
+\boxed{\;P\;}
+\]
+
+\[
+\begin{aligned}
+P\;:\;&\exists\,j>0\;.\;
+          a_{j}> a_{0}\;\wedge\;
+          \bigl(\forall i\;(0<i<j\;\Rightarrow\;a_{i}\le a_{0})\bigr)
+          \;\wedge\;
+          \bigl(\forall i\;(i\ge 0\;\Rightarrow\;a_{i}\in\mathbb Z)\bigr)
+\end{aligned}
+\]
+
+*Interpretation.*  
+The input sequence contains at least one integer larger than the first one,
+and the first such integer occurs at position  
+
+\[
+j =\operatorname{firstGT}(a_{0},\mathbf{in}).
+\]
+
+--------------------------------------------------------------------
+### Program (informal description)
+
+```
+read X                // X ← a0
+repeat
+    read t           // t ← next element of in
+until t > X
+Z ← t                 // the first integer > X
+k ← 0
+sum ← 0
+repeat
+    sum ← sum + (X + k)
+    k   ← k + 1
+until sum > Z
+output k
+```
+
+--------------------------------------------------------------------
+### Post‑condition  
+
+\[
+\boxed{\;Q\;}
+\]
+
+\[
+\begin{aligned}
+Q\;:\;& X = a_{0} \\
+    &\land\; Z = a_{j} \text{ where } j=\operatorname{firstGT}(X,\mathbf{in})\\[1mm]
+    &\land\; n = \min\{k\in\mathbb N_{>0}\mid S(k) > Z\}\\[1mm]
+    &\land\; \text{the program terminates and prints } n .
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+### Hoare triple  
+
+\[
+\boxed{\;\{P\}\;\; \text{program}\;\; \{Q\}\;}
+\]
+
+--------------------------------------------------------------------
+### Remarks on the arithmetic part  
+
+Because  
+
+\[
+S(k)=kX+\frac{k(k-1)}2,
+\]
+
+the value `n` can be expressed without iteration as  
+
+\[
+n = \min\Bigl\{k\in\mathbb N_{>0}\;\Big|\;
+            kX+\frac{k(k-1)}2 > Z\Bigr\}.
+\]
+
+The loop that computes `k` is guaranteed to terminate because  
+\(S(k)\) grows without bound while `Z` is a fixed integer (the existence of a
+`j` with `a_j > X` is ensured by the pre‑condition).
+
+--------------------------------------------------------------------
+### Summary  
+
+* **Pre‑condition** (`P`): the input stream contains a first integer `X` and,
+  after it, at least one integer larger than `X`.  
+* **Post‑condition** (`Q`): the program outputs the smallest positive integer
+  `n` such that the sum of the `n` consecutive integers starting at `X`
+  exceeds that first larger integer `Z`.  
+
+Thus the Hoare triple `{P} program {Q}` formally specifies the required
+behaviour of the described problem.

@@ -1,0 +1,81 @@
+Below is a **Hoare‑logic style specification** of the required program.  
+Only the *pre‑condition* (what must hold before the program starts) and the *post‑condition* (what is guaranteed after it finishes) are given – no implementation details are needed.
+
+---
+
+### Names, types and constants  
+
+| Symbol | Meaning | Type | Value (grams) |
+|--------|---------|------|---------------|
+| `c`    | number of servings ordered by **Curupira** | `ℤ` | – |
+| `b`    | number of servings ordered by **Boitatá** | `ℤ` | – |
+| `t`    | number of servings ordered by **Boto** (the “man” form) | `ℤ` | – |
+| `m`    | number of servings ordered by **Mapinguari** | `ℤ` | – |
+| `i`    | number of servings ordered by **Iara** | `ℤ` | – |
+| `G_c`  | grams per serving of Curupira | `ℕ` | `300` |
+| `G_b`  | grams per serving of Boitatá | `ℕ` | `1500` |
+| `G_t`  | grams per serving of Boto | `ℕ` | `600` |
+| `G_m`  | grams per serving of Mapinguari | `ℕ` | `1000` |
+| `G_i`  | grams per serving of Iara | `ℕ` | `150` |
+| `G_d`  | grams that **Dona Chica** herself eats | `ℕ` | `225` |
+| `total`| total grams of cassava that must be prepared | `ℕ` | – |
+| `out`  | integer printed by the program (followed by a line‑break) | `ℕ` | – |
+
+---
+
+### Pre‑condition  **P**
+
+The five input numbers are **exactly** the numbers of servings each guest will eat, and each of them is bounded by the problem statement (1 … 10 servings).
+
+\[
+\boxed{
+P \; \equiv\;
+\begin{cases}
+c,b,t,m,i \in \mathbb Z \\[2pt]
+1 \le c \le 10 \\[2pt]
+1 \le b \le 10 \\[2pt]
+1 \le t \le 10 \\[2pt]
+1 \le m \le 10 \\[2pt]
+1 \le i \le 10
+\end{cases}}
+\]
+
+(If the program reads the five integers from standard input, the act of reading is assumed to be *total*; i.e., the program will not terminate unless the above constraints hold.)
+
+---
+
+### Post‑condition **Q**
+
+After the program terminates it must have printed a single integer `out` that equals the sum of the grams required for all guests **plus** Dona Chica’s own portion.
+
+\[
+\boxed{
+Q \; \equiv\;
+\begin{aligned}
+&\text{let } total \; =\; G_c\cdot c \;+\; G_b\cdot b \;+\; G_t\cdot t \;+\; G_m\cdot m \;+\; G_i\cdot i \;+\; G_d \\[4pt]
+&out = total \quad\land\quad\text{`out` is printed followed by a line‑break}
+\end{aligned}}
+\]
+
+In expanded arithmetic form:
+
+\[
+out \;=\; 300c \;+\; 1500b \;+\; 600t \;+\; 1000m \;+\; 150i \;+\; 225 .
+\]
+
+---
+
+### Hoare triple for the whole program  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}}
+\]
+
+where `program` is any deterministic algorithm that
+
+1. reads the five integers `c, b, t, m, i` from the input,
+2. computes `out` as given above, and
+3. writes `out` followed by a newline to the output stream.
+
+The triple guarantees **partial correctness**: whenever the pre‑condition holds, the program terminates with a value that satisfies the post‑condition.  
+Because the computation consists only of a finite number of integer multiplications and additions, termination is also guaranteed (total correctness).

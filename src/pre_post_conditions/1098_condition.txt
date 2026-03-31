@@ -1,0 +1,112 @@
+Below is a **Hoare‑logic style specification** (pre‑condition \(P\) and post‑condition \(Q\)) written in ordinary mathematical notation (LaTeX‑style) for the program that must produce the sample output shown in the statement.
+
+---
+
+### 1.   Notation used in the specification  
+
+* \(\mathbb{R}\) – the set of real numbers.  
+* \(\mathbb{N}\) – the set of natural numbers (including 0).  
+* \(\operatorname{seq}(a,b,\Delta)\) – the finite arithmetic progression  
+
+\[
+\operatorname{seq}(a,b,\Delta)=\bigl\{ a+i\Delta \mid i\in\mathbb{N},
+\;0\le i\le \tfrac{b-a}{\Delta}\bigr\}.
+\]
+
+* \(\operatorname{str}(x)\) – the decimal string representation of a real number
+\(x\) (without unnecessary trailing zeros).  
+* “\(\,\Vert\)” denotes concatenation of strings.  
+* \(\operatorname{output}\) denotes the **total string** that the program writes to
+standard output (including the line‑feed character “\(\backslash n\)”).  
+
+---
+
+### 2.   Pre‑condition  
+
+The problem statement says **“there is no input”**.  
+Hence the program starts in a state that contains no relevant variables; the
+only requirement is that the environment is well‑behaved (e.g. a writable
+standard output).  Formally
+
+\[
+\boxed{P \;:=\; \texttt{true}}
+\]
+
+---
+
+### 3.   Post‑condition  
+
+Let  
+
+\[
+\begin{aligned}
+\Delta &:= 0.2,\\[2mm]
+I_{\!i} &:= 0 + i\Delta \qquad\text{for } i\in\{0,1,\dots ,10\}\;(\text{so } I_{10}=2),\\[2mm]
+K   &:= \{1,2,3\},\\[2mm]
+J_{i,k}&:= k + I_{\!i}\qquad\text{for }k\in K .
+\end{aligned}
+\]
+
+Define the **expected line** for a pair \((i,k)\) as  
+
+\[
+\ell_{i,k}\;:=\; 
+\texttt{"I="}\;\Vert\;\operatorname{str}(I_{\!i})\;\Vert\;
+\texttt{" J="}\;\Vert\;\operatorname{str}(J_{i,k})\;\Vert\;
+\texttt{"\(\backslash n\)"} .
+\]
+
+The **desired output** is the concatenation of all such lines, ordered first by
+increasing \(i\) (the value of \(I\)) and, for each fixed \(i\), by increasing
+\(k\) (the value of the base integer \(J\)):
+
+\[
+\boxed{
+\begin{aligned}
+Q\;:=\;&\operatorname{output}
+   \;=\;\big\Vert_{i=0}^{10}\;\big\Vert_{k\in K}\;\ell_{i,k}\\[2mm]
+   &\text{where } I_{\!i}=0+i\Delta,\;
+     J_{i,k}=k+I_{\!i},\;
+     \Delta=0.2,\;
+     K=\{1,2,3\}.
+\end{aligned}
+}
+\]
+
+In words:  
+
+* the program prints **exactly** 33 lines (11 values of \(I\) × 3 values of
+\(k\));  
+* each line has the shape `I=<value‑of‑I> J=<value‑of‑J>` followed by a newline;  
+* for a given \(I\) the three \(J\)‑values are \(1+I\), \(2+I\) and \(3+I\);  
+* the \(I\)‑values start at \(0\) and increase by \(0.2\) until the final value
+\(2\).
+
+---
+
+### 4.   Hoare triple  
+
+Putting the two parts together, the formal specification of the whole program
+is the Hoare triple  
+
+\[
+\boxed{\{\,\texttt{true}\,\}\;\; \texttt{PrintSequence}\;\; \{\,Q\,\}}
+\]
+
+where `PrintSequence` is any algorithm that, when started in a state satisfying
+the pre‑condition, terminates and leaves the system in a state satisfying the
+post‑condition \(Q\) defined above.
+
+---
+
+### 5.   Remarks on the “...” and the “?” in the statement  
+
+* The ellipsis “\(\dots\)” in the example merely indicates that the pattern
+continues as described; the formal specification makes the continuation
+precise (the arithmetic progression up to \(I=2\)).  
+* The placeholders “\(J=?\)” that appear in the statement are artifacts of the
+sample output formatting; the specification resolves them unambiguously as
+\(J = k + I\) with \(k\in\{1,2,3\}\).  
+
+Thus the Hoare‑logic specification above captures **exactly** what the program
+must compute and output.

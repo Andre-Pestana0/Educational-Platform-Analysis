@@ -1,0 +1,81 @@
+**Hoare‑logic specification (pure pre‑/post‑conditions)**  
+
+Let  
+
+* \(\mathcal{I}= \langle N_{1},N_{2},\dots ,N_{k}\rangle\) be the finite input sequence that the program reads from *standard input* (the file ends at EOF).  
+* \(\mathcal{O}= \langle M_{1},M_{2},\dots ,M_{k}\rangle\) be the sequence that the program writes to *standard output*.  
+
+Both sequences are indexed by the same set \(\{1,\dots ,k\}\) (the value of \(k\) is determined by the length of the file).
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P\; \equiv\; 
+\Bigl(\;k\ge 0\;\wedge\;
+\forall i\in\{1,\dots ,k\}\;.\;
+N_{i}\in\mathbb Z\;\wedge\;1001\le N_{i}\le 9999\;\Bigr)
+\]
+
+*The program is started with a (possibly empty) list of integers, each of them belonging to the closed interval \([1001,9999]\).*
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+Q\; \equiv\;
+\Bigl(\;
+\forall i\in\{1,\dots ,k\}\;.\;
+M_{i}=N_{i}-1\;\wedge\;1000\le M_{i}\le 9998\;
+\Bigr)
+\]
+
+*For every input number the program prints exactly the predecessor of that number; consequently every output lies in \([1000,9998]\).*
+
+---
+
+### Hoare triple for the whole program
+
+\[
+\boxed{\; \{P\}\;\texttt{PasswordProgram}\;\{Q\}\;}
+\]
+
+---
+
+### Informal description of the algorithm that satisfies the triple  
+
+```
+while not EOF do
+    read N               // N ∈ ℤ and 1001 ≤ N ≤ 9999   (by P)
+    write N-1            // produces M = N-1, 1000 ≤ M ≤ 9998
+od
+```
+
+For each loop iteration we can also write a local Hoare triple:
+
+\[
+\{\,1001\le N\le 9999\,\}\;
+\texttt{write }(N-1)\;
+\{\,\texttt{output}=N-1\;\wedge\;1000\le\texttt{output}\le 9998\,\}
+\]
+
+The termination condition is the natural end‑of‑file, which guarantees that the loop eventually stops; therefore the whole program terminates.
+
+---
+
+### Summary in pure mathematical notation  
+
+\[
+\begin{aligned}
+&\forall\; \langle N_{1},\dots ,N_{k}\rangle\;\bigl(
+   \bigl(\forall i\;1001\le N_{i}\le 9999\bigr)
+   \;\Longrightarrow\;
+   \exists\; \langle M_{1},\dots ,M_{k}\rangle\;
+   \bigl(\forall i\;M_{i}=N_{i}-1\bigr)
+   \bigr) .
+\end{aligned}
+\]
+
+This statement is exactly the formal (pre‑condition / post‑condition) specification of the problem in Hoare‑logic style.

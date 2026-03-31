@@ -1,0 +1,19 @@
+Description: PÃ©ricles has an unique interest in history. With his up-to-date internet browserchromed fox, he wandered in the most obscure sites about ancient Greek mythology.
+
+Input: The input is initiated by a line containing two integer numbers,NandM (0<N, M < 500),representing the initial number of tabs and the number of actions performed by PÃ©ricles. Each subsequent line contains an action (fechouorclicou). Naturally, the current number of tabs is always greater or equal to zero.
+
+Output: The output must consist of a line containing the final number of tabs.
+
+Examples:
+- Example 1:
+  Input:
+3 5
+fechou
+fechou
+clicou
+clicou
+clicou
+  Output:
+2
+
+--

@@ -1,0 +1,64 @@
+**Hoare‑style specification**
+
+Let  
+
+\[
+\begin{aligned}
+\mathit{Input} &\;=\;(a,b)\in\mathbb Z^{2}\qquad\text{(the two integers that are read)}\\[2mm]
+\mathit{Mult}(a,b) &\;:=\;(a\neq 0\land b\bmod a = 0)\;\lor\;(b\neq 0\land a\bmod b = 0) .
+\end{aligned}
+\]
+
+(The predicate  \(\mathit{Mult}(a,b)\) is true exactly when one of the numbers is a
+multiple of the other; the case \(a=b=0\) is considered *true* because
+\(0=0\cdot a\) and \(0=0\cdot b\).)
+
+The program statement **S** can be written abstractly as  
+
+```
+read a,b ;
+if  Mult(a,b) then
+        print "Sao Multiplos"
+else
+        print "Nao sao Multiplos"
+```
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\{\,\mathit{Input}\in\mathbb Z^{2}\,\}\; S\; \{\, Q \,\}}
+\]
+
+where the post‑condition \(Q\) is
+
+\[
+\begin{aligned}
+Q\; \equiv\;
+&\bigl(\, \text{out} = \text{"Sao Multiplos"} \;\land\; \mathit{Mult}(a,b)\,\bigr) \\
+&\;\;\lor\;
+\bigl(\, \text{out} = \text{"Nao sao Multiplos"} \;\land\; \neg\mathit{Mult}(a,b)\,\bigr).
+\end{aligned}
+\]
+
+In words:  
+
+*If the input numbers satisfy the predicate `Mult`, the program must
+terminate with the exact string “Sao Multiplos”; otherwise it must
+terminate with the exact string “Nao sao Multiplos”.*
+
+---
+
+### Compact form (using implication)
+
+Because the output is deterministic, the post‑condition can also be
+written as an equivalence:
+
+\[
+\boxed{\{\,\mathit{Input}\in\mathbb Z^{2}\,\}\; S\;
+\bigl(\; \text{out} = \text{"Sao Multiplos"} \;\leftrightarrow\; \mathit{Mult}(a,b)\;\bigr)} .
+\]
+
+Either formulation is a correct Hoare‑logic specification of the
+program required by the natural‑language description.

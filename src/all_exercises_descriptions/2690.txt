@@ -1,0 +1,19 @@
+Description: A new set of authentication will be implemented at the Federal Institute of South of Minas, Muzambinho campus, so users will not have much difficulty, plus you ... Well, the new authentication service is safe, without bugs and headaches even though we are at the end of the semester. It will allow your password to have spaces, but not numbers or special characters. The update always occurs during the vacation period, so tpdps adjustments are made and in the end please all users. As a trainee at the school's support center, your duty is to implement the new authentication. For now the new standard for user names is being studied.
+
+Input: You will haveNindicating the number of passwords that will be exchanged, thenNtest cases.
+
+Output: The output will be a list with the new, encrypted numbers of the passwords that were typed.
+
+Examples:
+- Example 1:
+  Input:
+3
+o rato roeu a roupa de margarida
+O Rato Roeu A Roupa de Margarida
+OlA TuDo CeRtO
+  Output:
+470947440074
+290949440694
+216405474992
+
+--

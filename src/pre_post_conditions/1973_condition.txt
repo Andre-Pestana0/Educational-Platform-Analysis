@@ -1,0 +1,124 @@
+Below is a **Hoare‑style specification** of the program that solves the “Star‑Trek” problem.  
+Only the **pre‑condition** (what is assumed about the input) and the **post‑condition** (what must be true of the output) are given; the body of the program is omitted, because the request asked only for the logical specification.
+
+---
+
+### Variables used in the specification  
+
+| Symbol | Meaning |
+|--------|------------------------------------------------------------|
+| `N`    | Number of farms (Stars). `N ∈ ℕ` and `1 ≤ N ≤ 10⁶`. |
+| `X[i]` | Initial number of sheep on farm `i` (`1 ≤ i ≤ N`).<br>`X[i] ∈ ℕ` and `1 ≤ X[i] ≤ 10⁶`. |
+| `c`    | Index of the farm that the brother is currently visiting. |
+| `V ⊆ {1,…,N}` | Set of farms that are **visited at least once** during the trek. |
+| `vis(i) ∈ ℕ` | Number of times farm `i` is visited (the *visit count*). |
+| `stolen(i)` | Number of sheep taken from farm `i`. By the description a farm can lose at most one sheep per visit, therefore `stolen(i) = min( vis(i) , X[i] )`. |
+| `attacked` | Number of distinct farms that have been attacked, i.e. `|V|`. |
+| `remaining` | Total number of sheep that stay on all farms after the trek finishes, i.e. `∑_{i=1}^{N} ( X[i] – stolen(i) )`. |
+| `output₁, output₂` | The two integers printed by the program; `output₁ = attacked`, `output₂ = remaining`. |
+
+---
+
+### Pre‑condition  
+
+\[
+\begin{aligned}
+P \;\equiv\;&
+   N \in \mathbb N \;\land\; 1 \le N \le 10^{6}
+   \;\land\\[2mm]
+   &\bigl( \forall i \in \{1,\dots ,N\}\;.\;
+        X[i] \in \mathbb N \;\land\; 1 \le X[i] \le 10^{6}
+   \bigr)
+\end{aligned}
+\]
+
+The pre‑condition states that the input consists of a valid size `N` and a
+valid array of initial sheep numbers.
+
+---
+
+### Post‑condition  
+
+Let the **execution** of the program be the (deterministic) simulation of the brother’s trek, starting with  
+
+* `c := 1` (the brother starts at farm 1),  
+* `vis(i) := 0` for all `i`, and  
+* `stolen(i) := 0` for all `i`.
+
+During each step the following actions are performed:
+
+1. **Visit** farm `c`.  
+   `vis(c) := vis(c) + 1`.
+2. **Steal** one sheep if any are present:  
+
+   \[
+   \text{if } X[c] - stolen(c) > 0 \text{ then } stolen(c) := stolen(c) + 1 .
+   \]
+
+3. **Choose the next farm** using the *parity* of the number of sheep **before** the stealing of this step:  
+
+   \[
+   \begin{cases}
+   \text{if } X[c] \text{ is odd} &\Rightarrow c := c + 1,\\[1mm]
+   \text{if } X[c] \text{ is even}&\Rightarrow c := c - 1 .
+   \end{cases}
+   \]
+
+4. **Terminate** when the new `c` is outside the interval `{1,…,N}`.
+
+From this execution we define  
+
+\[
+\begin{aligned}
+V       &:= \{\, i \mid vis(i) \ge 1 \,\},\\[2mm]
+attacked&:= |V|,\\[2mm]
+remaining &:= \sum_{i=1}^{N} \bigl( X[i] - stolen(i) \bigr).
+\end{aligned}
+\]
+
+The post‑condition is then
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\;&
+   output_{1}=attacked
+   \;\land\\[2mm]
+   output_{2}=remaining
+   \;\land\\[2mm]
+   \bigl(\forall i\in\{1,\dots ,N\}\;.\;
+        stolen(i)=\min\bigl(vis(i),\,X[i]\bigr)
+   \bigr)
+   \;\land\\[2mm]
+   \bigl(\forall i\in\{1,\dots ,N\}\;.\;
+        vis(i)=0 \;\Longrightarrow\; i\notin V
+   \bigr)
+\end{aligned}
+}
+\]
+
+In words, after the program terminates
+
+* `output₁` equals the number of **distinct** farms that were visited,
+* `output₂` equals the total number of sheep **left** on all farms,
+* each farm loses exactly one sheep per visit, never more than its initial stock,
+* the execution stops precisely when the brother would have to move to a non‑existent farm (`c∉{1,…,N}`).
+
+---
+
+### Hoare triple  
+
+Putting the two parts together, the formal specification of the whole program is
+
+\[
+\boxed{\; \{\,P\,\}\;\; \texttt{StarTrekProgram}\;\; \{\,Q\,\}\;}
+\]
+
+where `StarTrekProgram` denotes any implementation that follows the
+algorithmic description given above (the exact loop structure is irrelevant
+for the specification).  
+
+The triple guarantees that any execution that starts with a legal input
+satisfying `P` will finish with the two numbers required by the problem
+statement, and that those numbers satisfy the mathematical properties
+expressed in `Q`.

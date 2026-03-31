@@ -1,0 +1,81 @@
+Below is a **Hoare‑logic style specification** of the program that solves the task.  
+Only the *pre‑condition* (what must hold before the program starts) and the *post‑condition* (what must hold after the program terminates) are given; the body of the program is omitted because it is not required for the specification.
+
+---
+
+### Notation used  
+
+* `ℤ` – the set of all (mathematical) integers.  
+* `ℕ` – the set of natural numbers `{0,1,2,…}`.  
+* `1‥N` – the integer interval `{ i ∈ ℕ | 1 ≤ i ≤ N }`.  
+* `⟨ … ⟩` – a finite sequence (ordered list).  
+* `|s|` – length of a sequence `s`.  
+* `out[i]` – the *i*‑th element of the output sequence (1‑based indexing).  
+* `⊢` – the Hoare‑logic turnstile, i.e. “is provably correct with respect to”.  
+
+---
+
+## 1. Program variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N`    | integer read from the input file |
+| `out`  | sequence of triples that the program writes to the output file; each triple is written on a separate line and has the form `(a,b,c)` where `a,b,c ∈ ℤ`. |
+
+---
+
+## 2. Pre‑condition  
+
+\[
+P(N) \;\; \stackrel{\text{def}}{=}\;\; N \in \mathbb{Z}\ \land\ 1 < N < 1000 .
+\]
+
+The program may be invoked **only** when the input integer satisfies the bounds required by the problem statement.
+
+---
+
+## 3. Post‑condition  
+
+\[
+\begin{aligned}
+Q(N,\text{out}) \;\; \stackrel{\text{def}}{=}\;\;
+ &\;|\,\text{out}\,| = N                                                \\[2mm]
+ &\;\land\; \forall i \in 1\! \dots\! N\;.\;
+      \text{out}[i] = \bigl(i,\; i^{2},\; i^{3}\bigr) .
+\end{aligned}
+\]
+
+In words:
+
+* the output consists of exactly **N** lines;
+* the *i*‑th line (with `1 ≤ i ≤ N`) contains the three integers `i`, `i²` and `i³`, in that order, separated by blanks.
+
+---
+
+## 4. Hoare triple (formal specification)
+
+\[
+\boxed{\{\,P(N)\,\}\; \text{Program}\; \{\,Q(N,\text{out})\,\}}
+\]
+
+or, spelling the program abstractly,
+
+\[
+\{\,1 < N < 1000\,\}\;
+\begin{array}{l}
+\text{read }N;\\
+\text{for }i := 1 \text{ to } N \text{ do}\\
+\qquad \text{print } i,\ i^{2},\ i^{3};
+\end{array}
+\;\{\,|\,\text{out}\,| = N \land \forall i\,(1\le i\le N \Rightarrow \text{out}[i]=(i,i^{2},i^{3}))\,\}.
+\]
+
+---
+
+### Remarks  
+
+* The specification does **not** prescribe *how* the loop is implemented (while‑loop, recursion, etc.).  
+* The post‑condition fully captures the required output format, because the sequence `out` is defined as a list of triples printed line‑by‑line, each triple being exactly `(i, i², i³)`.  
+* The bounds `1 < N < 1000` guarantee that the loop terminates and that all intermediate values (`i²`, `i³`) fit comfortably within the range of a 32‑bit signed integer (the problem statement does not impose any overflow restrictions).  
+
+With this Hoare‑logic specification, any implementation that satisfies the triple `{P} Program {Q}` is a correct solution to the given problem.

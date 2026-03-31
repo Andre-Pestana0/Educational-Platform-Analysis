@@ -1,0 +1,98 @@
+"input": "<html>
+<head></head>
+<body>
+Hello
+</body>
+</html>"
+"output": "Hello"
+
+"input": "<html>
+<head></head>
+<body>
+</body>
+</html>"
+"output": ""
+
+"input": "<!DOCTYPE html>
+<html>
+<head><title>Test</title></head>
+<body>
+    <div>
+        <p>Paragraph</p>
+    </div>
+</body>
+</html>"
+"output": "    <div>
+        <p>Paragraph</p>
+    </div>"
+
+"input": "<body>
+    
+</body>"
+"output": "    "
+
+"input": "<body>
+Start content
+End content
+</body>"
+"output": "Start content
+End content"
+
+"input": "<body>
+Line1
+Line2
+Line3
+Line4
+Line5
+Line6
+Line7
+Line8
+Line9
+Line10
+Line11
+Line12
+Line13
+Line14
+Line15
+Line16
+Line17
+Line18
+Line19
+Line20
+</body>"
+"output": "Line1
+Line2
+Line3
+Line4
+Line5
+Line6
+Line7
+Line8
+Line9
+Line10
+Line11
+Line12
+Line13
+Line14
+Line15
+Line16
+Line17
+Line18
+Line19
+Line20"
+
+"input": "<body>
+This line contains </body> but not as tag
+Actual content
+</body>
+</html>"
+"output": "This line contains </body> but not as tag
+Actual content"
+
+"input": "<body>
+First section line
+</body>
+<body>
+Second section line
+</body>"
+"output": "First section line"

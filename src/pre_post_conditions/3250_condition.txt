@@ -1,0 +1,108 @@
+**Hoare‑style specification of the elevator‑button problem**
+
+We introduce the following identifiers  
+
+* \(f,s,g,u,d \in \mathbb{N}\) – input data (total floors, start floor, goal floor, up‑step, down‑step)  
+* \(n\in \mathbb{N}\cup\{\infty\}\) – the value returned by the program (the minimum number of button pushes, or “impossible”)  
+
+For a floor \(x\) we write  
+
+\[
+\operatorname{valid}(x) \; \stackrel{\text{def}}{:=}\; 1\le x\le f .
+\]
+
+--------------------------------------------------------------------
+### 1.   Pre‑condition  
+
+\[
+\begin{aligned}
+P \; \equiv\;& 1\le s\le f\;\land\;1\le g\le f\;\land\;0\le u\le 10^{6}\;\land\;0\le d\le 10^{6}\;\land\\
+            &\qquad f\le 10^{6}.
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+### 2.   Reachability predicate  
+
+A **trajectory** of length \(k\) from \(s\) to a floor \(x\) is a sequence  
+\(\mathbf{a}= (a_1,\dots ,a_k)\) with each \(a_i\in\{+u,-d\}\) such that  
+
+\[
+\forall i\in\{1,\dots ,k\}\;:\; 
+\operatorname{valid}\!\Bigl(s+\sum_{j=1}^{i}a_j\Bigr) .
+\]
+
+The final floor of the trajectory is  
+
+\[
+\operatorname{final}(\mathbf{a}) \;=\; s+\sum_{j=1}^{k}a_j .
+\]
+
+Define the **reachability set**
+
+\[
+\mathcal{R}(s,g) \;=\;\Bigl\{\,k\in\mathbb{N}\;\big|\;
+\exists \mathbf{a}\in\{+u,-d\}^{k}:
+\operatorname{final}(\mathbf{a}) = g\Bigr\}.
+\]
+
+--------------------------------------------------------------------
+### 3.   Minimal‑push function  
+
+\[
+\operatorname{minPush}(s,g) \;=\;
+\begin{cases}
+\displaystyle\min\mathcal{R}(s,g) & \text{if }\mathcal{R}(s,g)\neq\varnothing,\\[6pt]
+\infty & \text{otherwise.}
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+### 4.   Post‑condition  
+
+Let the program assign the value \(n\) to the variable that represents its output.  
+The post‑condition \(Q\) is
+
+\[
+\begin{aligned}
+Q \; \equiv\;& 
+\bigl(\operatorname{minPush}(s,g)\neq\infty \;\Rightarrow\;
+      n = \operatorname{minPush}(s,g)\bigr) \\
+&\land
+\bigl(\operatorname{minPush}(s,g)=\infty \;\Rightarrow\;
+      n = \infty\bigr) .
+\end{aligned}
+\]
+
+In words:
+
+*If the goal floor \(g\) is reachable from the start floor \(s\) using only moves “\(+u\)” (up) and “\(-d\)” (down) while never leaving the interval \([1,f]\), then the program returns the smallest possible number of button pushes.  
+If no such sequence exists, the program returns the distinguished value \(\infty\) (which the caller prints as the string “use the stairs”).*
+
+--------------------------------------------------------------------
+### 5.   Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{Elevator}(f,s,g,u,d)\;\; \{\,Q\,\}}
+\]
+
+where  
+
+* \(\texttt{Elevator}(f,s,g,u,d)\) denotes the (deterministic) algorithm that, given the inputs, either computes the minimal number of pushes or decides that the goal is unreachable;  
+
+* the triple asserts that **whenever the pre‑condition \(P\) holds**, the algorithm terminates and **the post‑condition \(Q\) holds** on termination.
+
+--------------------------------------------------------------------
+### 6.   Interpretation for the user‑visible output  
+
+The concrete output required by the problem statement is obtained from \(n\) by  
+
+\[
+\text{output} =
+\begin{cases}
+n                     & \text{if } n\neq\infty,\\
+\text{“use the stairs”} & \text{if } n=\infty .
+\end{cases}
+\]
+
+Thus the specification above completely captures the intended behaviour of the program in Hoare‑logic style.

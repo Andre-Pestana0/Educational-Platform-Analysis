@@ -1,0 +1,190 @@
+Below is a **Hoare‑logic specification** for the whole program (the “while‑free” fragment that reads the data, computes the weighted average, possibly reads the exam grade and prints the required messages).  
+Only the **pre‑condition** (what is known before the program starts) and the **post‑condition** (what must hold after it terminates) are given; the body of the program is shown only to make the logical variables clear.
+
+---
+
+### 1.   Notation
+
+* `ℝ₁` – the set of real numbers that have **exactly one digit after the decimal point** (e.g. 2.0, 7.5).  
+* `⟨x⟩` – the textual representation of the number `x` with one digit after the decimal point (the same format the program must print).  
+* `‖·‖` – concatenation of strings (e.g. `"Media: "`‖`⟨M⟩` = the string *Media: 5.4*).  
+
+The input values are called  
+
+```
+N1 , N2 , N3 , N4 ∈ ℝ₁            (the four grades)
+```
+
+The weight vector and its sum are  
+
+```
+w = (2, 3, 4, 1) ,   Σw = 2+3+4+1 = 10 .
+```
+
+The *initial weighted average* is  
+
+\[
+M \;=\; \frac{2N_{1}+3N_{2}+4N_{3}+N_{4}}{10}\; .
+\]
+
+If the student is sent to the exam, the program later reads  
+
+```
+E ∈ ℝ₁                           (exam grade)
+```
+
+and computes the *final average*
+
+\[
+M_{f}\;=\;\frac{M+E}{2}\; .
+\]
+
+All numeric quantities that appear in the output are required to be printed with exactly one decimal digit, i.e. as `⟨·⟩`.
+
+---
+
+### 2.   Hoare Triple
+
+\[
+\boxed{\{P\}\; \textbf{Program}\; \{Q\}}
+\]
+
+---
+
+#### 2.1   Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \;\equiv\;&
+   N_{1},N_{2},N_{3},N_{4}\in\mathbb{R}_{1}
+   \;\wedge\;
+   \bigl( \text{the input stream contains at least the four numbers } N_{1}\ldots N_{4}\bigr) .
+\end{aligned}
+\]
+
+No other information about the input is assumed; in particular we do **not** assume that an exam grade is already present – it will be read only when the program’s control flow demands it.
+
+---
+
+#### 2.2   Post‑condition  **Q**
+
+Let  
+
+\[
+M = \frac{2N_{1}+3N_{2}+4N_{3}+N_{4}}{10}.
+\]
+
+Define the *output list*  
+
+\[
+\mathsf{out}= (o_{1},o_{2},\dots ,o_{k})
+\]
+
+produced by the program in the order in which the statements are printed.  
+The post‑condition states exactly which strings must appear in `out` as a function of the computed averages.
+
+\[
+\begin{aligned}
+Q \;\equiv\; &\Bigl(
+   M \ge 7.0
+   \;\Longrightarrow\;
+   \mathsf{out}= \bigl(
+       \text{``Media: ``}\,\|\,\langle M\rangle,
+       \text{``Aluno aprovado.''}
+   \bigr)
+\Bigr) \\[4pt]
+\wedge\;&
+   M < 5.0
+   \;\Longrightarrow\;
+   \mathsf{out}= \bigl(
+       \text{``Media: ``}\,\|\,\langle M\rangle,
+       \text{``Aluno reprovado.''}
+   \bigr)
+\\[4pt]
+\wedge\;&
+   5.0 \le M \le 6.9
+   \;\Longrightarrow\;
+   \exists E\in\mathbb{R}_{1}\;.\;
+   \bigl(
+        \mathsf{out}= \bigl(
+           \text{``Media: ``}\,\|\,\langle M\rangle,\;
+           \text{``Aluno em exame.''},\;
+           \text{``Nota do exame: ``}\,\|\,\langle E\rangle,\;
+           \bigl(
+              \frac{M+E}{2} \ge 5.0
+              \;\Longrightarrow\;
+                 \text{``Aluno aprovado.''}
+              \;\;\wedge\;\;
+              \frac{M+E}{2} < 5.0
+              \;\Longrightarrow\;
+                 \text{``Aluno reprovado.''}
+           \bigr),\;
+           \text{``Media final: ``}\,\|\,\langle (M+E)/2\rangle
+        \bigr)
+   \bigr)
+\end{aligned}
+\]
+
+All numbers (`M`, `E`, `(M+E)/2`) are printed as `⟨·⟩`, i.e. with exactly one digit after the decimal point.
+
+---
+
+### 3.   Intuitive reading of the specification
+
+* **If** the weighted average `M` is **≥ 7.0** the program terminates after printing  
+
+  ```
+  Media: <M>
+  Aluno aprovado.
+  ```
+
+* **If** `M` is **< 5.0** the program terminates after printing  
+
+  ```
+  Media: <M>
+  Aluno reprovado.
+  ```
+
+* **If** `5.0 ≤ M ≤ 6.9** the program must  
+
+  1. print the initial average and the message *Aluno em exame*;  
+  2. read a fifth number `E` (the exam grade);  
+  3. compute the final average `Mf = (M+E)/2`;  
+  4. print the exam grade, then print *Aluno aprovado* if `Mf ≥ 5.0` otherwise *Aluno reprovado*;  
+  5. finally print `Media final: <Mf>`.
+
+All printed numeric values have exactly one decimal digit, matching the required output format.
+
+---
+
+### 4.   Complete Hoare triple (for reference)
+
+\[
+\boxed{
+\begin{aligned}
+\{\, &N_{1},N_{2},N_{3},N_{4}\in\mathbb{R}_{1}\,\}
+\; \textbf{read } N_{1},N_{2},N_{3},N_{4};\\
+& M := \frac{2N_{1}+3N_{2}+4N_{3}+N_{4}}{10};\\
+& \textbf{if } M\ge 7.0 \textbf{ then }\\
+& \qquad \textbf{print } ``Media: ''\|⟨M⟩;\\
+& \qquad \textbf{print } ``Aluno aprovado.''\\
+& \textbf{else if } M<5.0 \textbf{ then }\\
+& \qquad \textbf{print } ``Media: ''\|⟨M⟩;\\
+& \qquad \textbf{print } ``Aluno reprovado.''\\
+& \textbf{else }\\
+& \qquad \textbf{print } ``Media: ''\|⟨M⟩;\\
+& \qquad \textbf{print } ``Aluno em exame.'';\\
+& \qquad \textbf{read } E;\\
+& \qquad M_f := (M+E)/2;\\
+& \qquad \textbf{print } ``Nota do exame: ''\|⟨E⟩;\\
+& \qquad \textbf{if } M_f\ge 5.0 \textbf{ then } \textbf{print } ``Aluno aprovado.''\\
+& \qquad \textbf{else } \textbf{print } ``Aluno reprovado.'';\\
+& \qquad \textbf{print } ``Media final: ''\|⟨M_f⟩;\\
+& \textbf{fi}\\[2pt]
+\{\, &Q\,\}
+\end{aligned}}
+\]
+
+where `Q` is the post‑condition given in Section 2.2.  
+
+This Hoare‑logic specification captures **exactly** the behaviour required by the natural‑language problem statement.

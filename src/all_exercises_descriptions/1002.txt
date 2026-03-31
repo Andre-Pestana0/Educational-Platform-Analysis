@@ -1,0 +1,26 @@
+Description: The formula to calculate the area of a circumference is defined asA = Ï . R2. Considering to this problem thatÏ=3.14159:
+
+Input: The input contains a value of floating point (double precision), that is the variableR.
+
+Output: Present the message "A=" followed by the value of the variable, as in the example bellow, with four places after the decimal point. Use all double precision variables. Like all the problems, don't forget to print the end of line after the result, otherwise you will receive "Presentation Error".
+
+Examples:
+- Example 1:
+  Input:
+2.00
+  Output:
+A=12.5664
+
+- Example 2:
+  Input:
+100.64
+  Output:
+A=31819.3103
+
+- Example 3:
+  Input:
+150.00
+  Output:
+A=70685.7750
+
+--

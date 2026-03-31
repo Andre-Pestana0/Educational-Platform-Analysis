@@ -1,0 +1,221 @@
+**Answer – a Hoare‑logic proof sketch**
+
+Below we treat the program as a *P‑language* fragment (the same statements that appear in ordinary
+imperative languages).  
+We write Hoare triples  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+where \(P\) is the *pre‑condition* that must hold before the execution of the statement
+\(S\) and \(Q\) is the *post‑condition* that is guaranteed after the execution of \(S\).
+
+--------------------------------------------------------------------
+
+## 1.  Specification
+
+*Input* (the whole program receives it from `stdin`)
+
+* `numTestes` – a non‑negative integer.
+* For every `i` with `0 ≤ i < numTestes` a line containing three
+  integers `alt_i , dmt_i , qtd_i`.
+
+*Output*  
+
+The program must print exactly `numTestes` lines.  
+For each `i (0 ≤ i < numTestes)` the `i`‑th line must be  
+
+```
+"Sim"   iff   200 ≤ alt_i ≤ 300  ∧  dmt_i ≥ 50  ∧  qtd_i ≥ 150
+"Nao"   otherwise
+```
+
+--------------------------------------------------------------------
+
+## 2.  Pre‑condition and post‑condition of the whole program
+
+\[
+\begin{aligned}
+P_{\text{whole}} &\; \equiv\;
+  (\text{numTestes} = N) \land N\ge 0 \land
+  \bigl(\forall i\;(0\le i<N) \;.\;
+      \text{input line }i\text{ contains } alt_i,dmt_i,qtd_i\in\mathbb Z\bigr) \\
+Q_{\text{whole}} &\; \equiv\;
+  \bigl(\forall i\;(0\le i<N) \;.\;
+      \text{output line }i = 
+        \begin{cases}
+          "Sim" &\text{if } 200\le alt_i\le 300\land dmt_i\ge 50\land qtd_i\ge150\\
+          "Nao" &\text{otherwise}
+        \end{cases}
+   \bigr)
+\end{aligned}
+\]
+
+Our goal is to prove  
+
+\[
+\{P_{\text{whole}}\}\; {\tt program}\; \{Q_{\text{whole}}\}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Proof structure
+
+The program consists of two loops:
+
+1. **Loop 1** – reads the data and builds the list `respostas`.
+2. **Loop 2** – prints the elements of `respostas`.
+
+We prove each loop correct using a *loop invariant* and then combine them.
+
+--------------------------------------------------------------------
+
+### 3.1  Loop 1 – building the answer list
+
+```python
+i = 0
+while i < numTestes:
+    alt, dmt, qtdGalhos = input line i
+    if (alt>=200 and alt<=300 and dmt>=50 and qtdGalhos>=150):
+        respostas.append("Sim")
+    else:
+        respostas.append("Nao")
+    i = i + 1
+```
+
+#### Invariant `I₁`
+
+\[
+\begin{aligned}
+I_1 \equiv\;
+&0 \le i \le N \;\land\;
+\bigl(\forall k\;(0\le k<i)\;.\;
+   respostas[k] = 
+   \begin{cases}
+      "Sim" &\text{iff }200\le alt_k\le 300\land dmt_k\ge 50\land qtd_k\ge150\\
+      "Nao" &\text{otherwise}
+   \end{cases}
+  \bigr)
+\end{aligned}
+\]
+
+*Initialization* (`i = 0` before the loop):  
+
+`0 ≤ 0 ≤ N` holds. The universal quantifier over an empty set is true, therefore
+`I₁` holds.
+
+*Maintenance* (assume `I₁` holds at the top of an iteration with `i < N`):
+
+* The statement  
+  `alt, dmt, qtdGalhos = input line i` obtains exactly the triple
+  `(alt_i , dmt_i , qtd_i)` guaranteed by the pre‑condition.
+* The `if` statement evaluates the Boolean expression  
+
+  \[
+  B_i \equiv (200\le alt_i\le 300 \land dmt_i\ge 50 \land qtd_i\ge 150)
+  \]
+
+  By the standard Hoare rule for `if‑then‑else` we have  
+
+  \[
+  \{I_1\land B_i\}\; respostas.append("Sim")\; \{I_1'\}
+  \qquad
+  \{I_1\land\neg B_i\}\; respostas.append("Nao")\; \{I_1'\}
+  \]
+
+  where `I₁'` is exactly `I₁` with `i` replaced by `i+1` and the new element
+  `respostas[i]` correctly set to `"Sim"` iff `B_i` holds.
+* The final `i = i + 1` restores the bound `0 ≤ i+1 ≤ N`.
+
+Thus `I₁` is preserved.
+
+*Termination* – the loop stops when `i = N`.  
+At that moment `I₁` gives  
+
+\[
+\forall k\;(0\le k<N)\;.\;
+   respostas[k] = 
+   \begin{cases}
+      "Sim" &\text{iff }200\le alt_k\le 300\land dmt_k\ge 50\land qtd_k\ge150\\
+      "Nao" &\text{otherwise}
+   \end{cases}
+\]
+
+which is exactly the part of the post‑condition concerning the list
+`respostas`.
+
+Consequently we have proved  
+
+\[
+\{P_{\text{whole}}\}\; \text{Loop 1}\; \{\,\text{list `respostas` satisfies the spec}\,\}
+\]
+
+--------------------------------------------------------------------
+
+### 3.2  Loop 2 – printing the list
+
+```python
+i = 0
+while i < numTestes:
+    print(respostas[i])
+    i = i + 1
+```
+
+#### Invariant `I₂`
+
+\[
+I_2 \equiv 0\le i \le N
+\]
+
+*Initialization* – `i = 0` satisfies `I₂`.  
+
+*Maintenance* – the body does not modify `i` except for the final
+`i = i+1`, which clearly preserves `0 ≤ i ≤ N`.  
+
+*Termination* – when the loop ends we have `i = N`.  
+At that moment every element `respostas[0] … respostas[N‑1]` has already been printed.
+Because of the property proved after Loop 1, each printed line is exactly the
+required answer for the corresponding test case.
+
+Thus we have  
+
+\[
+\{\,\text{list `respostas` correct}\,\}\; \text{Loop 2}\; \{Q_{\text{whole}}\}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Composition
+
+The whole program is the sequential composition  
+
+```
+read numTestes
+Loop 1
+Loop 2
+```
+
+Using the Hoare rule for **sequencing** (`{P} S1 {R}` and `{R} S2 {Q}` ⇒ `{P} S1;S2 {Q}`) we obtain  
+
+\[
+\{P_{\text{whole}}\}\; \text{program}\; \{Q_{\text{whole}}\}
+\]
+
+which is precisely the required correctness statement.
+
+--------------------------------------------------------------------
+
+## 5.  Summary of the proof
+
+| Construct | Hoare rule used | Invariant / condition |
+|-----------|----------------|-----------------------|
+| Assignment `i = 0` (first loop) | Assignment axiom | `0 ≤ i ≤ N` |
+| `while i < N` (first loop) | While‑rule with invariant `I₁` | `I₁` (list prefix correct) |
+| `if … then … else …` | If‑rule | `B_i` decides whether `"Sim"` or `"Nao"` is appended |
+| `append` statements | Simple assignment rule (list extension) | Extends `respostas` preserving `I₁` |
+| Assignment `i = 0` (second loop) | Assignment axiom | `0 ≤ i ≤ N` |
+| `while i < N` (second loop) | While‑rule with invariant `I₂` | `I₂` (counter bound) |
+| `print(respostas[i])` | No side‑effect on verification (only I/O) | Uses already‑proved content of `respostas` |
+
+All logical steps are justified by the standard axioms and inference rules of Hoare logic. Consequently the program satisfies the formal specification: for every test case it prints **“Sim”** exactly when the three numerical conditions are fulfilled, and **“Nao”** otherwise. ∎

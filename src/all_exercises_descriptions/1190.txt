@@ -1,0 +1,20 @@
+Description: Read an uppercase character that indicates an operation that will be performed in an arrayM[12][12]. Then, calculate and print the sum or average considering only that numbers that are included in the right area (green area) of this array, like shown in the following figure.
+The figure depicts two diagonals, at yellow (positions [n][n] of the array and the opposite side ) and some are in green (in the triangle on the right of the two diagonals described previously)
+Input: The first line of the input contains a single uppercase characterO('S' or 'M'), indicating the operation Sum or Average (MÃ©dia in portuguese) to be performed with the elements of the array. Follow 144 floating-point numbers of the array.
+
+Output: Print the calculated result (sum or average), with one digit after the decimal point.
+
+Examples:
+- Example 1:
+  Input:
+S
+5.0
+130.0
+-3.5
+2.5
+4.1
+...
+  Output:
+122.2
+
+--

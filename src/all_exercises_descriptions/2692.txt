@@ -1,0 +1,24 @@
+Description: What, ready? Once again we need your help! After a few device exchanges and maintenance in the computer building, the IF keyboards (IFSULDEMINAS) suffered a bad taste in keyboard formatting, their keys are switched. Because the IF computers are prepared to receive any software, develop as quickly as possible a program that converts the sentences correctly.
+
+Input: It will have two integersNandMindicating respectively: the number of letters that were exchanged, and the phrases that were entered, thenEandS, which are theMtransformations that occur on the keyboard.
+
+Output: Print the correct sentence as soon as possible.
+
+Examples:
+- Example 1:
+  Input:
+5 3
+w l
+s m
+e o
+a b
+c z
+mbs loww 2017
+tozwbde ceoire
+ifmuwdosinbm
+  Output:
+sam well 2017
+teclado zoeiro
+ifsuldeminas
+
+--

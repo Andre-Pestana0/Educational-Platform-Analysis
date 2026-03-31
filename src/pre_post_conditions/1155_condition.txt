@@ -1,0 +1,52 @@
+Below is a **Hoare‑logic style** specification for the whole program (the only command `C` is the algorithm that computes the sum and prints it).  
+All symbols are defined in the “Notation” block that follows.
+
+---
+
+### 1.  Hoare triple (pre‑ / post‑condition)
+
+\[
+\boxed{\;\; \{\,\top \,\}\; C\; \{\, \mathit{out}= \operatorname{round}_{2}\!\Bigl(\displaystyle\sum_{i=1}^{100}\frac{1}{i}\Bigr)\,\}\;}
+\]
+
+* `⊤` (true) is the pre‑condition – there is **no input** and no requirement on the initial state.  
+* `out` is the *observable* output of the program (the text that is written to standard output).  
+* `round₂(x)` denotes “round *x* to the nearest hundredth (two decimal digits)”.
+
+---
+
+### 2.  Notation
+
+| Symbol | Meaning |
+|--------|---------|
+| `C` | the whole algorithm (initialisation, loop, printing). |
+| `S` | a real variable used by the program to accumulate the sum. |
+| `out` | the string (or character sequence) that the program finally writes. |
+| \(\displaystyle\sum_{i=1}^{100}\frac{1}{i}\) | the exact mathematical value of the harmonic sum up to 100. |
+| \(\operatorname{round}_{2}(x)\) | rounding to two decimal places: \(\displaystyle \operatorname{round}_{2}(x)=\frac{\big\lfloor 100x+0.5\big\rfloor}{100}\). |
+| `⊤` | the logical constant “true”. |
+| `{P} C {Q}` | Hoare triple: if the pre‑condition `P` holds before executing `C`, and `C` terminates, then the post‑condition `Q` holds afterwards. |
+
+---
+
+### 3.  Expanded post‑condition (optional detail)
+
+If one wishes to make the relationship between the internal variable `S` and the printed text explicit, the post‑condition can be written as a conjunction:
+
+\[
+\begin{aligned}
+\{\,\top \,\}\; C\; \{\, & S = \sum_{i=1}^{100}\frac{1}{i} \;\land\\[2mm]
+                       & \mathit{out}= \operatorname{toString}\bigl(\operatorname{round}_{2}(S)\bigr)\, \}
+\end{aligned}
+\]
+
+* `toString` converts the numeric value `round₂(S)` into the required textual representation (exactly two digits after the decimal point, e.g. “5.19”).
+
+---
+
+### 4.  Interpretation
+
+* **Pre‑condition** – nothing is required from the environment; the program may start in any state.  
+* **Post‑condition** – after termination the program has printed a single line whose numeric value equals the harmonic sum \( \sum_{i=1}^{100} 1/i \) rounded to two decimal places.  
+
+Thus the Hoare triple above completely captures the specification of the problem in formal (mathematical) notation.

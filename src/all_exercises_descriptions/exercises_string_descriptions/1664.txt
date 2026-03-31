@@ -1,0 +1,18 @@
+Description: Bullshit Bingois a game to make lectures, seminars or meetings less boring. Every player has a card with 5 rows and 5 columns. Each of the 25 cells contains a word (the cell in the middle has always the wordBINGOwritten in it). Whenever a player hears a word which is written on his card, he can mark it. The cell in the middle is already marked when the game starts. If a player has marked all the words in a row, a column or a diagonal, he stands up and shoutsBULLSHIT. After this, the game starts over again.
+
+Input: The input file consists of the text of the lecture, withBULLSHIToccurring occasionally. The first game starts with the first word in the input. Each occurrence ofBULLSHITindicates the end of one game.
+
+Output: The output consists of one number: the average number of different words needed to win a game. Write the number as a reduced fraction in the format shown below. Reduced fraction means that there should be no integer greater than 1 which divides both the numerator and denominator. For example if there were 10 games, and the number of different words in each game summed up to 55, print11 / 2.
+
+Examples:
+- Example 1:
+  Input:
+Programming languages can be classified BULLSHIT into following types:
+- imperative and BULLSHIT procedural languages
+- functional languages
+- logical BULLSHIT programming languages
+- object-oriented BULLSHIT languages
+  Output:
+9 / 2
+
+--

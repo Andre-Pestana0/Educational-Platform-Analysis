@@ -1,0 +1,183 @@
+Below is a **Hoare‑logic style specification** of the program described in the statement.  
+All the mathematical symbols are written in usual LaTeX‑style notation; the
+specification only concerns the **pre‑condition** (what is assumed about the
+input) and the **post‑condition** (what must hold after the program terminates).
+No implementation details are given – only the logical contract of the
+algorithm.
+
+---
+
+### 1.  Notation
+
+* Let  
+
+\[
+S = \bigl\langle (i_1,g_1,c_1),\;(i_2,g_2,c_2),\dots ,(i_n,g_n,c_n)\bigr\rangle
+\]
+
+be the **finite input sequence** supplied to the program, where  
+
+* \(i_k\in\mathbb Z_{\ge 0}\) – goals scored by **Inter** in the *k‑th* GRENAL,  
+* \(g_k\in\mathbb Z_{\ge 0}\) – goals scored by **Grêmio** in the *k‑th* GRENAL,  
+* \(c_k\in\{1,2\}\) – the answer to the question *“Novo grenal (1‑sim 2‑não)?”* after the
+  *k‑th* match.
+
+The sequence is **well‑formed** iff  
+
+\[
+c_n = 2\qquad\text{and}\qquad\forall k\;(1\le k<n)\;,\;c_k = 1 .
+\tag{WF}
+\]
+
+Thus the last answer is “2” (stop) and every earlier answer is “1” (continue).
+
+* Define the following derived quantities on a well‑formed input \(S\):
+
+\[
+\begin{aligned}
+\text{total}(S) &\;=\; n                                   &&\text{(number of grenais)}\\[2mm]
+\text{interWins}(S) &\;=\;\bigl|\{k\mid i_k > g_k\}\bigr|   &&\text{(Inter victories)}\\[2mm]
+\text{gremioWins}(S) &\;=\;\bigl|\{k\mid g_k > i_k\}\bigr| &&\text{(Grêmio victories)}\\[2mm]
+\text{draws}(S) &\;=\;\bigl|\{k\mid i_k = g_k\}\bigr|      &&\text{(draws)} .
+\end{aligned}
+\tag{STAT}
+\]
+
+* The **final winner message** is the function  
+
+\[
+\operatorname{winner}(S)=
+\begin{cases}
+\text{“Inter venceu mais”}      &\text{if } \text{interWins}(S) > \text{gremioWins}(S),\\[1mm]
+\text{“Gremio venceu mais”}    &\text{if } \text{gremioWins}(S) > \text{interWins}(S),\\[1mm]
+\text{“Não houve vencedor”}    &\text{otherwise.}
+\end{cases}
+\tag{WIN}
+\]
+
+* The program prints the literal line  
+
+\[
+\text{“Novo grenal (1‑sim 2‑não)”}
+\]
+
+**once after each* pair* \((i_k,g_k)\) is read (i.e. after each loop iteration).
+
+---
+
+### 2.  Specification of the whole program
+
+\[
+\boxed{\{\,\text{true}\,\}\; \text{GrenaisProgram}\; \{\,Q\,\}}
+\]
+
+*Pre‑condition*  
+
+\[
+P \;:=\; \text{true}
+\]
+
+(the program may be started with any input; the only requirement on the
+input is that it be a **finite** well‑formed sequence \(S\) as defined above).
+
+*Post‑condition*  
+
+\[
+\begin{aligned}
+Q \;:=\; &\exists S\; \bigl(\text{WF}(S) \land
+      \text{total}(S)=n \land
+      \text{interWins}(S)=\#\{k\mid i_k>g_k\} \land
+      \text{gremioWins}(S)=\#\{k\mid g_k>i_k\} \land
+      \text{draws}(S)=\#\{k\mid i_k=g_k\}\bigr) \\[2mm]
+      &\;\;\land\;
+      \text{Output} = 
+      \underbrace{\bigl[\text{“Novo grenal (1‑sim 2‑não)”}\bigr]^{\,n}}_{\text{n repetitions}} \\
+      &\qquad\! \frown\;
+      \text{“}n\;\text{grenais”}\;\frown\;
+      \text{“Inter:}\;\text{interWins}(S)\text{”}\;\frown\;
+      \text{“Gremio:}\;\text{gremioWins}(S)\text{”}\;\frown\;
+      \text{“Empates:}\;\text{draws}(S)\text{”}\;\frown\;
+      \operatorname{winner}(S) .
+\end{aligned}
+\tag{POST}
+\]
+
+*Explanation*  
+
+* The program reads the first pair \((i_1,g_1)\), prints the prompt,
+  then reads the continuation flag \(c_1\).  
+  If \(c_1=1\) it repeats; otherwise it stops.
+* Consequently the **number of iterations** equals the length \(n\) of the
+  input sequence \(S\).  
+* After termination the program outputs:
+  * the prompt line exactly \(n\) times,
+  * the four statistical lines (total grenais, Inter wins, Grêmio wins,
+    draws),
+  * and finally the winner message given by \(\operatorname{winner}(S)\).
+
+---
+
+### 3.  Loop‑level specification (for the “repeat?” part)
+
+Let the loop variable be the **partial prefix** of the input processed so far:
+
+\[
+\text{pref}_k = \bigl\langle (i_1,g_1,c_1),\dots ,(i_k,g_k,c_k)\bigr\rangle ,
+\qquad 0\le k\le n .
+\]
+
+Define the loop invariant \(I(k)\) as
+
+\[
+\begin{aligned}
+I(k) \;:\; &\exists S_k\;\bigl(
+    \text{pref}_k = S_k\land
+    \text{WF}(S_k)\land
+    \text{total}(S_k)=k\land
+    \text{interWins}(S_k)=\#\{j\le k\mid i_j>g_j\}\\
+    &\qquad\qquad\qquad
+    \land\;\text{gremioWins}(S_k)=\#\{j\le k\mid g_j>i_j\}\land
+    \text{draws}(S_k)=\#\{j\le k\mid i_j=g_j\}\bigr) .
+\end{aligned}
+\tag{INV}
+\]
+
+The loop body (reading a new pair, printing the prompt, reading the flag)
+preserves the invariant; when the guard `c_k = 2` becomes true, the loop
+terminates with \(k=n\) and the invariant together with the guard yields the
+post‑condition \(Q\).
+
+Formally, the Hoare triple for the loop is
+
+\[
+\{\,I(0)\,\}\;
+\textbf{while}\;c=1\;\textbf{do}
+\begin{cases}
+\text{read }i_k,g_k;\\
+\text{print prompt;}\\
+\text{read }c_k;
+\end{cases}
+\;\{\,I(k)\land (c=2 \Rightarrow k=n)\,\}.
+\]
+
+Because \(I(0)\) holds trivially (no matches processed yet) and the loop
+preserves \(I\) while decreasing the remaining input, the invariant together
+with the termination condition yields exactly the statistical values defined
+in (STAT) and the final output described in (POST).
+
+---
+
+### 4.  Summary
+
+The program satisfies the Hoare triple  
+
+\[
+\boxed{\{\,\text{true}\,\}\;\text{GrenaisProgram}\;\{\,Q\,\}}
+\]
+
+with the **post‑condition** \(Q\) given in (POST).  
+In words: after reading a well‑formed finite sequence of match results and
+“continue/stop” answers, the program prints the prompt after each match and,
+when the user finally answers “2”, it prints the total number of GRENALS,
+the number of victories of each team, the number of draws, and the appropriate
+winner message (or “Não houve vencedor” if the two teams are tied).

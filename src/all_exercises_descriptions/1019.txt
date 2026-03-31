@@ -1,0 +1,26 @@
+Description: Read an integer value, which is the duration in seconds of a certain event in a factory, and inform it expressed in hours:minutes:seconds.
+
+Input: The input file contains an integerN.
+
+Output: Print the read time in the input file (seconds) converted in hours:minutes:seconds like the following example.
+
+Examples:
+- Example 1:
+  Input:
+556
+  Output:
+0:9:16
+
+- Example 2:
+  Input:
+1
+  Output:
+0:0:1
+
+- Example 3:
+  Input:
+140153
+  Output:
+38:55:53
+
+--

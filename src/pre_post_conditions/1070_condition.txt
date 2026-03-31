@@ -1,0 +1,79 @@
+Below is a **Hoare‑logic style specification** for the program that reads a positive integer `X` and prints the six consecutive odd numbers starting at `X` (including `X` itself when `X` is odd).
+
+---
+
+### Notation used  
+
+* `X ∈ ℕ⁺` – the input value (a strictly positive integer).  
+* `mod` – the remainder operator.  
+* `⌈·⌉` – the ceiling function.  
+* `⟨a₁,…,a₆⟩` – the ordered 6‑tuple of values that are printed, one per line.  
+* `odd(n) ≡ (n mod 2 = 1)` – predicate “`n` is odd”.  
+* `output(i)` – the *i*‑th value that the program writes to the output stream (1‑based).  
+
+---
+
+## Hoare triple  
+
+\[
+\boxed{\; \{\,P\,\}\; \text{Program}\; \{\,Q\,\}\;}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+P \; \equiv\; X \in \mathbb{N}^{+}
+\]
+
+The only requirement before the program starts is that a **positive integer** has been supplied as input.
+
+---
+
+### Post‑condition \(Q\)
+
+Let  
+
+\[
+k \;:=\;
+\begin{cases}
+X               & \text{if } X \bmod 2 = 1\\[2mm]
+X + 1           & \text{if } X \bmod 2 = 0
+\end{cases}
+\qquad\text{(the smallest odd number }\ge X\text{).}
+\]
+
+Define the 6‑tuple of numbers that must be printed:
+
+\[
+\mathbf{o}\;=\;\langle o_{1},o_{2},o_{3},o_{4},o_{5},o_{6}\rangle
+\quad\text{where}\quad
+o_{i}\;:=\;k + 2\,(i-1)\;\;(i=1,\dots,6).
+\]
+
+Then the post‑condition is  
+
+\[
+\begin{aligned}
+Q \;\equiv\;&\bigwedge_{i=1}^{6}\bigl( \;output(i)=o_{i}\;\bigr)                     &&\text{(exactly six lines are printed)}\\[2mm]
+            &\land\;\bigwedge_{i=1}^{6}\bigl( \;odd(o_{i})\;\bigr)                    &&\text{(all printed numbers are odd)}\\[2mm]
+            &\land\;\bigwedge_{i=1}^{5}\bigl( \;o_{i+1}=o_{i}+2\;\bigr)              &&\text{(consecutive odds differ by 2)}\\[2mm]
+            &\land\;o_{1}=k                                                         &&\text{(first printed odd is the smallest odd }\ge X\text{)}.
+\end{aligned}
+\]
+
+In words, after the program terminates it must have written **exactly six** integers, each odd, forming an arithmetic progression with common difference 2, whose first term is the smallest odd integer that is **not smaller than** the input `X`.
+
+---
+
+### Full specification
+
+\[
+\boxed{
+\{\,X\in\mathbb{N}^{+}\,\}\;
+\text{read }X;\;
+\text{print }output(1),\dots,output(6);\;
+\{\,Q\,\}
+}
+\]
+
+where \(Q\) is the conjunction displayed above. This specification captures completely the intended behaviour of the problem statement in a formal Hoare‑logic style.

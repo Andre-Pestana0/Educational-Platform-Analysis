@@ -1,0 +1,92 @@
+Below is a **Hoare‑logic style specification** for the program that solves the “MacPRONALTS” problem.  
+Only the *pre‑condition* (what the caller must guarantee) and the *post‑condition* (what the program guarantees on termination) are given; the body of the program is omitted.
+
+---
+
+### Notation
+
+* `ℕ` – set of natural numbers (including 0).  
+* `ℝ⁺` – set of non‑negative real numbers.  
+* `⟦·⟧` – the usual meaning of an expression (its value).  
+* `format(x,2)` – the decimal representation of the real number `x` rounded to exactly two fractional digits (as required for the output).  
+
+We introduce the following fixed data that is known **a‑priori** (the “menu” of the day):
+
+\[
+\begin{aligned}
+\text{PRICE} &: \{1001,1002,1003,1004,1005\}\longrightarrow \mathbb{R}^{+}\\[2mm]
+\text{PRICE}(1001) &= p_{1},\\
+\text{PRICE}(1002) &= p_{2},\\
+\text{PRICE}(1003) &= p_{3},\\
+\text{PRICE}(1004) &= p_{4},\\
+\text{PRICE}(1005) &= p_{5},
+\end{aligned}
+\]
+
+where each \(p_{k}\) is a constant positive real number (the price of the product whose code is \(100k\)).  
+The exact numeric values are **not** needed for the specification; they are part of the problem statement.
+
+---
+
+### Program variables
+
+| Variable | Type | Meaning |
+|----------|------|----------|
+| `p`      | `ℕ`  | number of distinct products bought (the first line of the input) |
+| `id[i]`  | `ℕ`  | product code of the *i‑th* line, for `i = 1 … p` |
+| `q[i]`   | `ℕ`  | quantity bought of product `id[i]`, for `i = 1 … p` |
+| `total`  | `ℝ⁺` | the amount (in monetary units) that has to be printed |
+| `output` | `String` | the string written on the standard output (the only visible effect) |
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\{\,\textbf{Pre}\,\}\; \texttt{Program}\; \{\,\textbf{Post}\,\}}
+\]
+
+#### Pre‑condition  \(\textbf{Pre}\)
+
+\[
+\begin{aligned}
+\textbf{Pre} \equiv\;& 1 \le p \le 5 \\[1mm]
+&\land\; \forall i\in\{1,\dots ,p\}\; \bigl(\; id[i]\in\{1001,1002,1003,1004,1005\}\;\bigr) \\[1mm]
+&\land\; \forall i\in\{1,\dots ,p\}\; \bigl(\; 1 \le q[i] \le 500\;\bigr)
+\end{aligned}
+\]
+
+The pre‑condition states that the input respects the limits given in the statement
+(‑ at most five different products, each quantity between 1 and 500, and every product code belongs to the menu).
+
+#### Post‑condition  \(\textbf{Post}\)
+
+\[
+\begin{aligned}
+\textbf{Post} \equiv\;& \; total = \sum_{i=1}^{p} \text{PRICE}\bigl(id[i]\bigr)\;\times\; q[i] \\[2mm]
+&\land\; output = \text{format}(total,2)
+\end{aligned}
+\]
+
+The post‑condition says that after termination the variable `total` contains **exactly** the monetary sum of all purchased items, and the program’s only observable effect is to write that sum with two decimal digits.
+
+---
+
+### Full formal specification
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,1\le p\le 5\;\land\;\forall i\;(id[i]\in\{1001,\dots ,1005\})\;\land\;\forall i\;(1\le q[i]\le 500)\,\}\\[2mm]
+\texttt{read }p;\\
+\texttt{for }i:=1\text{ to }p\text{ do}\\
+\qquad\texttt{read }id[i],\;q[i];\\
+\texttt{end for}\\[1mm]
+\texttt{total }:=\displaystyle\sum_{i=1}^{p}\text{PRICE}(id[i])\cdot q[i];\\
+\texttt{output }:=\text{format}(total,2);\\[2mm]
+\{\,total = \displaystyle\sum_{i=1}^{p}\text{PRICE}(id[i])\cdot q[i]\;\land\;output = \text{format}(total,2)\,\}
+\end{array}
+}
+\]
+
+The triple above captures the **entire functional behaviour** required by the problem statement, expressed purely in mathematical (Hoare‑logic) notation.

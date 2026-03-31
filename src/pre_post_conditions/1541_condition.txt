@@ -1,0 +1,123 @@
+**Hoare‑logic specification**
+
+We describe the whole program (reading an arbitrary number of test cases and printing the answer for each one) by a single Hoare triple  
+
+\[
+\{\,P\,\}\; \texttt{main}\; \{\,Q\,\}
+\]
+
+where the **pre‑condition** \(P\) and the **post‑condition** \(Q\) are written in ordinary mathematical notation.
+
+---
+
+### 1.  Notation
+
+* Let a *test case* be a triple of natural numbers  
+
+  \[
+  (A,B,C)\in\mathbb N^3 .
+  \]
+
+* The sentinel “0’’ terminates the input, i.e. the program reads a (possibly empty) finite sequence  
+
+  \[
+  S = \bigl\langle (A_1,B_1,C_1),\dots ,(A_n,B_n,C_n)\bigr\rangle 
+  \qquad (n\ge 0)
+  \]
+
+  such that after the last triple a single integer `0` is encountered.
+
+* For a given triple we define  
+
+  \[
+  L(A,B,C) \;:=\;
+  \Bigl\lfloor\sqrt{\frac{A\cdot B\cdot 100}{C}}\Bigr\rfloor .
+  \]
+
+  The floor symbol \(\lfloor\;\rfloor\) denotes *truncation* (rounding toward 0).
+
+* The output of the program is the sequence  
+
+  \[
+  O = \bigl\langle L(A_1,B_1,C_1),\dots ,L(A_n,B_n,C_n)\bigr\rangle .
+  \]
+
+---
+
+### 2.  Pre‑condition \(P\)
+
+The input must satisfy the constraints given in the statement:
+
+\[
+\boxed{
+\begin{aligned}
+P\; \equiv\;&\; \text{The program receives a finite sequence }S=
+\bigl\langle (A_1,B_1,C_1),\dots ,(A_n,B_n,C_n)\bigr\rangle   \\
+&\;\;\text{such that for every }i\;(1\le i\le n):   \\
+&\qquad A_i\in\mathbb N,\; 0< A_i\le 1000,\\
+&\qquad B_i\in\mathbb N,\; 0< B_i\le 1000,\\
+&\qquad C_i\in\mathbb N,\; 0< C_i\le 1000 .
+\end{aligned}}
+\]
+
+(The sentinel “0’’ is not part of the sequence; it merely signals the end of input.)
+
+---
+
+### 3.  Post‑condition \(Q\)
+
+When the program terminates it must have printed exactly the sequence \(O\) defined above:
+
+\[
+\boxed{
+\begin{aligned}
+Q\; \equiv\;&\; \text{The program outputs the sequence }O=
+\bigl\langle L(A_1,B_1,C_1),\dots ,L(A_n,B_n,C_n)\bigr\rangle ,\\[2mm]
+&\;\text{where for each }i\;(1\le i\le n)\\[1mm]
+&\qquad L(A_i,B_i,C_i)=
+\Bigl\lfloor\sqrt{\frac{A_i\cdot B_i\cdot 100}{C_i}}\Bigr\rfloor .
+\end{aligned}}
+\]
+
+In words: for every test case the program prints the *truncated* side length of a square land whose area is the smallest possible that still allows the house of area \(A_i\cdot B_i\) to occupy at most \(C_i\) percent of the land.
+
+---
+
+### 4.  Hoare triple for the main loop
+
+If we want to expose the internal loop that processes the test cases, we can write a more detailed triple:
+
+\[
+\{P\}\;
+\texttt{while (read(A,B,C) \neq 0) \{  
+\; \texttt{print}\bigl(\lfloor\sqrt{(A\cdot B\cdot 100)/C}\rfloor\bigr);  
+\}} 
+\;\{Q\}
+\]
+
+*Loop invariant* (useful for a formal proof)  
+
+\[
+I(k) \equiv 
+\text{After processing the first }k\text{ triples }(0\le k\le n)\\
+\text{the program has already printed } 
+\bigl\langle L(A_1,B_1,C_1),\dots ,L(A_k,B_k,C_k)\bigr\rangle .
+\]
+
+The invariant together with the termination condition (the sentinel `0`) yields the post‑condition \(Q\).
+
+---
+
+### 5.  Summary in compact mathematical form
+
+\[
+\boxed{
+\begin{aligned}
+\{\, &0<A_i\le1000,\;0<B_i\le1000,\;0<C_i\le1000\;(1\le i\le n)\,\\
+      &\text{input sequence }S=\langle (A_i,B_i,C_i)\rangle_{i=1}^{n}\,\\
+\}\; \texttt{program}\;
+\{\, &\text{output }O=\langle\;\lfloor\sqrt{(A_iB_i\cdot100)/C_i}\rfloor\;\rangle_{i=1}^{n}\, \}
+\end{aligned}}
+\]
+
+This Hoare‑logic specification precisely captures the required behaviour of the program described in the natural‑language problem statement.

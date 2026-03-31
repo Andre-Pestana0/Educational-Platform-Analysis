@@ -1,0 +1,110 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “read‑count‑print” algorithm).  
+Only the *pre‑condition* (what must hold before the program starts) and the *post‑condition* (what is guaranteed after the program terminates) are given – exactly what is asked for in a Hoare‑logic specification.
+
+---
+
+### 1.  Notation used  
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℕ`    | set of non‑negative integers (`0,1,2,…`) |
+| `ℤ`    | set of all integers |
+| `N`    | the first integer read from the input (the number of test cases) |
+| `X_i`  | the *i*‑th integer read after `N` (`1 ≤ i ≤ N`) |
+| `I`    | the “in‑interval’’ – the closed interval \([0,100]\) (the interval that is implicit in the statement) |
+| `in`   | number of values that belong to `I` |
+| `out`  | number of values that do **not** belong to `I` |
+| `⌈P⌉`  | the truth value of predicate `P` (`1` if `P` is true, `0` otherwise) |
+| `#S`   | cardinality (size) of a finite set `S` |
+| `⟦e⟧` | the value of an expression `e` in the current state |
+
+We also write a **Hoare triple** as  
+
+\[
+\{\,\text{Pre}\,\}\; \text{Program}\; \{\,\text{Post}\,\}
+\]
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\text{Pre}\;\;\equiv\;&
+   N \in \mathbb{N}\ \land\ N < 10\,000 \\[2mm]
+   &\land\; \bigl(\forall i\;(1\le i\le N \;\Longrightarrow\;
+        X_i \in \mathbb{Z}\ \land\ -10^{7}<X_i<10^{7})\bigr)
+\end{aligned}}
+\]
+
+*Interpretation*: the program is started with a non‑negative integer `N` smaller than 10 000, and exactly `N` further integers `X_1,…,X_N` are available on the input, each lying strictly between \(-10^{7}\) and \(10^{7}\).
+
+---
+
+### 3.  Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\text{Post}\;\;\equiv\;&
+   \bigl( I = [0,100] \bigr) \\[1mm]
+   &\land\; in  = \#\{\,i \mid 1\le i\le N \land X_i \in I\,\} \\[1mm]
+   &\land\; out = N - in \\[1mm]
+   &\land\; \text{output\;is\;the two lines}\\
+   &\qquad\; \text{“}in\;{\tt in}”\;\text{and}\;
+          \text{“}out\;{\tt out}”\;(\text{each followed by a newline})
+\end{aligned}}
+\]
+
+*Interpretation*: after termination the program has computed  
+
+* `in` – the number of input values that lie inside the interval \([0,100]\);  
+* `out` – the number of input values that lie outside that interval (hence `out = N – in`);
+
+and it has printed exactly the two lines required by the specification.
+
+---
+
+### 4.  Full Hoare triple  
+
+\[
+\boxed{
+\{\,\text{Pre}\,\}\;
+\underbrace{
+\begin{array}{l}
+\text{read } N;\\
+\text{for } i:=1\ \text{to}\ N\ \text{do}\\
+\quad\text{read } X_i;\\
+\text{end for}\\[1mm]
+\text{in } := \displaystyle\sum_{i=1}^{N}\!\bigl\lceil X_i\in I\bigr\rceil;\\
+\text{out }:= N - \text{in};\\[1mm]
+\text{print } \text{in},\;{\tt\;“in”};\\
+\text{print } \text{out},\;{\tt\;“out”}
+\end{array}
+}_{\displaystyle\text{Program }P}
+\;
+\{\,\text{Post}\,\}}
+\]
+
+---
+
+### 5.  (Optional) Loop invariant for the counting loop  
+
+If one wishes to prove the program correct by induction on the loop that reads the `X_i`’s, a suitable invariant is
+
+\[
+\begin{aligned}
+\text{Inv}(k) \equiv\;
+&0\le k\le N\ \land\\
+&\text{in}_k = \#\{\,i\mid 1\le i\le k\land X_i\in I\,\}\\
+&\text{out}_k = k-\text{in}_k,
+\end{aligned}
+\]
+
+where `in_k` and `out_k` are the values of the counters after the first `k` iterations.  
+The invariant holds initially (`k=0`), is preserved by each iteration, and yields the post‑condition when `k = N`.
+
+---
+
+**Thus the formal Hoare‑logic specification of the problem is the triple `{Pre} P {Post}` given above.**

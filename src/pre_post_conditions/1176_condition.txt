@@ -1,0 +1,140 @@
+Below is a **Hoare‑logic style specification** (pre‑condition \(P\) and post‑condition \(Q\)) written in ordinary mathematical notation for the whole program that solves the described problem.  
+All auxiliary definitions that are used in the specification are given first.
+
+---
+
+### 1.  Auxiliary definitions  
+
+*Let*  
+
+\[
+\mathbb N = \{0,1,2,\dots\}
+\]
+
+*Fibonacci function*  
+
+\[
+\operatorname{fib} : \mathbb N \longrightarrow \mathbb N,\qquad 
+\begin{cases}
+\operatorname{fib}(0) = 0,\\[2pt]
+\operatorname{fib}(1) = 1,\\[2pt]
+\operatorname{fib}(n) = \operatorname{fib}(n-1)+\operatorname{fib}(n-2)
+      \quad\text{for } n\ge 2 .
+\end{cases}
+\]
+
+*Upper bound for 64‑bit unsigned integers*  
+
+\[
+U_{64}=2^{64}\;.
+\]
+
+*The input sequence*  
+
+\[
+\mathbf N = (N_1,\dots ,N_T)\in\mathbb N^{T}
+\]
+
+*The output sequence*  
+
+\[
+\mathbf O = (O_1,\dots ,O_T)\in\text{String}^{T}
+\]
+
+*Formatting function*  
+
+\[
+\operatorname{fmt}(n) = \texttt{"Fib("}\; \Vert n \Vert\; \texttt{") = "} \; \Vert \operatorname{fib}(n) \Vert,
+\]
+
+where “\(\Vert\cdot\Vert\)” denotes the usual decimal representation of a natural number and “\(\Vert\cdot\Vert\)” denotes string concatenation.
+
+---
+
+### 2.  Pre‑condition \(P\)
+
+\[
+\boxed{
+\begin{aligned}
+P \;\equiv\; &\exists T\in\mathbb N \;.\;
+  \bigl(0\le T \bigr) \\
+&\land\; \bigl(\mathbf N = (N_1,\dots ,N_T)\bigr) \\
+&\land\; \forall i\in\{1,\dots ,T\}\;.\;
+        \bigl(0\le N_i \le 60\bigr) .
+\end{aligned}}
+\]
+
+In words: the program receives a non‑negative integer \(T\) followed by exactly \(T\) integers \(N_i\) each satisfying \(0\le N_i\le 60\).
+
+---
+
+### 3.  Loop invariant (used for the **for‑loop** that processes the test cases)
+
+For a loop index \(k\) (\(1\le k\le T+1\)) let  
+
+\[
+\mathit{Inv}(k) \;\equiv\;
+\begin{cases}
+k=1 &\text{(no case processed yet)}\\[2pt]
+\exists \mathbf O^{\,k-1} = (O_1,\dots ,O_{k-1})\;
+   \bigl(\forall i\in\{1,\dots ,k-1\}\;
+          O_i = \operatorname{fmt}(N_i)\bigr)
+   &\text{otherwise.}
+\end{cases}
+\]
+
+The invariant states that after having processed the first \(k-1\) inputs the program has already produced the correctly formatted output lines for those inputs.
+
+---
+
+### 4.  Post‑condition \(Q\)
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\; &\forall i\in\{1,\dots ,T\}\;.\;
+   O_i = \operatorname{fmt}(N_i) \\[4pt]
+&\land\; \forall i\in\{1,\dots ,T\}\;.\;
+   \operatorname{fib}(N_i) < U_{64}.
+\end{aligned}}
+\]
+
+Thus the output consists of exactly \(T\) lines, the \(i\)-th line being the string  
+
+\[
+\texttt{"Fib("}\;N_i\;\texttt{") = "}\;\operatorname{fib}(N_i)
+\]
+
+and every computed Fibonacci number fits into an unsigned 64‑bit integer (which is trivially true for \(N_i\le 60\)).
+
+---
+
+### 5.  Whole‑program Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{program}\; \{Q\}}
+\]
+
+where *program* denotes the following pseudo‑code (written here only to make the connection with the invariant explicit):
+
+```text
+read T
+k := 1
+while k ≤ T do
+    read N_k
+    F_k := fib(N_k)                // recursive or iterative computation
+    print fmt(N_k)                 // prints "Fib(N_k) = F_k"
+    k := k + 1
+od
+```
+
+The loop invariant \(\mathit{Inv}(k)\) holds initially (\(k=1\)), is preserved by each iteration (by the definition of `fib` and `fmt`), and together with the termination condition (\(k = T+1\)) yields the post‑condition \(Q\).
+
+---
+
+### 6.  Summary  
+
+* **Pre‑condition** guarantees a well‑formed input (a non‑negative integer \(T\) followed by \(T\) integers in the interval \([0,60]\)).  
+* **Post‑condition** guarantees that the program prints, in the exact required format, the \(N_i\)-th Fibonacci number for each test case and that the value fits into an unsigned 64‑bit word.  
+
+These two logical assertions constitute the formal Hoare‑logic specification of the problem.

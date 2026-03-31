@@ -1,0 +1,41 @@
+Description: Read 3 double numbers (A, B and C) representing the sides of a triangle and arrange them in decreasing order, so that the side A is the biggest of the three sides. Next, determine the type of triangle that they can make, based on the following cases always writing an appropriate message:
+
+Input: The input contains three double numbers, A (0 < A) , B (0 < B) and C (0 < C).
+
+Output: Print all the classifications of the triangle presented in the input.
+
+Examples:
+- Example 1:
+  Input:
+7.0 5.0 7.0
+  Output:
+TRIANGULO ACUTANGULO
+TRIANGULO ISOSCELES
+
+- Example 2:
+  Input:
+6.0 6.0 10.0
+  Output:
+TRIANGULO OBTUSANGULO
+TRIANGULO ISOSCELES
+
+- Example 3:
+  Input:
+6.0 6.0 6.0
+  Output:
+TRIANGULO ACUTANGULO
+TRIANGULO EQUILATERO
+
+- Example 4:
+  Input:
+5.0 7.0 2.0
+  Output:
+NAO FORMA TRIANGULO
+
+- Example 5:
+  Input:
+6.0 8.0 10.0
+  Output:
+TRIANGULO RETANGULO
+
+--

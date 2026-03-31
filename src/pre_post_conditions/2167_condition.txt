@@ -1,0 +1,83 @@
+Below is a **Hoare‑logic style specification** for a program that receives an engine‑test data set and prints the index of the first speed‑fall (or 0 when none exists).
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N`    | number of speed measures (input) |
+| `R[1‥N]` | integer array, `R[i]` = the *i*‑th RPM measurement |
+| `idx`  | integer output of the program (the index that must be printed) |
+
+All variables are assumed to be **program variables** that are in scope for the whole program (i.e. they are not local to a sub‑routine).
+
+---
+
+## 1.  Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \; \equiv \;&\; 1 < N \le 100 \;\land \\[2mm]
+               &\; \forall i\;(1 \le i \le N \;\rightarrow\; 0 \le R[i] \le 10\,000) \;\land \\[2mm]
+               &\; \text{(the input has already been read into }N\text{ and }R[1‥N]\text{).}
+\end{aligned}
+\]
+
+The pre‑condition only talks about the *state before* the program starts executing: the size of the test and the admissible range of every measurement are guaranteed.
+
+---
+
+## 2.  Post‑condition  **Q**
+
+Define the set of “fall” indices
+
+\[
+\text{Fall} \;=\; \{\, i \mid 2 \le i \le N \;\land\; R[i] < R[i-1] \,\}.
+\]
+
+The required result can be expressed by a case distinction on whether this set is empty:
+
+\[
+\begin{aligned}
+Q \; \equiv \;&\; \bigl( \text{Fall} = \varnothing \;\rightarrow\; idx = 0 \bigr) \\[2mm]
+               &\;\land\; \bigl( \text{Fall} \neq \varnothing \;\rightarrow\; 
+                     idx = \min(\text{Fall}) \bigr) \\[2mm]
+               &\;\land\; 0 \le idx \le N .
+\end{aligned}
+\]
+
+In words:
+
+* If there is **no** index *i* (with *i > 1*) such that the current measurement is lower than the previous one, the program must output `0`.
+* Otherwise the program must output the **smallest** such index – i.e. the first place where a speed fall occurs.
+* The output is always a legal index (`0` … `N`).
+
+---
+
+## 3.  Hoare triple
+
+\[
+\boxed{ \{\,P\,\}\;\; \text{Program} \;\; \{\,Q\,\} }
+\]
+
+where *Program* is any algorithm that reads `N` and `R[1‥N]`, computes `idx` as described above, and prints `idx`.
+
+---
+
+### Equivalent “single‑line” formulation (optional)
+
+\[
+\{\,1 < N \le 100 \land \forall i\; (1\le i\le N \rightarrow 0\le R[i]\le 10\,000)\,\}
+\;\;
+\text{prog}
+\;\;
+\{\, idx = 
+\begin{cases}
+0 & \text{if } \neg\exists i\;(2\le i\le N \land R[i] < R[i-1])\\[2mm]
+\displaystyle\min\{i \mid 2\le i\le N \land R[i] < R[i-1]\} & \text{otherwise}
+\end{cases}
+\;\land\; 0\le idx\le N \, \}.
+\]
+
+This specification captures precisely the natural‑language requirement: “output the measure index where the first speed fall happened; output 0 if none occurs.”

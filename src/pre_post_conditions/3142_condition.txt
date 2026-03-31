@@ -1,0 +1,152 @@
+**Formal specification (Hoare‑logic style)**  
+
+We describe the program **colAlg** that receives a character string `S` (the column label) and produces  
+
+* an integer `N` – the numeric index of the column, and  
+* a Boolean flag `ok` – `true` iff the label is a valid Excel column (i.e. ≤ `XFD`).  
+
+If `ok = false` the caller must output the literal  
+
+```
+Essa coluna nao existe Tobias!
+```  
+
+Otherwise the caller outputs the integer `N`.
+
+---
+
+### 1.   Auxiliary definitions  
+
+*Alphabet*  
+
+\[
+\Sigma = \{\,A,B,\dots ,Z\,\}
+\]
+
+*Letter‑to‑digit function*  
+
+\[
+\operatorname{val} : \Sigma \to \mathbb N,\qquad
+\operatorname{val}(c)=\bigl(\operatorname{code}(c)-\operatorname{code}('A')\bigr)+1
+\]
+
+where `code` is the usual ASCII/Unicode code of a character.  
+Thus `val(A)=1, … , val(Z)=26`.
+
+*Base‑26 numeric value of a string*  
+
+For a non‑empty string \(s = s_1 s_2 \dots s_{k}\) (each \(s_i\in\Sigma\))
+
+\[
+\operatorname{num}(s) \;:=\; \sum_{i=1}^{k} \operatorname{val}(s_i)\; 26^{\,k-i}
+\tag{1}
+\]
+
+*Maximum column of Excel*  
+
+\[
+\text{MAX} \;:=\; \operatorname{num}(\text{“XFD”})
+               = 24\cdot 26^{2}+6\cdot 26+4
+               = 16384 .
+\tag{2}
+\]
+
+---
+
+### 2.   Preconditions  
+
+\[
+\boxed{
+P \;\equiv\;
+\bigl(|S|\ge 1\ \wedge\ |S|\le 10\bigr)
+\;\wedge\;
+\bigl(\forall i\in\{1,\dots ,|S|\}\;.\; S_i\in\Sigma\bigr)
+}
+\tag{3}
+\]
+
+(`S_i` denotes the *i*‑th character of `S`.)
+
+The precondition guarantees that the input consists only of capital Latin letters
+and its length respects the limits of the problem statement.
+
+---
+
+### 3.   Postconditions  
+
+Let  
+
+\[
+n \;:=\; \operatorname{num}(S) .
+\]
+
+The postcondition distinguishes two exhaustive cases.
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\;&
+\bigl(1\le n \le \text{MAX}\bigr)
+   \;\Longrightarrow\;
+   \bigl(N = n\ \wedge\ ok = \text{true}\bigr) \\[2mm]
+&\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+\wedge\;
+\text{output} = \text{the decimal representation of }n \\[2mm]
+\text{and }& 
+\bigl(n > \text{MAX}\bigr)
+   \;\Longrightarrow\;
+   \bigl(N = -1\ \wedge\ ok = \text{false}\bigr) \\[2mm]
+&\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+\wedge\;
+\text{output} = \text{“Essa coluna nao existe Tobias!”}
+\end{aligned}
+}
+\tag{4}
+\]
+
+The clause `N = -1` is only a convenient internal sentinel; the only observable
+behaviour required by the specification is the choice of the two possible output
+strings.
+
+---
+
+### 4.   Hoare triple  
+
+\[
+\boxed{
+\{\,P\,\}\;\; \text{colAlg}(S,N,ok)\;\; \{\,Q\,\}
+}
+\tag{5}
+\]
+
+---
+
+### 5.   Informal reading of the specification  
+
+*If the input string `S` (1 ≤ |S| ≤ 10, only ‘A’…‘Z’) denotes a column whose
+numeric index `num(S)` does not exceed the last Excel column `XFD`
+(i.e. `num(S) ≤ 16384`), the algorithm must return that index in `N`,
+set `ok` to true and the program must print the integer.*
+
+*Otherwise (`num(S) > 16384`) the algorithm must set `ok` to false,
+store any dummy value (conventionally –1) in `N`, and the program must print*
+
+```
+Essa coluna nao existe Tobias!
+```
+
+---
+
+### 6.   Correctness argument sketch (for the reader)
+
+* **Soundness** – From (1) the computation of `n = num(S)` is exactly the
+  base‑26 interpretation of the column label with `A` mapped to 1.
+* **Boundedness** – By (2) the maximal legal value is `MAX = 16384`.  
+  The postcondition explicitly checks `n ≤ MAX`; therefore any
+  `S` producing a larger value triggers the error branch.
+* **Totality** – The precondition (3) guarantees that `num(S)` is well‑defined
+  for every admissible `S`; consequently the algorithm terminates with one
+  of the two mutually exclusive outcomes described in `Q`.
+
+Thus the Hoare triple (5) faithfully captures the required behaviour of the
+requested algorithm.

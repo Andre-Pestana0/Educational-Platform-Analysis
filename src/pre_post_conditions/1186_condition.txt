@@ -1,0 +1,108 @@
+Below is a Hoare‑style specification written in ordinary mathematical notation.  
+All variables are assumed to be **typed** as indicated (the program reads them from the
+input, computes a value, and prints it).
+
+---
+
+### 1.   Data domains  
+
+* `Op` – the operation character  
+
+\[
+\text{Op}\in\{\,\text{'S'},\text{'M'}\,\}
+\]
+
+* `A` – a 12 × 12 matrix of real numbers (floating‑point values)  
+
+\[
+A : \{0,\dots ,11\}\times\{0,\dots ,11\}\longrightarrow \mathbb{R}
+\qquad\bigl(A(i,j)\text{ denotes the element in row }i\text{, column }j\bigr)
+\]
+
+* `out` – the value that will be printed (a real number rounded to one decimal digit).
+
+---
+
+### 2.   Auxiliary definitions  
+
+* **“Below the secondary diagonal’’** (the green area of the figure)  
+
+\[
+B \;:=\;\{(i,j)\mid 0\le i\le 11,\;0\le j\le 11,\; i+j>11\}
+\]
+
+* **Number of elements in that region**  
+
+\[
+N \;:=\;|B|
+      \;=\;\sum_{k=0}^{11}k
+      \;=\;\frac{12\cdot11}{2}
+      \;=\;66
+\]
+
+* **Sum of the selected elements**  
+
+\[
+S \;:=\;\sum_{(i,j)\in B} A(i,j)
+\]
+
+* **Rounding to one decimal place** (the “print’’ format)  
+
+\[
+\operatorname{round}_{1}(x)\;:=\;\frac{\bigl\lfloor 10x+0.5\bigr\rfloor}{10}
+\]
+
+---
+
+### 3.   Hoare triple (pre‑ and post‑condition)
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,\text{Pre}\,\}\\[2mm]
+\text{read } \text{Op},\;A\\[1mm]
+\text{compute } \text{out}\\[2mm]
+\{\,\text{Post}\,\}
+\end{array}
+}
+\]
+
+* **Pre‑condition**  
+
+\[
+\text{Pre}\;:\;\; \text{Op}\in\{\text{'S'},\text{'M'}\}
+                \;\land\; \bigl(\forall i,j\in\{0,\dots ,11\}\;A(i,j)\in\mathbb{R}\bigr)
+\]
+
+* **Post‑condition**  
+
+\[
+\text{Post}\;:\;\;
+\begin{cases}
+\text{if } \text{Op}=\text{'S'}\;:\;
+      \text{out}= \operatorname{round}_{1}(S) \\[2mm]
+\text{if } \text{Op}=\text{'M'}\;:\;
+      \text{out}= \operatorname{round}_{1}\!\Bigl(\dfrac{S}{N}\Bigr)
+\end{cases}
+\]
+
+Equivalently, using a conditional expression:
+
+\[
+\text{out}= \operatorname{round}_{1}\!\Bigl(
+          \bigl[\text{Op}=\text{'S'}\bigr]\;S
+          \;+\;
+          \bigl[\text{Op}=\text{'M'}\bigr]\;\frac{S}{N}
+          \Bigr)
+\]
+
+where \([\;P\;]\) is 1 when the proposition \(P\) holds and 0 otherwise.
+
+---
+
+### 4.   Remarks  
+
+* The program **terminates** because the input size is fixed (one character + 144 numbers) and the computation consists of a finite double loop over the 12 × 12 matrix.  
+* The value printed on the screen is exactly `out`, i.e. the required sum or average, displayed with one digit after the decimal point.  
+
+Thus the Hoare triple above formally captures the intended behaviour of the described program.

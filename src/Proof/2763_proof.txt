@@ -1,0 +1,212 @@
+Below is a **complete Hoare‑logic proof** that the program you posted satisfies the specification that was given in the statement of the problem.
+
+---
+
+## 1.  Specification  
+
+*Let*  
+
+* `s` – the string read from standard input.  
+* `s` is **well‑formed** iff it matches the regular expression  
+
+```
+   \d{3}\.\d{3}\.\d{3}-\d{2}
+```
+
+i.e. it has the shape  
+
+```
+   XXX.YYY.ZZZ-DD            (X,Y,Z,D ∈ {0,…,9})
+```
+
+*The desired post‑condition* is that **four lines** are printed, each containing one of the four numeric blocks:
+
+```
+   line 1 : XXX
+   line 2 : YYY
+   line 3 : ZZZ
+   line 4 : DD
+```
+
+Formally we write
+
+```
+   P ≜  s is well‑formed
+   Q ≜  output = [ XXX , YYY , ZZZ , DD ]
+```
+
+The program is written in a Python‑like language, but for the proof we treat each statement as a primitive command of a simple imperative language:
+
+```
+1  s      := input()
+2  L      := s.split(".")
+3  L      := L ++ L[|L|-1].split("-")   // ++ = list concatenation
+4  pop(L, |L|-3)                       // remove the element at index |L|-3
+5  i      := 0
+6  while i < |L| do
+7        print(L[i])
+8        i := i+1
+9  od
+```
+
+(Commands 3–4 correspond to the two Python statements that use `extend` and `pop`.)
+
+---
+
+## 2.  Hoare‑logic Rules Used  
+
+| Rule | Shape | Meaning |
+|------|-------|----------|
+| **Assignment** | `{ Q[x := e] }  x := e  { Q }` | Substitutes the expression `e` for the variable `x` in the post‑condition. |
+| **Sequence** | `{P} S1 {R} , {R} S2 {Q}` ⇒ `{P} S1;S2 {Q}` | Composition of two commands. |
+| **While** | `{I ∧ B} S {I}` ⇒ `{I} while B do S od {I ∧ ¬B}` | `I` is a loop invariant. |
+| **Consequence** | `P ⇒ P' , {P'} S {Q'} , Q' ⇒ Q` ⇒ `{P} S {Q}` | Strengthening/weakening of pre‑/post‑conditions. |
+
+We will apply these rules step‑by‑step.
+
+---
+
+## 3.  Proof Outline  
+
+### 3.1.  After the first three statements we obtain the list  
+
+```
+L = [ XXX , YYY , ZZZ-DD ]
+```
+
+*Lemma 1*  
+```
+{ P }  L := s.split(".")   { L = [ XXX , YYY , ZZZ-DD ] }
+```
+
+*Proof.*  
+`split(".")` on a well‑formed `s` yields exactly the three substrings that appear before each dot, **plus** the last part `ZZZ-DD`. Hence the assignment produces the list stated above. By the **assignment rule** we substitute `s.split(".")` for `L` in the post‑condition, obtaining the desired equality.
+
+*Lemma 2*  
+```
+{ L = [ XXX , YYY , ZZZ-DD ] }
+   L := L ++ L[|L|-1].split("-")
+{ L = [ XXX , YYY , ZZZ , DD ] }
+```
+
+*Proof.*  
+
+* `|L| = 4` (the list has four elements after Lemma 1).  
+* `L[|L|-1]` is the last element, i.e. the string `ZZZ-DD`.  
+* `split("-")` on that string yields the two‑element list `[ ZZZ , DD ]`.  
+
+Concatenating (`++`) the original list `[ XXX , YYY , ZZZ‑DD ]` with `[ ZZZ , DD ]` gives  
+
+```
+[ XXX , YYY , ZZZ‑DD , ZZZ , DD ]
+```
+
+### 3.2.  The `pop` removes the duplicated “ZZZ‑DD” entry  
+
+*Lemma 3*  
+```
+{ L = [ XXX , YYY , ZZZ‑DD , ZZZ , DD ] }
+   pop(L, |L|-3)
+{ L = [ XXX , YYY , ZZZ , DD ] }
+```
+
+*Proof.*  
+`|L| = 5`. The index `|L|-3 = 2` (0‑based indexing) points exactly to the third element, which is the string `ZZZ‑DD`. Removing it leaves the list `[ XXX , YYY , ZZZ , DD ]`. The command `pop` is a primitive that removes the element at the given index, so the **assignment rule** again yields the required post‑condition.
+
+At this point we have proved the invariant
+
+```
+I0 ≜ L = [ XXX , YYY , ZZZ , DD ]
+```
+
+which is exactly what we need before entering the loop.
+
+### 3.3.  Loop invariant  
+
+We use the standard invariant for a “print‑all‑elements” loop:
+
+```
+I ≜   0 ≤ i ≤ |L|
+    ∧ printed = L[0] … L[i‑1]        // the sequence of lines already printed
+```
+
+*Initialization* (`i := 0`)
+
+```
+{ I0 }  i := 0  { I }
+```
+
+Because `i = 0`, the range condition holds and no line has been printed yet, so `printed` is the empty prefix of `L`. Hence `I` follows from `I0` by the assignment rule.
+
+*Preservation* (body of the loop)
+
+Assume the invariant `I` holds **and** the loop guard `i < |L|` is true.  
+The body consists of two statements:
+
+```
+7  print(L[i])
+8  i := i+1
+```
+
+- After `print(L[i])` the line `L[i]` is appended to the output, therefore the new `printed` becomes the prefix `L[0] … L[i]`.  
+- After `i := i+1` the index is increased by one, so the invariant `0 ≤ i ≤ |L|` still holds.
+
+Formally:
+
+```
+{ I ∧ i < |L| }  print(L[i])  { I' }
+{ I' }           i := i+1    { I }
+```
+
+where `I'` is the same as `I` but with `printed` extended by `L[i]`. Both steps are justified by the **assignment rule** (the `print` statement does not modify any program variable, it only extends the external output).
+
+Thus `{ I ∧ B } S { I }` holds, where `B ≜ i < |L|` and `S` is the body of the loop.
+
+*Termination*  
+
+When the guard becomes false we have `¬B ≜ i ≥ |L|`.  
+Together with the invariant we get `i = |L|`. Consequently `printed` equals the whole list `L`. By the **while rule** we obtain
+
+```
+{ I } while i < |L| do S od { I ∧ i = |L| }
+```
+
+which is exactly the post‑condition that all four elements have been printed.
+
+### 3.4.  Composition of the whole program  
+
+Putting the three phases together:
+
+1. **Input & splitting**  
+   `{ P }  s := input(); L := s.split(".") ; … ; pop(L,|L|-3) { I0 }`  
+
+   (Lemmas 1–3 give the required post‑condition.)
+
+2. **Loop initialization**  
+   `{ I0 } i := 0 { I }`
+
+3. **Loop**  
+   `{ I } while i < |L| do S od { printed = L }`
+
+Finally, by the **sequence rule** we obtain the Hoare triple
+
+```
+{ P }  program  { printed = [ XXX , YYY , ZZZ , DD ] }
+```
+
+which is precisely the specification `Q`.  
+
+Therefore the program is **correct** with respect to the given pre‑condition (the input is a well‑formed CPF) and post‑condition (four lines containing the four numeric blocks).
+
+---
+
+## 4.  Summary in Plain English  
+
+* The program first **reads** the whole CPF string.  
+* `split(".")` cuts the string at the two dots, giving three parts and a fourth part that still contains the dash.  
+* `extend` (implemented as list concatenation) splits that fourth part at the dash, producing two extra strings, and the subsequent `pop` removes the duplicated “ZZZ‑DD” entry.  
+* After these three manipulations the list `L` contains exactly the four wanted blocks: `XXX`, `YYY`, `ZZZ`, `DD`.  
+* The `while` loop iterates over the list, printing each element on its own line.  
+* The loop invariant guarantees that after the `i`‑th iteration the first `i` blocks have already been printed; when the loop finishes (`i = |L| = 4`) all four blocks have been printed.
+
+Thus the program fulfills the specification demanded by the problem statement. ∎

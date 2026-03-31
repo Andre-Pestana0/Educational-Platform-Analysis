@@ -1,0 +1,103 @@
+Below is a **Hoare‑logic style specification** of the required program.  
+Only the **pre‑condition** (what must hold before the program starts) and the **post‑condition** (what is guaranteed after the program terminates) are given; the body of the program is omitted because the request was only for the specification.
+
+---
+
+### 1. Notation
+
+* Let  
+
+\[
+\mathbf{In}= \langle a_{1},a_{2},\dots ,a_{n},a_{n+1}\rangle\in\mathbb N^{*}
+\]
+
+be the (finite) sequence of integers read from the input file, **in the order they appear**.  
+
+* The last element is the sentinel  
+
+\[
+a_{n+1}=0 .
+\]
+
+* For every index \(i\;(1\le i\le n)\) the preceding number is required to be positive  
+
+\[
+a_i>0 .
+\]
+
+* Define the *printing function*  
+
+\[
+\operatorname{line}(m)\;:=\;\underbrace{1\;2\;\dots\;m}_{\text{concatenated with a single space, no trailing space}}
+      \;=\;\bigoplus_{k=1}^{m}\;k,
+\]
+
+where \(\bigoplus\) denotes string concatenation with the separator “␣”.  
+
+* Let  
+
+\[
+\mathbf{Out}= \langle \ell_{1},\ell_{2},\dots ,\ell_{n}\rangle
+\]
+
+be the sequence of lines written to the output file (each line ends with a newline character ‘\(\n\)’).
+
+---
+
+### 2. Hoare Triple
+
+\[
+\boxed{\;\{P\}\;\; \texttt{program}\;\; \{Q\}\;}
+\]
+
+where  
+
+* **Pre‑condition** \(P\) (what the environment guarantees before the program starts)
+
+\[
+\begin{aligned}
+P \; \equiv\; &
+\bigl(\mathbf{In}= \langle a_{1},a_{2},\dots ,a_{n},a_{n+1}\rangle\bigr)
+   \;\wedge\;
+   \bigl(a_{n+1}=0\bigr)                                 \\
+ &\;\wedge\;
+   \bigl(\forall i\in\{1,\dots ,n\}\;.\; a_i\in\mathbb N_{>0}\bigr).
+\end{aligned}
+\]
+
+* **Post‑condition** \(Q\) (what the program must have produced on termination)
+
+\[
+\begin{aligned}
+Q \; \equiv\; &
+\bigl(\mathbf{Out}= \langle \ell_{1},\ell_{2},\dots ,\ell_{n}\rangle\bigr)          \\
+ &\;\wedge\;
+   \bigl(\forall i\in\{1,\dots ,n\}\;.\;
+          \ell_{i}= \operatorname{line}(a_i)\;\text{followed by a single newline}\bigr) \\
+ &\;\wedge\;
+   \text{the program terminates.}
+\end{aligned}
+\]
+
+In words, **if** the input consists of a finite non‑empty list of positive integers terminated by a zero, **then** after the program finishes it will have written exactly one line for each positive integer \(a_i\); that line contains the numbers \(1,2,\dots ,a_i\) separated by a single space and **without** a trailing space, and each line is terminated by a newline character.
+
+---
+
+### 3. Optional Loop Invariant (illustrative)
+
+If one wishes to prove the correctness of a concrete implementation that repeatedly reads a value `x` and prints the corresponding line, a convenient invariant for the main `while` loop is
+
+\[
+\begin{aligned}
+I(k) \; \equiv\; &
+\bigl(\text{the first }k\text{ input numbers have already been consumed}\bigr) \\
+&\;\wedge\;
+\bigl(\text{the first }k\text{ output lines are exactly } \operatorname{line}(a_1),\dots ,\operatorname{line}(a_k)\bigr).
+\end{aligned}
+\]
+
+The invariant holds initially for \(k=0\), is preserved by each iteration (reading the next \(a_{k+1}>0\) and printing \(\operatorname{line}(a_{k+1})\)), and when the loop terminates (i.e. when the next read value is the sentinel \(0\)) we have \(k=n\), giving precisely the post‑condition \(Q\) above.
+
+--- 
+
+Thus the Hoare‑logic specification of the problem is the triple \(\{P\}\; \texttt{program}\; \{Q\}\) shown above.

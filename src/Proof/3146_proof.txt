@@ -1,0 +1,226 @@
+Below is a **Hoare‑logic proof** that the program
+
+```python
+R = float(input())
+C = 2*3.14*R
+print(f'{C:.2f}')
+```
+
+fulfils its specification.  
+The proof proceeds by giving a **pre‑condition** \(P\), a **post‑condition** \(Q\) and showing, by means of the Hoare‑logic inference rules, that  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}
+\]
+
+holds.
+
+--------------------------------------------------------------------
+
+## 1.  Specification  
+
+*The problem statement*:  
+> Read a radius \(R\) (a real number).  
+> Compute the length of the circle (the “ring”) \(C = 2\pi R\) where the constant \(\pi\) is approximated by the literal **3.14**.  
+> Print the value of \(C\) with exactly two decimal digits.
+
+### 1.1  Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `R`    | the radius read from the input (a real number) |
+| `C`    | the circumference computed by the program |
+| `out`  | the string that is sent to the standard output by the `print` statement |
+
+### 1.2  Pre‑condition  
+
+The only requirement before the program starts is that the input can be interpreted as a *real* number.  
+Formally
+
+\[
+P \;\equiv\; \text{“the next token of the input stream is a syntactically correct floating‑point literal”}
+\]
+
+In Hoare‑logic we can simply write `true` because the `input()` primitive is assumed to return some value of type `float`.  
+Thus we will use  
+
+\[
+P \;:=\; \top
+\]
+
+### 1.3  Post‑condition  
+
+After termination we want two things to be true:
+
+1. The variable `C` contains the exact mathematical value \(2\cdot3.14\cdot R\).
+2. The program has printed that value rounded to two decimal places.
+
+We express this as
+
+\[
+Q \;\equiv\; C = 2\cdot3.14\cdot R\;\land\;
+\text{out}= \operatorname{fmt}(C,2)
+\]
+
+where \(\operatorname{fmt}(x,2)\) denotes the *decimal string* obtained by rounding \(x\) to two digits after the decimal point (the behaviour of Python’s format specifier `:.2f`).
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic Rules that will be used  
+
+| Rule | Shape | Meaning |
+|------|-------|---------|
+| **Assignment** | \(\displaystyle \frac{}{ \{ Q[x:=E] \}\; x := E\; \{ Q \} }\) | Substitutes the expression `E` for every free occurrence of `x` in the post‑condition. |
+| **Sequence** | \(\displaystyle \frac{ \{P\}\;S_1\;\{R\}\quad \{R\}\;S_2\;\{Q\} }{ \{P\}\;S_1;S_2\;\{Q\} }\) | Concatenates two statements. |
+| **Consequence** | \(\displaystyle \frac{ P'\Rightarrow P\quad\{P\}\;S\;\{Q\}\quad Q\Rightarrow Q'}{ \{P'\}\;S\;\{Q'\} }\) | Allows strengthening/weakening of pre‑/post‑conditions. |
+| **Input** (axiom for `read`) | \(\displaystyle \{ \top\}\; x = \texttt{float(input())}\; \{ x\in\mathbb{R}\}\) | The statement reads a real number and stores it in `x`. |
+| **Output** (axiom for `print`) | \(\displaystyle \frac{}{ \{ \texttt{out}=e \}\; \texttt{print(e)}\; \{ \texttt{out}= \operatorname{fmt}(e,2) \} }\) | After printing, the observable output is the formatted string. (In Python `print` adds a newline; the newline does not affect the numeric part of the specification.) |
+
+--------------------------------------------------------------------
+
+## 3.  Proof of each program fragment  
+
+We number the three statements of the program as \(S_1,S_2,S_3\).
+
+### 3.1  Statement \(S_1\) – reading the radius  
+
+\[
+S_1 \;=\; R = \texttt{float(input())}
+\]
+
+Using the **Input axiom** we obtain the Hoare triple  
+
+\[
+\{ \top \}\; S_1\; \{ R \in \mathbb{R} \}
+\tag{1}
+\]
+
+(If we prefer to keep the symbolic variable `R` untouched, we can simply write \(\{ \top\}\;S_1\;\{ \text{true} \}\) because the later statements only need a well‑defined value of `R`.)
+
+### 3.2  Statement \(S_2\) – computing the circumference  
+
+\[
+S_2 \;=\; C = 2*3.14*R
+\]
+
+We want the post‑condition  
+
+\[
+Q_2 \;:=\; C = 2\cdot3.14\cdot R .
+\]
+
+Apply the **Assignment rule** with the substitution  
+\(Q_2[C:=2*3.14*R]\) which yields the pre‑condition  
+
+\[
+P_2 \;=\; (2*3.14*R) = 2\cdot3.14\cdot R .
+\]
+
+Since the arithmetic expression is a *definitionally equal* term, \(P_2\) is a tautology, i.e. \(P_2\equiv \top\). Consequently we have  
+
+\[
+\{ \top \}\; S_2\; \{ C = 2\cdot3.14\cdot R \}
+\tag{2}
+\]
+
+### 3.3  Statement \(S_3\) – printing the result  
+
+\[
+S_3 \;=\; \texttt{print(f'{C:.2f}')}
+\]
+
+The expression that is printed is the *formatting* of `C`.  
+Define  
+
+\[
+e \;:=\; f'{C:.2f}' \quad\text{(the Python expression that produces the string)} .
+\]
+
+The **Output axiom** gives  
+
+\[
+\{ \texttt{out}=e \}\; S_3\; \{ \texttt{out}= \operatorname{fmt}(e,2) \}
+\tag{3}
+\]
+
+But `e` is precisely the string produced by rounding `C` to two decimal places, i.e.
+
+\[
+e = \operatorname{fmt}(C,2).
+\]
+
+Therefore the post‑condition of (3) simplifies to  
+
+\[
+\{ \texttt{out}= \operatorname{fmt}(C,2) \}\; S_3\; \{ \texttt{out}= \operatorname{fmt}(C,2) \}.
+\]
+
+No additional condition on the state is required, so we may weaken the pre‑condition to `true` by **Consequence**:
+
+\[
+\{ \top \}\; S_3\; \{ \texttt{out}= \operatorname{fmt}(C,2) \}
+\tag{3'}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Composition of the three statements  
+
+We now chain the three triples (1)–(3') using the **Sequence rule**.
+
+1. From (1) we have after \(S_1\): \(R\in\mathbb{R}\).  
+   This is strong enough for the pre‑condition of (2) (`top`), so we may apply **Consequence** to obtain  
+
+   \[
+   \{R\in\mathbb{R}\}\; S_2\; \{C = 2\cdot3.14\cdot R\}.
+   \tag{2'}
+   \]
+
+2. The post‑condition of (2') is exactly the pre‑condition needed for (3') (once we substitute the definition of `C`).  
+   Hence we can compose (2') and (3'):
+
+   \[
+   \{R\in\mathbb{R}\}\; S_2;S_3\; \{ \texttt{out}= \operatorname{fmt}(C,2) \}.
+   \tag{4}
+   \]
+
+3. Finally we prepend \(S_1\).  
+   Its post‑condition (\(R\in\mathbb{R}\)) matches the pre‑condition of (4).  
+
+   \[
+   \{ \top \}\; S_1;S_2;S_3\; \{ \texttt{out}= \operatorname{fmt}(C,2) \}.
+   \tag{5}
+   \]
+
+Recall that the post‑condition of the whole program must contain **both** the numeric relation for `C` and the printed value.  
+From (2') we already have `C = 2·3.14·R`. Adding this conjunct to the post‑condition of (5) (again by **Consequence**) yields the specification we set out to prove:
+
+\[
+\boxed{ \{ \top \}\; \texttt{program}\; \{ C = 2\cdot3.14\cdot R \;\land\; \texttt{out}= \operatorname{fmt}(C,2) \} } .
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Discussion of the rounding  
+
+The language construct `f'{C:.2f}'` is *deterministic*: for any real argument `C` it returns the unique decimal string obtained by rounding to the nearest hundredth, ties being broken according to Python’s round‑half‑to‑even rule.  
+Because the post‑condition uses exactly the same mathematical function \(\operatorname{fmt}(\cdot,2)\), the Hoare triple captures the observable behaviour of the program **without** having to reason about the internal binary representation of floating‑point numbers.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited a complete Hoare‑logic derivation:
+
+1. **Pre‑condition** `true` (the program may be started in any state).  
+2. **Step 1** reads a floating‑point number and stores it in `R`.  
+3. **Step 2** assigns to `C` the exact arithmetic expression `2*3.14*R`.  
+4. **Step 3** prints the value of `C` formatted to two decimal places.  
+
+By chaining the three Hoare triples with the **Sequence** rule and applying the **Consequence** rule where needed, we obtain the overall triple  
+
+\[
+\{ \top \}\; \texttt{program}\; \{ C = 2\cdot3.14\cdot R \;\land\; \texttt{out}= \operatorname{fmt}(C,2) \},
+\]
+
+which is precisely the formal specification of the problem. Hence the program is **correct** with respect to the given pre‑ and post‑conditions. ∎

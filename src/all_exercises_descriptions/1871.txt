@@ -1,0 +1,19 @@
+Description: One day Prof. Humberto JosÃ© Roberto made ââthe following question: If the zero to the left of a number has no value , why would other positions of a number? Analyzing as follows , it asks for your help , to add two integer values ââ, the result is displayed according to his reasoning , that is, without the zeros . For example , to add 15 + 5, the result would be 20 , but with this new idea, the new result would be 2 , and to add 99 + 6 , the result would be 105, but with this new idea , the new result would be 15.
+
+Input: There will be several test cases . Each test case begins with two integers M and N ( 1 â¤ M â¤ N â¤ 999 999 999 ) .
+
+Output: For each test case , print the sum of the two values ââwithout Zeros .
+
+Examples:
+- Example 1:
+  Input:
+7 8
+15 5
+99 6
+0 0
+  Output:
+15
+2
+15
+
+--

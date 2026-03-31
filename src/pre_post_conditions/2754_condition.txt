@@ -1,0 +1,120 @@
+Below is a **Hoare‑logic style specification** of the (input‑free) program that produces the eight lines shown in the statement.  
+Only the *pre‑condition* (what is assumed before the program starts) and the *post‑condition* (what must hold after the program terminates) are given; the body of the program is omitted because it is irrelevant for the specification.
+
+---
+
+### 1.  Notation that will be used
+
+* Let  
+
+\[
+a \;:=\; 234.345,\qquad   
+b \;:=\; 45.698 .
+\]
+
+* For a real number \(x\) and a non‑negative integer \(p\) we define the following formatting functions  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(\operatorname{fix}(x,p)\) | decimal representation of \(x\) **with exactly** \(p\) digits after the decimal point, padded with trailing zeros if necessary (e.g. \(\operatorname{fix}(a,6)=\texttt{“234.345000”}\)). |
+| \(\operatorname{rnd}_{\text{int}}(x)\) | the integer obtained by rounding \(x\) to the nearest integer (ties to even, as in the C/Java `printf("%d")`). |
+| \(\operatorname{rnd}(x,p)\) | decimal representation of \(x\) rounded to \(p\) digits after the decimal point, **with the minimum number of trailing zeros** (e.g. \(\operatorname{rnd}(a,1)=\texttt{“234.3”}\)). |
+| \(\operatorname{sci}(x,p,\kappa)\) | scientific notation of \(x\) with a mantissa of \(p\) digits after the decimal point; the exponent part uses a lower‑case ‘e’ if \(\kappa =\ell\) and an upper‑case ‘E’ if \(\kappa =u\). (e.g. \(\operatorname{sci}(a,6,\ell)=\texttt{“2.343450e+02”}\)). |
+| \(\operatorname{def}(x)\) | the “default” conversion used by the language’s standard output routine for a floating‑point value (the same string that `printf("%g")` would produce). |
+
+* The binary operator “\(-\)” inside a string denotes the literal hyphen‑space‑hyphen sequence that separates the two formatted numbers, **not** subtraction.
+
+* Let  
+
+\[
+\operatorname{line}_i \;:=\; \bigl(\text{first\_part}_i\bigr)\;-\;\bigl(\text{second\_part}_i\bigr)
+\]
+
+be the string that appears on line \(i\) of the program’s output (each line terminated by a newline character).
+
+---
+
+### 2.  Hoare triple
+
+\[
+\boxed{\;\{\,\mathsf{true}\,\}\;\;P\;\; \{\,\mathsf{Post}\,\}\;}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+\mathsf{Pre}\;:=\;\mathsf{true}
+\]
+
+(no input is required, therefore nothing needs to be assumed).
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+\mathsf{Post}\;:=\;&\; \bigl(\operatorname{out} = \operatorname{seq}(L_1,\dots ,L_8)\bigr) \\[2mm]
+\text{with } & L_1 = \operatorname{fix}(a,6)\;-\;\operatorname{fix}(b,6) \\[1mm]
+            & L_2 = \operatorname{rnd}_{\text{int}}(a)\;-\;\operatorname{rnd}_{\text{int}}(b) \\[1mm]
+            & L_3 = \operatorname{rnd}(a,1)\;-\;\operatorname{rnd}(b,1) \\[1mm]
+            & L_4 = \operatorname{rnd}(a,2)\;-\;\operatorname{rnd}(b,2) \\[1mm]
+            & L_5 = \operatorname{rnd}(a,3)\;-\;\operatorname{rnd}(b,3) \\[1mm]
+            & L_6 = \operatorname{sci}(a,6,\ell)\;-\;\operatorname{sci}(b,6,\ell) \\[1mm]
+            & L_7 = \operatorname{sci}(a,6,u)\;-\;\operatorname{sci}(b,6,u) \\[1mm]
+            & L_8 = \operatorname{def}(a)\;-\;\operatorname{def}(b) \\[1mm]
+\text{and } & \operatorname{out}=L_1\!\Vert\!\texttt{"\textbackslash n"}\;\Vert\;L_2\!\Vert\!\texttt{"\textbackslash n"}\;\Vert\;\dots\;\Vert\;L_8\!\Vert\!\texttt{"\textbackslash n"} .
+\end{aligned}
+\]
+
+Here \(\operatorname{seq}(\cdot)\) denotes the ordered list of strings that are printed, and “\(\Vert\)” is string concatenation.
+
+---
+
+### 3.  Expanded concrete post‑condition (for readability)
+
+Substituting the concrete numeric values of \(a\) and \(b\) we obtain the exact strings that must appear in the output:
+
+\[
+\begin{aligned}
+L_1 &= \texttt{“234.345000”}\;-\;\texttt{“45.698000”} \\[1mm]
+L_2 &= \texttt{“234”}\;-\;\texttt{“46”} \\[1mm]
+L_3 &= \texttt{“234.3”}\;-\;\texttt{“45.7”} \\[1mm]
+L_4 &= \texttt{“234.34”}\;-\;\texttt{“45.70”} \\[1mm]
+L_5 &= \texttt{“234.345”}\;-\;\texttt{“45.698”} \\[1mm]
+L_6 &= \texttt{“2.343450e+02”}\;-\;\texttt{“4.569800e+01”} \\[1mm]
+L_7 &= \texttt{“2.343450E+02”}\;-\;\texttt{“4.569800E+01”} \\[1mm]
+L_8 &= \texttt{“234.345”}\;-\;\texttt{“45.698”}.
+\end{aligned}
+\]
+
+Consequently the *entire* output of the program must be exactly
+
+\[
+\begin{aligned}
+\texttt{``} & 234.345000 - 45.698000\texttt{\textbackslash n} \\
+            & 234 - 46\texttt{\textbackslash n} \\
+            & 234.3 - 45.7\texttt{\textbackslash n} \\
+            & 234.34 - 45.70\texttt{\textbackslash n} \\
+            & 234.345 - 45.698\texttt{\textbackslash n} \\
+            & 2.343450e+02 - 4.569800e+01\texttt{\textbackslash n} \\
+            & 2.343450E+02 - 4.569800E+01\texttt{\textbackslash n} \\
+            & 234.345 - 45.698\texttt{\textbackslash n} \\
+            & 234.345 - 45.698\texttt{''}.
+\end{aligned}
+\]
+
+---
+
+### 4.  Summary in Hoare‑logic notation
+
+\[
+\boxed{
+\{\,\mathsf{true}\,\}\;
+\texttt{/* program that prints the eight lines */}\;
+\{\,\operatorname{out}=L_1\Vert\!\texttt{\textbackslash n}\;\Vert\;L_2\Vert\!\texttt{\textbackslash n}\;\dots\;\Vert\;L_8\Vert\!\texttt{\textbackslash n}\, \}
+}
+\]
+
+where each \(L_i\) is defined as above.  
+This specification captures **exactly** what the program must produce, independent of any particular programming language or implementation details.

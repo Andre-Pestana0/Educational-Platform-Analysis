@@ -1,0 +1,68 @@
+**Hoare‑style specification (pre‑ and post‑conditions only)**  
+
+We model the program as a command `S` that reads an integer `N` from the input, computes a value `R` and prints `R`.  
+All variables are assumed to be of the mathematical type **ℕ** (natural numbers, i.e. non‑negative integers).
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N`    | the integer read from the first (and only) line of the input |
+| `R`    | the integer that will be printed as the result of the program |
+
+---
+
+### Pre‑condition  
+
+\[
+P \;\equiv\; N\in\mathbb{N}\ \land\ 0\le N\le 10\,000
+\]
+
+The program may be started only when the input satisfies the above bound, exactly as required by the problem statement.
+
+---
+
+### Post‑condition  
+
+\[
+Q \;\equiv\; R\in\mathbb{N}\ \land\ 
+R = \frac{(N+1)(N+2)}{2}
+\]
+
+The value printed by the program must be the exact integer given by the closed‑form formula for the number of domino pieces in a “double‑\(N\)” set.  
+Because \((N+1)(N+2)\) is always even, the fraction is an integer, so the requirement \(R\in\mathbb{N}\) is automatically satisfied.
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\; S\; \{\,Q\,\}}
+\]
+
+That is,
+
+\[
+\{\,0\le N\le 10\,000\,\}\; 
+\text{read }N;\ 
+R \gets \dfrac{(N+1)(N+2)}{2};\ 
+\text{print }R\;
+\{\,R = \dfrac{(N+1)(N+2)}{2}\,\}
+\]
+
+---
+
+### Remarks  
+
+* **Total correctness**: The program terminates because it consists of a finite sequence of elementary operations (read, arithmetic, print).  
+* **Integrity of the division**: For any \(N\in\mathbb{N}\),
+
+\[
+(N+1)(N+2) = N^{2}+3N+2 = (N^{2}+3N) + 2
+\]
+
+and the term \(N^{2}+3N\) is always even (it is \(N(N+3)\), the product of two consecutive integers when \(N\) is odd, or the product of an even integer when \(N\) is even). Hence the division by 2 yields an integer, guaranteeing that the post‑condition is well‑typed.  
+
+Thus the Hoare triple above is a complete formal specification of the required program.

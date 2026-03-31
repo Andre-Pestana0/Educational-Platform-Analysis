@@ -1,0 +1,23 @@
+Description: Every kid certainly played Chinese Whispers at least once with other kids. It is a game in which one person whispers a message to another, which is passed through a line of people until the last player announces the message to the entire group. Little John invented a variation of this game.
+
+Input: The first line of the input contains an integert, 1 â¤tâ¤ 1000, the number of instances that your program must process.
+
+Output: For each instance, print "Instanciak", wherekis the instance number. In the following line, print "timeW" (Portuguese for "teamW"), whereW= 1 if the first team wins, orW= 2 if the second team wins. If the game result is a draw, print "empate" (Portuguese for "draw") instead. Print a blank line after each test case.
+
+Examples:
+- Example 1:
+  Input:
+2
+O RATO ROEU A ROUPA DO REI.
+O ATOR MORREU, GAROUPA REI.
+O PATO MOEU GAROUPA DORLEI.
+IH EMPATOU!
+IH EMPATOU!
+IH EMPATOU!
+  Output:
+Instancia 1
+time 2
+Instancia 2
+empate
+
+--

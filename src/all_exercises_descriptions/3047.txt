@@ -1,0 +1,24 @@
+Description: Mrs. Monica is the mother of three children of different ages. She noticed that, this year, the sum of her three childrenâs ages equals her own age. In this problem, given Mrs. Monicaâs age and the ages of two of her children, your program must compute and print the age of the oldest child. For example, if we know that Mrs. Monica is52years old and the known ages of two of the children are14and18years, then the age of the other child, which was unknown, must be20years, since the sum of the three ages must equal52. Therefore, the age of the oldest child is20. In another example, if Mrs. Monica is47years old and the ages of two of the children are21and9years, then the other child must be17years old, and therefore, the age of the oldest child is21.
+
+Input: The first line of the input contains an integerMrepresenting Mrs. Monicaâs age. The second line of the input contains an integerArepresenting the age of one of the children. The third line of the input contains an integerBrepresenting the age of another child.
+
+Output: Your program must print a single line containing an integer representing the age of Mrs. Monicaâs oldest child.
+
+Examples:
+- Example 1:
+  Input:
+52
+14
+18
+  Output:
+20
+
+- Example 2:
+  Input:
+47
+21
+9
+  Output:
+21
+
+--

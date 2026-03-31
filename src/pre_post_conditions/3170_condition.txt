@@ -1,0 +1,91 @@
+Below is a **Hoare‑logic style specification** for the program that reads the two integers  
+
+* `B` – the number of balls Amelia already has, and  
+* `G` – the number of branches of the new tree  
+
+and prints the required message.
+
+---
+
+### 1. Variables and auxiliary definitions  
+
+| Symbol | Meaning |
+|--------|---------|
+| `B`    | input integer – number of balls already owned |
+| `G`    | input integer – number of branches of the tree |
+| `⌊·⌋`  | integer floor (round‑down) function |
+| `M`    | **maximum admissible** number of balls on the tree, `M = ⌊ G / 2 ⌋` |
+| `Δ`    | deficit of balls, `Δ = M – B` |
+| `R`    | **required** number of balls to buy, `R = max(0, Δ)` |
+| `out`  | the string printed by the program |
+
+All variables are assumed to be of type **integer** unless otherwise stated.
+
+---
+
+### 2. Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+P \;:=\;& 1 < B < 10^{3}\ \land\ 100 < G < 1000\\
+      &\land\ B,\;G \in \mathbb Z
+\end{aligned}}
+\]
+
+The pre‑condition simply states the domain restrictions given in the problem statement.
+
+---
+
+### 3. Post‑condition  
+
+Let  
+
+\[
+M = \big\lfloor \tfrac{G}{2} \big\rfloor ,\qquad 
+\Delta = M - B ,\qquad 
+R = \max(0,\Delta).
+\]
+
+The required output string is defined piece‑wise:
+
+\[
+\boxed{
+\begin{aligned}
+Q \;:=\;& \bigl(\Delta > 0 \;\rightarrow\; 
+      out = \text{``Faltam }\,\Delta\text{ bolinha(s)''}\bigr) \\[2mm]
+      &\;\;\land\; 
+      \bigl(\Delta \le 0 \;\rightarrow\; 
+      out = \text{``Amelia tem todas bolinhas!''}\bigr)
+\end{aligned}}
+\]
+
+Equivalently, using the auxiliary variable `R`:
+
+\[
+\begin{aligned}
+Q \equiv\;&\bigl(R = 0 \;\rightarrow\; out = \text{``Amelia tem todas bolinhas!''}\bigr)\\
+        &\land\bigl(R > 0 \;\rightarrow\; out = \text{``Faltam }\,R\text{ bolinha(s)''}\bigr)
+\end{aligned}
+\]
+
+The post‑condition guarantees that the program prints **exactly** the required message, with the correct numerical value (the deficit `Δ` or `R`).
+
+---
+
+### 4. Hoare triple  
+
+Putting the two parts together, the formal specification of the whole program (denoted by the command block `S`) is
+
+\[
+\boxed{\{\,P\,\}\; S \; \{\,Q\,\}}
+\]
+
+where `S` is any implementation that
+
+1. reads the two integers `B` and `G`,
+2. computes `M = ⌊G/2⌋`,
+3. computes `Δ = M – B`,
+4. if `Δ > 0` prints **“Faltam Δ bolinha(s)”**, otherwise prints **“Amelia tem todas bolinhas!”**.
+
+The Hoare triple states that **whenever** the input satisfies the pre‑condition `P`, the program terminates and the produced output satisfies the post‑condition `Q`.

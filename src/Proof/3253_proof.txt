@@ -1,0 +1,526 @@
+**Answer – a Hoare‑logic proof of correctness for the Python program**
+
+Below we give a complete, step‑by‑step proof that the program satisfies the
+specification that appears in the statement of the Beecrowd problem *“Iniciante – Nível 1”*.
+The proof is written in the style of Hoare logic: for every command we exhibit a
+pre‑condition, a post‑condition and, when a loop is involved, a loop invariant.
+All auxiliary definitions that are needed for the proof are introduced first,
+after which each fragment of the program is proved correct.  
+The proof is *partial* in the sense that it assumes the usual arithmetic
+operations on integers are total and that the Python interpreter terminates on
+all statements that are proved to terminate (the program never accesses an
+index that is out of range, etc.).
+
+--------------------------------------------------------------------
+
+## 1.  Specification
+
+### 1.1   Vocabulary
+
+* `n` – the number read on the first line (`nro_ruas`).  
+  We assume `0 ≤ n ≤ 1000`.  
+
+* For each line `i (0 ≤ i < n)` the input is  
+
+  ```
+  id_i   k_i   a_i1 a_i2 … a_ik_i
+  ```
+
+  where `id_i` is a non‑negative integer that identifies the street,
+  `k_i` is the number of directly reachable streets,
+  and `a_ij` ( `1 ≤ j ≤ k_i` ) are the identifiers of those reachable streets.
+
+* `V = { id_i | 0 ≤ i < n }` – the set of all street identifiers that appear in
+  the input (the problem guarantees that identifiers are distinct).
+
+* `E = { (id_i , a_ij) | 0 ≤ i < n, 1 ≤ j ≤ k_i }` – the directed edges of the
+  graph described by the input.
+
+* `reach_from(s)` – the set of vertices that can be reached from vertex `s` by a
+  directed path (including `s` itself).  
+
+* `reach_to(s)` – the set of vertices from which `s` can be reached, i.e.  
+
+  `reach_to(s) = { v | s ∈ reach_from(v) }`.
+
+* `order = [ id_0 , id_1 , … , id_{n‑1} ]` – the list of identifiers in the order
+  they appear in the input.  
+
+* `trapped` – the list of identifiers `v` such that `v ∉ reach_to(0)`.  
+
+* `unreachable` – the list of identifiers `v` such that `v ∉ reach_from(0)`.
+
+### 1.2   Pre‑condition
+
+```
+P0 :  the input consists of a natural number n (0 ≤ n ≤ 1000) followed by n lines
+      each of the form   id  k  a1 … ak
+      with distinct ids, k ≥ 0 and 0 ≤ a_j ≤ 999 for every j.
+```
+
+(We do not need to state the exact way the input is supplied – it is simply
+available to the `input()` calls.)
+
+### 1.3   Post‑condition
+
+```
+Q0 :  let trapped  = { v ∈ V | v ∉ reach_to(0) }
+     let unreachable = { v ∈ V | v ∉ reach_from(0) }
+
+     if trapped = ∅ and unreachable = ∅
+        the program prints exactly the line  "NO PROBLEMS"
+     else
+        the program prints, in the order given by ‘order’, first all
+        lines   "TRAPPED  v"   for v ∈ trapped,
+        then all lines   "UNREACHABLE  v"   for v ∈ unreachable,
+        each line terminated by a newline character, and nothing else.
+```
+
+--------------------------------------------------------------------
+
+## 2.  Auxiliary definitions used in the proof
+
+* `adj : dict[int → list[int]]` – the dictionary built by the program that
+  stores for each vertex its list of outgoing neighbours (the set `ruas_adjacentes`).
+
+* `rev : dict[int → list[int]]` – the reverse adjacency dictionary (the set
+  `chegam`). For every edge `(u , v) ∈ E` we have `v ∈ adj[u]` and `u ∈ rev[v]`.
+
+* `dfs(G , s)` – the function defined in the program (named `dfs`).  
+  For a dictionary `G` that maps a vertex to a list of neighbours,
+  `dfs(G , s)` returns a Boolean list `visited[0..999]` such that  
+
+  `visited[x] = True  ⇔  x ∈ reach_from_G(s)`  
+
+  (`reach_from_G` denotes reachability in the graph described by `G`).  
+
+  The function is proved correct later (loop invariant).
+
+* `visited0  = dfs(adj , 0)` – the Boolean list of vertices reachable **from** 0.
+
+* `visited1  = dfs(rev , 0)` – the Boolean list of vertices that can reach **to** 0.
+
+* `no_problem` – a Boolean flag that remains `True` iff both `trapped` and
+  `unreachable` are empty.
+
+--------------------------------------------------------------------
+
+## 3.  Proof structure
+
+The program consists of the following *sequential* parts:
+
+| # | fragment (source)                                   | purpose                                            |
+|---|-----------------------------------------------------|----------------------------------------------------|
+| 1 | reading `nro_ruas`                                  | initialise `n`                                    |
+| 2 | initialising the three global containers            | `no_problem := True`, `adj := {}`, `rev := {}`, `order := []` |
+| 3 | **Loop L1** – the `for rua in range(nro_ruas):`    | fill `adj`, `rev` and `order`                     |
+| 4 | definition of `dfs` (no side‑effects)              | a pure function – proved separately                |
+| 5 | `visited0 = dfs(adj , 0)`                           | compute `reach_from(0)`                           |
+| 6 | `visited1 = dfs(rev , 0)`                           | compute `reach_to(0)`                             |
+| 7 | **Loop L2** – the `for id in id_input_order:`      | build the output strings `trappeds` and `unreachables` |
+| 8 | final `if … else …`                                 | emit the required output                           |
+
+Each fragment will be proved correct with a Hoare triple.  Loops L1 and L2
+receive loop invariants; the `dfs` function receives a *procedure* invariant.
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the individual fragments
+
+### 4.1   Fragment 1 – reading the number of streets  
+
+```
+nro_ruas = int(input())
+```
+
+*Pre‑condition* : `P0`.  
+*Post‑condition* : `P1 ≡  P0 ∧ n = nro_ruas ∧ 0 ≤ n ≤ 1000`.
+
+The assignment reads exactly the first integer of the input; because `P0`
+states that this integer satisfies the bound, the post‑condition holds.
+
+--------------------------------------------------------------------
+
+### 4.2   Fragment 2 – initialisation  
+
+```python
+no_problem = True
+ruas_adjacentes = {}
+chegam = {}
+id_input_order = []
+```
+
+*Pre‑condition* : `P1`.  
+*Post‑condition* : `P2 ≡  P1 ∧ no_problem = True ∧ adj = {} ∧ rev = {} ∧ order = []`.
+
+All three containers are empty and the flag is set to `True`, which is exactly
+what the right‑hand side of `P2` requires.
+
+--------------------------------------------------------------------
+
+### 4.3   Loop L1 – building the graph
+
+```
+for rua in range(nro_ruas):
+    id, nro_alcancaveis, *alcancaveis = map(int, input().split(' '))
+    id_input_order.append(id)
+    ruas_adjacentes[id] = alcancaveis
+    for i in alcancaveis:
+        if chegam.get(i) == None:
+            chegam[i] = []
+        chegam[i].append(id)
+```
+
+#### 4.3.1  Loop invariant  
+
+Let `i` be the number of iterations already executed (`0 ≤ i ≤ n`).  
+Define  
+
+```
+I1(i) :
+    • order = [ id_0 , … , id_{i‑1} ]                (the first i ids)
+    • adj = { id_j ↦ Alc(j) | 0 ≤ j < i }           (out‑edges of processed vertices)
+    • rev = { v ↦ Pred(v) | v is a target of some processed edge }
+      where Pred(v) = { u | (u , v) ∈ E and u ∈ {id_0,…,id_{i‑1}} }
+    • the set of processed input lines is exactly the first i lines
+      of the original input (hence all numbers read so far are well‑formed)
+```
+
+*Explanation* – `Alc(j)` denotes the list `alcancaveis` that was read for the
+`j`‑th line.  `rev` contains for each vertex the list of predecessors that have
+already been seen.
+
+#### 4.3.2  Initialization (`i = 0`)
+
+Before the first iteration `order`, `adj` and `rev` are all empty, which matches
+`I1(0)`.
+
+#### 4.3.3  Maintenance  
+
+Assume `I1(i)` holds at the beginning of an iteration (`i < n`).  
+The statement
+
+```
+id, nro_alcancaveis, *alcancaveis = map(int, input().split(' '))
+```
+
+reads the next line, which by `P0` is guaranteed to be of the required form,
+so the values `id`, `nro_alcancaveis`, `alcancaveis` are exactly the data of the
+`i`‑th line of the input.  
+
+`id_input_order.append(id)` extends `order` with `id_i`; therefore after the
+append we have  
+
+```
+order = [ id_0 , … , id_i ] .
+```
+
+`ruas_adjacentes[id] = alcancaveis` stores the outgoing list of the vertex
+`id_i`.  Consequently  
+
+```
+adj = { id_j ↦ Alc(j) | 0 ≤ j ≤ i } .
+```
+
+The inner loop iterates over every `i ∈ Alc(i)`.  
+If `rev` does not contain the key `i` we create an empty list; afterwards we
+append `id_i` to that list.  Hence after processing all neighbours we have
+
+```
+rev[i] = Pred(i) ∪ { id_i }   for every i that appears in Alc(i)
+```
+
+and for vertices that never appear as a target the entry in `rev` is unchanged.
+Thus the definition of `rev` in `I1(i+1)` is satisfied.
+
+All other variables (`no_problem`, `visited0`, …) are untouched, therefore
+`I1(i+1)` holds.
+
+#### 4.3.4  Termination  
+
+The loop iterates exactly `n` times, a value known at entry (`nro_ruas`),
+hence it terminates.
+
+#### 4.3.5  Post‑condition of L1  
+
+When the loop finishes (`i = n`) the invariant gives us  
+
+```
+order = [ id_0 , … , id_{n‑1} ]               (the complete input order)
+adj   = { id_j ↦ Alc(j) | 0 ≤ j < n }         (the whole adjacency map)
+rev   = { v ↦ { u | (u , v) ∈ E } }           (the whole reverse map)
+```
+
+Thus after L1 we have built the exact representation of the graph described in
+the input.  The Hoare triple  
+
+```
+{ P2 }  L1  { P3 }
+```
+
+holds where  
+
+```
+P3 ≡ P2 ∧ order = … ∧ adj = … ∧ rev = …
+```
+
+--------------------------------------------------------------------
+
+### 4.4   The `dfs` function – correctness of the depth‑first search
+
+The function is pure (no global variables are read or written) and returns a
+list `visited` of length `1000`.  We prove the following specification for the
+procedure `dfs` (the parameter is called `vetor` in the source code).
+
+```
+{ G ⊆ {0,…,999} → list[int]  ∧  s ∈ G ∨ s ∉ G }
+dfs(G , s)
+{ visited[x] = True  ⇔  x ∈ reach_from_G(s)   ∧   visited[x] = False otherwise }
+```
+
+The proof uses a loop invariant for the `while pilha:` loop.
+
+#### 4.4.1  Loop invariant  
+
+Let `S` be the set of vertices already taken from the stack and marked
+`visited`.  Let `U` be the current content of `pilha` (a list, order does not
+matter for reachability).  Define  
+
+```
+I2 :   visited[x] = True  ⇔  x ∈ S
+       and   S ∪ U  =  { v | v is reachable from s in G }
+       and   S ∩ U = ∅
+       and   every v ∈ U is not visited yet.
+```
+
+*Initialization* – before the first iteration `pilha = [s]`, `visited` is all
+`False`.  Hence `S = ∅`, `U = {s}` and the invariant holds because the only
+vertex reachable from `s` without following any edge is `s` itself.
+
+*Maintenance* – assume `I2` holds at the beginning of an iteration.
+
+* The vertex `aux = pilha[0]` is removed from the front of the list and
+  `visited[aux]` is set to `True`.  Consequently `aux` moves from `U` to `S`.
+
+* For each neighbour `v` of `aux` (i.e. `v ∈ G[aux]`) we test `visited[v]`.
+  If `v` is still `False` we insert it at the front of the stack.
+  Therefore each newly inserted vertex belongs to `U` and is not in `S`.
+
+* No vertex is ever inserted twice because the guard `visited[v]==False`
+  guarantees that a vertex already in `S` cannot be added again.
+
+Thus after the body finishes we have again `S ∪ U` equal to the set of vertices
+that are reachable from `s` (the old reachable set plus possibly new neighbours),
+`S ∩ U = ∅` and the Boolean array matches `S`.  Hence `I2` is preserved.
+
+*Termination* – each iteration adds to `S` a vertex that was previously in `U`,
+and a vertex is inserted into `U` only if it has not been visited before.
+Because the graph contains at most `1000` vertices, the loop can execute at most
+`1000` times and therefore terminates.
+
+*Post‑condition* – when the loop ends `pilha` is empty, therefore `U = ∅`.
+From `I2` we obtain `S = { v | v reachable from s }`.  The array `visited`
+contains `True` exactly for the elements of `S`.  This is precisely the
+required post‑condition.
+
+--------------------------------------------------------------------
+
+### 4.5   Calls to `dfs`
+
+* `visited0 = dfs(ruas_adjacentes , 0)`  
+
+  By the specification proved in §4.4 and the definition of `adj`,
+  `visited0[x] = True  ⇔  x ∈ reach_from(0)`.
+
+* `visited1 = dfs(chegam , 0)`  
+
+  The dictionary `chegam` contains the reverse edges, i.e. it represents the
+  graph `G_rev = (V , E_rev)` where `E_rev = { (v , u) | (u , v) ∈ E }`.  
+  Consequently  
+
+  `visited1[x] = True  ⇔  x ∈ reach_from_{G_rev}(0)  ⇔  0 ∈ reach_from(x)`.  
+
+  In other words, `visited1[x] = True` exactly when `x` can reach vertex 0 in the
+  original graph.
+
+Both calls satisfy the Hoare triples
+
+```
+{ P3 }  visited0 = dfs(adj , 0)  { P4 }
+{ P4 }  visited1 = dfs(rev , 0)  { P5 }
+```
+
+where `P4` and `P5` extend `P3` with the two Boolean arrays described above.
+
+--------------------------------------------------------------------
+
+### 4.6   Loop L2 – constructing the output strings
+
+```
+for id in id_input_order:
+    rua = visited1[id]
+    if rua == False:
+        no_problem = False
+        trappeds += f'TRAPPED {id}\n'
+
+    rua = visited0[id]
+    if rua == False:
+        no_problem = False
+        unreachables += f'UNREACHABLE {id}\n'
+```
+
+#### 4.6.1  Loop invariant  
+
+Let `j` be the number of identifiers already processed (`0 ≤ j ≤ n`).  
+Define  
+
+```
+I3(j) :
+    • processed = id_input_order[0..j‑1]    (the first j ids)
+    • no_problem = (trapped = ∅  ∧  unreachable = ∅)  after processing those j ids
+    • trappeds     = concatenation of “TRAPPED v\n” for every v ∈ processed
+                     with visited1[v] = False, in the order they appear
+    • unreachables = concatenation of “UNREACHABLE v\n” for every v ∈ processed
+                     with visited0[v] = False, in the order they appear
+```
+
+The variables `trapped` and `unreachable` above are the *sets* that the strings
+represent; the strings themselves are exactly the concatenations described.
+
+#### 4.6.2  Initialization  
+
+Before the first iteration (`j = 0`) both strings are empty and `no_problem` is
+still `True`.  Hence `I3(0)` holds.
+
+#### 4.6.3  Maintenance  
+
+Assume `I3(j)` holds and the loop processes the next identifier `id = order[j]`.
+
+* The first test uses `visited1[id]`.  
+  - If it is `True` nothing is added and `no_problem` stays unchanged.  
+  - If it is `False` the identifier belongs to `trapped`.  The program sets
+    `no_problem := False` and appends the line `"TRAPPED id\n"` to `trappeds`.  
+    Consequently the new `trappeds` string is precisely the concatenation
+    required for the set `processed ∪ {id}`.
+
+* The second test uses `visited0[id]`.  
+  - If it is `True` nothing is added.  
+  - If it is `False` the identifier belongs to `unreachable`.  The program
+    again forces `no_problem := False` (it may already be `False`) and appends
+    the appropriate line to `unreachables`.
+
+Thus after both tests the invariant holds for `j+1`.  No other variable is
+modified, therefore `I3(j+1)` is true.
+
+#### 4.6.4  Termination  
+
+The loop iterates over the list `id_input_order`, which has length `n`.  Hence it
+terminates after `n` iterations.
+
+#### 4.6.5  Post‑condition of L2  
+
+When the loop finishes (`j = n`) we have processed **all** identifiers, i.e.
+
+```
+processed = V
+```
+
+and `I3(n)` tells us that
+
+* `trappeds` contains exactly the lines “TRAPPED v” for all `v ∈ trapped`,
+* `unreachables` contains exactly the lines “UNREACHABLE v” for all
+  `v ∈ unreachable`,
+* `no_problem` is `True` iff both sets are empty.
+
+Therefore after L2 the state satisfies the predicate `P6` that matches the
+definition of `trapped` and `unreachable` from the specification.
+
+--------------------------------------------------------------------
+
+### 4.7   Final `if … else …` – printing the answer
+
+```
+if no_problem:
+    print('NO PROBLEMS')
+else:
+    print(trappeds + unreachables, end='')
+```
+
+*Pre‑condition* : `P6`.  
+*Post‑condition* : `Q0`.
+
+*Proof* – two cases.
+
+1. **`no_problem = True`**.  
+   By `P6` this means `trapped = ∅` and `unreachable = ∅`.  
+   The program prints the single line *“NO PROBLEMS”* and nothing else,
+   which is exactly the first clause of `Q0`.
+
+2. **`no_problem = False`**.  
+   Then at least one of the two sets is non‑empty.  
+   The program prints the concatenation `trappeds + unreachables`.  
+   By `P6` each of the two strings contains precisely the required lines,
+   in the order given by `order`.  No extra characters are printed because the
+   `end=''` argument suppresses the final newline that `print` would add.  
+   Hence the output satisfies the second clause of `Q0`.
+
+Thus the final `if` statement fulfills the required post‑condition.
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the whole program
+
+Putting together the Hoare triples proved above we obtain the following chain:
+
+```
+{ P0 }
+   → (Fragment 1)          { P1 }
+   → (Fragment 2)          { P2 }
+   → (Loop L1)             { P3 }   (graph built)
+   → (dfs(adj,0))          { P4 }   (visited0 = reach_from(0))
+   → (dfs(rev,0))          { P5 }   (visited1 = reach_to(0))
+   → (Loop L2)             { P6 }   (strings built, no_problem set)
+   → (final if‑else)       { Q0 }
+```
+
+Since each implication is a valid Hoare triple, the composition rule of Hoare
+logic yields the overall triple
+
+```
+{ P0 }  whole_program  { Q0 }
+```
+
+which is exactly the statement “the program is correct with respect to the
+given pre‑ and post‑conditions”.
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on termination and resource bounds
+
+* The outer `for` loop iterates `n ≤ 1000` times, the inner loop iterates at most
+  the total number of edges (also ≤ 1000·999).  Hence the whole program runs in
+  *O(n + |E|)* time, which satisfies the limits of the original problem.
+
+* The `visited` list has fixed size `1000`; the program never accesses an index
+  larger than `999` because all identifiers read from the input are guaranteed
+  to be in that range by the pre‑condition.
+
+* Both calls to `dfs` terminate because each vertex can be inserted into the
+  stack at most once (the `visited` guard) and the stack size is bounded by the
+  number of vertices.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion
+
+We have exhibited:
+
+* a precise formal specification (`P0` → `Q0`);
+* loop invariants for the two loops that construct the graph and that build the
+  output;
+* a correctness proof for the depth‑first search routine;
+* a step‑by‑step Hoare‑logic derivation showing that every command preserves the
+  appropriate invariant and that the final `if` statement produces exactly the
+  required output.
+
+Consequently **the program is correct with respect to the given specification**. ∎

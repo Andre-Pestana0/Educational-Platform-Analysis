@@ -1,0 +1,14 @@
+Description: Read an integer number that is the code number for phone dialing. Then, print the destination according to the following table:
+
+Input: The input consists in a unique integer number.
+
+Output: Print the city name corresponding to the input DDD. PrintDDD nao cadastradoif doesn't exist corresponding DDD to the typed number.
+
+Examples:
+- Example 1:
+  Input:
+11
+  Output:
+Sao Paulo
+
+--

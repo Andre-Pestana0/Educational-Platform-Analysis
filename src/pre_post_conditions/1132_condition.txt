@@ -1,0 +1,107 @@
+Below is a **Hoare‑logic style specification** for the required program.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true after it finishes) are given; the body of the program is omitted.
+
+---
+
+### 1. Notation that will be used  
+
+* `ℤ` – the set of all (mathematical) integers.  
+* `min(a,b)` , `max(a,b)` – the smaller / larger of two numbers.  
+* `⌊·⌋` – floor (not needed here, but allowed).  
+* `⟦P⟧` – the truth value of a proposition `P` (1 if true, 0 if false).  
+* `k mod 13` – the remainder of the Euclidean division of `k` by 13.  
+* `Σ_{i = L}^{U}  f(i)` – the finite sum of `f(i)` for all integers `i` from `L` to `U` (inclusive).  
+
+Define the **“not‑divisible‑by‑13” indicator**  
+
+\[
+\chi_{13}(k)\;:=\; 
+\begin{cases}
+1 & \text{if } k \bmod 13 \neq 0,\\[2mm]
+0 & \text{if } k \bmod 13 = 0 .
+\end{cases}
+\]
+
+---
+
+### 2. Program variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `X` , `Y` | the two integer numbers read from the input file |
+| `S` | the integer variable that will contain the answer (the sum) after the program terminates |
+| (optional) `i` | loop index used internally – not part of the specification |
+
+---
+
+### 3. Hoare triple  
+
+\[
+\boxed{\;\{\,P\,\}\; \texttt{program}\; \{\,Q\,\}\;}
+\]
+
+where  
+
+#### Pre‑condition \(P\)
+
+\[
+P \;:\; X \in \mathbb{Z}\ \land\ Y \in \mathbb{Z}
+\]
+
+(The only requirement on the input is that both values are integers; no ordering is assumed.)
+
+#### Post‑condition \(Q\)
+
+Let  
+
+\[
+a \;:=\; \min (X,Y), \qquad
+b \;:=\; \max (X,Y).
+\]
+
+Then the result variable `S` must satisfy  
+
+\[
+Q \;:\; 
+S = \sum_{k = a}^{b} \bigl( k \cdot \chi_{13}(k) \bigr)
+\;=\;
+\sum_{k = a}^{b}
+\begin{cases}
+k & \text{if } k \bmod 13 \neq 0,\\[2mm]
+0 & \text{if } k \bmod 13 = 0 .
+\end{cases}
+\]
+
+Equivalently, using the indicator notation,
+
+\[
+S = \displaystyle\sum_{k = a}^{b} k \;\bigl\lbrack k \bmod 13 \neq 0 \bigr\rbrack .
+\]
+
+The post‑condition also guarantees termination, i.e. the program finishes after a finite number of steps, but this property is usually expressed separately (e.g., “the program terminates”).
+
+---
+
+### 4. Full formal specification  
+
+\[
+\boxed{
+\begin{array}{l}
+\{\, X\in\mathbb Z \;\land\; Y\in\mathbb Z \,\}\\[2mm]
+\texttt{read } X,\,Y;\\
+\texttt{/* algorithm that computes the sum */}\\
+\texttt{output } S;\\[2mm]
+\{\, S = \displaystyle\sum_{k = \min(X,Y)}^{\max(X,Y)} k\;\bigl[ k \bmod 13 \neq 0 \bigr] \,\}
+\end{array}
+}
+\]
+
+---
+
+#### Remarks  
+
+* The specification is **order‑agnostic**: `min`/`max` take care of the “without any order” requirement.  
+* The indicator `χ₁₃(k)` (or the bracket notation `[k mod 13 ≠ 0]`) precisely captures “*not divisible by 13*”.  
+* All arithmetic is ordinary integer arithmetic; overflow is not addressed here (it is assumed that the implementation uses a sufficiently wide integer type or that the mathematical model of ℤ is used).  
+
+This Hoare‑logic triple completely characterises the intended behaviour of the program in formal mathematical notation.

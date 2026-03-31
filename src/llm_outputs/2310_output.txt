@@ -1,0 +1,16 @@
+Pontos de Saque: 100.00 %.
+Pontos de Bloqueio: 100.00 %.
+Pontos de Ataque: 100.00 %.
+
+Pontos de Saque: 33.33 %.
+Pontos de Bloqueio: 50.00 %.
+Pontos de Ataque: 33.33 %.
+
+Pontos de Saque: 75.00 %.
+Pontos de Bloqueio: 50.00 %.
+Pontos de Ataque: 25.00 %.
+
+Pontos de Saque: 40.00 %.
+Pontos de Bloqueio: 100.00 %.
+Pontos de Ataque: 60.00 %.
+

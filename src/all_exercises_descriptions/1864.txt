@@ -1,0 +1,26 @@
+Description: So, have youliked the Winter School this year? In order to make this School happen, many have worked, whether in writing the problems, in configuring thePortal,in making the arrengementsfor the eventor in raisingthe funds. Our special acknowledgement this year goes toProfessor Ricardo Oliveira, who has not only accepted our invitation to come and teach the workshops but has alsobeen participating on the organisation of this School. Weare sure that his experience and his career at ICPC as contestant and as coach havemotived and inspired us all.
+
+Input: The input consists of a single integerN(1 â¤Nâ¤ 34) in a line.
+
+Output: Print theNfirst characters of SÃ¸ren Kierkegaard's quote defined by the letters underlined in this problem statement. Be careful, for no blank space has been underlined â you are supposed to guess the number and the location of the blank spaces at the sentence. The only line of output shall consist only of capital letters and blank spaces, and shall be ended byend-of-line.
+
+Examples:
+- Example 1:
+  Input:
+1
+  Output:
+L
+
+- Example 2:
+  Input:
+3
+  Output:
+LIF
+
+- Example 3:
+  Input:
+7
+  Output:
+LIFE IS
+
+--

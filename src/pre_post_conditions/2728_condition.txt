@@ -1,0 +1,112 @@
+Below is a **Hoare‑logic style specification** that captures the whole problem in a few mathematical formulas.  
+Only the *pre‑condition* (what we are allowed to receive) and the *post‑condition* (what we must return) are written; the body of the program is left abstract – any algorithm that respects the specification is correct.
+
+---
+
+## 1.  Notation that will be used  
+
+* `Σ = { a,…,z , A,…,Z , ‘-’ }` – the alphabet of admissible characters.  
+* `|x|` – length of a string `x`.  
+* `first(x)` – the first character of a non‑empty string `x`.  
+* `last(x)` – the last character of a non‑empty string `x`.  
+* `lower(c)` – the lower‑case version of a letter `c` (`lower('A')='a'`, …).  
+* `split(L)` – the sequence of substrings obtained by cutting `L` at each hyphen;  
+
+  \[
+  split(L)=\langle w_1,w_2,w_3,w_4,w_5\rangle
+  \]
+
+  (the specification requires exactly five components).  
+
+* `C = \langle c_1,c_2,c_3,c_4,c_5\rangle = \langle\text{‘c’},\text{‘o’},\text{‘b’},\text{‘o’},\text{‘l’}\rangle`.  
+* `BegOrEnd(w,ch) \; \stackrel{\text{def}}{=}\; (lower(first(w)) = ch) \lor (lower(last(w)) = ch)`.  
+
+  This predicate is true iff the **letter `ch` (case‑insensitive)** occurs **either as the first or the last character** of the word `w`.  
+
+* `output ∈ \{ “GRACE HOPPER”, “BUG” \}` – the only admissible results.
+
+---
+
+## 2.  Pre‑condition  
+
+For a given input line `L` we require:
+
+\[
+\boxed{
+\begin{aligned}
+P(L) \; \equiv\; & 1 \le |L| \le 50 \\[2pt]
+                 & \land\; \forall\,c\in L\; (c\in Σ) \\[2pt]
+                 & \land\; \#_{‘-’}(L)=4               \tag{exactly four hyphens}\\[2pt]
+                 & \land\; let\; \langle w_1,\dots ,w_5\rangle = split(L) \; \text{in}\; 
+                          \bigl(\forall i\;(1\le i\le5)\;|w_i| \ge 1\bigr)
+\end{aligned}
+}
+\]
+
+*The last conjunct guarantees that each of the five words is non‑empty (so `first` and `last` are defined).*
+
+---
+
+## 3.  Post‑condition  
+
+Let  
+
+\[
+\langle w_1,w_2,w_3,w_4,w_5\rangle = split(L)
+\]
+
+and define the **match predicate**
+
+\[
+\mathit{Match}(L) \; \stackrel{\text{def}}{=}\;
+\bigwedge_{i=1}^{5} \; BegOrEnd(w_i, c_i)
+\qquad\text{with } (c_1,\dots ,c_5)=C .
+\]
+
+The required relation between the input `L` and the produced `output` is:
+
+\[
+\boxed{
+\begin{aligned}
+Q(L,output) \equiv\; &
+\bigl(\mathit{Match}(L) \;\rightarrow\; output = \text{“GRACE HOPPER”}\bigr) \\[2pt]
+&\land
+\bigl(\neg\mathit{Match}(L) \;\rightarrow\; output = \text{“BUG”}\bigr)
+\end{aligned}
+}
+\]
+
+Because the two implications are mutually exclusive, the specification also entails **determinism**:
+
+\[
+\forall L\;(P(L) \Rightarrow (output = “GRACE HOPPER” \;\lor\; output = “BUG”))
+\]
+
+and **exhaustiveness**:
+
+\[
+\forall L\;(P(L) \Rightarrow (output = “GRACE HOPPER” \;\Leftrightarrow\; \mathit{Match}(L))).
+\]
+
+---
+
+## 4.  Hoare triple for the whole program  
+
+Putting the pieces together, the complete specification of the required algorithm is the Hoare triple  
+
+\[
+\boxed{\{\,P(L)\,\}\; \texttt{GraceHopperProgram}(L)\; \{\,Q(L,output)\,\}}
+\]
+
+where `GraceHopperProgram` reads a line `L` that satisfies the pre‑condition and writes exactly one of the two strings mandated by the post‑condition.
+
+---
+
+### 5.  Intuition behind the predicates  
+
+* `P(L)` guarantees that the input line is well‑formed: length ≤ 50, only letters and hyphens, and exactly five hyphen‑separated words.  
+* `BegOrEnd(w,ch)` checks the *“beginning or end”* requirement for a single word.  
+* `Match(L)` enforces the **ordered** appearance of the letters **C‑O‑B‑O‑L** across the five words.  
+* `Q(L,output)` forces the program to emit **“GRACE HOPPER”** precisely when the ordered match holds; otherwise it must emit **“BUG”**.
+
+Any implementation that respects the above Hoare triple is a correct solution to the problem.

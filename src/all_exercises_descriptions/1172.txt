@@ -1,0 +1,22 @@
+Description: Read an array X[10]. After, replace every null or negative number of X âby 1. Print all numbers stored in the array X.
+
+Input: The input contains 10 integer numbers. These numbers ââcan be positive or negative.
+
+Output: For each position of the array, print "X [i] =x", whereiis the position of the array andxis the number stored in that position.
+
+Examples:
+- Example 1:
+  Input:
+0
+-5
+63
+0
+...
+  Output:
+X[0] = 1
+X[1] = 1
+X[2] = 63
+X[3] = 1
+...
+
+--

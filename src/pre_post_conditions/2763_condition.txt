@@ -1,0 +1,111 @@
+Below is a **Hoare‑logic specification** of the program that reads a single line of the form  
+
+\[
+\texttt{XXX.YYY.ZZZ-DD}
+\]
+
+and writes the four numeric fields on four separate lines, preserving any leading zeros.
+
+---
+
+### Notation that will be used  
+
+* \(\Sigma = \{0,1,\dots ,9,\;.\;,-\}\) – the alphabet of the input file.  
+* \(\Sigma^{*}\) – the set of all finite strings over \(\Sigma\).  
+* \(\operatorname{len}(x)\) – length of a string \(x\).  
+* \(\operatorname{dig}(x)\)  ⇔  “every character of \(x\) belongs to \(\{0,\dots ,9\}\)”.  
+* \(x\;\Vert\;y\) – concatenation of strings \(x\) and \(y\).  
+* \(\operatorname{split}_{\texttt{.},\texttt{-}}(s) = (a,b,c,d)\) is the **partial** function that, when it succeeds, returns the four substrings that satisfy  
+
+\[
+s = a\;\Vert\; \texttt{.}\;\Vert\; b\;\Vert\; \texttt{.}\;\Vert\; c\;\Vert\; \texttt{-}\;\Vert\; d .
+\]
+
+* \(\operatorname{out}\) – the (finite) sequence of lines that the program writes to the output file.  
+* \(\operatorname{out}[i]\) – the \(i\)-th line of that sequence (indices start at 1).  
+
+---
+
+## 1.  Pre‑condition  
+
+\[
+\boxed{
+P \;\equiv\; 
+\begin{aligned}
+&\text{input line } s\in\Sigma^{*}\ \wedge\\[2pt]
+&\exists a,b,c,d\in\Sigma^{*}\;.\;
+\bigl(s = a\;\Vert\;\texttt{.}\;\Vert\;b\;\Vert\;\texttt{.}\;\Vert\;c\;\Vert\;\texttt{-}\;\Vert\;d\bigr) \\
+&\qquad\qquad\wedge\ \operatorname{dig}(a)\wedge\operatorname{dig}(b)\wedge\operatorname{dig}(c)\wedge\operatorname{dig}(d)
+\end{aligned}}
+\]
+
+*In words*: the program receives exactly **one** line `s` that can be split into four non‑empty blocks of decimal digits separated by the literal characters ‘.’ and ‘‑’ as shown above.
+
+---
+
+## 2.  Post‑condition  
+
+\[
+\boxed{
+Q \;\equiv\;
+\begin{aligned}
+&\operatorname{out}= \langle a,\;b,\;c,\;d\rangle\\[2pt]
+&\wedge\; \operatorname{len}(\operatorname{out}) = 4\\[2pt]
+&\wedge\; \forall i\in\{1,2,3,4\}\;.\;
+\operatorname{out}[i]=\begin{cases}
+a & i=1\\
+b & i=2\\
+c & i=3\\
+d & i=4
+\end{cases}
+\end{aligned}}
+\]
+
+*In words*: after termination the program has produced exactly four lines, the first line being the substring `a`, the second `b`, the third `c` and the fourth `d` – i.e. the four integer fields of the input **exactly as they appear**, with any leading zeros kept.
+
+---
+
+## 3.  Hoare triple for the whole program  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{ParseAndPrint}(s)\;\; \{\,Q\,\}}
+\]
+
+where `ParseAndPrint` is the (deterministic) algorithm that
+
+1. reads the single line `s`,
+2. computes \((a,b,c,d)=\operatorname{split}_{\texttt{.},\texttt{-}}(s)\) (which is defined because of the pre‑condition),
+3. writes `a`, `b`, `c`, `d` each followed by a newline.
+
+The triple asserts **partial correctness** (the result satisfies `Q` whenever the program terminates) and, because the algorithm consists of a finite sequence of elementary string‑operations, it also guarantees **termination**.
+
+---
+
+### 4.  Example of the specification in action  
+
+*Input* `s = \texttt{320.025.102-01}`  
+
+- The pre‑condition holds with  
+  \(a=\texttt{320},\; b=\texttt{025},\; c=\texttt{102},\; d=\texttt{01}\).
+
+- After execution, the post‑condition yields  
+
+\[
+\operatorname{out}= \langle\texttt{320},\ \texttt{025},\ \texttt{102},\ \texttt{01}\rangle,
+\]
+
+which is exactly the required output.
+
+---
+
+### 5.  Remarks on the specification  
+
+* The definition of `split` is **partial**; the pre‑condition guarantees that it is defined for the given input.  
+* The specification does **not** impose any numeric interpretation (e.g. range of the integers); it merely requires the substrings to consist of decimal digits, which matches the problem statement that the program must reproduce the characters as they appear.  
+* If one wishes to restrict the lengths (e.g. exactly three digits for the first three fields and two digits for the last field) the pre‑condition can be refined to  
+
+\[
+\operatorname{len}(a)=3 \wedge \operatorname{len}(b)=3 \wedge \operatorname{len}(c)=3 \wedge \operatorname{len}(d)=2 .
+\]
+
+The Hoare‑logic triple above remains valid with that stronger pre‑condition.

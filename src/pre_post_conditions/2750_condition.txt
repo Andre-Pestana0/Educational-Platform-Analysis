@@ -1,0 +1,99 @@
+Below is a **Hoare‑logic specification** for the whole program that prints the conversion table shown in the statement.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what is guaranteed to be true after the program terminates) are given – the body of the program is omitted.
+
+---
+
+### Notation used  
+
+* `O` – the *output buffer* (the whole text that has been written to `stdout` when the program finishes).  
+* `⌈s⌉` – the *string literal* `s` (including the newline character `\n` when it is part of the literal).  
+* `toBase₍b₎(n)` – the representation of the non‑negative integer `n` in base `b` (no leading sign, using digits `0‑9` and, for `b=16`, the capital letters `A‑F`).  
+* `pad₍w₎(x)` – the string `x` left‑padded with spaces so that its length is exactly `w`.  
+* `∥` – string concatenation.  
+* `ℕ₀ = {0,1,2,…}`.  
+
+For the table we need three column widths (the same as in the example):
+
+| column | width |
+|--------|------|
+| decimal      | 7 |
+| octal        | 5 |
+| hexadecimal  | 7 |
+
+Hence we define the *row* for a given integer `i` ( `0 ≤ i ≤ 15` ) as  
+
+\[
+\text{row}(i) \;=\;
+\bigl\|\,\text{“|”}\bigr\|
+\;\;\; \bigl\|\,\text{pad}_{7}\bigl(\text{toString}(i)\bigr)\bigr\|
+\;\;\; \bigl\|\,\text{“|”}\bigr\|
+\;\;\; \bigl\|\,\text{pad}_{5}\bigl(\text{toBase}_{8}(i)\bigr)\bigr\|
+\;\;\; \bigl\|\,\text{“|”}\bigr\|
+\;\;\; \bigl\|\,\text{pad}_{7}\bigl(\text{toBase}_{16}(i)\bigr)\bigr\|
+\;\;\; \bigl\|\,\text{“|”}\bigr\|
+\;\;\; \bigl\|\,\text{“\n”}\bigr\|
+\tag{1}
+\]
+
+The *header* and the *footer* (the horizontal lines) are the same literal:
+
+\[
+\begin{aligned}
+\text{hline} &\;=\; \bigl\|\,\text{“---------------------------------------\n”}\bigr\|\\[2mm]
+\text{title} &\;=\; \bigl\|\,\text{“| decimal   |  octal  |  Hexadecimal  |\n”}\bigr\|
+\end{aligned}
+\tag{2}
+\]
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\;\{\,\mathbf{true}\,\}\; \texttt{PrintTable}\; \{\,\mathbf{Post}\,\}\;}
+\]
+
+*Pre‑condition*  
+
+\[
+\mathbf{true}
+\]
+
+(no input, no external state that matters).
+
+*Post‑condition*  
+
+\[
+\begin{aligned}
+\mathbf{Post}\; \equiv\;& 
+O \;=\; \text{hline} \;\| \; \text{title} \;\| \; \text{hline} \;\|\\
+&\qquad\; \bigl(\;\displaystyle\bigparallel_{i=0}^{15}\; \text{row}(i)\;\bigr) \;\| \; \text{hline}
+\end{aligned}
+\tag{3}
+\]
+
+In words, after termination the output buffer `O` must consist of:
+
+1. the top horizontal line,
+2. the title line,
+3. the same horizontal line again,
+4. the 16 rows `row(0), row(1), …, row(15)` concatenated in order,
+5. a final horizontal line.
+
+Each `row(i)` is exactly as defined in (1), i.e. the decimal value `i`, its octal representation `toBase₈(i)`, and its hexadecimal representation `toBase₁₆(i)`, all padded to the column widths shown in the example.
+
+---
+
+### Full specification in Hoare‑logic style
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,\mathbf{true}\,\}\\
+\texttt{PrintTable}\\
+\{\, O = \text{hline}\;\|\;\text{title}\;\|\;\text{hline}\;\|\;
+        \displaystyle\bigparallel_{i=0}^{15}\text{row}(i)\;\|\;\text{hline}\, \}
+\end{array}}
+\]
+
+This formalises, in mathematical notation, exactly what the program is required to produce. Any implementation that, when started in a state satisfying the pre‑condition (`true`), terminates with an output buffer satisfying the post‑condition above, is a correct solution to the given natural‑language problem.

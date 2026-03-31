@@ -1,0 +1,102 @@
+Below is a **Hoare‑logic specification** (pre‑condition \(P\) and post‑condition \(Q\)) that captures exactly the behaviour described in the natural‑language statement.
+
+---
+
+### 1.  Auxiliary definitions  
+
+| product code \(c\) | unit price \(\pi(c)\) (R\$) |
+|--------------------|----------------------------|
+| \(1\)              | \(1.50\) |
+| \(2\)              | \(4.50\) |
+| \(3\)              | \(5.00\) |
+| \(4\)              | \(2.00\) |
+| \(5\)              | \(1.00\) |
+
+\[
+\pi:\{1,2,3,4,5\}\longrightarrow \mathbb{R},\qquad 
+\pi(1)=1.5,\; \pi(2)=4.5,\; \pi(3)=5.0,\; \pi(4)=2.0,\; \pi(5)=1.0.
+\]
+
+For a given code \(c\) and a quantity \(q\) we define the **total amount**
+
+\[
+\mathit{total}(c,q)\;=\;\pi(c)\cdot q\;\in\mathbb{R}.
+\]
+
+The function that prints a real number with exactly two decimal digits is denoted  
+
+\[
+\mathsf{fmt}_2 : \mathbb{R}\rightarrow\text{String},
+\qquad
+\mathsf{fmt}_2(v)=\text{the decimal representation of }v\text{ with two digits after “.”}.
+\]
+
+---
+
+### 2.  Hoare triple  
+
+Let the program be a block **S** that
+
+* reads two integers `X` (product code) and `Y` (quantity) from the input,
+* computes the amount to be paid,
+* writes a single line  
+
+  `Total: R$ ` `<value>`  
+
+  where `<value>` is the amount with two decimal digits.
+
+The Hoare triple is
+
+\[
+\boxed{\{\,P\,\}\;S\;\{\,Q\,\}}
+\]
+
+with  
+
+\[
+\begin{aligned}
+P &\;:=\; 
+\bigl(X\in\mathbb{Z}\bigr)\;\land\;
+\bigl(Y\in\mathbb{Z}\bigr)\;\land\;
+\bigl(X\in\operatorname{dom}(\pi)\bigr)\;\land\;
+\bigl(Y\ge 0\bigr) \\[4pt]
+Q &\;:=\;
+\text{output} = 
+\text{``Total: R\$ ''}\;\|\;
+\mathsf{fmt}_2\bigl(\mathit{total}(X,Y)\bigr)
+\end{aligned}
+\]
+
+where “\(\|\)” denotes string concatenation.
+
+In words:
+
+* **Pre‑condition** \(P\) states that the program receives two integer values,
+  the first one (`X`) is a valid product code (i.e. belongs to the table
+  domain \(\{1,\dots,5\}\)), and the second one (`Y`) is a non‑negative quantity.
+
+* **Post‑condition** \(Q\) states that after termination the program has printed
+  exactly the line  
+
+  `Total: R$ ` followed by the numeric value \(\pi(X)\times Y\) formatted with
+  two decimal places.
+
+---
+
+### 3.  Full Hoare‑logic specification  
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,X\in\mathbb{Z}\;\land\;Y\in\mathbb{Z}\;\land\;X\in\{1,\dots,5\}\;\land\;Y\ge 0\,\}\\[2pt]
+\textbf{read }X,\;Y;\\
+\textbf{let }A := \pi(X)\times Y;\\
+\textbf{print } \text{``Total: R\$ ''}\;\|\;\mathsf{fmt}_2(A);\\[2pt]
+\{\,\text{output}= \text{``Total: R\$ ''}\;\|\;\mathsf{fmt}_2(\pi(X)\times Y)\,\}
+\end{array}
+}
+\]
+
+The triple above is a completely formal (mathematical) description of the
+required program, expressed solely with a pre‑condition and a post‑condition
+as used in Hoare logic.

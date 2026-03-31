@@ -1,0 +1,161 @@
+**Formal Hoare‑logic specification (pre‑condition / post‑condition) of the “Rock‑Paper‑Scissors‑Lizard‑Spock” problem**
+
+---
+
+### 1. Vocabulary
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℕ`    | set of natural numbers (including 0) |
+| `Σ`    | the finite alphabet of the problem |
+| `T`    | number of test cases (`T ∈ ℕ , 1 ≤ T ≤ 100`) |
+| `i`    | test‑case index (`1 ≤ i ≤ T`) |
+| `opt ∈ O` | one of the five possible options, where  
+
+\[
+O =\{ \text{pedra},\ \text{papel},\ \text{tesoura},\ \text{lagarto},\ \text{Spock} \}
+\] |
+| `s_i , r_i ∈ O` | respectively Sheldon’s and Raj’s choice in test case *i* |
+| `out : O × O → \{S,R,T\}` | outcome function (S = Sheldon wins, R = Raj wins, T = tie) |
+| `msg : \{S,R,T\} → Σ*` | textual message printed for a test case |
+| `out_i` | the value `out(s_i , r_i)` for case *i* |
+| `msg_i` | the value `msg(out_i)` for case *i* |
+| `\mathbf{print}(i, msg_i)` | writes the line  
+
+```
+Caso #i: msg_i
+```  
+
+to the output stream (including a final newline). |
+
+---
+
+### 2. Game‑rules (definition of `out`)
+
+The winning relation **W** ⊆ O × O is the set of ordered pairs *(x , y)* such that *x* defeats *y*:
+
+\[
+\begin{aligned}
+W = \{ &(\text{pedra},\ \text{tesoura}), (\text{pedra},\ \text{lagarto}),\\
+       &(\text{papel},\ \text{pedra}), (\text{papel},\ \text{Spock}),\\
+       &(\text{tesoura},\ \text{papel}), (\text{tesoura},\ \text{lagarto}),\\
+       &(\text{lagarto},\ \text{papel}), (\text{lagarto},\ \text{Spock}),\\
+       &(\text{Spock},\ \text{pedra}), (\text{Spock},\ \text{tesoura}) \}.
+\end{aligned}
+\]
+
+Using **W** we define `out`:
+
+\[
+out(x,y)=
+\begin{cases}
+S & \text{if } (x,y)\in W,\\[2mm]
+R & \text{if } (y,x)\in W,\\[2mm]
+T & \text{otherwise } (x=y).
+\end{cases}
+\]
+
+*Note*: the “otherwise” case is exactly the tie case because the five options are distinct and the relation **W** is antisymmetric; therefore the only remaining possibility is `x = y`.
+
+---
+
+### 3. Message mapping `msg`
+
+\[
+msg(out)=
+\begin{cases}
+\text{``Bazinga!''}      & \text{if } out = S,\\[1mm]
+\text{``Raj trapaceou!''}& \text{if } out = R,\\[1mm]
+\text{``De novo!''}      & \text{if } out = T.
+\end{cases}
+\]
+
+All strings are ASCII (or UTF‑8) and contain no trailing blanks.
+
+---
+
+### 4. Pre‑condition  **P**
+
+The program receives on its standard input a sequence of tokens that satisfy:
+
+\[
+\begin{aligned}
+P \equiv\;&\bigl(T\in\mathbb{N}\ \land\ 1\le T\le 100\bigr) \\
+        &\land\ \bigl(\forall i\in\{1,\dots ,T\}\;.\;
+           s_i\in O\ \land\ r_i\in O\bigr)\\
+        &\land\ \text{the tokens appear in the exact order}\\
+        &\qquad\bigl(T,\ s_1,\ r_1,\ s_2,\ r_2,\dots ,s_T,\ r_T\bigr).
+\end{aligned}
+\]
+
+In words: the first integer is `T` (≤ 100) and afterwards exactly `2·T` tokens, each belonging to the set `O`, alternating Sheldon’s and Raj’s choices.
+
+---
+
+### 5. Post‑condition  **Q**
+
+After termination the program has written **exactly** `T` lines to the output stream, and for each test case *i* the line follows the required format and contains the correct message:
+
+\[
+\begin{aligned}
+Q \equiv\;&\bigl(\forall i\in\{1,\dots ,T\}\;.\;
+   out_i = out(s_i , r_i)\bigr) \\
+   &\land\ \bigl(\forall i\in\{1,\dots ,T\}\;.\;
+      msg_i = msg(out_i)\bigr)\\
+   &\land\ \bigl(\forall i\in\{1,\dots ,T\}\;.\;
+      \mathbf{print}(i, msg_i)\bigr)\\
+   &\land\ \text{no other output is produced}.
+\end{aligned}
+\]
+
+Thus the *i*‑th printed line is exactly
+
+```
+Caso #i: <msg_i>
+```
+
+where `<msg_i>` is one of the three Portuguese strings defined in `msg`.
+
+---
+
+### 6. Hoare triple for the whole program
+
+\[
+\boxed{\{\,P\,\}\; \texttt{RPSL\_Solver}\; \{\,Q\,\}}
+\]
+
+`RPSL_Solver` denotes the (deterministic) algorithm that
+
+1. reads `T`,
+2. iterates `i = 1 … T`,
+3. reads `s_i , r_i`,
+4. evaluates `out_i = out(s_i , r_i)`,
+5. computes `msg_i = msg(out_i)`,
+6. prints `Caso #i: msg_i`.
+
+Because the definitions of `out` and `msg` are total and deterministic over the finite domain `O × O`, the triple is **partial‑correct** (the program terminates for every input satisfying `P`). Termination follows from the obvious bounded loop (`i` runs at most `T ≤ 100` times), therefore the triple is also **total‑correct**.
+
+---
+
+### 7. Summary (in compact mathematical notation)
+
+\[
+\begin{aligned}
+&\{\,T\in\mathbb N,\ 1\le T\le100,\ \forall i\;.\;s_i,r_i\in O\,\}\\
+&\texttt{for }i:=1\ \texttt{to}\ T\ \texttt{do}\\
+&\qquad out_i :=\begin{cases}
+S & (s_i,r_i)\in W\\
+R & (r_i,s_i)\in W\\
+T & s_i=r_i
+\end{cases}\\
+&\qquad msg_i :=\begin{cases}
+\text{``Bazinga!''}      & out_i=S\\
+\text{``Raj trapaceou!''}& out_i=R\\
+\text{``De novo!''}      & out_i=T
+\end{cases}\\
+&\qquad \mathbf{print}(i,msg_i)\\
+&\{\,\forall i\;.\;\mathbf{print}(i,msg_i)\text{ and }msg_i=msg(out(s_i,r_i))\,\}
+\end{aligned}
+\]
+
+This Hoare‑logic specification captures **exactly** the required behaviour of the program described in the natural‑language problem statement.

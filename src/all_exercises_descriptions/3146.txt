@@ -1,0 +1,20 @@
+Description: Many things have happened since the beginning of Bilbo's journey, Gandalf and the dwarves. While passing through the Misty Mountains, Bilbo separated from his friends and ended up in Gollum's cave.
+
+Input: A real R value indicating the size of the circle radius of Gollum's question.
+
+Output: A real value with two decimal places indicating the total size of the circle of Gollum's question circle.
+
+Examples:
+- Example 1:
+  Input:
+1.00
+  Output:
+6.28
+
+- Example 2:
+  Input:
+3.11
+  Output:
+19.53
+
+--

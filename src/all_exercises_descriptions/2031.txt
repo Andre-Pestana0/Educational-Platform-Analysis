@@ -1,0 +1,19 @@
+Description: Rock, Paper, Airstrike is a very popular childrenâs game, in which two or more children form a circle and do hand gestures in an attempt to get the victory. The rules are surprisingly complex for a childrenâs game, but itâs still quite popular around the world.
+
+Input: The input consist of N (1 â¤ N â¤ 1000) test cases. N should be read in the first line of input. Each test case is composed of two lines each containing a string. The first string is the sign chosen by Player 1 and the second string is the sign chosen by the Player 2. These string can be:
+
+Output: The output must be contain:
+
+Examples:
+- Example 1:
+  Input:
+2
+pedra
+pedra
+ataque
+papel
+  Output:
+Sem ganhador
+Jogador 1 venceu
+
+--

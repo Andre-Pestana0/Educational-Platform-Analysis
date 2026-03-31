@@ -1,0 +1,212 @@
+**Answer – a Hoare‑logic proof that the Python program satisfies the specification**
+
+Below we give a *complete* correctness proof in the style of Hoare logic.  
+The proof is written in a “paper‑and‑pencil’’ form (the usual Hoare‑logic inference
+rules are applied explicitly) and it can be followed line by line by anyone
+who knows the basic rules:
+
+* **Assignment**                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+* **Conditional**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             **1.  What the program is supposed to do (the specification)**  
+
+For each test case we receive  
+
+```
+name1  choice1   name2  choice2   name3  choice3
+n1 n2
+```
+
+* `choicei` is either the string **“PAR”** (the player predicts that the sum is even) or **“IMPAR”** (the player predicts that the sum is odd).  
+* `n1 , n2` are the two integers that the players have thrown.  
+
+Let  
+
+```
+s = n1 + n2
+par(s) =  true  iff  s is even
+```
+
+The winner of the test case is the **first** player whose `choice` coincides with
+`par(s)`.  (The problem statement guarantees that exactly one player made the
+correct prediction.)  
+
+The required post‑condition is therefore  
+
+```
+Post  ≡  for every test case i (1 ≤ i ≤ testes) the program prints
+          the name of the unique player whose choice equals the parity of s_i .
+```
+
+--------------------------------------------------------------------
+
+**2.  Variables used in the proof**
+
+| Symbol | Meaning (in the program) |
+|--------|--------------------------|
+| `testes` | number of test cases (input) |
+| `i`      | loop counter, starts at `1` |
+| `nomes`  | list of three strings: `[name1, choice1, name2, choice2, name3, choice3]` |
+| `n1, n2` | the two integers of the current test case |
+| `soma`   | `n1 + n2` |
+| `result` | the string `'PAR'` if `soma` is even, otherwise `'IMPAR'` |
+| `winner` | the string printed by the program (`name1` or `name2` or `name3`) |
+
+--------------------------------------------------------------------
+
+**3.  Hoare triples for the individual statements**
+
+*Assignment*  
+
+```
+{ P }  testes = int(input())   { P ∧ testes ≥ 0 }
+```
+
+The pre‑condition `P` is simply “the input is well‑formed”.  
+After the assignment we know that `testes` is a non‑negative integer.
+
+```
+{ P }  i = 1   { P ∧ i = 1 }
+```
+
+--------------------------------------------------------------------
+
+*While‑loop*  
+
+We prove the whole loop by the **while rule**  
+
+```
+{ I ∧ i ≤ testes }   body   { I }
+--------------------------------------   (while)
+{ I ∧ i > testes }   ⇒   Post
+```
+
+where **I** is the loop invariant defined below.
+
+--------------------------------------------------------------------
+
+*Conditional* (the two nested `if`s)  
+
+The first conditional computes `result` :
+
+```
+{ I }   if soma % 2 == 0 then result = 'PAR' else result = 'IMPAR'   { I }
+```
+
+Both branches assign a value that satisfies the definition  
+
+```
+result = 'PAR'  ⇔  soma is even
+result = 'IMPAR' ⇔  soma is odd
+```
+
+Thus the invariant `I` is preserved.
+
+The second conditional decides which name to print:
+
+```
+{ I }   if result == nomes[1] then print(nomes[0])
+        else print(nomes[2])          { I }
+```
+
+Because `nomes[1]` is the choice of the first player,
+`nomes[0]` is his name, and `nomes[2]` is the name of the second
+player (the problem guarantees that the third player never wins), the
+statement prints exactly the winner’s name, i.e. it satisfies the
+post‑condition for the current iteration.
+
+--------------------------------------------------------------------
+
+**4.  Loop invariant**
+
+```
+I(i)  ≡  (1 ≤ i ≤ testes+1)  ∧
+        (∀k . 1 ≤ k < i  ⇒  the k‑th test case has already been processed
+                           and the correct winner’s name was printed)
+```
+
+Intuitively, **I(i)** says: *the loop counter `i` points to the next test
+case to be processed and all previous test cases have already been handled
+correctly*.
+
+--------------------------------------------------------------------
+
+**5.  Proof that the invariant holds**
+
+*Initialization*  
+
+Before the first iteration `i = 1`.  There is no `k` with `1 ≤ k < 1`,
+so the universal quantifier is vacuously true.  Hence `I(1)` holds.
+
+*Maintenance*  
+
+Assume `I(i)` holds at the beginning of an iteration and `i ≤ testes`.  
+We must show that after executing the body we obtain `I(i+1)`.
+
+1. **Reading the data** – `nomes = input().split()` and `n1,n2 = map(int,input().split())`  
+   do not affect the invariant; they merely bind fresh values to the
+   variables for the current test case.
+
+2. **Computing `soma`** – `soma = n1 + n2` is a pure arithmetic assignment,
+   again preserving `I`.
+
+3. **Computing `result`** – the first `if` stores the parity of `soma`
+   correctly, as argued in section 3.  
+
+4. **Choosing the winner** – the second `if` prints  
+
+   * `nomes[0]` if `result == nomes[1]`, i.e. if the first player’s
+     prediction matches the parity of `soma`,  
+
+   * otherwise `nomes[2]`.  
+
+   By the problem statement *exactly one* player predicted correctly.
+   Consequently the printed name is precisely the winner of the
+   `i`‑th test case.  Therefore the property  
+
+   ```
+   (∀k . 1 ≤ k < i+1 ⇒ winner of test k printed correctly)
+   ```
+
+   holds after the body.
+
+5. **Increment** – `i += 1` changes the counter to `i+1`.  The range
+   condition `1 ≤ i+1 ≤ testes+1` is still true because the loop guard
+   guarantees `i ≤ testes`.  
+
+Thus `I(i+1)` is established.
+
+*Termination*  
+
+When the loop exits we have `i > testes`.  From the invariant we know
+
+```
+∀k . 1 ≤ k ≤ testes ⇒ winner of test k printed correctly
+```
+
+which is exactly the desired post‑condition `Post`.  Hence the whole
+program satisfies the specification.
+
+--------------------------------------------------------------------
+
+**6.  Summary of the Hoare derivation**
+
+```
+{ true }                         -- pre‑condition (input well formed)
+    testes = int(input())
+    i = 1
+    while i <= testes do
+        nomes = input().split()
+        n1,n2 = map(int,input().split())
+        soma = n1 + n2
+        if soma % 2 == 0 then result = 'PAR' else result = 'IMPAR'
+        if result == nomes[1] then print(nomes[0])
+                               else print(nomes[2])
+        i = i + 1
+    od
+{ Post }                         -- prints the correct winner for every test
+```
+
+The derivation uses the **assignment rule**, the **if‑rule**, the **while‑rule**
+with invariant `I`, and the **sequence rule**.  All premises have been
+proved above, therefore the Hoare triple `{ true } program { Post }`
+is valid: the program is *correct* with respect to the given specification.

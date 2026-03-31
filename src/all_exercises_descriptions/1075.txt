@@ -1,0 +1,18 @@
+Description: Read an integerN. Print all numbers between 1 and 10000, which divided byNwill give the rest = 2.
+
+Input: The input is an integerN(N< 10000)
+
+Output: Print all numbers between 1 and 10000, which divided by n will give the rest = 2, one per line.
+
+Examples:
+- Example 1:
+  Input:
+13
+  Output:
+2
+15
+28
+41
+...
+
+--

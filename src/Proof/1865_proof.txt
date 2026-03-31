@@ -1,0 +1,230 @@
+Below is a **Hoare‑logic proof** that the Python program shown in the statement satisfies the specification that is implicitly given by the problem description.
+
+--------------------------------------------------------------------
+### 1.  Specification  
+
+*Input*  
+
+```
+casos                – an integer, 0 ≤ casos
+(nome₁, forca₁)
+(nome₂, forca₂)
+…
+(nome_casos, forca_casos)
+```
+
+Each line after the first contains a *name* (a non‑empty string without blanks) and an
+integer *forca*.  
+
+*Output*  
+
+The program must write exactly **casos** characters, one per line:
+
+```
+Y  iff  nome_i = "Thor"
+N  iff  nome_i ≠ "Thor"
+```
+
+Formally we write the **pre‑condition** `P` and the **post‑condition** `Q` as
+
+```
+P  ≡  (casos ∈ ℕ) ∧
+     (∀ i∈[1..casos] :  input line i = (nome_i , forca_i)  with nome_i a string)
+
+Q  ≡  (output consists of exactly casos lines) ∧
+     (∀ i∈[1..casos] :  line i of the output = 'Y'  ⇔  nome_i = "Thor")
+```
+
+--------------------------------------------------------------------
+### 2.  Program (annotated)
+
+```python
+1  casos = int(input())
+2  i = 0                                   # loop counter
+3  while i < casos:                        # <--- loop
+4      nome, forca = input().split(' ')   # read a case
+5      if nome == "Thor":                  # test the name
+6          print('Y')
+7      else:
+8          print('N')
+9      i = i + 1
+```
+
+--------------------------------------------------------------------
+### 3.  Loop invariant  
+
+The crucial ingredient is the **invariant** `I(i)` that must hold at the
+beginning of every iteration of the `while` loop (i.e. just before line 4).
+
+```
+I(i)  ≡  0 ≤ i ≤ casos ∧
+        (the first i input lines have already been read) ∧
+        (the program has already printed i lines, and for every
+         k ∈ [1..i] the printed line k is 'Y' ⇔ nome_k = "Thor")
+```
+
+In words: *after processing `i` cases the program has produced exactly the
+required output for those `i` cases*.
+
+--------------------------------------------------------------------
+### 4.  Proof structure  
+
+We prove the Hoare triple  
+
+```
+{ P }  program  { Q }
+```
+
+by the usual three steps for a `while`‑loop:
+
+1. **Initialization** – show `P ⇒ I(0)`.  
+2. **Maintenance** – assume `I(i)` and the loop guard `i < casos` hold,
+   prove that after one execution of the body `I(i+1)` holds.  
+3. **Termination** – when the guard becomes false (`i = casos`) we have
+   `I(casos) ⇒ Q`.
+
+--------------------------------------------------------------------
+### 5.  Detailed proof  
+
+#### 5.1  Initialization  
+
+At the very beginning we have executed line 1, so `casos` contains the
+integer read from the input.  
+`i` is set to `0` at line 2.  
+No case has been processed yet, therefore the “first 0 input lines have
+already been read’’ and “0 lines have already been printed’’ are true
+trivially. Consequently `I(0)` holds.
+
+Formally  
+
+```
+{ P }
+   casos = int(input());      // line 1
+   i = 0;                     // line 2
+{ I(0) }
+```
+
+Thus `P ⇒ I(0)`.
+
+--------------------------------------------------------------------
+#### 5.2  Maintenance  
+
+Assume the invariant `I(i)` holds **and** the loop guard `i < casos` is true.
+We must show that after executing lines 4‑9 the invariant holds with `i+1`.
+
+*Step 4* (`nome, forca = input().split(' ')`)  
+reads exactly the `(i+1)`‑st input line, because the first `i` lines have
+already been consumed (by the invariant). After this assignment we have
+`nome = nome_{i+1}` and `forca = forca_{i+1}`.
+
+*Step 5‑8* (the `if` statement)  
+
+```
+if nome == "Thor":
+    print('Y')
+else:
+    print('N')
+```
+
+The semantics of `if‑else` in Hoare logic is the rule
+
+```
+{ B ∧ R } S₁ { Q }    { ¬B ∧ R } S₂ { Q }
+-----------------------------------------
+{ R } if B then S₁ else S₂ { Q }
+```
+
+where `B` is the Boolean guard, `R` the surrounding assertion, and `S₁`,
+`S₂` the two branches.
+
+Take  
+
+```
+B   ≡ (nome == "Thor")
+R   ≡ I(i) ∧ (i < casos)          // the state just before the if
+S₁ ≡ print('Y')
+S₂ ≡ print('N')
+```
+
+Both `print` statements have the effect *“append a line to the output”*.
+Consequently
+
+```
+{ B ∧ R }  print('Y')  { I(i) with an extra line ‘Y’ }
+{ ¬B ∧ R } print('N')  { I(i) with an extra line ‘N’ }
+```
+
+Because `B` is precisely the condition “the name read equals "Thor"”, the
+new line added to the output satisfies the specification for case `i+1`.
+
+*Step 9* (`i = i + 1`)  
+
+The assignment rule tells us that after `i := i+1` the invariant holds
+with the new counter value:
+
+```
+{ I(i) with the (i+1)‑st line correctly printed } 
+i = i + 1
+{ I(i+1) }
+```
+
+Thus we have proved the Hoare triple for one loop iteration:
+
+```
+{ I(i) ∧ i < casos }  body  { I(i+1) }
+```
+
+Hence the invariant is **maintained**.
+
+--------------------------------------------------------------------
+#### 5.3  Termination  
+
+When the loop guard becomes false we have `i = casos`.  
+From the invariant we obtain:
+
+```
+I(casos)  ≡  (0 ≤ casos ≤ casos) ∧
+            (the first casos input lines have been read) ∧
+            (exactly casos lines have been printed, and for each k
+             the printed line k is 'Y' ⇔ nome_k = "Thor")
+```
+
+The first two conjuncts are trivially true.  
+The third conjunct is exactly the post‑condition `Q`.  
+Therefore `I(casos) ⇒ Q`.
+
+--------------------------------------------------------------------
+### 6.  Whole program Hoare triple  
+
+Putting the three parts together we obtain the classic rule for a `while`:
+
+```
+{ P }
+   casos = int(input());
+   i = 0;
+   while i < casos do
+       (body)
+   od
+{ Q }
+```
+
+Since we have shown
+
+* `P ⇒ I(0)`  (initialisation)
+* `{ I(i) ∧ i < casos } body { I(i+1) }`  (maintenance)
+* `I(casos) ⇒ Q`  (termination)
+
+the Hoare triple `{ P } program { Q }` is proved.  
+
+--------------------------------------------------------------------
+### 7.  Conclusion  
+
+The program is **correct** with respect to the given specification:
+
+* It reads exactly the number of test cases announced in the first line.  
+* For each test case it prints a single character.  
+* That character is **‘Y’** iff the name supplied for the case is the
+  literal string `"Thor"`; otherwise it prints **‘N’**.  
+
+Thus the Hoare‑logic proof establishes that the program meets the
+pre‑condition `P` and guarantees the post‑condition `Q`. ∎

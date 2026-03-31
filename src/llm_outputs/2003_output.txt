@@ -1,0 +1,26 @@
+Atraso maximo: 0
+
+Atraso maximo: 0
+
+Atraso maximo: 0
+
+Atraso maximo: 0
+
+Atraso maximo: 0
+
+Atraso maximo: 0
+
+Atraso maximo: 1
+
+Atraso maximo: 10
+
+Atraso maximo: 30
+
+Atraso maximo: 59
+
+Atraso maximo: 60
+
+Atraso maximo: 90
+
+Atraso maximo: 120
+

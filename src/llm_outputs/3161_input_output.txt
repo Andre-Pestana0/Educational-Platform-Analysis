@@ -1,0 +1,304 @@
+"input": "1 15
+Kiwi
+xxKiWiyy
+abcdefghij
+qwertyuiop
+zxcvbnmasd
+asdfghjklz
+poiuytrewq
+lkjhgfdsaz
+mnbvcxzpoi
+qazwsxedcr
+plmoknijb
+uhbgtvfrcd
+yhnujmikol
+bgtvfrcdex
+qazxswedcv
+plmkoijnb
+",
+"output": "Sheldon come a fruta kiwi"
+"input": "2 20
+Mango
+Papaya
+xxognamyy
+abcdefghij
+klmnopqrst
+uvwxyzabcd
+efghijklmn
+opqrstuVWX
+yzabcdEFGH
+IJKLMNopqr
+STUvwxyzab
+cdefghijkl
+mnopqrstuV
+wxyzabcdEF
+GHijklmnop
+QRstuvWXYZ
+abcMANGOdef
+randomline1
+randomline2
+randomline3
+randomline4
+randomline5
+",
+"output": "Sheldon come a fruta mango
+Sheldon detesta a fruta papaya"
+"input": "3 15
+Orange
+Grape
+Lemon
+zzORANGEzz
+xxGRApEyy
+abcdefghij
+klmnopqrst
+uvwxyzabcd
+efghijklmn
+opqrstuVWX
+yzabcdEFGH
+IJKLMNopqr
+STUvwxyzab
+cdefghijkl
+mnopqrstuV
+wxyzabcdEF
+GHijklmnop
+QRstuvWXYZ
+",
+"output": "Sheldon come a fruta orange
+Sheldon come a fruta grape
+Sheldon detesta a fruta lemon"
+"input": "1 15
+Apple
+xxPineAppleyy
+abcdefghij
+klmnopqrst
+uvwxyzabcd
+efghijklmn
+opqrstuVWX
+yzabcdEFGH
+IJKLMNopqr
+STUvwxyzab
+cdefghijkl
+mnopqrstuV
+wxyzabcdEF
+GHijklmnop
+QRstuvWXYZ
+randomline
+",
+"output": "Sheldon come a fruta apple"
+"input": "100 15
+Apple
+Banana
+Cherry
+Date
+Elder
+Fig
+Grape
+Honeydew
+ItaFruit
+Jackfruit
+Kiwi
+Lemon
+Mango
+Nectarine
+Orange
+Papaya
+Quince
+Raspberry
+Strawberry
+Tomato
+Ugli
+Voavanga
+Watermelon
+Xigua
+Yuzu
+Ziziphus
+Fruit27
+Fruit28
+Fruit29
+Fruit30
+Fruit31
+Fruit32
+Fruit33
+Fruit34
+Fruit35
+Fruit36
+Fruit37
+Fruit38
+Fruit39
+Fruit40
+Fruit41
+Fruit42
+Fruit43
+Fruit44
+Fruit45
+Fruit46
+Fruit47
+Fruit48
+Fruit49
+Fruit50
+Fruit51
+Fruit52
+Fruit53
+Fruit54
+Fruit55
+Fruit56
+Fruit57
+Fruit58
+Fruit59
+Fruit60
+Fruit61
+Fruit62
+Fruit63
+Fruit64
+Fruit65
+Fruit66
+Fruit67
+Fruit68
+Fruit69
+Fruit70
+Fruit71
+Fruit72
+Fruit73
+Fruit74
+Fruit75
+Fruit76
+Fruit77
+Fruit78
+Fruit79
+Fruit80
+Fruit81
+Fruit82
+Fruit83
+Fruit84
+Fruit85
+Fruit86
+Fruit87
+Fruit88
+Fruit89
+Fruit90
+Fruit91
+Fruit92
+Fruit93
+Fruit94
+Fruit95
+Fruit96
+Fruit97
+Fruit98
+Fruit99
+Fruit100
+xxelppAyy
+BANANA
+randomline1
+randomline2
+xxyrrehCzz
+zzzDatezzz
+xxegnarozz
+randomline3
+xxMANGOyy
+randomline4
+xxenoLzz
+randomline5
+xxGRAPExx
+randomline6
+randomline7
+",
+"output": "Sheldon come a fruta apple
+Sheldon come a fruta banana
+Sheldon come a fruta cherry
+Sheldon come a fruta date
+Sheldon detesta a fruta elder
+Sheldon detesta a fruta fig
+Sheldon come a fruta grape
+Sheldon detesta a fruta honeydew
+Sheldon detesta a fruta itafruit
+Sheldon detesta a fruta jackfruit
+Sheldon detesta a fruta kiwi
+Sheldon come a fruta lemon
+Sheldon come a fruta mango
+Sheldon detesta a fruta nectarine
+Sheldon come a fruta orange
+Sheldon detesta a fruta papaya
+Sheldon detesta a fruta quince
+Sheldon detesta a fruta raspberry
+Sheldon detesta a fruta strawberry
+Sheldon detesta a fruta tomato
+Sheldon detesta a fruta ugli
+Sheldon detesta a fruta voavanga
+Sheldon detesta a fruta watermelon
+Sheldon detesta a fruta xigua
+Sheldon detesta a fruta yuzu
+Sheldon detesta a fruta ziziphus
+Sheldon detesta a fruta fruit27
+Sheldon detesta a fruta fruit28
+Sheldon detesta a fruta fruit29
+Sheldon detesta a fruta fruit30
+Sheldon detesta a fruta fruit31
+Sheldon detesta a fruta fruit32
+Sheldon detesta a fruta fruit33
+Sheldon detesta a fruta fruit34
+Sheldon detesta a fruta fruit35
+Sheldon detesta a fruta fruit36
+Sheldon detesta a fruta fruit37
+Sheldon detesta a fruta fruit38
+Sheldon detesta a fruta fruit39
+Sheldon detesta a fruta fruit40
+Sheldon detesta a fruta fruit41
+Sheldon detesta a fruta fruit42
+Sheldon detesta a fruta fruit43
+Sheldon detesta a fruta fruit44
+Sheldon detesta a fruta fruit45
+Sheldon detesta a fruta fruit46
+Sheldon detesta a fruta fruit47
+Sheldon detesta a fruta fruit48
+Sheldon detesta a fruta fruit49
+Sheldon detesta a fruta fruit50
+Sheldon detesta a fruta fruit51
+Sheldon detesta a fruta fruit52
+Sheldon detesta a fruta fruit53
+Sheldon detesta a fruta fruit54
+Sheldon detesta a fruta fruit55
+Sheldon detesta a fruta fruit56
+Sheldon detesta a fruta fruit57
+Sheldon detesta a fruta fruit58
+Sheldon detesta a fruta fruit59
+Sheldon detesta a fruta fruit60
+Sheldon detesta a fruta fruit61
+Sheldon detesta a fruta fruit62
+Sheldon detesta a fruta fruit63
+Sheldon detesta a fruta fruit64
+Sheldon detesta a fruta fruit65
+Sheldon detesta a fruta fruit66
+Sheldon detesta a fruta fruit67
+Sheldon detesta a fruta fruit68
+Sheldon detesta a fruta fruit69
+Sheldon detesta a fruta fruit70
+Sheldon detesta a fruta fruit71
+Sheldon detesta a fruta fruit72
+Sheldon detesta a fruta fruit73
+Sheldon detesta a fruta fruit74
+Sheldon detesta a fruta fruit75
+Sheldon detesta a fruta fruit76
+Sheldon detesta a fruta fruit77
+Sheldon detesta a fruta fruit78
+Sheldon detesta a fruta fruit79
+Sheldon detesta a fruta fruit80
+Sheldon detesta a fruta fruit81
+Sheldon detesta a fruta fruit82
+Sheldon detesta a fruta fruit83
+Sheldon detesta a fruta fruit84
+Sheldon detesta a fruta fruit85
+Sheldon detesta a fruta fruit86
+Sheldon detesta a fruta fruit87
+Sheldon detesta a fruta fruit88
+Sheldon detesta a fruta fruit89
+Sheldon detesta a fruta fruit90
+Sheldon detesta a fruta fruit91
+Sheldon detesta a fruta fruit92
+Sheldon detesta a fruta fruit93
+Sheldon detesta a fruta fruit94
+Sheldon detesta a fruta fruit95
+Sheldon detesta a fruta fruit96
+Sheldon detesta a fruta fruit97
+Sheldon detesta a fruta fruit98
+Sheldon detesta a fruta fruit99
+Sheldon detesta a fruta fruit100"

@@ -1,0 +1,141 @@
+**Hoare‑logic specification**
+
+We denote the program that solves the problem by the (partial) function  
+
+\[
+\textsf{minCycles} : \Sigma^{*}\times \mathbb N \rightharpoonup \mathbb N ,
+\]
+
+where  
+
+* \(\Sigma=\{R,W\}\) is the alphabet of the trace,  
+* the first argument is the trace string \(\tau\),  
+* the second argument is the number of processes \(P\).
+
+The program is called with the command  
+
+\[
+\mathsf{result}\;\leftarrow\;\textsf{minCycles}(\tau,P)
+\]
+
+and we write the Hoare triple  
+
+\[
+\{\,\mathsf{Pre}(\tau,P)\,\}\;\;\mathsf{result}\;\leftarrow\;\textsf{minCycles}(\tau,P)\;\;\{\,\mathsf{Post}(\tau,P,\mathsf{result})\,\}.
+\]
+
+--------------------------------------------------------------------
+### 1.  Pre‑condition  
+
+\[
+\begin{aligned}
+\mathsf{Pre}(\tau,P) \;\equiv\;&
+\bigl(\tau\in\Sigma^{n}\ \wedge\ 1\le n\le 50\bigr)
+\;\wedge\;
+\bigl(P\in\mathbb N\ \wedge\ 1\le P\le 10\bigr) .
+\end{aligned}
+\]
+
+*The trace \(\tau\) is a non‑empty string of length at most 50 whose every
+character is either `R` (read) or `W` (write).  
+The integer \(P\) is the number of processes (the maximal number of reads
+that may be performed simultaneously).*
+
+--------------------------------------------------------------------
+### 2.  Post‑condition  
+
+First we decompose the trace into **maximal homogeneous blocks**.
+
+* Let  
+
+  \[
+  0=i_{0}<i_{1}<\dots<i_{m}=n
+  \]
+
+  be the unique sequence of indices such that for each block
+  \(j\in\{1,\dots,m\}\)
+
+  \[
+  B_{j}\;=\;\tau_{i_{j-1}+1}\,\tau_{i_{j-1}+2}\dots\tau_{i_{j}}
+  \]
+
+  satisfies  
+
+  \[
+  \begin{cases}
+  \tau_{i_{j-1}+1}=R &\Longrightarrow\;
+      \forall k\in\{i_{j-1}+1,\dots,i_{j}\}\; \tau_{k}=R,\\[2mm]
+  \tau_{i_{j-1}+1}=W &\Longrightarrow\;
+      \forall k\in\{i_{j-1}+1,\dots,i_{j}\}\; \tau_{k}=W,
+  \end{cases}
+  \]
+
+  i.e. each \(B_{j}\) consists entirely of reads **or** entirely of writes,
+  and adjacent blocks contain opposite symbols.
+
+* For a block \(B_{j}\) define its contribution to the clock‑cycle count:
+
+  \[
+  c_{j}\;=\;
+  \begin{cases}
+  1                                   &\text{if } \tau_{i_{j-1}+1}=W,\\[2mm]
+  \displaystyle\Big\lceil\frac{|B_{j}|}{P}\Big\rceil
+                                      &\text{if } \tau_{i_{j-1}+1}=R,
+  \end{cases}
+  \qquad\text{where }|B_{j}|=i_{j}-i_{j-1}.
+  \]
+
+  *A write block always consumes exactly one clock cycle; a read block can
+  be executed in parallel on up to \(P\) processes, therefore it needs
+  \(\lceil|B_{j}|/P\rceil\) cycles.*
+
+* The **minimal** number of clock cycles required for the whole trace is
+
+  \[
+  C(\tau,P)\;=\;\sum_{j=1}^{m} c_{j}.
+  \]
+
+Now the post‑condition states that the value returned by the program equals this
+minimum:
+
+\[
+\begin{aligned}
+\mathsf{Post}(\tau,P,\mathsf{result})\;\equiv\;&
+\bigl(\mathsf{result}=C(\tau,P)\bigr) \\
+&\wedge\;
+\bigl(\forall\; \text{feasible schedules }S\text{ respecting the
+read/write rules}\; :\;
+\text{length}(S)\ge C(\tau,P)\bigr) .
+\end{aligned}
+\]
+
+The second conjunct expresses *optimality*: no other schedule that respects
+the hardware constraints (no mixing of reads and writes in the same cycle,
+at most one write per cycle, at most \(P\) concurrent reads) can use fewer
+clock cycles than \(C(\tau,P)\).
+
+--------------------------------------------------------------------
+### 3.  Full Hoare triple
+
+\[
+\boxed{
+\{\,\tau\in\{R,W\}^{n},\ 1\le n\le 50,\ 1\le P\le 10\,\}\;
+\mathsf{result}\leftarrow\textsf{minCycles}(\tau,P)\;
+\{\,\mathsf{result}=C(\tau,P)\,\}
+}
+\]
+
+where  
+
+\[
+C(\tau,P)=\sum_{j=1}^{m}
+\begin{cases}
+1 &\text{if block }B_{j}\text{ consists of a single }W,\\[2mm]
+\displaystyle\Big\lceil\frac{|B_{j}|}{P}\Big\rceil &
+\text{if block }B_{j}\text{ consists of reads }R.
+\end{cases}
+\]
+
+The triple completely captures the required behaviour of the program:
+given a valid trace and a valid number of processes, it returns **exactly**
+the minimum possible duration (in clock cycles) of the computation.

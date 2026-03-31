@@ -1,0 +1,28 @@
+1
+Thor 1
+
+1
+Thor 25000
+
+1
+Hulk 1
+
+1
+Hulk 25000
+
+1
+Thor 12345
+
+1
+Tony 5000
+
+1
+thor 1000
+
+1
+THOR 1000
+
+1
+Thorin 1000
+
+

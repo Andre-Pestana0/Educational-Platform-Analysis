@@ -1,0 +1,114 @@
+Below is a *pure* Hoare‑logic style specification of the program that solves the problem.  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what is guaranteed after it finishes) are given; the body of the program is left unspecified because the request was only for the formal contract.
+
+---
+
+## 1.  Types and auxiliary definitions  
+
+* `ℕ₀₁₀₀ = { n ∈ ℕ | 0 ≤ n ≤ 100 }` – the admissible set of complaint numbers.  
+
+* `Str = {"vai ter copa!", "vai ter duas!"}` – the set of possible output strings.  
+
+* **Result function**  
+
+\[
+\operatorname{out} : \mathbb{N}_{0..100} \longrightarrow \text{Str},
+\qquad
+\operatorname{out}(n)=
+\begin{cases}
+\text{``vai ter copa!''} & \text{if } n = 0,\\[2mm]
+\text{``vai ter duas!''} & \text{if } n > 0 .
+\end{cases}
+\]
+
+* Input is a (finite) sequence of complaint numbers  
+
+\[
+I = \langle N_1, N_2, \dots , N_k\rangle ,\qquad
+\forall i\in\{1,\dots ,k\}\;.\; N_i\in\mathbb{N}_{0..100}.
+\]
+
+* Output is the sequence obtained by applying `out` point‑wise  
+
+\[
+O = \langle O_1, O_2, \dots , O_k\rangle ,
+\qquad
+\forall i\;.\; O_i = \operatorname{out}(N_i).
+\]
+
+---
+
+## 2.  Hoare triple for the whole program  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{read‑until‑EOF‑and‑print}\;\; \{\,Q\,\}}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+P \;\equiv\; 
+\Bigl(\; I = \langle N_1,\dots ,N_k\rangle\ \wedge\ 
+\forall i\in\{1,\dots ,k\}\;.\; N_i\in\mathbb{N}_{0..100}\;\Bigr)
+\]
+
+*The program is started with an input stream consisting of a finite (possibly empty) list of integers, each between 0 and 100 inclusive.*
+
+### Post‑condition \(Q\)
+
+\[
+Q \;\equiv\; 
+\Bigl(\; O = \langle O_1,\dots ,O_k\rangle\ \wedge\ 
+\forall i\in\{1,\dots ,k\}\;.\;
+O_i = 
+\begin{cases}
+\text{``vai ter copa!''} & \text{iff } N_i = 0,\\[1mm]
+\text{``vai ter duas!''} & \text{iff } N_i > 0
+\end{cases}
+\Bigr)
+\]
+
+*After termination the program has written exactly one line per input integer, and each line is precisely the string prescribed by the `out` function.*
+
+---
+
+## 3.  Loop‑invariant (optional, for a more detailed proof)
+
+If one wishes to prove the triple by induction on the number of processed lines, a suitable invariant for the *while‑not‑EOF* loop is:
+
+\[
+\mathcal{I}(j) \;\equiv\;
+\Bigl(\;
+\text{the first } j \text{ numbers } N_1,\dots ,N_j\text{ have been read,}
+\;
+\text{and the first } j \text{ output lines } O_1,\dots ,O_j
+\text{ satisfy } O_i = \operatorname{out}(N_i)
+\;\Bigr)
+\]
+
+with  
+
+* **Initialization**: \(\mathcal{I}(0)\) holds trivially.  
+* **Maintenance**: assuming \(\mathcal{I}(j)\) and reading \(N_{j+1}\) (which respects the pre‑condition), the program prints \(\operatorname{out}(N_{j+1})\), establishing \(\mathcal{I}(j+1)\).  
+* **Termination**: when EOF is reached, \(j = k\) and \(\mathcal{I}(k)\) together with the fact that no more input remains yields the post‑condition \(Q\).
+
+---
+
+## 4.  Summary in one Hoare triple
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,\forall i\;(0\le N_i\le 100)\,\}\\[1mm]
+\texttt{while (not EOF) \{ read }N;\; 
+\text{if } N = 0 \text{ then print ``vai ter copa!'' else print ``vai ter duas!''\}}\\[1mm]
+\{\,\forall i\;( \text{output}_i = 
+\begin{cases}
+\text{``vai ter copa!''} & N_i = 0,\\
+\text{``vai ter duas!''} & N_i > 0
+\end{cases})\,\}
+\end{array}
+}
+\]
+
+This contract captures exactly the behaviour described in the natural‑language statement: **zero complaints ⇒ “vai ter copa!”; any positive number of complaints ⇒ “vai ter duas!”.**

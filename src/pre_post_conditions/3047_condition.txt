@@ -1,0 +1,78 @@
+Below is a **Hoare‑logic style specification** of the whole program (the “algorithm”) that solves the problem.  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what is guaranteed to be true when the program finishes) are given; the actual statements of the program are omitted because they are obvious (compute the missing child’s age and then take the maximum).
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|----------|
+| `M`    | Mrs. Monica’s age (input) |
+| `A`    | Age of the first known child (input) |
+| `B`    | Age of the second known child (input) |
+| `C`    | Age of the third child (computed inside the program) |
+| `O`    | Age of the oldest child (output) |
+
+All variables range over the set of non‑negative integers **ℕ** (in practice strictly positive ages).
+
+---
+
+### Helper notation  
+
+* `max(x₁,…,x_k)` – the greatest of the arguments.  
+* `≠` – inequality.  
+* `∧` – logical conjunction.  
+* `∃` – “there exists”.  
+
+---
+
+## Hoare Triple  
+
+\[
+\boxed{\{\,P\,\}\; \text{program}\; \{\,Q\,\}}
+\]
+
+where  
+
+### Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\; &
+\bigl(M\in\mathbb N \;\wedge\; A\in\mathbb N \;\wedge\; B\in\mathbb N\bigr)                         \\[2mm]
+&\;\wedge\; \bigl(M > A \;\wedge\; M > B\bigr)                                                \\[2mm]
+&\;\wedge\; \bigl(A \neq B\bigr)                                                            \\[2mm]
+&\;\wedge\; \bigl(\exists C\in\mathbb N\;.\; C = M - A - B \;\wedge\; C>0 \;\wedge\; C\neq A
+                \;\wedge\; C\neq B\bigr)                                                    \\[2mm]
+&\;\wedge\; \bigl(M = A + B + C\bigr)            \qquad\text{(the “sum‑equals‑mother” condition)} 
+\end{aligned}
+\]
+
+*Interpretation*: the three input ages are non‑negative integers, each child is younger than the mother, the two known children have different ages, there exists a third child’s age `C` that makes the sum of the three children’s ages exactly `M`, and all three children have pairwise distinct ages (as required by the statement “three children of different ages”).
+
+---
+
+### Post‑condition \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\; &
+\bigl(O \in \mathbb N\bigr)                                          \\[1mm]
+&\;\wedge\; \bigl(O = \max\{A,\,B,\,C\}\bigr)                        \\[1mm]
+&\;\wedge\; \bigl(O = \text{age of the oldest child}\bigr)
+\end{aligned}
+\]
+
+*Interpretation*: after termination the program returns a non‑negative integer `O` that is exactly the greatest of the three children’s ages, i.e. the age of the oldest child.
+
+---
+
+## Sketch of the Program (for completeness)
+
+```
+C := M - A - B;               // compute the missing child’s age
+O := max(A, B, C);            // pick the oldest
+output O;
+```
+
+The Hoare triple above proves that, **provided the pre‑condition holds**, the program terminates and the output satisfies the post‑condition – which is precisely the requirement of the problem statement.

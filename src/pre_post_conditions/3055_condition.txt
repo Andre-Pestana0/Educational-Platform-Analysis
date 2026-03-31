@@ -1,0 +1,79 @@
+Below is a **Hoare‑logic specification** for the program that reads the two integers  
+
+* `A` – the grade of the first exam, and  
+* `M` – the (integer) arithmetic mean of the two exam grades,
+
+and prints the missing grade `B`.
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `A`    | first exam grade (input) |
+| `M`    | arithmetic mean of the two grades (input) |
+| `B`    | second exam grade (output) |
+
+All three variables range over the set of integers `ℤ`.
+
+---
+
+### Pre‑condition  \(P\)
+
+The only requirements that must hold **before** the program starts are that the two numbers read from the input are integers and that the mean really is the integer mean of *some* pair of integer grades.  Formally
+
+\[
+\boxed{
+P \; \equiv\; 
+\Bigl( A \in \mathbb{Z} \;\land\; M \in \mathbb{Z} \Bigr)
+\;\land\;
+\exists B\in\mathbb{Z}\;.\; \frac{A+B}{2}=M
+}
+\]
+
+The existential clause guarantees that a solution exists (in fact it always does, because the equation can be solved for \(B\) algebraically).
+
+---
+
+### Post‑condition  \(Q\)
+
+After the program finishes, it must have printed exactly the integer that satisfies the defining equation.  Using the algebraic solution of the equation
+
+\[
+\frac{A+B}{2}=M \;\Longrightarrow\; B = 2M - A,
+\]
+
+the post‑condition can be written as
+
+\[
+\boxed{
+Q \; \equiv\;  B = 2M - A \;\land\; B \in \mathbb{Z}
+}
+\]
+
+In a Hoare‑logic triple the output variable \(B\) is the value that the program writes to the standard output (or returns).
+
+---
+
+### Hoare Triple
+
+Putting the two parts together, the formal specification of the whole program \(S\) is the Hoare triple
+
+\[
+\boxed{
+\{\,P\,\}\; S\; \{\,Q\,\}
+}
+\]
+
+or, expanded:
+
+\[
+\{\, A\in\mathbb{Z}\;\land\;M\in\mathbb{Z}\;\land\;\exists B\in\mathbb{Z}\;.\;\tfrac{A+B}{2}=M \,\}
+\;
+S
+\;
+\{\, B = 2M - A \;\land\; B\in\mathbb{Z} \,\}.
+\]
+
+Any implementation that reads `A` and `M`, computes `B := 2*M - A`, and prints `B` **satisfies** this specification.

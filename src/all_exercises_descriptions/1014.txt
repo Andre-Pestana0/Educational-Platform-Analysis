@@ -1,0 +1,29 @@
+Description: Calculate a car's average consumption being provided the total distance traveled (in Km) and the spent fuel total (in liters).
+
+Input: The input file contains two values: one integer valueXrepresenting the total distance (in Km) and the second one is a floating point numberYrepresenting the spent fuel total, with a digit after the decimal point.
+
+Output: Present a value that represents the average consumption of a car with 3 digits after the decimal point, followed by the message "km/l".
+
+Examples:
+- Example 1:
+  Input:
+500
+35.0
+  Output:
+14.286 km/l
+
+- Example 2:
+  Input:
+2254
+124.4
+  Output:
+18.119 km/l
+
+- Example 3:
+  Input:
+4554
+464.6
+  Output:
+9.802 km/l
+
+--

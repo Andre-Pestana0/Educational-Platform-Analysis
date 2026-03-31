@@ -1,0 +1,29 @@
+Description: Amelia loves Christmas, and her favorite part on this date is setting up the Christmas tree! She loves to decorate the tree with polka dots and colorful lights, so it looks bright and fun! However, AmÃ©lia likes things well distributed and demands that her tree has no more than half of branches in balls. So, if your Christmas tree hasGbranches, it needsG/ 2marbles. If theGnumber of branches is odd, that value will be rounded down.
+
+Input: The input consists of two integer values, read on two lines,B(1 <B< 103) andG(100 <G< 1000) indicating, respectively, the number of balls that AmÃ©lia already has and the number of branches of her new Christmas tree.
+
+Output: Print the number of balls AmÃ©lia needs to buy to complete her tree, with the message "FaltamBbolinha(s)" (in English, MissingBball(s)), whereBis the number of balls that Amelia needs to buy. If Amelia has enough balls to spare, print the message "Amelia tem todas bolinhas!" (in English, "Amelia has all balls!")
+
+Examples:
+- Example 1:
+  Input:
+300
+700
+  Output:
+Faltam 50 bolinha(s)
+
+- Example 2:
+  Input:
+300
+600
+  Output:
+Amelia tem todas bolinhas!
+
+- Example 3:
+  Input:
+300
+701
+  Output:
+Faltam 50 bolinha(s)
+
+--

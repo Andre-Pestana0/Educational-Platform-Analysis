@@ -1,0 +1,20 @@
+Description: Bilbo Baggins lived in a hole in the ground in Vila dos Hobbits. One day, your friend Gandalf, invites you on an adventure. The adventure was based on stealing a dragon's treasure. Bilbo soon thought it would be madness to steal a dragon, but Gandalf had an entourage of dwarves with him to assist him in this toil.
+
+Input: The single line at the entrance contains 2 integers, N and X, indicating respectively the number of dwarves that Gandalf managed to help in the adventure and the distance from Vila dos Hobbits to the Lonely Mountain.
+
+Output: A real number with two decimal places indicating the number of days to reach the Lonely Mountain.
+
+Examples:
+- Example 1:
+  Input:
+2 4
+  Output:
+1.00
+
+- Example 2:
+  Input:
+13 1000
+  Output:
+66.67
+
+--

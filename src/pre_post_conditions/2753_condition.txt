@@ -1,0 +1,101 @@
+Below is a **Hoare‑logic style specification** for the (trivial) program that produces the required output.  
+Only the pre‑condition and the post‑condition are given; the program body itself is not required.
+
+---
+
+### 1.  Notation  
+
+* Let  
+
+\[
+\mathsf{Out}\in\text{Seq}\bigl(\mathbb N\times\{\text{‘e’}\}\times\text{Char}\bigr)
+\]
+
+denote the *finite sequence* that the program writes to the standard output.  
+`Seq` is the set of finite sequences; an element of the sequence is a triple  
+\((i,\;c,\;ch)\) where  
+
+* \(i\in\mathbb N\) – the decimal number printed on the line,  
+* \(c=\text{‘e’}\) – the literal character ‘e’,  
+* \(ch\in\text{Char}\) – a lower‑case English letter.
+
+* For a natural number \(n\) we write  
+
+\[
+\text{chr}(n)=\text{the ASCII/Unicode character whose code is }n .
+\]
+
+* The interval of natural numbers is written \([a..b]=\{a,a+1,\dots ,b\}\).
+
+* The length of a sequence \(s\) is \(|s|\).
+
+* The *k‑th* element (0‑based) of a sequence \(s\) is \(s[k]\).
+
+---
+
+### 2.  Pre‑condition  
+
+There is **no input** and the program does not depend on any external state, therefore the pre‑condition is simply
+
+\[
+\boxed{\,\mathsf{Pre}\;:=\; \textbf{true}\,}
+\]
+
+---
+
+### 3.  Post‑condition  
+
+The output must be exactly the 26 lines shown in the example, i.e. the sequence
+
+\[
+\bigl\langle (97,\text{‘e’},\text{‘a’}),\,
+(98,\text{‘e’},\text{‘b’}),\,
+\ldots ,
+(122,\text{‘e’},\text{‘z’})\bigr\rangle .
+\]
+
+Formally we can describe this as
+
+\[
+\boxed{
+\begin{aligned}
+\mathsf{Post}\;:=\;&
+|\,\mathsf{Out}\,| = 26 \;\;\land \\[2mm]
+&\forall k\in[0..25]\;.\;
+\mathsf{Out}[k] = \bigl(97+k,\; \text{‘e’},\;
+\text{chr}\bigl( \text{code}(\text{‘a’}) + k \bigr)\bigr)
+\end{aligned}}
+\]
+
+where `code('a') = 97`.  
+Equivalently, using set‑builder notation:
+
+\[
+\mathsf{Out}= \big\langle (i,\text{‘e’},\text{chr}(i-97+\text{code}(\text{‘a’})))\;|\; i\in[97..122]\big\rangle .
+\]
+
+---
+
+### 4.  Hoare triple  
+
+Putting the two parts together, the formal specification of the whole program is the Hoare triple
+
+\[
+\boxed{\;\{\,\textbf{true}\,\}\;\; \texttt{Program}\;\; \{\,\mathsf{Post}\,\}\;}
+\]
+
+i.e. *if the program starts in any state (there is no requirement), then after termination the variable `Out` (the produced output) satisfies the post‑condition described above*.
+
+---
+
+### 5.  Remarks for a concrete implementation  
+
+* The program may simply iterate `i` from 97 to 122, printing the line  
+
+  ```
+  i  e  chr(i-97+'a')
+  ```
+
+  with a single space between the three fields and a newline after each line.
+
+* Because there is no input, the pre‑condition can never be violated; the only thing to prove is that the loop indeed yields exactly the 26 triples required, which follows directly from the post‑condition proof shown above.

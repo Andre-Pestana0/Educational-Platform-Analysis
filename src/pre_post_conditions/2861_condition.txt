@@ -1,0 +1,96 @@
+Below is a **Hoare‑logic style specification** of a program that implements the required simulation.  
+All symbols are written in standard mathematical (LaTeX) notation.
+
+---
+
+### Variables used in the specification  
+
+| Symbol | Meaning |
+|--------|---------------------------------------------------|
+| \(C\)  | Number read from the first input line.            |
+| \(\mathbf{q}= \langle q_1,\dots ,q_C\rangle\) | Sequence of the next \(C\) input lines (the *questions*). Each \(q_i\) is an arbitrary string over the alphabet \(\Sigma\). |
+| \(\mathbf{a}= \langle a_1,\dots ,a_C\rangle\) | Sequence of lines written to the output (the *answers*). |
+| \(i\)   | Loop counter used by the program.                |
+| \(\mathtt{gzuz}\) | The literal string that must be printed for every answer. |
+
+---
+
+### Pre‑condition  \(\mathbf{P}\)
+
+\[
+\boxed{
+\mathbf{P}\; \equiv\;
+\begin{cases}
+C \in \mathbb{N},\\[2mm]
+2 \le C \le 99,\\[2mm]
+\mathbf{q}= \langle q_1,\dots ,q_C\rangle \;\text{is a sequence of exactly } C \text{ strings (any) }\\[2mm]
+\text{(the input file consists of the line containing }C\text{ followed by the }C\text{ lines }q_i\text{).}
+\end{cases}}
+\]
+
+The pre‑condition guarantees that the input respects the format described in the statement.
+
+---
+
+### Program (the **statement**  \(S\))
+
+\[
+\begin{aligned}
+S\; \equiv\;&\; \textbf{read } C;\\
+ & i \gets 0;\\
+ & \textbf{while } i < C \textbf{ do}\\
+ &\qquad \textbf{read } q_{i+1}; \\
+ &\qquad \textbf{write } \mathtt{gzuz};\\
+ &\qquad i \gets i+1;\\
+ & \textbf{od}
+\end{aligned}
+\]
+
+(The variable \(q_{i+1}\) is read only to consume the input; it is never used afterwards.)
+
+---
+
+### Loop invariant (useful for the proof, not part of the final post‑condition)
+
+\[
+\boxed{
+\mathcal{I}(i) \;\equiv\;
+\bigl(0 \le i \le C\bigr)\;\wedge\;
+\bigl(\forall j\;(1\le j \le i)\; \Rightarrow\; a_j = \mathtt{gzuz}\bigr)
+}
+\]
+
+The invariant states that after the loop has executed \(i\) times, the first \(i\) answers have already been produced and each of them equals “gzuz”.
+
+---
+
+### Post‑condition  \(\mathbf{Q}\)
+
+\[
+\boxed{
+\mathbf{Q}\; \equiv\;
+\begin{cases}
+\mathbf{a}= \langle a_1,\dots ,a_C\rangle,\\[1mm]
+\forall k\;(1\le k\le C)\;:\; a_k = \mathtt{gzuz}.
+\end{cases}}
+\]
+
+Equivalently, the whole output is the string  
+
+\[
+\underbrace{\mathtt{gzuz}\,\mathtt{\backslash n}\;\mathtt{gzuz}\,\mathtt{\backslash n}\;\dots\;\mathtt{gzuz}}_{C\text{ times}} .
+\]
+
+---
+
+### Hoare triple (formal specification)
+
+\[
+\boxed{
+\{\,\mathbf{P}\,\}\; S\; \{\,\mathbf{Q}\,\}
+}
+\]
+
+The triple asserts that **if** the input satisfies the pre‑condition \(\mathbf{P}\) (an integer \(C\) in the range \([2,99]\) followed by exactly \(C\) lines of text), **then** after executing the program \(S\) it **guarantees** the post‑condition \(\mathbf{Q}\) (the output consists of \(C\) lines, each equal to the literal string “gzuz”).  
+
+Termination follows from the fact that the loop counter \(i\) is increased by one each iteration and the invariant \(\mathcal{I}(i)\) ensures that the loop condition \(i<C\) can become false after at most \(C\) iterations.

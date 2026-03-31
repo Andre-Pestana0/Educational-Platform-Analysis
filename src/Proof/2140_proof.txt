@@ -1,0 +1,337 @@
+**Answer – a Hoare‑logic proof that the program prints “possible” exactly when the change can be given with **two** notes from the fixed set  
+
+\[
+\texttt{notas}= [2,5,10,20,50,100]
+\]
+
+and prints “impossible’’ otherwise.  
+
+The proof is written in the usual Hoare‑logic style (pre‑condition \(P\), post‑condition \(Q\), loop‑invariant \(I\), the three Hoare rules for **assignment**, **conditional** and **while**).  
+All integer variables are assumed to range over the natural numbers \(\mathbb N\) (including 0).
+
+--------------------------------------------------------------------
+### 1.  Specification
+
+For one execution of the inner part (i.e. for one pair \((t_1,t_2)\neq (0,0)\))
+
+* **Pre‑condition**  
+
+\[
+P\;:\; t_1\in\mathbb N\ \wedge\ t_2\in\mathbb N
+\]
+
+* **Post‑condition**  
+
+\[
+Q\;:\;
+\begin{array}{l}
+\bigl(\exists a,b\in\texttt{notas}\;.\;a+b=|t_1-t_2|\bigr)
+   \;\Longrightarrow\; \text{the program prints ``possible''}\\[2mm]
+\bigl(\neg\exists a,b\in\texttt{notas}\;.\;a+b=|t_1-t_2|\bigr)
+   \;\Longrightarrow\; \text{the program prints ``impossible''}
+\end{array}
+\]
+
+(If the input line is “0 0’’ the outer loop terminates, which is covered by the
+outer‑loop invariant – see § 3.)
+
+--------------------------------------------------------------------
+### 2  Auxiliary definitions  
+
+* `troco₀` – the value of `troco` **before** the “largest‑note” loop is entered  
+
+  \[
+  \texttt{troco₀}=|t_1-t_2|
+  \]
+
+* `v(i)` – the *i*‑th element of `notas` (0‑based).  
+  The list is strictly increasing, i.e.  
+
+  \[
+  \forall i\;(0\le i<5):\; v(i)<v(i+1)
+  \]
+
+* `largest(i)` – “the largest note among the first *i* entries that does not exceed `troco₀`’’:
+
+  \[
+  \texttt{largest}(i) \;=\;
+  \begin{cases}
+  -1 & \text{if }\forall j<i\;v(j)>\texttt{troco₀}\\[1mm]
+  \max\{\,j<i\mid v(j)\le\texttt{troco₀}\,\} & \text{otherwise}
+  \end{cases}
+  \]
+
+--------------------------------------------------------------------
+### 3  Outer `while (True)` loop  
+
+The loop processes an arbitrary number of input lines, stopping when the
+sentinel “0 0’’ is read.  
+
+* **Invariant**  
+
+\[
+I_{\text{outer}} \;:\;
+\begin{array}{l}
+\text{All lines that have already been read (except the last one)}\\
+\text{have been classified correctly according to }Q.
+\end{array}
+\]
+
+* **Proof of preservation**  
+
+  *The body of the loop is a *sequence* of commands that, by the inner
+  proof (section 4), satisfies \(P\Rightarrow Q\) for the current pair
+  \((t_1,t_2)\).  Consequently after each iteration the invariant still
+  holds.*
+
+* **Termination** – the loop is exited only by the `break` statement,
+  which is executed exactly when the input line is “0 0”.  Because the
+  program reads a *finite* number of lines from the user, the loop
+  terminates.
+
+By the **while‑rule** we obtain  
+
+\[
+\{\,I_{\text{outer}}\,\}\;\texttt{while (True)}\; \{\,I_{\text{outer}}\land\neg\text{break condition}\,\}
+\]
+
+and, after the break, the program terminates having satisfied \(Q\) for
+every processed line.
+
+--------------------------------------------------------------------
+### 4  Proof of the *inner* part (one line)  
+
+We now prove that the statements inside the outer loop (from the computation
+of `troco` up to the final `print`) satisfy the specification \(P\Rightarrow Q\).
+
+--------------------------------------------------------------------
+#### 4.1  Assignment of `troco`
+
+\[
+\{P\}\;\texttt{troco = abs(t1-t2)}\;\{ \texttt{troco}= \texttt{troco₀}\}
+\]
+
+The Hoare rule for assignment gives the post‑condition directly.
+
+--------------------------------------------------------------------
+#### 4.2  “Find the largest possible note” – the `for` loop  
+
+```
+n1 = -1
+for i,n in enumerate(notas):
+    if (troco - n >= 0):
+        n1 = i
+```
+
+* **Loop invariant**  
+
+\[
+I_{\text{for}}(i) \;:\;
+\begin{array}{l}
+0\le i\le |\texttt{notas}| \\
+\texttt{n1}= \texttt{largest}(i)                     \\
+\text{(i.e. after processing the first i elements, n1 stores the index of the}\\
+\text{largest note among them that does not exceed the original troco₀).}
+\end{array}
+\]
+
+* **Initialization** (\(i=0\))  
+
+`n1` is set to –1, and `largest(0) = -1`. Hence \(I_{\text{for}}(0)\) holds.
+
+* **Preservation**  
+
+Assume \(I_{\text{for}}(i)\) holds at the start of an iteration and the
+current element is \((i,n=v(i))\).
+
+*If* `troco - n >= 0` (i.e. \(v(i)\le\texttt{troco₀}\)) then the body
+executes `n1 = i`.  
+Consequently the new value of `n1` equals `i`, which is the greatest
+index \(\le i\) satisfying the condition, i.e. `largest(i+1)`.  
+
+*If* the test fails, `n1` is left unchanged; the greatest index ≤ i that
+satisfies the condition is still `largest(i) = largest(i+1)`.  
+
+Thus after the iteration we have `n1 = largest(i+1)`, i.e. \(I_{\text{for}}(i+1)\).
+
+* **Termination**  
+
+When the loop finishes, \(i = |\texttt{notas}| = 6\).  
+Hence  
+
+\[
+\texttt{n1}= \texttt{largest}(6)=
+\begin{cases}
+-1 & \text{if no note }\le\texttt{troco₀}\\
+\max\{j\mid v(j)\le\texttt{troco₀}\} & \text{otherwise}
+\end{cases}
+\]
+
+and the invariant gives us precisely the meaning of `n1`.
+
+--------------------------------------------------------------------
+#### 4.3  Subtract the largest note  
+
+```
+troco -= notas[n1]
+```
+
+Two cases:
+
+* **Case A – n1 = –1**  
+
+  No note fits the change (`troco₀` is smaller than the smallest note 2).  
+  The program prints “impossible’’ and continues with the next input line.
+  This is correct because any sum of two notes is at least \(2+2=4\) and
+  therefore cannot equal a value `<2`.
+
+* **Case B – n1 ≠ –1**  
+
+  Let  
+
+  \[
+  a = v(n1)\qquad(\text{the largest note }\le\texttt{troco₀}),\qquad
+  r = \texttt{troco₀}-a .
+  \]
+
+  After the subtraction `troco` holds the remainder `r`.
+
+--------------------------------------------------------------------
+#### 4.4  Decision part  
+
+The remaining code is a cascade of two conditionals:
+
+```
+if (troco == 0 and n1 != 0):
+    if (notas[n1-1]*2 == notas[n1]):
+        print("possible")
+        continue
+else:
+    if troco in notas:
+        print("possible")
+        continue
+    else:
+        print("impossible")
+        continue
+```
+
+We analyse the three mutually exclusive situations that can arise.
+
+---
+
+##### 4.4.1  `r = 0`  (the change equals a single note)
+
+*If* `n1 = 0` (the note is the smallest one, i.e. `a = 2`) the inner test
+`n1 != 0` fails, execution goes to the `else`‑branch where `troco` (= 0) is
+*not* a member of `notas`; consequently “impossible’’ is printed.
+Because `2` cannot be expressed as the sum of **two** (not necessarily
+different) notes from the set, the output is correct.
+
+*If* `n1 > 0` we have `a = v(n1) ≥ 5`.  
+The program prints “possible’’ **iff**
+
+\[
+v(n1-1)\times 2 = v(n1) .
+\]
+
+Since the list of notes is strictly increasing, the equality holds **only**
+when the larger note is exactly twice the next smaller one (the only
+situations where a single note can be replaced by *two* equal smaller
+notes).  
+Thus the program declares “possible’’ exactly when there exist two notes
+\(b=v(n1-1)\) and \(c=v(n1-1)\) such that  
+
+\[
+b+c = a .
+\]
+
+Consequently the output matches the specification for the sub‑case
+\(r=0\).
+
+---
+
+##### 4.4.2  `r > 0` and `r ∈ notas`
+
+Here the `else`‑branch is taken, the inner test `troco in notas` succeeds,
+and “possible’’ is printed.  
+Because we already have one note `a` and the remainder `r` itself is a
+note, we have exhibited two notes \(a\) and \(r\) with  
+
+\[
+a+r = \texttt{troco₀}.
+\]
+
+Hence the answer is correct.
+
+---
+
+##### 4.4.3  `r > 0` and `r ∉ notas`
+
+The program reaches the final `else` and prints “impossible’’.
+Assume, for a contradiction, that a representation with two notes exists:
+
+\[
+\exists\,x,y\in\texttt{notas}\;.\;x+y=\texttt{troco₀}.
+\]
+
+Because `a` is the **largest** note not exceeding `troco₀`,
+we must have \(x\le a\) and \(y\le a\).  
+If one of them were equal to `a`, the other would be `r`, which by hypothesis
+is **not** a note – impossible.  
+If both were strictly smaller than `a`, then their sum would be \< \(2a\)
+and, since `a` is the largest note ≤ `troco₀`, we would obtain  
+
+\[
+x+y \le v(n1-1)+v(n1-1) < a + a \le \texttt{troco₀},
+\]
+
+contradicting the equality.  
+Thus no such pair \((x,y)\) exists and “impossible’’ is the correct answer.
+
+--------------------------------------------------------------------
+#### 4.5  Summary of the inner part  
+
+From the case analysis we have proved the Hoare triple
+
+\[
+\{P\}\;\text{inner‑part}\;\{Q\}
+\]
+
+i.e. for every pair \((t_1,t_2)\neq(0,0)\) the program prints *possible* **iff**
+there are two (not necessarily distinct) notes from `notas` whose sum equals
+\(|t_1-t_2|\).
+
+--------------------------------------------------------------------
+### 5  Whole program
+
+* **Outer invariant** \(I_{\text{outer}}\) (section 3) guarantees that after
+each iteration the specification holds for all lines already processed.
+* The inner part satisfies \(P\Rightarrow Q\) (section 4).  
+  Consequently the invariant is preserved.
+* The loop terminates when the sentinel “0 0’’ is read.
+
+Applying the **while‑rule** we obtain the final Hoare triple for the
+complete program:
+
+\[
+\{\,\texttt{true}\,\}\;
+\texttt{program}\;
+\{\,\text{for every input line }(t_1,t_2)\neq(0,0)
+   \text{ the printed word is ``possible’’  iff }
+   \exists a,b\in\texttt{notas}\,.\;a+b=|t_1-t_2|\,\}.
+\]
+
+--------------------------------------------------------------------
+### 6  Conclusion  
+
+The Hoare‑logic proof shows that the given program is **correct** with respect
+to the intended specification:
+
+* it terminates,
+* it prints **“possible’’** exactly when the required change can be obtained
+  as the sum of two notes from the fixed set,
+* otherwise it prints **“impossible’’**.
+
+All reasoning steps are justified by the standard Hoare inference rules
+(assignment, sequence, conditional, while) together with the loop
+invariants presented above. ∎

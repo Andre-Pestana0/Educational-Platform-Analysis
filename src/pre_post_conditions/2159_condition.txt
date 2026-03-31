@@ -1,0 +1,87 @@
+**Hoare‑style specification**
+
+\[
+\{\,\text{Pre}\,\}\; \texttt{ComputeBounds}\; \{\,\text{Post}\,\}
+\]
+
+---
+
+### 1.  Pre‑condition  
+
+\[
+\text{Pre}\;:\;
+\begin{aligned}
+& n \in \mathbb{N} \;\land\; 17 \le n \le 10^{9}                \tag{1}\\[2mm]
+&\pi(n)=\bigl|\{p\in\mathbb{N}\mid p\text{ is prime }\land p\le n\}\bigr| \tag{2}\\[2mm]
+&\ln :\mathbb{R}_{>0}\rightarrow\mathbb{R} \text{ is the natural logarithm.}
+\end{aligned}
+\]
+
+---
+
+### 2.  Auxiliary definitions  
+
+* **Lower bound function**  
+
+  \[
+  L(n)=\frac{n}{\ln n}
+  \]
+
+* **Upper bound function** (Rosser–Schoenfeld constant)  
+
+  \[
+  \alpha = 1.25506,\qquad 
+  U(n)=\alpha\;\frac{n}{\ln n}
+  \]
+
+* **Rounding to one decimal place**  
+
+  \[
+  \operatorname{round}_{1}(x)=\frac{\bigl\lfloor 10x+0.5 \bigr\rfloor}{10}
+  \qquad\bigl(\text{the nearest tenth of }x\bigr)
+  \]
+
+---
+
+### 3.  Post‑condition  
+
+Let  
+
+\[
+P = \operatorname{round}_{1}\bigl(L(n)\bigr),\qquad
+M = \operatorname{round}_{1}\bigl(U(n)\bigr).
+\]
+
+Then the program must output the ordered pair \((P,M)\) and the following
+property must hold:
+
+\[
+\boxed{\,P < \pi(n) < M\,}                                            \tag{3}
+\]
+
+together with the typing constraints
+
+\[
+P,M \in \mathbb{Q},\qquad \text{each has exactly one digit after the decimal point.}
+\]
+
+---
+
+### 4.  Full Hoare triple  
+
+\[
+\boxed{
+\begin{array}{l}
+\{\, n\in\mathbb{N}\land 17\le n\le 10^{9}\,\}\\[1mm]
+\texttt{ComputeBounds}\\[1mm]
+\{\, P=\operatorname{round}_{1}\!\bigl(\tfrac{n}{\ln n}\bigr)\;\land\;
+   M=\operatorname{round}_{1}\!\bigl(1.25506\;\tfrac{n}{\ln n}\bigr)\;\land\\
+\qquad\qquad P<M\;\land\;P<\pi(n)<M\;\land\;
+   P,M\text{ have one decimal digit}\,\}
+\end{array}}
+\]
+
+The program therefore reads a natural number \(n\) satisfying (1), computes
+the two rounded bounds \(P\) and \(M\) as defined above, prints them separated
+by a single blank, and guarantees that the true prime‑counting value
+\(\pi(n)\) lies strictly between the printed

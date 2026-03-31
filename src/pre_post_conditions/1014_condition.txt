@@ -1,0 +1,84 @@
+Below is a **Hoare‑logic specification** of a program that reads the two numbers described in the statement, computes the average consumption and prints it with three decimal digits followed by the literal string “ km/l”.  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what must be true when the program terminates) are given; the body of the program (the algorithm) is omitted because it is irrelevant for the logical specification.
+
+---
+
+### 1.   Variables that appear in the specification  
+
+| Symbol | Meaning |
+|--------|-------------------------------------------------------------------|
+| `X`    | integer read from the first line of the input – total distance (km) |
+| `Y`    | floating‑point number read from the second line – total fuel (L) |
+| `A`    | real value computed by the program – average consumption (km/L) |
+| `out`  | the string that the program writes to the output stream            |
+| `round₃(z)` | rounding of a real number `z` to **exactly three decimal places** (nearest, ties away from zero)  |
+| `⟦·⟧`  | “string representation of …” (concatenation of characters)          |
+
+The rounding function can be expressed arithmetically as  
+
+\[
+\operatorname{round}_{3}(z)=\frac{\big\lfloor 1000\,z+0.5\big\rfloor}{1000},
+\qquad
+\text{for any }z\in\mathbb{R}.
+\]
+
+---
+
+### 2.   Hoare triple  
+
+\[
+\boxed{\;\{P\}\; \textbf{read\_X\_Y; compute\_A; print\_out}\; \{Q\}\;}
+\]
+
+---
+
+### 3.   Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \; \equiv\; & X\in\mathbb Z \;\land\; X\ge 0                 &&\text{(distance cannot be negative)}\\
+              &\;\land\; Y\in\mathbb R \;\land\; Y>0          &&\text{(fuel amount strictly positive)}\\
+              &\;\land\; Y\neq 0                             &&\text{(division by zero is excluded)}.
+\end{aligned}
+\]
+
+(If the problem domain guarantees that the input file always contains exactly two numbers, the existence of `X` and `Y` is implicit.)
+
+---
+
+### 4.   Post‑condition \(Q\)
+
+\[
+\begin{aligned}
+Q \; \equiv\; & A = \frac{X}{Y}                                            &&\text{(definition of the average)}\\[2mm]
+              &\land\; \operatorname{round}_{3}(A)=\frac{\big\lfloor 1000A+0.5\big\rfloor}{1000} &&\text{(three‑digit rounding)}\\[2mm]
+              &\land\; out = \big\lVert\operatorname{round}_{3}(A)\big\rVert\;\,\text{`` km/l''} &&\text{(output format)}.
+\end{aligned}
+\]
+
+In words:
+
+* `A` must be the exact mathematical quotient `X / Y`;
+* the value printed must be the **rounded** version of `A` to three decimal places;
+* the printed string consists of that rounded number followed by a single space and the literal characters “km/l”.
+
+---
+
+### 5.   Full specification in Hoare‑logic notation  
+
+\[
+\boxed{
+\{\,X\in\mathbb Z,\;X\ge 0,\;Y\in\mathbb R,\;Y>0\,\}
+\;
+\textbf{read\_X\_Y; compute\_A; print\_out}
+\;
+\{
+\;A = X/Y\;\land\;
+\operatorname{round}_{3}(A)=\frac{\lfloor1000A+0.5\rfloor}{1000}
+\;\land\;
+out = \big\lVert\operatorname{round}_{3}(A)\big\rVert\; \text{`` km/l''}\;
+\}
+}
+\]
+
+This Hoare triple completely captures the intended behaviour of the program: given a non‑negative integer distance and a strictly positive fuel amount, it must terminate with an output string that represents the average consumption rounded to three decimal digits and suffixed by “km/l”.

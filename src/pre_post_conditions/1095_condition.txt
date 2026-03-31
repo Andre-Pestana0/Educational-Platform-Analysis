@@ -1,0 +1,73 @@
+**Hoare‑style specification**
+
+Let  
+
+* `out` be the (finite) sequence of strings that the program writes to the standard output,  
+* `⟨·⟩` denote sequence construction,  
+* `toString : ℤ → 𝕊` be the usual conversion of an integer to its decimal representation,  
+* “·∥·” be string concatenation,  
+* `I_k` and `J_k` be the integer values that appear on the *k*‑th line (the first line has index 0).
+
+\[
+\begin{aligned}
+I_k &:= 1 + 3k \\[2pt]
+J_k &:= 60 - 5k
+\end{aligned}
+\qquad (k\in\mathbb N)
+\]
+
+The loop stops exactly when `J` reaches 0, i.e. for the smallest `k` such that `J_k = 0`.  
+Since `60‑5k = 0 ⇔ k = 12`, the last line is `I_{12}=37 , J_{12}=0`.
+
+---
+
+### Pre‑condition  
+
+There is **no** input to the program, therefore the pre‑condition is simply
+
+\[
+\boxed{P \;:\; \text{true}}
+\]
+
+---
+
+### Post‑condition  
+
+The program terminates and the output sequence `out` is precisely the 13 lines
+
+\[
+\boxed{
+\begin{aligned}
+Q \;:\; &\;|out| = 13 \;\land\\
+        &\;\forall k\in\{0,\dots,12\}\;.\;
+          out[k] = 
+          \bigl(\text{``I="''}\;\|\;toString(I_k)\;\|\;
+                \text{`` J="''}\;\|\;toString(J_k)\bigr) \\[4pt]
+        &\;\land\; J_{12}=0 \;\land\; (\forall k<12.\; J_k>0)
+\end{aligned}
+}
+\]
+
+In words:  
+
+* the output consists of exactly 13 lines,  
+* the *k*‑th line (0‑based) is the string “I=`I_k` J=`J_k`”,  
+* the `J`‑values form the arithmetic progression \(60,55,50,\dots,0\) and become non‑positive **only** on the last line.
+
+---
+
+### Hoare triple for the whole program  
+
+\[
+\boxed{\{\,\text{true}\,\}\;\; \texttt{Program}\;\; \{\,Q\,\}}
+\]
+
+where `Program` is any algorithm (e.g. a `while` loop) that satisfies the invariant  
+
+\[
+I = 1 + 3k,\qquad J = 60 - 5k,\qquad 0\le k\le 12,
+\]
+
+and terminates when `J = 0`.  
+
+The above pre‑ and post‑conditions completely capture the natural‑language requirement “print the sequence as shown in the example”.

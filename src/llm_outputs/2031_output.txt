@@ -1,0 +1,8 @@
+Jogador 2 venceu
+Jogador 1 venceu
+Jogador 1 venceu
+Jogador 2 venceu
+Jogador 2 venceu
+Sem ganhador
+Sem ganhador
+

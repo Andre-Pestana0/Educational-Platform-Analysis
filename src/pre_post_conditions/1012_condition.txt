@@ -1,0 +1,122 @@
+Below is a **Hoare‑logic style specification** (only the *pre‑condition* and *post‑condition*) for a program that reads three floating‑point numbers `A , B , C` and prints the five requested areas.  
+All symbols are written in standard mathematical notation.
+
+---
+
+### 1. Notation that will be used
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℝ` | the set of real numbers |
+| `ℝ_{\ge 0}` | the set of non‑negative real numbers |
+| `π` | the constant `3.14159` (the value required by the statement) |
+| `⌊x⌉₃` | **round‑to‑3‑decimals** of the real number `x` (i.e. the unique number `y` such that `|y‑x| ≤ 0.0005` and `y` has exactly three digits after the decimal point) |
+| `⟨s₁,…,s₅⟩` | a 5‑tuple (ordered list) of strings |
+| `·` | string concatenation |
+| `\text{msg}_i` | the fixed Portuguese label for the *i*‑th line (see Table 1) |
+| `\text{out}` | the value written to the output file (a 5‑tuple of strings) |
+| `\text{in}` | the value read from the input file (a 3‑tuple of reals) |
+
+**Table 1 – Fixed output messages**
+
+| i | `\text{msg}_i` |
+|---|----------------|
+| 1 | `"TRIANGULO: "` |
+| 2 | `"CIRCULO: "` |
+| 3 | `"TRAPEZIO: "` |
+| 4 | `"QUADRADO: "` |
+| 5 | `"RETANGULO: "` |
+
+---
+
+### 2. Program variables
+
+* Input variables (read from the file)  
+  `A , B , C ∈ ℝ`  
+
+* Computed (intermediate) real values  
+
+\[
+\begin{aligned}
+T   &:= \frac{A\cdot C}{2}                      &&\text{(area of the right‑angled triangle)}\\[2mm]
+R   &:= \pi \, C^{2}                           &&\text{(area of the circle of radius }C\text{)}\\[2mm]
+Z   &:= \frac{(A+B)}{2}\, C                    &&\text{(area of the trapezium)}\\[2mm]
+Q   &:= B^{2}                                   &&\text{(area of the square)}\\[2mm]
+Y   &:= A\cdot B                                &&\text{(area of the rectangle)}
+\end{aligned}
+\]
+
+* Output strings (the five lines that must be written)
+
+\[
+\begin{aligned}
+s_{1} &:= \text{msg}_{1}\; \cdot\; \bigl\lceil T \bigr\rceil_{3}\\
+s_{2} &:= \text{msg}_{2}\; \cdot\; \bigl\lceil R \bigr\rceil_{3}\\
+s_{3} &:= \text{msg}_{3}\; \cdot\; \bigl\lceil Z \bigr\rceil_{3}\\
+s_{4} &:= \text{msg}_{4}\; \cdot\; \bigl\lceil Q \bigr\rceil_{3}\\
+s_{5} &:= \text{msg}_{5}\; \cdot\; \bigl\lceil Y \bigr\rceil_{3}
+\end{aligned}
+\]
+
+and  
+
+\[
+\text{out} \;:=\; \langle s_{1},s_{2},s_{3},s_{4},s_{5}\rangle .
+\]
+
+---
+
+### 3. Hoare triple
+
+\[
+\boxed{\; \{\,\mathcal P\,\}\; \textbf{read\_areas}\; \{\,\mathcal Q\,\}\;}
+\]
+
+where  
+
+* **Pre‑condition** \(\mathcal P\)
+
+\[
+\mathcal P \;:\; 
+\begin{cases}
+\text{in}= \langle A,B,C\rangle \\
+A,B,C \in \mathbb{R}_{\ge 0}                         \\
+\text{Each of }A,B,C\text{ is given with exactly one digit after the decimal point}
+\end{cases}
+\]
+
+* **Post‑condition** \(\mathcal Q\)
+
+\[
+\mathcal Q \;:\; 
+\begin{cases}
+\text{out}= \langle s_{1},s_{2},s_{3},s_{4},s_{5}\rangle \\[1mm]
+s_{1}= \text{msg}_{1}\; \cdot\; \bigl\lceil \dfrac{A\cdot C}{2}\bigr\rceil_{3}\\[2mm]
+s_{2}= \text{msg}_{2}\; \cdot\; \bigl\lceil \pi\, C^{2}\bigr\rceil_{3}\\[2mm]
+s_{3}= \text{msg}_{3}\; \cdot\; \bigl\lceil \dfrac{(A+B)}{2}\,C\bigr\rceil_{3}\\[2mm]
+s_{4}= \text{msg}_{4}\; \cdot\; \bigl\lceil B^{2}\bigr\rceil_{3}\\[2mm]
+s_{5}= \text{msg}_{5}\; \cdot\; \bigl\lceil A\cdot B\bigr\rceil_{3}
+\end{cases}
+\]
+
+In words: **if** the program starts with three non‑negative real numbers `A, B, C` read from the input file, **then** after execution it must write exactly five lines, each consisting of the prescribed Portuguese label, a single space, and the corresponding area rounded to three decimal places.
+
+---
+
+### 4. Summary in Hoare‑logic notation
+
+\[
+\begin{aligned}
+\{ &A,B,C \in \mathbb{R}_{\ge 0} \;\land\; \text{input}= \langle A,B,C\rangle \;\} \\
+\textbf{read\_areas} \\
+\{ &\text{output}= \langle 
+\text{TRIANGULO: } \,\bigl\lceil \tfrac{A C}{2}\bigr\rceil_{3},
+\; \text{CIRCULO: } \,\bigl\lceil \pi C^{2}\bigr\rceil_{3},\\
+&\qquad\;\; \text{TRAPEZIO: } \,\bigl\lceil \tfrac{(A+B)C}{2}\bigr\rceil_{3},
+\; \text{QUADRADO: } \,\bigl\lceil B^{2}\bigr\rceil_{3},
+\; \text{RETANGULO: } \,\bigl\lceil A B\bigr\rceil_{3}
+\rangle \;}
+\end{aligned}
+\]
+
+This specification captures **exactly** what the program must do, using only the pre‑condition (what is assumed about the inputs) and the post‑condition (what must hold after the program terminates).

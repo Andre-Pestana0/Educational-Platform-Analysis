@@ -1,0 +1,38 @@
+Description: In 2012 it was achieved a new world record in the famous Competition Hot Dogs Nathan: the champion, Joey Chestnut devoured 68 hot dogs in ten minutes, an increase amazing compared to 62 sandwiches devoured by the same Chestnut in 2011.
+
+Input: The input consists of a single line containing two integersHandP(1 â¤H, Pâ¤ 1000) indicating respectively the total number of consumed hot dogs and the total number of participants in the competition.
+
+Output: Your program should produce a single line with a rational number representing the average hot dogs consumed by the participants. The result should be written as a rational number with exactly two digits after the decimal point, rounded if necessary.
+
+Examples:
+- Example 1:
+  Input:
+10 90
+  Output:
+0.11
+
+- Example 2:
+  Input:
+840 11
+  Output:
+76.36
+
+- Example 3:
+  Input:
+1 50
+  Output:
+0.02
+
+- Example 4:
+  Input:
+34 1000
+  Output:
+0.03
+
+- Example 5:
+  Input:
+35 1000
+  Output:
+0.04
+
+--

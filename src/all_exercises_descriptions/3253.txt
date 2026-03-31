@@ -1,0 +1,30 @@
+Description: The city center of an unnamed Nordic university town consists of what was once a medieval city with narrow winding streets completely surrounded by a high wall protecting the city against Swedish invaders and other unwanted elements. The wall has since been removed and replaced by a system of interconnecting roads completely circumscribing the old part of the town. The roads inside still remains more or less the same as it was in the middle ages, which of course comes in conflict with modern requirements for accessibility by car, resulting in a maze of twisty little one-way streets, all alike, mixed with slightly wider two-way streets.
+
+Input: The input consists of a description of how streets connect to each other and the surrounding circular road system. Each street (or a segment of a street) within the city center is represented by an arbitrary integeridnumber > 0 (0 <id< 1000). The surrounding circular road system is represented by the specialidnumber 0.
+
+Output: One line for each street on which you would be trapped within the city consisting of the text âTRAPPED Xâ where âXâ is replaced by street id number in question.
+
+Examples:
+- Example 1:
+  Input:
+6
+0 1 1
+1 1 2
+2 3 1 3 0
+3 0
+4 2 5 0
+5 1 4
+  Output:
+TRAPPED 3
+UNREACHABLE 4
+UNREACHABLE 5
+
+- Example 2:
+  Input:
+2
+1 1 0
+0 1 1
+  Output:
+NO PROBLEMS
+
+--

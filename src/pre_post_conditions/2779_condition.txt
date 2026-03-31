@@ -1,0 +1,75 @@
+**Hoare‑logic specification (pre‑ and post‑conditions only)**  
+
+We denote  
+
+* `N` – number of different stickers / album spaces (input, integer).  
+* `M` – number of stickers that have already been bought (input, integer).  
+* `X₁ … X_M` – the list of the `M` bought stickers (each an integer).  
+* `missing` – the integer that the program prints (output).  
+
+The program reads the values in the order shown in the statement and then prints `missing`.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;& 
+\bigl(1 \le N \le 100\bigr)\;\land\;
+\bigl(1 \le M \le 300\bigr) \\
+&\land\;
+\bigl(\forall i\in\{1,\dots ,M\}\;.\; 1 \le X_i \le N \bigr)
+\end{aligned}
+\]
+
+*All variables are defined and satisfy the bounds given in the problem description.*
+
+---
+
+### Post‑condition  \(Q\)
+
+First define the set of **different** stickers that are already owned  
+
+\[
+\mathsf{Owned}\;=\;\{\,k\in\{1,\dots ,N\}\mid \exists i\in\{1,\dots ,M\}\;.\;X_i = k \,\}.
+\]
+
+Let  
+
+\[
+\mathsf{cnt} \;=\; |\mathsf{Owned}| \qquad(\text{cardinality of the set}).
+\]
+
+Then the required result is  
+
+\[
+\mathsf{missing}\;=\;N-\mathsf{cnt}.
+\]
+
+Hence the post‑condition can be written as
+
+\[
+\begin{aligned}
+Q \;\equiv\;& 
+\bigl(\mathsf{missing}=N-|\{\,k\in\{1,\dots ,N\}\mid \exists i\in\{1,\dots ,M\}\;.\;X_i = k \,\}|\bigr) \\
+&\land\; 0\le \mathsf{missing}\le N .
+\end{aligned}
+\]
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\{P\}\;\; \textbf{Program}\;\; \{Q\}}
+\]
+
+where **Program** is any algorithm that
+
+1. reads `N`, `M` and the `M` integers `X₁ … X_M`,
+2. builds the set `Owned` (duplicates are ignored),
+3. computes `missing = N – |Owned|`,
+4. prints `missing`.
+
+The triple states that, assuming the input satisfies the bounds in \(P\), the algorithm terminates with an output that exactly equals the number of album slots that are still empty, as expressed in \(Q\).

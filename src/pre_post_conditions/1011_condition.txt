@@ -1,0 +1,88 @@
+Below is a **Hoare‑logic specification** (pre‑condition / post‑condition) written in ordinary mathematical notation for a program that reads a floating‑point radius \(R\) and prints the volume of the corresponding sphere.
+
+---
+
+### 1.  Notation used  
+
+* \( \mathbb{R} \) – the set of real numbers.  
+* \( \pi = 3.14159\) – the constant that must be used in the computation.  
+* \( \operatorname{round}_{3}(x) = \displaystyle\frac{\bigl\lfloor 1000\,x+0.5 \bigr\rfloor}{1000}\) – rounding of a real number to **exactly three decimal digits** (the same result that `printf("%.3f")` produces).  
+* \( \operatorname{str}(x) \) – the decimal representation of the real number \(x\) **without** any extra leading or trailing spaces.  
+* \( \;\Vert\) – string concatenation.  
+
+---
+
+### 2.  Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(R\)   | radius read from the input (type `double`). |
+| \(V\)   | volume that the program computes (type `double`). |
+| `out`  | the whole line that the program writes to *stdout*. |
+
+---
+
+### 3.  Hoare triple  
+
+\[
+\boxed{\{\,P(R)\,\}\; \textbf{prog}\; \{\,Q(R,V,\text{out})\,\}}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+  \[
+  P(R) \;:\; R \in \mathbb{R}\;\land\;R\ge 0
+  \]
+
+  (the problem only guarantees that a floating‑point number is supplied; we may additionally require non‑negative radii because a sphere’s radius is physically non‑negative).
+
+* **Program body** (informally, the statements that will be executed)
+
+  ```
+  read R;                         // input
+  V := (4/3) * π * R³;            // computation
+  out := "VOLUME = " || str(round₃(V));   // printing
+  ```
+
+* **Post‑condition**  
+
+  \[
+  \begin{aligned}
+  Q(R,V,\text{out}) \;:\;&
+      V = \frac{4}{3}\,\pi\,R^{3}
+      \;\land\\[2mm]
+      \text{out} = 
+          \underbrace{\text{"VOLUME = "}}_{\text{exact literal}} 
+          \;\Vert\;
+          \operatorname{str}\bigl(\operatorname{round}_{3}(V)\bigr)
+  \end{aligned}
+  \]
+
+  In words:  
+
+  1. The variable \(V\) holds the exact mathematical volume \(\frac{4}{3}\pi R^{3}\).  
+  2. The string printed to the console is the literal word **VOLUME**, a space, an equal sign, another space, and the value of \(V\) rounded to three decimal places, with **exactly** three digits after the decimal point.
+
+---
+
+### 4.  Full specification in one line  
+
+\[
+\boxed{
+\{\,R\in\mathbb{R},\;R\ge0\,\}\;
+\textbf{read }R;\;V:=\frac{4}{3}\pi R^{3};\;
+\textbf{print}\bigl("VOLUME = "\,\Vert\,\operatorname{str}(\operatorname{round}_{3}(V))\bigr)
+\;
+\{\,V=\tfrac{4}{3}\pi R^{3}\;\land\;
+\text{output}= "VOLUME = "\,\Vert\,\operatorname{str}(\operatorname{round}_{3}(V))\,\}
+}
+\]
+
+This Hoare triple completely captures the required behaviour of the program:  
+
+* **Pre‑condition** – what must be true before execution (a valid floating‑point radius).  
+* **Post‑condition** – what must be true after execution (correct volume calculation and the exact output format).  
+
+The specification can be used directly for formal verification or as a precise contract for implementation.

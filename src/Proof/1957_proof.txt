@@ -1,0 +1,243 @@
+**Answer – A Hoare‑logic proof that the program prints the correct hexadecimal representation**
+
+Below we give a complete Hoare‑logic proof for the Python fragment that appears in the statement of *Problema 1957* (Beecrowd – “Iniciante – Nível 1”).  
+
+The proof follows the usual rules of Hoare logic (assignment, sequencing, consequence, etc.) and uses a small set of auxiliary lemmas about the built‑in functions `int`, `hex` and `str.upper`.  
+
+---
+
+## 1.  Specification
+
+* **Pre‑condition  `P`**  
+
+  The program is started with a *single* line of input that contains a **decimal integer** (the classic Beecrowd format).  
+  Formally  
+
+  \[
+  P \; \equiv\; \exists n\in\mathbb Z \;.\; \text{input line = the decimal representation of } n .
+  \]
+
+  (The integer may be negative; the problem statement does not forbid it.)
+
+* **Post‑condition  `Q`**  
+
+  After termination the program writes exactly the **uppercase hexadecimal representation** of the same integer, **without** the leading "`0x`" (or "`-0x`" for negative numbers).  
+  Formally  
+
+  \[
+  Q \; \equiv\; \text{output line } = \operatorname{hex\_up}(n)
+  \]
+
+  where  
+
+  \[
+  \operatorname{hex\_up}(n)=
+  \begin{cases}
+    \text{UpperCase}\bigl(\operatorname{hex}(n)[2:]\bigr) & n\ge 0\\[4pt]
+    \text{`-'}\;\operatorname{hex\_up}(-n) & n<0
+  \end{cases}
+  \]
+
+  (`hex` is the Python built‑in that returns a string starting with "`0x`" for non‑negative numbers and "`-0x`" for negatives; the slice `[2:]` removes the prefix, and `UpperCase` denotes `str.upper()`).
+
+The goal is to prove  
+
+\[
+\{P\}\; \text{Program}\; \{Q\}
+\]
+
+---
+
+## 2.  Program annotated with Hoare triples
+
+We rewrite the program with explicit statements and introduce *program variables* that are visible to the proof:
+
+| line | Python statement | logical variable |
+|------|-------------------|------------------|
+| 1    | `num = int(input())` | `num` |
+| 2    | `numHex = hex(num)`   | `numHex` |
+| 3    | `numHex = numHex.replace('0x','').upper()` | `numHex` |
+| 4    | `print(numHex)`       | – |
+
+We will prove a **chain of Hoare triples** for each line, using the *sequencing rule*:
+
+\[
+\frac{\{A\}\;S_1\;\{B\}\qquad\{B\}\;S_2\;\{C\}}{\{A\}\;S_1;S_2\;\{C\}}
+\]
+
+The overall invariant we keep after each line is:
+
+\[
+I(k) \; \equiv\; \exists n\in\mathbb Z.\; \text{the input line is the decimal representation of } n\;\wedge\;
+\begin{cases}
+k=0 &\Rightarrow\; \text{no program variable is defined yet}\\
+k=1 &\Rightarrow\; \text{num}=n\\
+k=2 &\Rightarrow\; \text{num}=n\;\wedge\;\text{numHex}= \operatorname{hex}(n)\\
+k=3 &\Rightarrow\; \text{num}=n\;\wedge\;\text{numHex}= \operatorname{hex\_up}(n)
+\end{cases}
+\]
+
+When we reach line 4 we will have `I(3)`, from which the print statement yields `Q`.
+
+---
+
+### 2.1  Line 1 – reading the integer  
+
+**Statement**  
+
+```python
+num = int(input())
+```
+
+**Logical rule** – *input* is a primitive operation that we treat as an *oracle* returning the decimal string that satisfies the pre‑condition. The function `int` is total on such strings and returns the integer value.
+
+**Hoare triple**
+
+\[
+\{P\}\;\texttt{num = int(input())}\;\{I(1)\}
+\]
+
+*Proof*  
+
+- From `P` we know that there exists a unique integer `n` whose decimal representation is the input line.
+- `input()` returns exactly that line; `int` converts it to the corresponding integer `n`.
+- The assignment stores `n` in the variable `num`.  
+Hence after the assignment we have `num = n` and the rest of the invariant (`k=1`) holds. ∎
+
+---
+
+### 2.2  Line 2 – converting to a hexadecimal string  
+
+**Statement**  
+
+```python
+numHex = hex(num)
+```
+
+**Hoare triple**
+
+\[
+\{I(1)\}\;\texttt{numHex = hex(num)}\;\{I(2)\}
+\]
+
+*Proof*  
+
+- By `I(1)` we have `num = n`.  
+- The built‑in `hex` is defined for every integer and returns a **string** of the form  
+
+  \[
+  \operatorname{hex}(n)=
+  \begin{cases}
+    \text{'0x'}\;h & n\ge 0\\
+    \text{'-0x'}\;h & n<0
+  \end{cases}
+  \]  
+
+  where `h` is the *lower‑case* hexadecimal representation of `|n|`.
+- The assignment stores this string in `numHex`.  
+Thus after line 2 we have `numHex = hex(num) = hex(n)`, satisfying `I(2)`. ∎
+
+---
+
+### 2.3  Line 3 – removing the prefix and upper‑casing  
+
+**Statement**  
+
+```python
+numHex = numHex.replace('0x','').upper()
+```
+
+**Hoare triple**
+
+\[
+\{I(2)\}\;\texttt{numHex = numHex.replace('0x','').upper()}\;\{I(3)\}
+\]
+
+*Proof (case analysis)*  
+
+From `I(2)` we know `numHex = hex(n)`. Write `hex(n)` as the string described above.
+
+1. **Case `n ≥ 0`.**  
+
+   `hex(n) = "0x" + h` with `h` lower‑case.  
+
+   - `replace('0x','')` removes the leading "`0x`", yielding exactly `h`.  
+   - `.upper()` transforms `h` into `H = h.upper()`, i.e. the **uppercase** hexadecimal digits.  
+
+   Hence the final value of `numHex` is `H = \operatorname{hex\_up}(n)`.
+
+2. **Case `n < 0`.**  
+
+   `hex(n) = "-0x" + h`.  
+
+   - `replace('0x','')` removes the *second* "`0x`" but leaves the leading minus sign, producing "`-`" concatenated with `h`.  
+   - `.upper()` changes `h` to `H`, leaving the minus sign unchanged.  
+
+   The result is "`-`" + `H` = `\operatorname{hex\_up}(n)` (by definition of `hex_up` for negative numbers).
+
+Thus in both cases after line 3 we have `numHex = hex_up(n)`, which is exactly the property required for `I(3)`. ∎
+
+---
+
+### 2.4  Line 4 – printing  
+
+**Statement**  
+
+```python
+print(numHex)
+```
+
+**Hoare triple**
+
+\[
+\{I(3)\}\;\texttt{print(numHex)}\;\{Q\}
+\]
+
+*Proof*  
+
+`I(3)` tells us that `numHex = hex_up(n)`. The `print` statement writes the *value* of `numHex` to the standard output, followed by a newline (the newline is part of the Beecrowd output format and does not affect the equality of strings). Therefore the produced output line is exactly `hex_up(n)`, which is the post‑condition `Q`. ∎
+
+---
+
+## 3.  Composition of the triples
+
+Applying the **sequencing rule** repeatedly we obtain:
+
+\[
+\begin{aligned}
+\{P\}&\;\texttt{num = int(input())}\;\{I(1)\}\\
+&\;\texttt{numHex = hex(num)}\;\{I(2)\}\\
+&\;\texttt{numHex = numHex.replace('0x','').upper()}\;\{I(3)\}\\
+&\;\texttt{print(numHex)}\;\{Q\}
+\end{aligned}
+\]
+
+Consequently  
+
+\[
+\boxed{\{P\}\;\text{Program}\;\{Q\}}
+\]
+
+i.e. **the program is totally correct with respect to the given specification**.
+
+---
+
+## 4.  Remarks on auxiliary lemmas used
+
+| Lemma | Statement | Reason |
+|-------|-----------|--------|
+| **L1** | `int(s)` returns the integer whose decimal representation is the string `s`. | Definition of Python’s `int` conversion (total on well‑formed decimal strings). |
+| **L2** | `hex(n)` returns a string `"0x"+h` (or `"-0x"+h`) where `h` is the lower‑case hexadecimal digits of `|n|`. | Specification of the built‑in `hex`. |
+| **L3** | `s.replace('0x','')` removes *every* occurrence of the substring "`0x`". | Standard string method semantics. |
+| **L4** | `s.upper()` converts every alphabetic character to its uppercase counterpart, leaving digits and the minus sign unchanged. | Standard string method semantics. |
+| **L5** (consequence) | From `I(k)` we can derive any weaker assertion that follows logically. | Hoare‑logic rule of consequence. |
+
+All lemmas are sound in the Python language definition, therefore the proof is completely formal.
+
+---
+
+## 5.  Conclusion
+
+We have exhibited a **step‑by‑step Hoare‑logic proof** that the program supplied for *Problema 1957* reads an integer, converts it to its uppercase hexadecimal representation without the leading "`0x`", and prints exactly that string.  
+
+Hence the program **satisfies the formal specification** (pre‑condition = “a decimal integer is provided on input”, post‑condition = “the corresponding uppercase hexadecimal string is printed”). ∎

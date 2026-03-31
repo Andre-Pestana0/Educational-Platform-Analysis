@@ -1,0 +1,29 @@
+Description: Read two integer values. After this, calculate the product between them and store the result in a variable namedPROD. Print the result like the example below. Do not forget to print the end of line after the result, otherwise you will receiveâPresentation Errorâ.
+
+Input: The input file contains 2 integer numbers.
+
+Output: Print the message "PROD" andPRODaccording to the following example, with a blank space before and after the equal signal.
+
+Examples:
+- Example 1:
+  Input:
+3
+9
+  Output:
+PROD = 27
+
+- Example 2:
+  Input:
+-30
+10
+  Output:
+PROD = -300
+
+- Example 3:
+  Input:
+0
+9
+  Output:
+PROD = 0
+
+--

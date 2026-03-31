@@ -1,0 +1,17 @@
+Description: Your English teacher loves to bring new stuff to the class, and today it wasn't different. There is a city, according to your teacher, where the people take really seriously the way they talk to each other. In particular, when two people are talking, they think a lot in the sentence that they are going to say before they say it, so that they can ensure their sentence will be a âfull sentenceâ, or maybe an âalmost full sentenceâ.
+
+Input: The first line contains an integerN, indicating the number of test cases to follow.
+
+Output: For each test case, print one line containing one of the following sentences: âfrase completaâ, when the sentence is considered full; âfrase quase completaâ, when the sentence is not considered full, but is considered almost full; or âfrase mal elaboradaâ, when the sentence is not full neither almost full.
+
+Examples:
+- Example 1:
+  Input:
+2
+ola, como voce esta hoje
+hoje fui na feira, e comprei banana, melao e abacates
+  Output:
+frase mal elaborada
+frase quase completa
+
+--

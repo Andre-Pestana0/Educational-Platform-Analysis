@@ -1,0 +1,17 @@
+Description: Read an integer N and compute all its divisors.
+
+Input: The input file contains an integer value.
+
+Output: Write all positive divisors of N, one value per line.
+
+Examples:
+- Example 1:
+  Input:
+6
+  Output:
+1
+2
+3
+6
+
+--

@@ -1,0 +1,21 @@
+Description: Before the Hispanic colonization and then the English one, the region of San Antonio was dominated by Indians ahmoc-axhozupeck, ancestors of the Sioux and Apaches. Ethnicity was completely destroyed by the colonists in the eighteenth century, making impossible the task of deciphering their large panels.
+
+Input: Several test instances are given. Each instance starts with a positive integer 0 â¤aâ¤ 1000000 which is the signature of the artist. The integer 0 indicates the end of data. The next line is the sequence number of the panel, which can be up to 300000 digits.
+
+Output: For each solved instance, you should print "Instanceh" wherehis an integer, and increasing sequential number starting from 1. On the next line, you should print "verdadeiro" (true) if the sequence of numbers contains the signature of the artist or "falsa" (false) if otherwise. A blank line should separate the output of each instance.
+
+Examples:
+- Example 1:
+  Input:
+1234
+837384937292379450545045672392303485065402302373543504864694450034302
+23034
+837384937292379450545045672392303485065402302373543504864694450034302
+0
+  Output:
+Instancia 1
+falsa
+Instancia 2
+verdadeira
+
+--

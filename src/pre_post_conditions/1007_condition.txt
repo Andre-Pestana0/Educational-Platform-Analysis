@@ -1,0 +1,89 @@
+Below is a **Hoare‑style specification** (pre‑condition / post‑condition) that captures exactly what the program has to do.  
+All symbols are written in standard mathematical notation; the program itself is not required – only the logical contract.
+
+---
+
+### 1.   State variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `A, B, C, D` | the four integers read from the input file |
+| `Δ` (Delta) | the *difference* that must be computed, i.e. `Δ = A·B – C·D` |
+| `out` | the string that the program finally prints (the only observable effect) |
+| `ℤ` | the set of all (mathematical) integers |
+
+The **initial state** of the program consists only of the four input values; no other mutable variables are assumed.
+
+---
+
+### 2.   Pre‑condition  
+
+\[
+\boxed{P \;:\; (A,B,C,D) \in \mathbb{Z}^{4}}
+\]
+
+*Interpretation*: the program is called with **any** four integers.  
+No further restriction (e.g. range limits) is required for the problem statement.
+
+---
+
+### 3.   Post‑condition  
+
+\[
+\boxed{Q \;:\; 
+\begin{aligned}
+&\Delta \;=\; A\cdot B\;-\;C\cdot D \\
+&\text{out}\;=\;"\text{DIFERENCA = }"\;\Vert\;\text{toString}(\Delta)
+\end{aligned}}
+\]
+
+*Explanation*  
+
+* `Δ` is defined as the arithmetic expression required by the problem.  
+* `out` must be exactly the literal word **“DIFERENCA = ”** followed by a single blank space, the decimal representation of `Δ`, and **nothing else** (no trailing newline is modelled here; it is harmless for the logical contract).
+
+---
+
+### 4.   Hoare triple  
+
+\[
+\{\,P\,\}\;\; \text{Read }A,B,C,D;\; \Delta := A\cdot B - C\cdot D;\; \text{Print } \Delta\;\; \{\,Q\,\}
+\]
+
+The triple reads:
+
+> *If the program starts in a state satisfying the pre‑condition `P` (four arbitrary integers), then after executing the body (read, compute, print) it terminates in a state satisfying the post‑condition `Q` (the output string contains the correct difference).*
+
+---
+
+### 5.   Optional explicit termination clause  
+
+Because the program consists only of a finite sequence of deterministic statements, we may add the explicit guarantee  
+
+\[
+\text{Term} \;:\; \text{the program always terminates}.
+\]
+
+---
+
+### 6.   Full formal specification (compact form)
+
+\[
+\boxed{
+\{(A,B,C,D)\in\mathbb{Z}^{4}\}\;
+\text{read};\;\Delta:=A\!B-C\!D;\;\text{print}\bigl("DIFERENCA = "\,\Vert\,\text{toString}(\Delta)\bigr)\;
+\{\Delta = A\!B-C\!D \;\land\; \text{out}= "DIFERENCA = "\,\Vert\,\text{toString}(\Delta)\}
+}
+\]
+
+---
+
+#### How the examples satisfy the specification  
+
+| Input (A,B,C,D) | Δ = A·B – C·D | Expected `out` |
+|-----------------|---------------|----------------|
+| (5, 6, 7, 8)    | 5·6 – 7·8 = 30 – 56 = **‑26** | `DIFERENCA = -26` |
+| (0, 0, 7, 8)    | 0·0 – 7·8 = 0 – 56 = **‑56** | `DIFERENCA = -56` |
+| (5, 6, ‑7, 8)   | 5·6 – (‑7)·8 = 30 – (‑56) = **86** | `DIFERENCA = 86` |
+
+Each case meets the post‑condition `Q`, confirming that the Hoare contract correctly captures the intended behaviour.

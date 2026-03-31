@@ -1,0 +1,21 @@
+Description: Read an uppercase character that indicates an operation that will be performed in an arrayM[12][12]. Then, calculate and print the sum or average considering only that numbers that are included in the green area of this array, like shown in the following figure.
+The image contains a matrix 12x12. The positions in green are [0][1], [0][2], [0][3], [0][4], [0][5], [0][6], [0][7], [0][8], [0][9], [0][10], [1][2], [1][3], [1][4], [1][5], [1][6], [1][7], [1][8], [1][9], [2][3], [2][4], [2][5], [2][6], [2][7], [2][8], [3][4], [3][5], [3][6], [3][7], [4][5], [4][6]
+
+Input: The first line of the input contains a single uppercase characterO('S' or 'M'), indicating the operation Sum or Average (MÃ©dia in portuguese) to be performed with the elements of the array. Follow 144 double numbers of the array.
+
+Output: Print the calculated result (sum or average), with one digit after the decimal point.
+
+Examples:
+- Example 1:
+  Input:
+S
+5.0
+130.0
+-3.5
+2.5
+4.1
+...
+  Output:
+126.2
+
+--

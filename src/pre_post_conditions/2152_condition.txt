@@ -1,0 +1,129 @@
+**Hoare‑style specification (pre‑ and post‑conditions) for the whole program**
+
+Let  
+
+* `N ∈ ℕ` be the number of test cases (the first integer of the input).  
+* For every `i ∈ {1,…,N}` let the triple  
+
+\[
+(H_i,M_i,O_i) \in \mathbb N \times \mathbb N \times \{0,1\}
+\]
+
+be the three integers read on the *i‑th* line of the test case.
+
+Define the **domain restrictions** (the “legal” range of the data)
+
+\[
+\begin{aligned}
+&0 \le H_i \le 23,\\
+&0 \le M_i \le 59,\\
+&O_i \in \{0,1\}.
+\end{aligned}
+\tag{1}
+\]
+
+---
+
+### Auxiliary functions (pure, total)
+
+*Two‑digit decimal representation*  
+
+\[
+\operatorname{pad2} : \mathbb N \to \text{String},\qquad
+\operatorname{pad2}(x)=
+\begin{cases}
+\text{``0''}\,\Vert\,\text{toString}(x) & \text{if }x<10,\\[2mm]
+\text{toString}(x)                     & \text{otherwise}.
+\end{cases}
+\]
+
+*Phrase for the door state*  
+
+\[
+\operatorname{msg} : \{0,1\}\to\text{String},\qquad
+\operatorname{msg}(o)=
+\begin{cases}
+\text{``A porta abriu!''}   & \text{if }o=1,\\[1mm]
+\text{``A porta fechou!''}  & \text{if }o=0.
+\end{cases}
+\]
+
+*One line of output*  
+
+\[
+\operatorname{line}(h,m,o)=
+\operatorname{pad2}(h)\; \text{``:''}\; \operatorname{pad2}(m)\;
+\text{`` - ''}\; \operatorname{msg}(o).
+\tag{2}
+\]
+
+---
+
+### Specification
+
+\[
+\boxed{\{\,P\,\}\; \textbf{program}\; \{\,Q\,\}}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P \;:\; 
+\begin{cases}
+N\ge 1,\\[1mm]
+\forall i\in\{1,\dots ,N\}\;.\;(H_i,M_i,O_i)\text{ satisfy (1)}.
+\end{cases}
+\tag{P}
+\]
+
+* **Post‑condition**  
+
+Let  
+
+\[
+S = (s_1,\dots ,s_N)\quad\text{with}\quad
+s_i = \operatorname{line}(H_i,M_i,O_i) .
+\tag{3}
+\]
+
+Then  
+
+\[
+Q \;:\; \text{the program writes exactly the strings }s_1,\dots ,s_N,
+\text{ each terminated by a line‑break (``\textbackslash n''}) .
+\tag{Q}
+\]
+
+---
+
+### Hoare triple for a single test case (useful for a loop invariant)
+
+For the *i‑th* iteration of the processing loop (1 ≤ i ≤ N) we can write
+
+\[
+\boxed{\{\,P_i\,\}\; \texttt{process\_case}(H_i,M_i,O_i)\; \{\,Q_i\,\}}
+\]
+
+with  
+
+\[
+\begin{aligned}
+P_i &\equiv 0\le H_i\le 23\;\land\;0\le M_i\le 59\;\land\;O_i\in\{0,1\},\\[2mm]
+Q_i &\equiv \text{output the string } \operatorname{line}(H_i,M_i,O_i).
+\end{aligned}
+\]
+
+The loop invariant that guarantees the whole program satisfies \(\{P\}\textbf{program}\{Q\}\) is  
+
+\[
+\forall k\in\{0,\dots ,i-1\}\;.\; \text{the first }k\text{ lines already printed are }
+\bigl(\operatorname{line}(H_1,M_1,O_1),\dots ,\operatorname{line}(H_k,M_k,O_k)\bigr).
+\]
+
+When the loop terminates with `i = N+1`, the invariant yields exactly the sequence \(S\) defined in (3), i.e. the required output.  
+
+---
+
+**Thus the formal (Hoare‑logic) specification of the problem is the triple \(\{P\}\; \textbf{program}\; \{Q\}\) given above.**

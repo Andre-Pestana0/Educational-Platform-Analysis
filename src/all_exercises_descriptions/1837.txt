@@ -1,0 +1,26 @@
+Description: It has begun the IV UFFS Programming Contest! We hope you enjoy the next hours you are going to spend with us, as we hope you have a lot of fun! Good luck!
+
+Input: The input consists of two integersaandb(-1,000 â¤a,b< 1,000).
+
+Output: Print the quotientqfollowed by the remainderrof the division ofabyb.
+
+Examples:
+- Example 1:
+  Input:
+7 3
+  Output:
+2 1
+
+- Example 2:
+  Input:
+7 -3
+  Output:
+-2 1
+
+- Example 3:
+  Input:
+-7 3
+  Output:
+-3 2
+
+--

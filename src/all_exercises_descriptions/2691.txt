@@ -1,0 +1,20 @@
+Description: In the Federal Institute of the South of Minas, in the city of Muzambinho, there is a mathematician conducting a crazy research. He is about to find the formula of youth. After several tests he discovered data that made him crazy, one was that: the more you code the more you rejuvenates. For the moment the formula is in development and he hired you to help him in the research, because after so much work he forgot some principles of mathematics, like half of the table, and asked you to build the table with the numbers he needs.
+
+Input: The firstNnumber is an integer indicating how many times your program will be tested. Then two more integersXandYwhich will be the numbers to be multiplied.
+
+Output: Your program should display the multiplication of the two numbers, except when they are equal, in this case without the "&&".
+
+Examples:
+- Example 1:
+  Input:
+1
+4x5
+  Output:
+4 x 5 = 20 && 5 x 5 = 25
+4 x 6 = 24 && 5 x 6 = 30
+4 x 7 = 28 && 5 x 7 = 35
+4 x 8 = 32 && 5 x 8 = 40
+4 x 9 = 36 && 5 x 9 = 45
+4 x 10 = 40 && 5 x 10 = 50
+
+--

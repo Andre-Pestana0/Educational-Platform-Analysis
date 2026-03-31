@@ -1,0 +1,58 @@
+**Hoare‑style specification**
+
+Let  
+
+* `N ∈ ℕ` be the number of candidates,  
+* `T : {1,…,N} → ℕ` be the array of “hits”, i.e. `T(i) = Ti`,  
+* `ans ∈ ℕ` be the value that the program finally prints.
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{
+P \;\equiv\;
+\bigl(1\le N \le 100\bigr)\;\land\;
+\Bigl(\forall i\in\{1,\dots ,N\}\; \bigl(0\le T(i)\le 20\bigr)\Bigr)
+}
+\]
+
+The input satisfies the limits given in the statement.
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{
+Q \;\equiv\;
+\Bigl(ans\in\{1,\dots ,N\}\Bigr)\;\land\;
+\Bigl(\forall i\in\{1,\dots ,N\}\; T(ans)\le T(i)\Bigr)\;\land\;
+\Bigl(\forall i\in\{1,\dots ,N\}\; \bigl(T(i)=T(ans)\rightarrow ans\le i\bigr)\Bigr)
+}
+\]
+
+* `ans` is a valid index.  
+* Its associated number of hits is **not larger** than the number of hits of any other index (it attains the minimum).  
+* If several indices attain the same minimum value, `ans` is the **smallest** such index (tie‑break rule).
+
+Equivalently, using the `argmin` operator:
+
+\[
+\boxed{ \; ans = \operatorname*{arg\,min}_{i\in\{1,\dots ,N\}} T(i) \;}
+\]
+
+where the `arg min` returns the least index among all minima.
+
+---
+
+### Hoare triple  
+
+If `S` denotes the (unspecified) algorithm that reads `N` and the array `T` and computes `ans`, the formal specification of the problem is the Hoare triple  
+
+\[
+\{\,P\,\}\; S\; \{\,Q\,\}.
+\]
+
+In words: **under the pre‑condition that the input respects the given bounds, the program terminates with an answer `ans` that satisfies the post‑condition of being the smallest index achieving the minimum number of hits.**

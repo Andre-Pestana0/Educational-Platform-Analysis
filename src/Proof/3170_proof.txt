@@ -1,0 +1,352 @@
+## 1.  What we have to prove  
+
+We are asked to show, by means of **Hoare‑logic**, that the program below satisfies the specification that is implicit in the statement of the problem:
+
+*Input* two non‑negative integers  
+
+```
+b  – quantidade de bolinhas   (balls)
+g  – quantidade de galhos      (branches)
+```
+
+*Output*  
+
+* either the sentence  
+
+```
+Amelia tem todas bolinhas!
+```
+
+  **iff** after discarding a possible odd branch the (even) number of branches
+  does not exceed the number of balls that can be placed, i.e.  
+
+  \[
+  g' \le 2\,b,
+  \]
+
+* or the sentence  
+
+```
+Faltam k bolinha(s)
+```
+
+  where  
+
+  \[
+  k =\frac{g' - 2\,b}{2}
+  \]
+
+  (the exact number of balls that are missing).  
+  The value \(k\) is an integer because \(g'\) is even.
+
+Thus the **post‑condition** we want to prove is
+
+\[
+\begin{aligned}
+Q\;:\;&\bigl(g'\le 2b\;\wedge\;{\tt print}(\text{“Amelia tem todas bolinhas!”})\bigr)\\
+      &\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\)  
+
+\[
+\begin{aligned}
+Q\;:\;&\bigl(g' > 2b\;\wedge\;k =\frac{g' - 2b}{2}\;\wedge\;{\tt print}(\text{“Faltam }k\text{ bolinha(s)”})\bigr)
+\end{aligned}
+\]
+
+where  
+
+* \(g' = g\) if \(g\) is even, otherwise \(g' = g-1\);  
+* \(k\) is an integer (the program prints it without decimal part).
+
+The **pre‑condition** is simply that the two values read from the input are
+non‑negative integers:
+
+\[
+P\;:\; b\ge 0\ \wedge\ g\ge 0 .
+\]
+
+Our goal is to prove the Hoare triple  
+
+\[
+\{P\}\; \textbf{program}\; \{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+## 2.  The program (annotated)
+
+```text
+1  bolinhas_quantidade = int(input())          // b
+2  galhos_quantidade   = int(input())          // g
+3  if (galhos_quantidade % 2 != 0) then
+4      galhos_quantidade = galhos_quantidade - 1
+5  endif
+6  if (galhos_quantidade <= bolinhas_quantidade * 2) then
+7      print("Amelia tem todas bolinhas!")
+8  else
+9      resto = (galhos_quantidade - (2*bolinhas_quantidade)) / 2
+10     print(f'Faltam {resto:.0f} bolinha(s)')
+11 endif
+```
+
+For the sake of the proof we rename the program variables with the
+mathematical symbols that appear in the specification:
+
+```
+b  := bolinhas_quantidade
+g  := galhos_quantidade
+g' := g  (after line 5)   // the rounded‑down even value
+k  := resto (after line 9)
+```
+
+--------------------------------------------------------------------
+
+## 3.  Proof outline using Hoare logic  
+
+We will prove the triple by **structural induction on the syntax** of the
+program, i.e. by applying the Hoare rules for
+
+* sequential composition,
+* the two `if` statements,
+* the assignment statements.
+
+The proof is completely mechanistic; every line below is a legitimate
+application of a Hoare rule.
+
+--------------------------------------------------------------------
+
+### 3.1  The first `if` (rounding the number of branches)
+
+The invariant that we need after line 5 is exactly the definition of the
+rounded‑down even number:
+
+\[
+I_1\;:\; g' = 
+\begin{cases}
+g      &\text{if } g\%2 = 0\\[2mm]
+g-1    &\text{if } g\%2 = 1
+\end{cases}
+\qquad\text{and}\qquad g' \text{ is even.}
+\]
+
+---
+
+**Step 3.1.1 – Assignment on line 1**  
+
+\[
+\{P\}\; b:=\text{int(input())}\;\{b\ge 0\}
+\]
+
+(the input is assumed to be a non‑negative integer, therefore the
+post‑condition holds).
+
+**Step 3.1.2 – Assignment on line 2**  
+
+\[
+\{b\ge 0\}\; g:=\text{int(input())}\;\{b\ge 0\ \wedge\ g\ge 0\}
+\]
+
+Now we have the pre‑condition for the first `if`:
+
+\[
+\{b\ge 0\ \wedge\ g\ge 0\}\; \textbf{if}\; (g\%2\neq 0)\; \textbf{then}\; g:=g-1\; \textbf{else}\; \textbf{skip}\; \textbf{endif}
+\;\{I_1\}
+\]
+
+*Proof of the `if` rule.*  
+
+* **True branch** (`g%2≠0`): after the test we know `g%2 = 1`, therefore
+  `g:=g-1` yields `g' = g-1`. The resulting value is even, so `I_1` holds.
+
+* **False branch** (`g%2 = 0`): we skip the assignment, keeping `g' = g`,
+  which is also even, hence `I_1` holds.
+
+Consequently after line 5 we have established `I_1`.  
+We shall use the abbreviation `g'` for the current value of the variable
+`galhos_quantidade`.
+
+--------------------------------------------------------------------
+
+### 3.2  The second `if` (deciding which message to print)
+
+We now need an invariant that captures the two possible outcomes:
+
+\[
+I_2\;:\;
+\bigl(g' \le 2b \;\wedge\; \text{the program will print “Amelia tem todas bolinhas!”}\bigr)
+\ \lor\
+\bigl(g' > 2b \;\wedge\; k = \tfrac{g'-2b}{2}\;\wedge\;
+\text{the program will print “Faltam }k\text{ bolinha(s)”}\bigr).
+\]
+
+Our aim is to show that the whole program ends in a state satisfying
+\(I_2\); this is exactly the post‑condition \(Q\).
+
+The Hoare rule for `if‑else` tells us that it is enough to prove the two
+Hoare triples that correspond to the *then* and the *else* part, using the
+same pre‑condition (`I_1`) and the same post‑condition (`I_2`).
+
+---
+
+#### 3.2.1  The **then** branch (`g' <= 2b`)
+
+The command executed in this branch is only the `print` statement, which
+does not change the program state. Consequently we must show
+
+\[
+\{I_1 \wedge g' \le 2b\}\; \textbf{print}(\dots)\; \{I_2\}.
+\]
+
+Because the antecedent already guarantees the left disjunct of `I_2`,
+the triple holds trivially (the `print` does not affect any variable).
+
+---
+
+#### 3.2.2  The **else** branch (`g' > 2b`)
+
+The body of the else‑branch consists of two statements (line 9 and line 10).
+
+* **Assignment on line 9**  
+
+  We compute  
+
+  \[
+  k := \frac{g' - 2b}{2}.
+  \]
+
+  To apply the assignment rule we need a **stronger** intermediate
+  assertion that records the exact value of `k` after the assignment:
+
+  \[
+  J\;:\; g' > 2b \;\wedge\;
+  k = \frac{g' - 2b}{2}.
+  \]
+
+  From the pre‑condition of the else‑branch (`I_1 \wedge g' > 2b`) we can
+  infer `J` after the assignment, because the right‑hand side is a pure
+  arithmetic expression that evaluates to that value.
+
+  Formally:
+
+  \[
+  \{I_1 \wedge g' > 2b\}\; k:=\frac{g'-2b}{2}\; \{J\}.
+  \]
+
+* **Print on line 10**  
+
+  The `print` does not modify the variables, therefore
+
+  \[
+  \{J\}\; \textbf{print}(\dots)\; \{I_2\}
+  \]
+
+  holds, because `J` is exactly the right‑hand disjunct of `I_2`.
+
+Putting the two statements together we obtain, by the **sequence rule**,
+
+\[
+\{I_1 \wedge g' > 2b\}\;
+\begin{array}{l}
+k := (g' - 2b)/2;\\
+\textbf{print}(\dots)
+\end{array}
+\;
+\{I_2\}.
+\]
+
+--------------------------------------------------------------------
+
+### 3.3  Combining the two `if`s
+
+We have proved the two Hoare triples required by the rule for
+`if‑else`:
+
+\[
+\begin{aligned}
+\{I_1 \wedge g' \le 2b\}&\; \textbf{print}(\dots)\; \{I_2\},\\
+\{I_1 \wedge g' > 2b\}&\; 
+\begin{array}{l}
+k := (g' - 2b)/2;\\
+\textbf{print}(\dots)
+\end{array}
+\; \{I_2\}.
+\end{aligned}
+\]
+
+Therefore, using the **if‑else rule**, we obtain
+
+\[
+\{I_1\}\;
+\begin{array}{l}
+\textbf{if}\;(g' \le 2b)\; \textbf{then}\\
+\qquad \textbf{print}(\dots)\\
+\textbf{else}\\
+\qquad k := (g' - 2b)/2;\\
+\qquad \textbf{print}(\dots)\\
+\textbf{endif}
+\end{array}
+\;
+\{I_2\}.
+\]
+
+Recall that `I_1` was proved after the first `if` (rounding step), so by
+the **sequence rule** we finally get
+
+\[
+\{P\}\;
+\begin{array}{l}
+\text{lines 1–5 (rounding)}\\
+\text{lines 6–11 (decision and output)}
+\end{array}
+\;
+\{I_2\}.
+\]
+
+But `I_2` is precisely the post‑condition \(Q\) that we wanted to
+establish. Hence we have proved the Hoare triple
+
+\[
+\boxed{\{P\}\; \textbf{program}\; \{Q\}}
+\]
+
+which states that the program is **correct with respect to the
+specification**.
+
+--------------------------------------------------------------------
+
+## 4.  Remarks on termination and on integer‑ness of the answer  
+
+*All* the statements are either simple assignments, arithmetic operations,
+or deterministic `if`‑branches; none of them contains a loop, therefore
+the program **terminates** for every input satisfying the pre‑condition.
+
+The division on line 9 is performed on two even numbers:
+
+* `g'` is even by construction (the rounding step),
+* `2b` is obviously even.
+
+Consequently `g' - 2b` is even, and division by `2` yields an integer.
+The format specifier `:.0f` in the `print` statement removes any possible
+fractional part, guaranteeing that the output is an integer as required
+by the specification.
+
+--------------------------------------------------------------------
+
+## 5.  Summary  
+
+* **Pre‑condition** \(P : b\ge 0\ \wedge\ g\ge 0\) (the two inputs are
+  non‑negative integers).
+
+* **Post‑condition** \(Q\) expresses exactly the two cases required by the
+  problem statement:
+
+  * if the (even) number of branches does not exceed the capacity
+    \(2b\), the program prints *“Amelia tem todas bolinhas!”*;
+  * otherwise it prints *“Faltam k bolinha(s)”* where
+    \(k = (g' - 2b)/2\).
+
+* By applying the Hoare rules for **assignment**, **sequence**, and the
+  two **if‑else** constructs we derived a chain of valid Hoare triples,
+  ending with a triple whose post‑condition is precisely \(Q\).
+
+Thus the program is **provably correct** with respect to the given
+pre‑ and post‑conditions. ∎

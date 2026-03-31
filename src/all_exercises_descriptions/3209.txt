@@ -1,0 +1,19 @@
+Description: Roy has just moved into a new apartment. Well, actually the apartment itself is not very new, even dating back to the days before people had electricity in their houses. Because of this, Royâs apartment has only one single wall outlet, so Roy can only power one of his electrical appliances at a time.
+
+Input: Input vill start with a single integer 1 â¤Nâ¤ 20, indicating the number of test cases to follow. Then followNlines, each describing a test case. Each test case starts with an integer 1 â¤Kâ¤ 10, indicating the number of power strips in the test case. Then follow, on the same line,Kintegers separated by single spaces,O1O2...OK, where 2 â¤Oiâ¤ 10, indicating the number of outlets in each power strip.
+
+Output: Output one line per test case, with the maximum number of appliances that can be powered.
+
+Examples:
+- Example 1:
+  Input:
+3
+3 2 3 4
+10 4 4 4 4 4 4 4 4 4 4
+4 10 10 10 10
+  Output:
+7
+31
+37
+
+--

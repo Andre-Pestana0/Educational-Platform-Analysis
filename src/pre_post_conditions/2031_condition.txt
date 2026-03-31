@@ -1,0 +1,101 @@
+Below is a **Hoare‑logic style specification** of the whole program (the “algorithm” that reads the input, decides the winner of each round and prints the required messages).  
+Only the *pre‑condition* **P** (what the program expects before it starts) and the *post‑condition* **Q** (what must be true after it terminates) are given; the body of the program is omitted because the request was to write the formal specification, not the implementation.
+
+---
+
+### 1.  Vocabulary  
+
+* `ℕ` – the set of natural numbers (including 0).  
+* `Σ = {"pedra", "papel", "ataque"}` – the set of admissible signs.  
+
+* For a sign `a ∈ Σ` we write `a = "pedra"` (rock), `a = "papel"` (paper) or `a = "ataque"` (air‑strike).  
+
+* **Winning relation** `win : Σ × Σ → { true , false }`  
+
+\[
+\begin{aligned}
+\text{win}(a,b) \; \stackrel{\text{def}}{=}\;
+ & (a = \text{"pedra"}   \land b = \text{"ataque"}) \;\lor\\
+ & (a = \text{"papel"}   \land b = \text{"pedra"})   \;\lor\\
+ & (a = \text{"ataque"}  \land b = \text{"papel"})
+\end{aligned}
+\]
+
+Thus the three signs form a *cycle*:
+
+```
+pedra  →  ataque  →  papel  →  pedra
+```
+
+* `out : {0,…,N‑1} → {"Sem ganhador", "Jogador 1 venceu", "Jogador 2 venceu"}` – the function that stores the line printed for each test case.
+
+* `inp₁(i), inp₂(i) ∈ Σ` – the two strings read for the *i*‑th test case (player 1 and player 2 respectively).
+
+---
+
+### 2.  Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \;\equiv\; &\exists N \in \mathbb{N}\;.\; 1 \le N \le 1000 \;\land \\
+            &\bigl(\forall i \in \{0,\dots ,N-1\}\;.\; inp₁(i) \in Σ \;\land\; inp₂(i) \in Σ \bigr)
+\end{aligned}
+\]
+
+In words: the program receives a natural number `N` (1 ≤ N ≤ 1000) and, for every `i` from 0 to `N‑1`, two strings belonging to the set Σ.
+
+---
+
+### 3.  Post‑condition  **Q**
+
+\[
+\begin{aligned}
+Q \;\equiv\; &\bigl(\forall i \in \{0,\dots ,N-1\}\;.\; \\
+   &\;\;\; \bigl(inp₁(i) = inp₂(i) \;\rightarrow\; out(i) = \text{"Sem ganhador"}\bigr) \\
+   &\;\;\; \land\; \bigl(inp₁(i) \neq inp₂(i) \;\land\; win(inp₁(i),inp₂(i)) \;\rightarrow\; out(i)=\text{"Jogador 1 venceu"}\bigr) \\
+   &\;\;\; \land\; \bigl(inp₁(i) \neq inp₂(i) \;\land\; \neg win(inp₁(i),inp₂(i)) \;\rightarrow\; out(i)=\text{"Jogador 2 venceu"}\bigr) \\
+   &\bigr)
+\end{aligned}
+\]
+
+Thus for each test case `i` the program prints  
+
+* **“Sem ganhador”** iff both players chose the same sign,  
+
+* **“Jogador 1 venceu”** iff the signs differ and player 1’s sign beats player 2’s sign according to `win`,  
+
+* **“Jogador 2 venceu”** otherwise (the remaining case of differing signs where player 2’s sign beats player 1’s).
+
+---
+
+### 4.  Hoare Triple
+
+Putting the two parts together we obtain the formal specification of the whole program:
+
+\[
+\boxed{\; \{\,P\,\}\; \text{RockPaperAirstrikeProgram}\; \{\,Q\,\}\;}
+\]
+
+where  
+
+* `RockPaperAirstrikeProgram` denotes the (unspecified) sequence of statements that  
+
+  1. reads `N` and the `2·N` strings,  
+
+  2. evaluates the `win` relation for every pair,  
+
+  3. stores the appropriate message in `out(i)` and finally prints the `N` messages in order.
+
+The triple states that **every** execution that starts in a state satisfying `P` will terminate (the problem guarantees termination because `N` is finite) in a state satisfying `Q`.  
+
+---  
+
+#### Remarks  
+
+* The specification is *total*: it covers all possible inputs allowed by the problem statement.  
+
+* No auxiliary variables are needed; the only observable effect is the sequence of printed strings, captured by the function `out`.  
+
+* The cyclic winning relation `win` is the exact formal counterpart of the “rock‑paper‑airstrike” rule described in the problem statement.  
+
+This completes the Hoare‑logic style formal specification requested.

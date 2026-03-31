@@ -1,0 +1,39 @@
+media = 6.00
+novo calculo (1-sim 2-nao)
+
+nota invalida
+nota invalida
+media = 3.75
+novo calculo (1-sim 2-nao)
+media = 9.50
+novo calculo (1-sim 2-nao)
+
+media = 7.00
+novo calculo (1-sim 2-nao)
+novo calculo (1-sim 2-nao)
+novo calculo (1-sim 2-nao)
+media = 5.50
+novo calculo (1-sim 2-nao)
+
+media = 5.00
+novo calculo (1-sim 2-nao)
+
+nota invalida
+nota invalida
+nota invalida
+nota invalida
+media = 5.00
+novo calculo (1-sim 2-nao)
+novo calculo (1-sim 2-nao)
+
+media = 7.22
+novo calculo (1-sim 2-nao)
+
+media = 4.50
+novo calculo (1-sim 2-nao)
+nota invalida
+nota invalida
+media = 7.00
+novo calculo (1-sim 2-nao)
+novo calculo (1-sim 2-nao)
+

@@ -1,0 +1,28 @@
+200 eh o maior
+
+300 eh o maior
+
+30 eh o maior
+
+100 eh o maior
+
+42 eh o maior
+
+-3 eh o maior
+
+15 eh o maior
+
+0 eh o maior
+
+2147483647 eh o maior
+
+-1000 eh o maior
+
+2147483647 eh o maior
+
+1000 eh o maior
+
+5 eh o maior
+
+-1 eh o maior
+

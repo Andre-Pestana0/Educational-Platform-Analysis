@@ -1,0 +1,57 @@
+Invalido
+
+Invalido
+
+Invalido
+
+Valido-Equilatero
+Retangulo: N
+
+Valido-Equilatero
+Retangulo: N
+
+Valido-Isoceles
+Retangulo: N
+
+Valido-Isoceles
+Retangulo: N
+
+Valido-Escaleno
+Retangulo: N
+
+Valido-Escaleno
+Retangulo: N
+
+Valido-Escaleno
+Retangulo: S
+
+Valido-Escaleno
+Retangulo: S
+
+Valido-Escaleno
+Retangulo: S
+
+Valido-Escaleno
+Retangulo: S
+
+Valido-Escaleno
+Retangulo: N
+
+Valido-Escaleno
+Retangulo: N
+
+Valido-Isoceles
+Retangulo: N
+
+Valido-Escaleno
+Retangulo: S
+
+Valido-Escaleno
+Retangulo: N
+
+Valido-Isoceles
+Retangulo: N
+
+Valido-Isoceles
+Retangulo: N
+

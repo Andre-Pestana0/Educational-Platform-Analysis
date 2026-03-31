@@ -1,0 +1,26 @@
+Description: Rosy Ã© uma talentosa professora do Ensino MÃ©dio que jÃ¡ ganhou muitos prÃªmios pela qualidade de sua aula. Seu reconhecimento foi tamanho que foi convidada a dar aulas em uma escola da Inglaterra. Mesmo falando bem inglÃªs, Rosy ficou um pouco apreensiva com a responsabilidade, mas resolveu aceitar a proposta e encarÃ¡-la como um bom desafio.
+
+Input: A entrada contÃ©m um Ãºnico conjunto de testes, que deve ser lido do dispositivo de entrada padrÃ£o (normalmente o teclado). A entrada contÃ©m uma Ãºnica linha com um nÃºmero inteiroN(0 â¤Nâ¤ 100), representando uma nota de prova no sistema numÃ©rico.
+
+Output: Seu programa deve imprimir, na saÃ­da padrÃ£o, uma letra (A, B, C, D, ou E em maiÃºsculas) representando o conceito correspondente Ã  nota dada na entrada.
+
+Examples:
+- Example 1:
+  Input:
+12
+  Output:
+D
+
+- Example 2:
+  Input:
+87
+  Output:
+A
+
+- Example 3:
+  Input:
+0
+  Output:
+E
+
+--

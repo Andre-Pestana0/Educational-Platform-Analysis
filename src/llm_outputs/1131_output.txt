@@ -1,0 +1,57 @@
+Novo grenal (1-sim 2-nao)
+1 grenais
+Inter:0
+Gremio:0
+Empates:1
+Empate
+
+Novo grenal (1-sim 2-nao)
+1 grenais
+Inter:1
+Gremio:0
+Empates:0
+Inter venceu mais
+
+Novo grenal (1-sim 2-nao)
+1 grenais
+Inter:0
+Gremio:1
+Empates:0
+Gremio venceu mais
+
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+4 grenais
+Inter:2
+Gremio:1
+Empates:1
+Inter venceu mais
+
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+3 grenais
+Inter:0
+Gremio:2
+Empates:1
+Gremio venceu mais
+
+Novo grenal (1-sim 2-nao)
+1 grenais
+Inter:1
+Gremio:0
+Empates:0
+Inter venceu mais
+
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+Novo grenal (1-sim 2-nao)
+4 grenais
+Inter:2
+Gremio:2
+Empates:0
+Empate
+

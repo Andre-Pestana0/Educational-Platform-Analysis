@@ -1,0 +1,210 @@
+**Answer – a Hoare‑logic proof that the program prints the value  \(H/P\)  with exactly two decimal digits**
+
+--------------------------------------------------------------------
+
+### 1.  The program (written in a “pseudo‑Python” language)
+
+```
+S1 : H , P := input()                // read two integers
+S2 : print("{:.2f}".format(H / P))   // print the quotient with 2 decimals
+```
+
+The whole program is the sequential composition  
+
+\[
+S \;=\; S_{1}\; ;\; S_{2}
+\]
+
+--------------------------------------------------------------------
+
+### 2.  Specification (pre‑ and post‑condition)
+
+* **Pre‑condition**  
+
+  The program is called only with a *valid* input, i.e. two integers
+  whose second component is non‑zero.  
+
+  \[
+  \boxed{ \; \mathsf{Pre}\; \equiv\;  \exists h,p\in\mathbb Z\;.\;
+          (p\neq 0\;\land\; H=h\;\land\;P=p) \;}
+  \]
+
+  (In words: there exist integers *h* and *p* with *p*≠0 and the
+  variables `H` and `P` contain those values.)
+
+* **Post‑condition**  
+
+  After the execution the *only* observable effect of the program is the
+  printed line.  The line must be the decimal representation of the
+  rational number \(h/p\) rounded to two fractional digits.  
+
+  \[
+  \boxed{ \; \mathsf{Post}\; \equiv\;
+          \text{output}= \text{format}\bigl( h/p , \, 2\bigr) \;}
+  \]
+
+  where `format(x,2)` denotes the string obtained by the format
+  specification `"{:.2f}".format(x)` (exactly two digits after the
+  decimal point).
+
+--------------------------------------------------------------------
+
+### 3.  Hoare‑logic rules that will be used  
+
+| Rule | Description |
+|------|--------------|
+| **Assignment axiom** | \(\{\,\phi[E/x]\,\}\; x:=E\; \{\,\phi\,\}\) |
+| **Input (nondeterministic assignment)** | \(\{\,\exists v.\;x=v\land \phi(v)\,\}\;x:=\text{input()}\; \{\,\phi(x)\,\}\) |
+| **Output rule** | \(\{\,\phi(E)\,\}\; \text{print}(E)\; \{\,\phi(E)\,\}\) (the observable effect is exactly the value of the expression that is printed) |
+| **Sequence** | From \(\{P\}\;S_{1}\;\{Q\}\) and \(\{Q\}\;S_{2}\;\{R\}\) infer \(\{P\}\;S_{1};S_{2}\;\{R\}\) |
+| **Rule of Consequence** | If \(\{P'\}\;S\;\{Q'\}\) and \(P\Rightarrow P'\) and \(Q'\Rightarrow Q\) then \(\{P\}\;S\;\{Q\}\) |
+
+--------------------------------------------------------------------
+
+### 4.  Proof of each statement
+
+--------------------------------------------------------------------
+#### 4.1  Statement **S1** – reading the input  
+
+We treat the Python line  
+
+```python
+H , P = map(int, input().split(' '))
+```  
+
+as two *nondeterministic* assignments:
+
+```
+H := input()
+P := input()
+```
+
+The Hoare rule for input gives the following triple:
+
+\[
+\frac{\displaystyle
+      \{\,\exists h,p\in\mathbb Z.\; (p\neq 0\land H=h\land P=p)\,\}
+      \; H,P := \text{input()}
+      \; \{\, H\in\mathbb Z\land P\in\mathbb Z\land P\neq 0 \,\}}
+     {}
+\tag{T1}
+\]
+
+*Explanation.*  
+The pre‑condition says “there exist integers *h* and *p* with *p*≠0”.
+The input statement chooses exactly those values, therefore after the
+statement the predicate “`H` and `P` are integers and `P` ≠ 0” holds.
+No additional information is needed.
+
+--------------------------------------------------------------------
+#### 4.2  Statement **S2** – printing the quotient  
+
+The expression that is printed is  
+
+\[
+E\;=\; \text{format}\bigl( H/P , 2 \bigr)
+\]
+
+The Hoare rule for *output* (the only observable effect of the statement)
+gives:
+
+\[
+\frac{\displaystyle
+      \{\, H\in\mathbb Z\land P\in\mathbb Z\land P\neq 0 \,\}
+      \; \text{print}(E)
+      \; \{\, \text{output}=E \,\}}
+     {}
+\tag{T2}
+\]
+
+*Explanation.*  
+If the variables satisfy the antecedent, the value of `E` is well‑defined
+(because division by zero is excluded).  The `print` statement produces
+exactly that value as its observable output.
+
+--------------------------------------------------------------------
+#### 4.3  Combining the two statements  
+
+From (T1) we have  
+
+\[
+\{\,\mathsf{Pre}\,\}\; S_{1}\; \{\, H\in\mathbb Z\land P\in\mathbb Z\land P\neq 0 \,\}
+\]
+
+From (T2) we have  
+
+\[
+\{\, H\in\mathbb Z\land P\in\mathbb Z\land P\neq 0 \,\}\; S_{2}\;
+\{\, \text{output}= \text{format}(H/P,2) \,\}
+\]
+
+Applying the **Sequence** rule we obtain the triple for the whole program:
+
+\[
+\boxed{
+\{\,\mathsf{Pre}\,\}\; S_{1};S_{2}\;
+\{\, \text{output}= \text{format}(H/P,2) \,\}
+}
+\tag{T3}
+\]
+
+--------------------------------------------------------------------
+#### 4.4  Relating the post‑condition to the specification  
+
+Recall the specification post‑condition  
+
+\[
+\mathsf{Post}\; \equiv\; \text{output}= \text{format}\bigl( h/p , 2 \bigr)
+\]
+
+where the *h* and *p* are exactly the values read by the program.
+From the pre‑condition we have the existential facts  
+
+\[
+\exists h,p\in\mathbb Z.\; (p\neq0\land H=h\land P=p)
+\]
+
+Thus, after the execution we can replace `H` by `h` and `P` by `p`
+inside the expression `format(H/P,2)`.  Consequently  
+
+\[
+\text{output}= \text{format}(H/P,2)
+\;\;\Longrightarrow\;\;
+\text{output}= \text{format}(h/p,2)
+\]
+
+Hence  
+
+\[
+\{\,\mathsf{Pre}\,\}\; S\; \{\,\mathsf{Post}\,\}
+\]
+
+holds.  By the **Rule of Consequence** we may tighten the post‑condition
+to exactly the specification required.
+
+--------------------------------------------------------------------
+
+### 5.  Summary of the proof
+
+| Step | Hoare triple (pre‑condition → statement → post‑condition) |
+|------|-----------------------------------------------------------|
+| 1    | \(\{\,\exists h,p\in\mathbb Z.\;(p\neq0\land H=h\land P=p)\,\}\)  <br> `H,P := input()` <br> \(\{\, H\in\mathbb Z\land P\in\mathbb Z\land P\neq0 \,\}\) |
+| 2    | \(\{\, H\in\mathbb Z\land P\in\mathbb Z\land P\neq0 \,\}\)  <br> `print("{:.2f}".format(H/P))` <br> \(\{\, \text{output}= \text{format}(H/P,2) \,\}\) |
+| 3    | By **Sequence** obtain \(\{\,\mathsf{Pre}\,\}\;S\;\{\,\text{output}= \text{format}(H/P,2)\,\}\) |
+| 4    | Using the existential equalities from the pre‑condition, replace `H` and `P` by the concrete input values `h` and `p`.  Hence the post‑condition becomes \(\mathsf{Post}\). |
+| 5    | By **Rule of Consequence** we have proven the required specification  
+
+\[
+\boxed{ \{\,\mathsf{Pre}\,\}\; \text{program}\; \{\,\mathsf{Post}\,\} }
+\]
+
+--------------------------------------------------------------------
+
+### 6.  Concluding remark  
+
+The Hoare‑logic proof shows that **whenever the program receives two
+integers with the second one non‑zero, it terminates and prints exactly
+the quotient of the first by the second, rounded (or truncated, according
+to the language’s formatting rules) to two decimal places**.  This is
+precisely the correctness claim expressed by the given pre‑ and
+post‑conditions. ∎

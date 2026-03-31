@@ -1,0 +1,38 @@
+Description: We have some words and we want to right justify them, that is, align them to the right. Create a program that reads a word and print it all right justified, in the same order as they appear in the input.
+
+Input: The input contains several test cases. The first line of a test case will contain an integerN(1 â¤Nâ¤ 50) indicating the number of following words. Each word is composed of up to 50 uppercase letters (âAâ-âZâ) and will contain at least one letter. The end of input is indicated byN= 0.
+
+Output: For each test case print the words padded on the left with space characters so that they are all the same length as the longest word found in that text. Print an empty line between all the test cases. There must be no trailing spaces printed out, and you should discard any unnecessary leading spaces, so that at least one line on every output word starts with a letter.
+
+Examples:
+- Example 1:
+  Input:
+3
+BOB
+TOMMY
+JIM
+4
+JOHN
+JAKE
+ALAN
+BLUE
+4
+LONGEST
+A
+LONGER
+SHORT
+0
+  Output:
+BOB
+TOMMY
+JIM
+JOHN
+JAKE
+ALAN
+BLUE
+LONGEST
+A
+LONGER
+SHORT
+
+--

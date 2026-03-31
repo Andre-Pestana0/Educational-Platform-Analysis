@@ -1,0 +1,82 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) written in ordinary mathematical notation for the program described in the statement.
+
+---
+
+### Notation used  
+
+* `ℕ` – the set of natural numbers (including 0).  
+* `input` – the content of the input file.  
+* `output` – the complete text that the program writes to the output file (including line‑break characters).  
+* `⟦x⟧` – the decimal string representation of the integer `x`.  
+* `⊕` – concatenation of strings.  
+* `\n` – the newline character.  
+* For a given integer `i` (with `1 ≤ i ≤ N`) we define  
+
+\[
+\operatorname{line}(i)\;:=\;\bigl\langle\; \underbrace{\bigl\langle\; \llbracket 3i-2\rrbracket\;\bigr\rangle}_{\text{first number}}\;
+\text{“ ”}\;
+\underbrace{\bigl\langle\; \llbracket 3i-1\rrbracket\;\bigr\rangle}_{\text{second number}}\;
+\text{“ ”}\;
+\underbrace{\bigl\langle\; \llbracket 3i\rrbracket\;\bigr\rangle}_{\text{third number}}\;
+\text{“ ”}\;
+\underbrace{\bigl\langle\; \text{“PUM”}\;\bigr\rangle}_{\text{literal word}}\;
+\right\rangle .
+\]
+
+Thus `line(i)` is the exact string that must appear on the *i*‑th output line (without the terminating newline).
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\;\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}\;}
+\]
+
+where  
+
+* **Pre‑condition** \(P\)  
+
+\[
+P \;:\;  \bigl(N \in \mathbb{N}\bigr)\;\land\;
+\bigl(\text{input}= \llbracket N\rrbracket\bigr) .
+\]
+
+  *The input file contains a single integer `N`, and `N` is a natural number (the specification allows `N = 0` – in that case the program produces no output lines).*
+
+* **Post‑condition** \(Q\)  
+
+\[
+\begin{aligned}
+Q \;:\;&\; \bigl(\text{output}= \bigl(\,\underset{i=1}{\overset{N}{\bigoplus}}\; \operatorname{line}(i)\bigr)\;\oplus\; \underbrace{\bigl(\,\underbrace{\n}_{\text{if }N>0}\bigr)}_{\text{final newline (optional)}}\bigr) \\[4pt]
+&\;\land\; \bigl(\forall i\in\{1,\dots ,N\}\;.\;
+\operatorname{line}(i)=\llbracket 3i-2\rrbracket\; \text{“ ”}\; \llbracket 3i-1\rrbracket\; \text{“ ”}\; \llbracket 3i\rrbracket\; \text{“ ”}\; \text{“PUM”}\bigr).
+\end{aligned}
+\]
+
+In words:
+
+* The program terminates producing exactly **N** lines.
+* For each line index `i` (1 ≤ i ≤ N) the line consists of the three consecutive integers  
+
+  \[
+  3i-2,\; 3i-1,\; 3i
+  \]
+
+  written in decimal, separated by a single space, followed by a space and the literal word **PUM**.
+* The lines appear in the order `i = 1, 2, …, N`, each terminated by a newline character (the final newline after the last line may be present or omitted – both satisfy the specification).
+
+---
+
+### Compact form (optional)
+
+If one prefers a single‑line description of the post‑condition, it can be written as
+
+\[
+Q \;:\; \text{output}= \Bigl(\,\bigoplus_{i=1}^{N}
+\bigl(\llbracket 3i-2\rrbracket\;\text{“ ”}\;\llbracket 3i-1\rrbracket\;\text{“ ”}\;\llbracket 3i\rrbracket\;\text{“ ”}\;\text{“PUM”}\bigr)\Bigr)\;\oplus\;\n .
+\]
+
+---
+
+Thus the Hoare triple `{ P } program { Q }` completely captures the intended behaviour of the required program in mathematical notation.

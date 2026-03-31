@@ -1,0 +1,17 @@
+Description: Read a number and make a program which puts this number in the first position of an array N[10]. In each subsequent position, put the double of the previous position. For example, if the input number is 1, the array numbers ââmust be 1,2,4,8, and so on.
+
+Input: The input contains an integer numberV(V< 50).
+
+Output: Print the stored number of each array position, in the form "N[i] =X", whereiis the position of the array andxis the stored number at the positioni. The first number forXisV.
+
+Examples:
+- Example 1:
+  Input:
+1
+  Output:
+N[0] = 1
+N[1] = 2
+N[2] = 4
+...
+
+--

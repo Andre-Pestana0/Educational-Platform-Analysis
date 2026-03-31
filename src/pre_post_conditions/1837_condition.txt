@@ -1,0 +1,76 @@
+Below is a **Hoare‑logic specification** for the whole program (the “read‑compute‑print” fragment).  
+Only the *pre‑condition* (what must be true before execution) and the *post‑condition* (what is guaranteed after execution) are given; the body of the program `S` is left implicit because the specification does not depend on the particular algorithm used.
+
+---
+
+### Notation used  
+
+* `ℤ` – the set of all integers.  
+* `|b|` – absolute value of `b`.  
+* `⌊x⌋` – the ordinary (real) floor of a rational number `x`.  
+* `a \mathbin{div}\,b` – the **Euclidean quotient** of `a` by `b`, i.e. the unique integer `q` such that  
+
+\[
+a = b\cdot q + r \qquad\text{with}\qquad 0 \le r < |b|
+\]
+
+* `a \mathbin{mod}\,b` – the corresponding Euclidean remainder `r`.  
+* `output(q,r)` – the effect of printing the two integers `q` and `r` separated by a blank (the order matters: first `q`, then `r`).  
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\;\{\,P(a,b)\,\}\; S\; \{\,Q(a,b,q,r)\,\}\;}
+\]
+
+where  
+
+### Pre‑condition  
+
+\[
+P(a,b)\;:\;\; a,b\in\mathbb Z\;\wedge\; -1000\le a < 1000\;\wedge\; -1000\le b < 1000\;\wedge\; b\neq 0
+\]
+
+(The problem statement restricts the inputs to the interval \([-1000,1000)\) and a division by zero would be undefined, therefore we require \(b\neq0\).)
+
+### Post‑condition  
+
+\[
+\begin{aligned}
+Q(a,b,q,r)\;:\;&\exists q,r\in\mathbb Z\;.\;\\[2mm]
+&\bigl(a = b\cdot q + r\;\wedge\;0\le r < |b|\bigr)\\[2mm]
+&\;\;\wedge\; \text{output}(q,r)
+\end{aligned}
+\]
+
+In words: after the program terminates there exist integers `q` (the quotient) and `r` (the remainder) such that  
+
+* `a = b·q + r` (the division identity), and  
+* `0 ≤ r < |b|` (the remainder is **non‑negative** and strictly smaller than the absolute value of the divisor),  
+
+and the program prints exactly `q` followed by `r`.
+
+---
+
+### Full specification in Hoare‑logic style  
+
+\[
+\boxed{
+\{\, -1000\le a < 1000 \;\wedge\; -1000\le b < 1000 \;\wedge\; b\neq0 \,\}
+\;S\;
+\{
+\exists q,r\in\mathbb Z\;.\; a = bq + r \;\wedge\; 0\le r < |b|
+\;\wedge\; \text{output}(q,r)
+\}
+}
+\]
+
+The program `S` can be any correct implementation of Euclidean division (e.g. using the language’s integer division and modulus operators that obey the Euclidean convention, or a manual algorithm). The specification guarantees that for every admissible input pair `(a,b)` the printed pair `(q,r)` satisfies the Euclidean division properties illustrated by the sample I/O:
+
+* `7  3  →  q =  2, r = 1`
+* `7 -3  →  q = -2, r = 1`
+* `-7  3 →  q = -3, r = 2`  
+
+All three cases respect `0 ≤ r < |b|`.

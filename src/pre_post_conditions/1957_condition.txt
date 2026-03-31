@@ -1,0 +1,94 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) for the program that reads a decimal integer \(V\) and prints its hexadecimal representation in upper‑case characters.
+
+---
+
+### Notation used
+
+* \(V\) – the integer read from *stdin* (the **input variable**).  
+* \(S\) – the string written to *stdout* (the **output variable**).  
+* \(\mathbb N\) – the set of natural numbers \(\{0,1,2,\dots\}\).  
+* \(\Sigma = \{0,1,\dots ,9, A,B,C,D,E,F\}\) – the hexadecimal alphabet.  
+* \(\operatorname{val} : \Sigma \rightarrow \{0,\dots ,15\}\)  
+
+\[
+\operatorname{val}(c)=
+\begin{cases}
+c &\text{if }c\in\{0,\dots ,9\}\\[2mm]
+10+(c-\text{‘A’}) &\text{if }c\in\{A,\dots ,F\}
+\end{cases}
+\]
+
+* \(\operatorname{hex} : \mathbb N \rightarrow \Sigma^{+}\) – the *unique* hexadecimal representation function, defined by  
+
+\[
+\operatorname{hex}(n)=c_{0}c_{1}\dots c_{k-1}\quad\text{iff}\quad
+\begin{cases}
+n=\displaystyle\sum_{i=0}^{k-1}\operatorname{val}(c_{i})\;16^{\,k-1-i}\\[2mm]
+c_{0}\neq\text{‘0’}\;(k>0)
+\end{cases}
+\]
+
+(For the present problem \(n>0\), therefore \(\operatorname{hex}(n)\) never has a leading ‘0’.)
+
+* \(\operatorname{EOL}(S)\) – “\(S\) ends with the end‑of‑line character ‘\(\backslash n\)’”.
+
+* \(\operatorname{concat}(c_{0},\dots ,c_{k-1})\) – the string obtained by concatenating the characters.
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; \text{prog}\; \{\,Q\,\}}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+P \;\equiv\; V\in\mathbb N\ \land\ 1\le V\le 2\cdot10^{9}
+\]
+
+*(The program is invoked only with a positive decimal integer that fits in a 32‑bit signed range.)*
+
+### Post‑condition \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\; &\exists k\in\mathbb N_{>0}\;\exists (c_{0},\dots ,c_{k-1})\in\Sigma^{k}\;.\;
+   \bigl[\,V=\displaystyle\sum_{i=0}^{k-1}\operatorname{val}(c_{i})\,16^{\,k-1-i}
+          \ \land\ c_{0}\neq\text{‘0’}\,\bigr] \\[2mm]
+   &\qquad\land\ S = \operatorname{concat}(c_{0},\dots ,c_{k-1})\;\land\ \operatorname{EOL}(S)
+\end{aligned}
+\]
+
+In words:
+
+* There exists a **non‑empty** sequence of hexadecimal digits \((c_{0},\dots ,c_{k-1})\) such that the input value \(V\) equals the positional value of that digit sequence in base 16, with the most‑significant digit \(c_{0}\) different from ‘0’.
+* The output string \(S\) is exactly those digits concatenated **and** terminated by a newline character.
+
+Equivalently, using the function \(\operatorname{hex}\),
+
+\[
+Q \;\equiv\; S = \operatorname{hex}(V)\,\Vert\,\backslash n .
+\]
+
+---
+
+### Full specification in Hoare‑logic form
+
+\[
+\boxed{
+\{\,V\in\mathbb N \land 1\le V\le 2\cdot10^{9}\,\}
+\;\; \textbf{read}(V);\;
+\textbf{write}\bigl(\operatorname{hex}(V)\,\Vert\,\backslash n\bigr)
+\;\;
+\{\,S = \operatorname{hex}(V)\,\Vert\,\backslash n\,\}
+}
+\]
+
+This specification captures **exactly** what the program must do:
+
+* **Input** – a single decimal integer \(V\) satisfying the given bounds.
+* **Output** – the uppercase hexadecimal representation of \(V\) followed by an end‑of‑line character, with no leading zeroes.  
+
+Any implementation that, when started in a state satisfying the pre‑condition, terminates in a state satisfying the post‑condition is correct with respect to the problem statement.

@@ -1,0 +1,72 @@
+**Hoare‑style specification**
+
+We denote by  
+
+* `out` – the (finite) list of strings that the program writes on the standard output, in the order they are produced.  
+* `⟨⟩` – the empty list, and `⟨x⟩·L` – the list obtained by putting the element `x` in front of the list `L`.  
+
+The required sequence can be described mathematically as the list  
+
+\[
+\mathcal S \;=\;
+\Big\langle\; \bigl(I=i,\;J=j\bigr)
+   \;\Big|\;
+   i\in\{1,3,5,7,9\},
+   \;j\in\{i+6,i+5,i+4\},
+   \text{ with }j\text{ decreasing for each fixed }i
+\;\Big\rangle .
+\]
+
+Equivalently, using a single index `k∈\{0,…,14\}`:
+
+\[
+\begin{aligned}
+i(k) &:= 2\Big\lfloor\frac{k}{3}\Big\rfloor + 1,\\[2mm]
+j(k) &:= i(k) + 6 - (k\bmod 3),\\[2mm]
+\mathcal S &:= \big\langle\; (i(k),j(k)) \;\big|\; k=0,1,\dots ,14\big\rangle .
+\end{aligned}
+\]
+
+For each pair \((i,j)\) the program must print the literal string  
+
+\[
+\texttt{"I="}\;i\;\texttt{" J="}\;j
+\]
+
+followed by a newline character.
+
+---
+
+### Formal Hoare triple
+
+\[
+\boxed{\;\{\,\top\,\}\;\;P\;\;\{\,\text{out}= \mathcal S\;\}}
+\]
+
+* **Pre‑condition** `⊤` (true) – there is no input, no state to assume.  
+* **Program** `P` – any algorithm that terminates and writes to the output exactly the list `𝒮`.  
+* **Post‑condition** `out = 𝒮` – the output list equals the mathematically defined sequence.
+
+---
+
+### Expanded post‑condition (explicitly in first‑order logic)
+
+\[
+\begin{aligned}
+&\exists L\;( \text{out}=L \;\land\; |L| = 15 \;\land\; \\
+&\quad \forall k\;(0\le k<15 \;\rightarrow\;
+      L[k] = \texttt{"I="}\;\!i(k)\;\!\texttt{" J="}\;\!j(k)\;\!\texttt{"\n"} ) ) .
+\end{aligned}
+\]
+
+where the auxiliary functions `i(k)` and `j(k)` are as defined above.
+
+---
+
+#### Remarks
+
+* The set `{1,3,5,7,9}` can be written compactly as `{2m+1 \mid 0 ≤ m ≤ 4}`.  
+* The three `J` values for a given `I` are exactly `I+6, I+5, I+4`, printed in **descending** order (`I+6` first).  
+* The outer loop runs over `I` in **ascending** order (1,3,…,9); the inner loop runs over the three `J` values in **descending** order.
+
+Thus the Hoare triple above captures the whole specification of the problem in pure mathematical notation.

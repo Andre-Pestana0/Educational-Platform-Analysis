@@ -1,0 +1,122 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) for the program described in the statement.  
+All symbols are defined in the “Notation” block that follows.
+
+---
+
+## 1.  Notation  
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℤ` | the set of all (mathematical) integers. |
+| `Σ*` | the set of all finite strings over the ASCII alphabet. |
+| `read : ℤ` | the value that the program reads from standard input (the *DDD* code). |
+| `out ∈ Σ*` | the string that the program writes to standard output (the *result*). |
+| `DDD ↦ City` | a **lookup table** (finite partial function) that maps a DDD code to its corresponding city name. |
+| `Δ` | the concrete table required by the problem (see below). |
+| `⊥` | “undefined’’ – the value that a partial function takes when its argument is not in its domain. |
+| `⟦·⟧` | interpretation of a piece‑wise definition (i.e. the value of the expression inside). |
+| `≡` | logical equivalence (both sides have the same truth value). |
+| `∧, ∨, ¬, ⇒` | the usual Boolean connectives. |
+| `if‑then‑else` | the usual conditional expression: `if b then e₁ else e₂`. |
+
+**The table Δ** (the only data the program knows) is written as a partial function  
+
+\[
+\Delta : \mathbb{Z}\rightharpoonup \Sigma^*,
+\qquad
+\Delta \;=\;
+\begin{cases}
+11   \mapsto \text{``Sao Paulo''},\\
+21   \mapsto \text{``Rio de Janeiro''},\\
+31   \mapsto \text{``Belo Horizonte''},\\
+41   \mapsto \text{``Salvador''},\\
+\;\dots\;  \text{(all other DDDs required by the judge)}\\
+\end{cases}
+\]
+
+(Only the entries that appear in the judge’s test data need to be listed; the rest are *undefined*.)
+
+Define the **result function** `R : ℤ → Σ*` by
+
+\[
+R(d) \;=\;
+\begin{cases}
+\Delta(d)                     & \text{if } d \in \operatorname{dom}(\Delta),\\[4pt]
+\text{``DDD nao cadastrado''} & \text{otherwise}.
+\end{cases}
+\tag{1}
+\]
+
+---
+
+## 2.  Hoare Triple (Pre‑/Post‑condition)
+
+\[
+\boxed{\;\{\,\text{Pre}\,\}\;\; \textbf{prog}\;\; \{\,\text{Post}\,\}\;}
+\]
+
+### 2.1  Pre‑condition  
+
+The only requirement on the environment before the program starts is that the input be a **single integer** (the DDD code).  Formally:
+
+\[
+\text{Pre}\;:\;\; \exists d\in\mathbb{Z}\;.\; \text{read}=d .
+\tag{2}
+\]
+
+(Equivalently, `true` if we assume the I/O system guarantees an integer.)
+
+### 2.2  Post‑condition  
+
+Let `d` be the integer that was read (the same `d` that satisfies (2)).  
+The program terminates and writes exactly the string prescribed by `R`:
+
+\[
+\text{Post}\;:\;\; out = R(d) .
+\tag{3}
+\]
+
+Expanding (1), the post‑condition can be written piece‑wise:
+
+\[
+\boxed{
+\begin{aligned}
+out ={} &\begin{cases}
+\Delta(d)                     & \text{if } d \in \operatorname{dom}(\Delta),\\[4pt]
+\text{``DDD nao cadastrado''} & \text{if } d \notin \operatorname{dom}(\Delta).
+\end{cases}
+\end{aligned}
+}
+\tag{4}
+\]
+
+---
+
+## 3.  Full Specification  
+
+Putting the pieces together:
+
+\[
+\boxed{
+\{\,\exists d\in\mathbb{Z}\,.\,\text{read}=d\,\}
+\;\;\textbf{prog}
+\;\;
+\{\, out = 
+\begin{cases}
+\Delta(d)                     & \text{if } d \in \operatorname{dom}(\Delta),\\[4pt]
+\text{``DDD nao cadastrado''} & \text{otherwise}
+\end{cases}
+\;\}.
+}
+\tag{5}
+\]
+
+---
+
+### Remarks  
+
+* The program is **total**: for every integer `d` the post‑condition defines a unique output string, so termination is guaranteed.  
+* If the judge’s table contains *n* entries, `Δ` is a partial function with `|dom(Δ)| = n`.  
+* The Hoare triple (5) captures exactly the natural‑language requirement: *read a DDD, print the associated city, or print the “not registered” message if the DDD does not appear in the table.*  
+
+This formalisation can be used as the specification against which a concrete implementation (e.g., in C, Python, Java, …) is proved correct via standard Hoare‑logic proof rules.

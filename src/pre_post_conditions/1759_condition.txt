@@ -1,0 +1,91 @@
+Below is a **pure Hoare‑logic specification** (pre‑condition / post‑condition) written only with mathematical notation.  
+No implementation details (loops, I/O calls, etc.) are shown – the specification tells *what* the program must achieve.
+
+---
+
+### 1. Vocabulary  
+
+* `ℕ` – the set of natural numbers (0,1,2,…).  
+* `N ∈ ℕ` – the integer read from the input.  
+* `out` – the (finite) string that the program finally writes to the standard output.  
+* `·` – string concatenation (associative, left‑to‑right).  
+* `"Ho"` – the one‑character‑token **Ho**.  
+* `" "` – the one‑character‑token space.  
+* `"!"` – the exclamation‑mark token.  
+
+For a natural number `k ≥ 1` we define the *repetition* operator  
+
+\[
+\operatorname{rep}_k(s) \;=\;
+\underbrace{s\;·\;s\;·\;\dots\;·\;s}_{k\text{ copies}}
+\]
+
+and the *space‑separated repetition*  
+
+\[
+\operatorname{sprep}_k(s) \;=\;
+\begin{cases}
+s                     & k = 1\\[2mm]
+s\;·\;" "\;·\;\operatorname{sprep}_{k-1}(s) & k > 1 .
+\end{cases}
+\]
+
+Thus  
+
+\[
+\operatorname{sprep}_k("Ho") = 
+\underbrace{"Ho"\; " "\; "Ho"\; " "\;\dots\; " "\; "Ho"}_{k\text{ copies of “Ho” separated by a single space}} .
+\]
+
+---
+
+### 2. Hoare triple  
+
+\[
+\boxed{\;\{\,P\,\}\;\; S\;\;\{\,Q\,\}\;}
+\]
+
+*`S`* denotes the whole program (read `N`, produce the required output).
+
+#### Pre‑condition  **P**
+
+\[
+P \;\equiv\; \bigl( N \in \mathbb{N}\ \wedge\ 0 < N \le 10^{6} \bigr)
+\]
+
+The only requirement on the input is that it be a positive integer not larger than \(10^{6}\).
+
+#### Post‑condition **Q**
+
+\[
+\begin{aligned}
+Q \;\equiv\; &\; out = \bigl(\operatorname{sprep}_{N}("Ho")\bigr) \;·\; "!" \\[2mm]
+           &\;\;\;\wedge\; \bigl|\,\operatorname{sprep}_{N}("Ho")\,\bigr| = 
+               2N-1 \quad\text{(character length before the final “!”)}\\[2mm]
+           &\;\;\;\wedge\; \forall i\in\{1,\dots,N\}\;:\;
+                \text{the }i\text{-th token of }out\text{ (ignoring the final “!”)} 
+                = "Ho" .
+\end{aligned}
+\]
+
+In words:
+
+* the output string consists of exactly **N** copies of the word **Ho**, each pair of consecutive copies being separated by a single space,
+* after the last copy of **Ho** an exclamation mark **!** is appended,
+* no other characters appear.
+
+---
+
+### 3. Full specification in Hoare‑logic form  
+
+\[
+\boxed{
+\bigl\{\,0 < N \le 10^{6}\,\bigr\}
+\;S\;
+\bigl\{
+   out = \operatorname{sprep}_{N}("Ho")·"!"
+\;\}
+}
+\]
+
+That is the complete formal (pre/post) specification of the “Santa‑Ho” problem.  

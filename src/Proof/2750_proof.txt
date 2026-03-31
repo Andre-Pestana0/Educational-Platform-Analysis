@@ -1,0 +1,238 @@
+## 1.  What we have to prove  
+
+We want to show, **in Hoare‑logic notation**, that the whole program  
+
+```
+P ≡  Header ;
+     for i = 0 … 15 do Body(i) ;
+     Footer
+```
+
+satisfies the specification  
+
+```
+{  true }  P  {  TablePrintedCorrectly }
+```
+
+where  
+
+* `Header` prints the three horizontal lines that delimit the table header,  
+* `Body(i)` prints one table row that contains the decimal value `i`,
+  its octal representation `oct(i)` and its hexadecimal representation `hex(i)`,
+* `Footer` prints the closing horizontal line, and  
+
+* `TablePrintedCorrectly` means  
+
+  * the output consists of **exactly** 19 lines (2 header lines + 16 body lines +
+    1 footer line);
+  * line 1, 2 and 19 are the literal strings shown in the source;
+  * for every `k ∈ {0,…,15}` line `k+3` has the exact format  
+
+    ```
+    |  {k:^9}|{oct(k):^9}|{hex(k):^15}|
+    ```
+
+    where `oct(k)` is the octal representation *without* the leading “0o”
+    and `hex(k)` is the hexadecimal representation *without* the leading “0x”
+    and written in upper‑case.
+
+The program does not read any input, therefore the pre‑condition is simply
+`true`.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare triples for the three *atomic* parts  
+
+| Statement | Hoare triple (proved by “axiom of assignment” or by
+“rule of consequence”) |
+|-----------|----------------------------------------------|
+| `Header` | `{true} Header {HeaderPrinted}` |
+| `Footer` | `{true} Footer {FooterPrinted}` |
+| `h = hex(i).replace('0x','').upper()` | `{I} h := … {I ∧ h = H(i)}` |
+| `o = oct(i).replace('0o','')` | `{I ∧ h = H(i)} o := … {I ∧ h = H(i) ∧ o = O(i)}` |
+| `print(f'|  {i:^9}|{o:^9}|{h:^15}|')` | `{I ∧ h = H(i) ∧ o = O(i)} print … {I ∧ RowPrinted(i)}` |
+
+* `H(i)` denotes the **exact** string that results from the
+  `hex(i)` manipulation, i.e. the uppercase representation without the
+  “0x” prefix.  
+* `O(i)` denotes the **exact** string that results from the
+  `oct(i)` manipulation, i.e. the octal representation without the “0o” prefix.  
+* `RowPrinted(i)` means *the line that has just been printed is precisely the
+  row required for the decimal value `i`*.
+
+All three print statements are *output* statements; in Hoare logic we treat
+them as atomic commands whose post‑condition simply asserts that the required
+text has been appended to the output stream.
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+The only non‑trivial part of the program is the `for`‑loop.  
+We use the standard *while* formulation of a `for` loop:
+
+```
+i := 0;
+while i < 16 do
+    Body(i);
+    i := i + 1
+od
+```
+
+The invariant **I** that we will prove is:
+
+```
+I ≡ 0 ≤ i ≤ 16  ∧
+    (∀j . 0 ≤ j < i → RowPrintedCorrectly(j))
+```
+
+* `RowPrintedCorrectly(j)` is the predicate that the *j‑th* body line (the line
+  belonging to decimal value `j`) appears in the output exactly in the format
+  required by the specification.
+
+Intuitively: *“all rows for numbers already processed have been printed correctly,
+and `i` tells us how many numbers have been processed.”*
+
+--------------------------------------------------------------------
+
+## 4.  Proof that the invariant holds  
+
+### 4.1  **Initialization**  
+
+Before the loop we execute `i := 0`.  
+
+*Pre‑condition*: `true`.  
+
+After the assignment we have `i = 0`.  
+Because there is **no** `j` such that `0 ≤ j < 0`, the universal part of `I`
+is vacuously true. Hence
+
+```
+{ true } i := 0 { I }
+```
+
+is proved.
+
+### 4.2  **Maintenance**  
+
+Assume `I` holds at the beginning of an iteration and that the loop guard
+`i < 16` is true (so `0 ≤ i ≤ 15`).  
+We must show that after executing the body `Body(i)` and the increment
+`i := i+1`, the invariant holds again.
+
+*Step‑by‑step*:
+
+1. **`h = …`**  
+   By the assignment rule we obtain `h = H(i)` while keeping `I` unchanged.
+
+2. **`o = …`**  
+   Similarly we obtain `o = O(i)` and still have `I ∧ h = H(i)`.
+
+3. **`print …`**  
+   The `print` statement adds exactly the line  
+
+   ```
+   |  {i:^9}|{o:^9}|{h:^15}|
+   ```
+
+   to the output.  Because `h = H(i)` and `o = O(i)`, this line is *exactly*
+   `RowPrintedCorrectly(i)`.  Consequently we can strengthen the invariant
+   to  
+
+   ```
+   I' ≡ I ∧ RowPrintedCorrectly(i)
+   ```
+
+   i.e. "all rows for `j < i` are correct **and** the row for `i` is also
+   correct".
+
+4. **`i := i+1`**  
+   The assignment changes the bound of the universal quantifier:
+
+   ```
+   (∀j . 0 ≤ j < i → RowPrintedCorrectly(j))   ∧   RowPrintedCorrectly(i)
+   ```
+
+   becomes  
+
+   ```
+   (∀j . 0 ≤ j < i+1 → RowPrintedCorrectly(j))
+   ```
+
+   because the new `i` (call it `i'`) equals the old `i+1`.  The numeric
+   part of the invariant also updates from `0 ≤ i ≤ 15` to
+   `0 ≤ i' ≤ 16`.  Hence the invariant `I` holds again.
+
+Formally we have derived the Hoare triple
+
+```
+{ I ∧ i < 16 } Body(i); i := i+1 { I }
+```
+
+which is exactly the *loop‑invariant preservation* condition.
+
+### 4.3  **Termination**  
+
+When the guard becomes false we have `¬(i < 16)`, i.e. `i = 16`.  
+Together with the invariant we obtain
+
+```
+i = 16  ∧  (∀j . 0 ≤ j < 16 → RowPrintedCorrectly(j))
+```
+
+The universal quantifier now covers **all** decimal numbers from 0 to 15,
+hence every required body line has been printed correctly.  This is precisely
+the part of the post‑condition concerning the loop.
+
+--------------------------------------------------------------------
+
+## 5  Assembling the whole program  
+
+We now concatenate the three fragments, using the *rule of consequence* to
+connect the post‑condition of one fragment with the pre‑condition of the next.
+
+1. `{true} Header {HeaderPrinted}` – proved in §2.  
+2. `{HeaderPrinted} i := 0 {I}` – initialization proved in §4.1.  
+3. `{I ∧ i < 16} Body(i); i := i+1 {I}` – loop preservation proved in §4.2.  
+4. `{I ∧ i = 16} Footer {HeaderPrinted ∧ BodyPrinted ∧ FooterPrinted}` – the
+   invariant at termination gives us `BodyPrinted`; adding the already proven
+   `HeaderPrinted` and the Hoare triple for `Footer` yields the complete post‑condition.
+
+By the **while‑rule** we obtain:
+
+```
+{ HeaderPrinted } 
+while i < 16 do
+    Body(i); i := i+1
+od
+{ HeaderPrinted ∧ BodyPrinted }
+```
+
+Finally, after the `Footer` we have
+
+```
+{ true }  Header ;  i := 0 ;  while … ;  Footer  { TablePrintedCorrectly }
+```
+
+which is exactly the specification we wanted to prove.
+
+--------------------------------------------------------------------
+
+## 6  Conclusion  
+
+Using Hoare logic we have exhibited a **loop invariant** that captures the
+essential property of the `for`‑loop (all rows printed up to the current
+counter).  We have shown that the invariant holds initially, is preserved by
+each iteration, and together with the loop‑exit condition yields the required
+post‑condition that every line of the table is printed in the correct format.
+The header and footer are trivially correct because they are constant strings.
+
+Hence the Hoare triple  
+
+```
+{ true }  P  { TablePrintedCorrectly }
+```
+
+is proved, i.e. the program is **correct with respect to the given specification**.  
+
+∎

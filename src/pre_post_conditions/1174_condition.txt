@@ -1,0 +1,76 @@
+Below is a **Hoare‑style specification** of the whole program (the “read‑array‑and‑print‑small‑values’’ task).  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what must be true after it terminates) are given; loop invariants, termination arguments, etc. are omitted because the request asked for “just pre‑ and post‑conditions”.
+
+---
+
+### Notation used  
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℝ`    | the set of real numbers (includes integers). |
+| `A : [0‥99] → ℝ` | a **total function** (array) that maps each index `i` with `0 ≤ i ≤ 99` to a real value `A(i)`.  We write `A[i]` for `A(i)`. |
+| `|A| = 100` | the length of the array (there are exactly 100 entries). |
+| `L(A) = { (i , A[i]) ∣ i ∈ [0‥99] ∧ A[i] ≤ 10 }` | the set of **index‑value pairs** that satisfy the required predicate. |
+| `Print(i,x)` | the side‑effect “the program writes the line `A[i] = x` on the output stream, with `x` shown with exactly one digit after the decimal point”. |
+| `∀i·P(i)` | “for all indices `i` such that …”. |
+| `∃i·P(i)` | “there exists an index `i` such that …”. |
+| `⌈·⌉₁` | “rounded (or formatted) to one digit after the decimal point”.  For any `r∈ℝ`, `⌈r⌉₁` denotes the decimal representation of `r` with exactly one fractional digit (e.g. `⌈-8.5⌉₁ = -8.5`, `⌈0⌉₁ = 0.0`). |
+
+---
+
+## Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\; \textbf{program}\; \{\,Q\,\}}
+\]
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \; \equiv\; &\bigl(\;|A| = 100\;\bigr) \;\land\\[2mm]
+            &\bigl(\;\forall i \in [0‥99]\;:\;A[i]\in\mathbb{R}\;\bigr)
+\end{aligned}
+\]
+
+*Interpretation*:  
+The input consists of **exactly one array** `A` of length 100, each entry being a real number (the problem statement allows integers, floating‑point numbers, positive or negative values).
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \; \equiv\; &\bigl(\;\forall i\in[0‥99]\;:\;
+      \bigl(A[i]\le 10 \;\Longrightarrow\; \text{Print}(i,\; \lceil A[i]\rceil_1 )\bigr)\;\bigr) \\[2mm]
+           &\land\\[2mm]
+           &\bigl(\;\forall i\in[0‥99]\;:\;
+      \bigl(\text{Print}(i,x) \Longrightarrow \bigl(x=\lceil A[i]\rceil_1\;\land\;A[i]\le 10\bigr)\bigr)\;\bigr)
+\end{aligned}
+\]
+
+*Interpretation*:  
+
+1. **For every index** `i` that satisfies the predicate `A[i] ≤ 10`, the program **must output** a line `A[i] = x` where `x` is the value of `A[i]` formatted with exactly one digit after the decimal point (`x = ⌈A[i]⌉₁`).  
+
+2. **Conversely**, any line that the program prints must correspond to some index `i` of the original array, the printed number must equal the (formatted) value stored at that index, and that stored value must indeed be `≤ 10`.  
+
+Thus the set of printed lines is precisely the set `L(A)` (the “small” entries), and nothing else is printed.
+
+---
+
+### Whole specification in Hoare‑logic form
+
+\[
+\boxed{
+\{\,|A| = 100 \;\land\; \forall i\in[0‥99]\;A[i]\in\mathbb{R}\,\}\;
+\textbf{read\_array\_and\_print\_small\_values}
+\;
+\{\,\forall i\;(A[i]\le 10 \Rightarrow \text{Print}(i,\lceil A[i]\rceil_1))
+   \;\land\;
+   \forall i\;(\text{Print}(i,x) \Rightarrow x=\lceil A[i]\rceil_1 \land A[i]\le 10)\,\}
+}
+\]
+
+That is the **formal (pre‑/post‑condition) specification** of the problem in standard mathematical notation suitable for Hoare‑logic reasoning.

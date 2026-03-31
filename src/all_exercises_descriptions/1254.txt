@@ -1,0 +1,40 @@
+Description: You are in command of a document system that uses tags numeric code to render documents for printing. There are a lot of documents with text based tags, you must analyze and convert to numeric tags for entry into the system. A tag is initiated by a character '<', which may be followed by letters, numbers, spaces or bars, and the tag to complete a character '>'. The tags can not be nested into each other.
+
+Input: There is many test cases. Each test case consist of three lines. The first line contains the original tag in the text of this document, which will only contain letters (a-z, A-Z), and its size will be between 1 and 10 characters inclusive. The second line contains the tag number by which the original tag is to be replaced, which is a number between 1 and 1000 inclusive. The third and last line will be between 1 and 50 characters inclusive, and may contain letters (a-z, A-Z), numbers (0-9), less-than sign (<), greater-than sign (>), signs equals (=), bars (/), or blanks. All '<' and '>' are only used in tags.
+
+Output: Convert the text of the document is given in the input, using to specifications given above and print in a single line, the new text document with the new tags, for more information see the example below.
+
+Examples:
+- Example 1:
+  Input:
+BODY
+10
+<><BODY garbage>body</BODY>
+aBc
+923
+<dont replacethis>abcabc<abcabcde>
+table
+1
+<ta>bLe<TaBlewidth=100></table></ta>
+replace
+323
+nothing inside
+HI
+667
+92<HI=/><z==//HIb><cHIhi>
+a
+23
+<a B c a>
+b
+2
+<b b abc ab c> Mangojata
+  Output:
+<><10 garbage>body</10>
+<dont replacethis>abcabc<923923de>
+<ta>bLe<1width=100></1></ta>
+nothing inside
+92<667=/><z==//667b><c667667>
+<23 B c 23>
+<2 2 a2c a2 c> Mangojata
+
+--

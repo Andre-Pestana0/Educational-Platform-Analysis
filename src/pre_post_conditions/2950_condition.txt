@@ -1,0 +1,88 @@
+Below is a **Hoare‑logic style specification** of the program that solves the “ICM” problem.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true after it terminates) are given; the actual body of the program is omitted because the specification is independent of the implementation language.
+
+---
+
+### Notation used  
+
+* `ℤ` – the set of integers, `ℝ` – the set of real numbers.  
+* `⌊·⌋` – floor function.  
+* `round₂(v)` – *round‑to‑nearest‑hundredth* of a real value `v`, i.e.  
+
+\[
+\operatorname{round}_{2}(v)=\frac{\big\lfloor v\cdot 100+0.5\big\rfloor}{100}.
+\]
+
+* `print₂(v)` – the action “output the value `v` formatted with exactly two digits after the decimal point”.  
+* `→` – logical implication, `∧` – logical conjunction.
+
+---
+
+## Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\; \texttt{ICM\_program}\; \{\,Q\,\}}
+\]
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;& 
+\bigl(N,X,Y \in \mathbb Z\bigr) \;\land\;
+\bigl(0 < N < 10\,000\bigr) \;\land\;
+\bigl(0 < X < 100\bigr) \;\land\;
+\bigl(0 < Y < 100\bigr) \\[2mm]
+&\;\land\; \bigl(X+Y > 0\bigr) .
+\end{aligned}
+\]
+
+*The three input numbers are integers satisfying the limits given in the statement, and the denominator `X+Y` is strictly positive (hence division is defined).*
+
+---
+
+### Post‑condition  \(Q\)
+
+Let  
+
+\[
+\text{ICM} \;:=\; \frac{N}{X+Y}\;\in\mathbb R .
+\]
+
+Then  
+
+\[
+\begin{aligned}
+Q \;\equiv\;& 
+\bigl(\text{ICM}\in\mathbb R\bigr) \;\land\;
+\bigl(\text{ICM}= N/(X+Y)\bigr) \\[1mm]
+&\;\land\; \bigl(\text{output}= \operatorname{round}_{2}(\text{ICM})\bigr) .
+\end{aligned}
+\]
+
+In words: the program computes the real value `ICM = N/(X+Y)` and prints the *rounded‑to‑two‑decimal‑places* representation of that value.  
+
+Equivalently, the observable effect of the program is
+
+\[
+\texttt{print₂}\!\bigl(\operatorname{round}_{2}(N/(X+Y))\bigr).
+\]
+
+---
+
+## Full specification in Hoare‑logic form  
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,0<N<10^{4}\;\land\;0<X<100\;\land\;0<Y<100\,\}\\[1mm]
+\quad\texttt{read }N,X,Y;\\
+\quad\texttt{ICM} := N/(X+Y);\\
+\quad\texttt{print₂(round}_{2}(\texttt{ICM}));\\[1mm]
+\{\,\texttt{output}= \operatorname{round}_{2}\!\bigl(N/(X+Y)\bigr)\,\\
+\qquad\land\; N/(X+Y)\in\mathbb R\,\}
+\end{array}
+}
+\]
+
+This specification captures precisely the mathematical intent of the problem: **given a distance `N` and two diameters `X` and `Y`, the ICM is the quotient `N/(X+Y)`, and the program must deliver that quotient rounded to two decimal places.**

@@ -1,0 +1,238 @@
+**Goal**  
+Show that the program prints the correct result for every test‑case that is read, i.e.  
+
+*if*  
+
+* `instâncias ≥ 0` (the first input) and for each iteration  
+
+  * `bonus ∈ ℤ` (second input) and  
+
+  * `DadosDabriel = (d₀ , d₁ , d₂) ∈ ℤ³` and  
+
+  * `DadosGuarte = (g₀ , g₁ , g₂) ∈ ℤ³`  
+
+*then*  
+
+* the line printed after the iteration is  
+
+  * **“Dabriel”**  iff  
+
+    \[
+    \frac{d_{0}+d_{1}}{2}+b\cdot\mathbf 1_{d_{2}\;{\rm even}}
+    \;>\;
+    \frac{g_{0}+g_{1}}{2}+b\cdot\mathbf 1_{g_{2}\;{\rm even}}
+    \]
+
+  * **“Guarte”**  iff the opposite inequality holds, and  
+
+  * **“Empate”**  iff the two values are equal.  
+
+(Here \(b\) is the value of `bonus` and \(\mathbf 1_{P}\) is 1 when the predicate \(P\) is true and 0 otherwise.)
+
+The proof is carried out in Hoare‑logic using the usual rules for **assignment**, **sequence**, **conditional**, **while**, and **procedure call**.
+
+--------------------------------------------------------------------
+
+## 1. Specification of the auxiliary procedure `golpe`
+
+```
+def golpe(x, bonus):
+    ValorGolpe = float((x[0]+x[1])/2)
+    if (x[2] % 2) == 0:
+        ValorGolpe += bonus
+    return ValorGolpe
+```
+
+*Pre‑condition*  
+
+\[
+P_{\text{golpe}} \;\equiv\; x = (x_0,x_1,x_2)\in\mathbb Z^3\;\wedge\;bonus\in\mathbb Z .
+\]
+
+*Post‑condition*  
+
+\[
+Q_{\text{golpe}} \;\equiv\;
+\text{result}= \frac{x_0+x_1}{2}
+                + bonus\cdot\mathbf 1_{x_2\text{ even}} .
+\]
+
+### Proof
+
+1. **Assignment** of `ValorGolpe`  
+
+   \[
+   \{P_{\text{golpe}}\}\;
+   \text{ValorGolpe}=float((x[0]+x[1])/2)\;
+   \{ \text{ValorGolpe}= \frac{x_0+x_1}{2}\}.
+   \]
+
+2. **Conditional**  
+
+   The guard ` (x[2] % 2) == 0 ` is equivalent to “\(x_2\) is even”.  
+   Apply the conditional rule:
+
+   \[
+   \begin{array}{l}
+   \{ \text{ValorGolpe}= \frac{x_0+x_1}{2}\;\wedge\;x_2\text{ even}\}
+   \; \text{ValorGolpe}+=bonus \;
+   \{ \text{ValorGolpe}= \frac{x_0+x_1}{2}+bonus\}\\[4pt]
+   \{ \text{ValorGolpe}= \frac{x_0+x_1}{2}\;\wedge\;\neg(x_2\text{ even})\}
+   \; \text{skip} \;
+   \{ \text{ValorGolpe}= \frac{x_0+x_1}{2}\}
+   \end{array}
+   \]
+
+   By the rule for *if‑then‑else* we obtain  
+
+   \[
+   \{ \text{ValorGolpe}= \frac{x_0+x_1}{2}\}
+   \; \text{if }(x_2\text{ even})\; \text{ValorGolpe}+=bonus\;
+   \{ \text{ValorGolpe}= \frac{x_0+x_1}{2}+bonus\cdot\mathbf 1_{x_2\text{ even}}\}.
+   \]
+
+3. **Return** does not change the value of the variable that holds the result, therefore the post‑condition holds.
+
+Thus the Hoare triple  
+
+\[
+\{P_{\text{golpe}}\}\; \text{golpe}(x,bonus)\; \{Q_{\text{golpe}}\}
+\]
+
+is proved.
+
+--------------------------------------------------------------------
+
+## 2. Main program
+
+We rewrite the program (omitting the input statements) in a more Hoare‑friendly pseudo‑code:
+
+```
+inst ← input()                     // number of instances
+while inst > 0 do
+    inst ← inst - 1
+    b   ← input()                  // bonus
+    d   ← input()                  // three ints for Dabriel
+    g   ← input()                  // three ints for Guarte
+
+    vd  ← golpe(d, b)               // ValorDabriel
+    vg  ← golpe(g, b)               // ValorGuarte
+
+    if vd > vg then
+        print "Dabriel"
+    else if vg > vd then
+        print "Guarte"
+    else
+        print "Empate"
+    fi
+od
+```
+
+### 2.1 Loop invariant
+
+Let  
+
+\[
+I \;\equiv\;
+\begin{cases}
+\text{inst} \ge 0,\\[2pt]
+\text{All the already processed iterations (the original value of }inst_{\text{orig}}- \text{inst)}\\
+\text{have printed the correct result according to the specification.}
+\end{cases}
+\]
+
+Formally, if the original input value is `N`, then after the loop has executed `k = N‑inst` times we have:
+
+\[
+\forall\,j\in\{0,\dots,k-1\}\;.\;
+\text{output}_j = 
+\begin{cases}
+\text{“Dabriel”} &\text{iff } \operatorname{golpe}(D_j,b_j) > \operatorname{golpe}(G_j,b_j)\\
+\text{“Guarte”}  &\text{iff } \operatorname{golpe}(D_j,b_j) < \operatorname{golpe}(G_j,b_j)\\
+\text{“Empate”}  &\text{iff } \operatorname{golpe}(D_j,b_j) = \operatorname{golpe}(G_j,b_j).
+\end{cases}
+\]
+
+The invariant captures exactly the property we want to maintain.
+
+### 2.2 Proof of the invariant
+
+*Initialization*  
+
+Before the first iteration we have `inst = N` (the value read from input) and no iteration has been performed, therefore the universal quantifier in `I` is vacuously true. Hence `{true}  while …  {I}` holds.
+
+*Preservation*  
+
+Assume `I` holds at the beginning of an iteration and `inst > 0`.  
+
+1. **Decrement** `inst ← inst‑1` keeps `inst ≥ 0`.  
+
+2. The statements  
+
+   ```
+   b ← input()
+   d ← input()
+   g ← input()
+   ```
+
+   only bind fresh values to the local variables; they do not affect the truth of the part of `I` that refers to the already‑processed iterations.
+
+3. **Calls to `golpe`**  
+
+   By the theorem proved in Section 1 we have  
+
+   \[
+   \{P_{\text{golpe}}\}\;vd←\text{golpe}(d,b);\; \{vd = \operatorname{golpe}(d,b)\}
+   \]
+   and similarly for `vg`.  
+   Hence after the two calls we know the exact numeric values that must be compared.
+
+4. **Conditional**  
+
+   The three branches correspond precisely to the three possible relations between `vd` and `vg`.  
+   The Hoare rule for *if‑then‑else* guarantees that, provided the guard expressions are evaluated correctly (they are, because they are simple arithmetic comparisons on integers), the printed word matches the specification:
+
+   * if `vd > vg` the program executes `print "Dabriel"` – which is exactly the required output for this case;
+   * if `vg > vd` the program executes `print "Guarte"` – likewise;
+   * otherwise (`vd = vg`) it prints `"Empate"`.
+
+   Therefore after the conditional the **new** iteration also satisfies the post‑condition required by `I`.
+
+Thus `I` is preserved.
+
+*Termination*  
+
+When the loop exits we have `inst = 0`.  
+From the invariant we obtain that **all** `N` iterations have been processed and each produced the correct output. Consequently the whole program satisfies the required post‑condition.
+
+--------------------------------------------------------------------
+
+## 3. Overall Hoare triple for the program
+
+Let  
+
+* `Pre ≡ true`  (the program can be started with any input that respects the syntactic format – the only semantic requirement is that the first number is a non‑negative integer, which is guaranteed by the problem statement);
+* `Post` be the property “for every test case the line printed is exactly the one described in the specification”.
+
+The proof above establishes
+
+\[
+\{\,\text{Pre}\,\}\;\text{program}\;\{\,\text{Post}\,\}.
+\]
+
+--------------------------------------------------------------------
+
+## 4. Summary of the proof steps
+
+| Step | Hoare rule used | Reason |
+|------|----------------|--------|
+| 1.   | **Procedure specification** (Section 1) | Shows `golpe` computes the mathematically defined value. |
+| 2.   | **Assignment** for `inst ← inst‑1` | Keeps `inst ≥ 0`. |
+| 3.   | **Sequence** for reading `b, d, g` | No effect on already proven part of invariant. |
+| 4.   | **Procedure call** for `vd←golpe(d,b)` and `vg←golpe(g,b)` | Gives concrete values to compare. |
+| 5.   | **Conditional** (three branches) | Each branch prints exactly the string required by the comparison of the two computed values. |
+| 6.   | **While** (invariant `I`) | Initialization, preservation, and termination together give the global correctness. |
+| 7.   | **Consequence** (strengthening of pre/post) | From `true` we can infer the required pre‑condition “first number ≥ 0”. |
+| 8.   | **Overall triple** | `⟨Pre⟩ program ⟨Post⟩` is proved. |
+
+Hence the program is **correct** with respect to the given formal specification. ∎

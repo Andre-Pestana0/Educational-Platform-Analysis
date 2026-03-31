@@ -1,0 +1,112 @@
+Below is a **Hoare‑logic style specification** (pre‑condition \(P\) and post‑condition \(Q\)) written in usual mathematical notation (LaTeX‑style).  
+Only the logical description of the program is given – no actual code is required.
+
+---
+
+### 1.  Vocabulary  
+
+* \(N\in\mathbb Z\) – initial number of open tabs.  
+* \(M\in\mathbb Z\) – number of actions performed.  
+* \(\mathbf a = (a_1,\dots ,a_M)\) – the sequence of actions, each  
+  \[
+  a_i\in\{\texttt{fechou},\;\texttt{clicou}\}.
+  \]
+
+* **Effect function**  
+
+  \[
+  \operatorname{eff} :\{\texttt{fechou},\texttt{clicou}\}\longrightarrow\mathbb Z,
+  \qquad
+  \operatorname{eff}(\texttt{fechou}) = +1,\;
+  \operatorname{eff}(\texttt{clicou}) = -1 .
+  \]
+
+* **Intermediate tab counter**  
+
+  \[
+  T_0 \;:=\; N,
+  \qquad
+  T_k \;:=\; \max\bigl(0,\;T_{k-1}+ \operatorname{eff}(a_k)\bigr)
+  \quad\text{for }k=1,\dots ,M .
+  \]
+
+  The operator \(\max(0,\cdot)\) guarantees that the current number of tabs never becomes negative.
+
+* **Result**  
+
+  \[
+  \text{output} \;:=\; T_M .
+  \]
+
+---
+
+### 2.  Hoare Triple  
+
+\[
+\boxed{\; \{P\}\;\; \texttt{process}(N,M,\mathbf a)\;\; \{Q\}\;}
+\]
+
+---
+
+#### 2.1  Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;&
+\bigl(0<N<500\bigr)\;\land\;\bigl(0<M<500\bigr)                                            \\[2mm]
+&\land\;\bigl(\forall i\in\{1,\dots ,M\}\;.\;a_i\in\{\texttt{fechou},\texttt{clicou}\}\bigr)\\[2mm]
+&\land\;T_0 = N .
+\end{aligned}
+\]
+
+The last conjunct simply records the initial value of the counter; it follows from the definition of \(T_0\).
+
+---
+
+#### 2.2  Post‑condition \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\;&
+\bigl(\forall k\in\{1,\dots ,M\}\;.\;T_k \ge 0\bigr)                 \tag{no‑negative‑tabs}\\[2mm]
+&\land\;
+\bigl(T_M = \max\bigl(0,\;N + \sum_{i=1}^{M}\operatorname{eff}(a_i)\bigr)\bigr)   \tag{final‑value}\\[2mm]
+&\land\;
+\bigl(\text{output}=T_M\bigr) .
+\end{aligned}
+\]
+
+*The first line* restates the problem requirement that “the current number of tabs is always greater or equal to zero”.  
+*The second line* gives the closed‑form expression of the final number of tabs; it is exactly the initial number plus the net effect of all actions, clipped at zero.  
+*The third line* ties the program’s printed value to the logical variable \(T_M\).
+
+---
+
+### 3.  Full Specification in One Formula  
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,0<N<500 \;\land\;0<M<500 \;\land\;
+\forall i\;(1\le i\le M \Rightarrow a_i\in\{\texttt{fechou},\texttt{clicou}\})\,\}\\[2mm]
+\quad\texttt{process}(N,M,\mathbf a)\\[2mm]
+\{\,\forall k\;(1\le k\le M \Rightarrow T_k\ge 0)\;\land\;
+T_M = \max\bigl(0, N + \sum_{i=1}^{M}\operatorname{eff}(a_i)\bigr)\;\land\;
+\text{output}=T_M\,\}
+\end{array}
+}
+\]
+
+---
+
+### 4.  Informal Reading  
+
+*If* we start with a positive number of tabs \(N\) (smaller than 500) and we are given a list of \(M\) actions, each being either **fechou** (open a new tab) or **clicou** (close a tab), *then* after processing the list the program will have never allowed the number of open tabs to drop below 0, and it will finally output  
+
+\[
+\max\bigl(0,\;N + (\#\text{fechou}) - (\#\text{clicou})\bigr),
+\]
+
+i.e. the initial amount plus one for every “fechou’’ and minus one for every “clicou”, clipped at zero.  
+
+This Hoare‑logic specification completely captures the required behaviour of the problem.

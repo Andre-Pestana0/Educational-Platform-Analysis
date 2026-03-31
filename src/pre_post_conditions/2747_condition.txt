@@ -1,0 +1,79 @@
+Below is a **Hoare‑logic style specification** for a program (let us call it `Screen`) whose only effect is to write a fixed‑size “screen” on the standard output.  
+The specification consists of a **pre‑condition** (what must be true before the program starts) and a **post‑condition** (what is guaranteed to be true after the program terminates).  
+Because the problem statement says *“There is no input”*, the pre‑condition is simply **True** (or “no input is read”).  
+
+---
+
+## 1.  Auxiliary definitions  
+
+| Symbol | Meaning |
+|--------|---------|
+| `w`    | width of the rectangle (number of characters in the top/bottom line). In the example `w = 39`. |
+| `h`    | number of interior rows (the rows that contain the vertical bars). In the example `h = 5`. |
+| `dash(k)` | the string consisting of `k` copies of the character `'-'`. |
+| `space(k)` | the string consisting of `k` copies of the character `' '` (blank). |
+| `nl`   | the newline character `'\n'`. |
+| `Top(w)` | `dash(w)` – the top (and bottom) border line. |
+| `Mid(w)` | `"|"  ⧺ space(w‑2) ⧺ "|"` – a line that has a left and right bar and blanks in between. |
+| `repeat(s, n)` | the concatenation of `n` copies of the string `s`. (If `n = 0` the result is the empty string.) |
+| `out` | the whole content that the program has written to the standard output stream when it terminates. |
+
+With these definitions the exact string that must be printed is  
+
+\[
+\textbf{ScreenString}(w,h) \;=\;
+\text{Top}(w)\;\text{nl}\;
+\bigl(\text{Mid}(w)\;\text{nl}\bigr)^{h}\;
+\text{Top}(w)\;\text{nl}
+\]
+
+where the superscript `h` denotes `repeat(...,h)`.
+
+---
+
+## 2.  Hoare triple  
+
+\[
+\boxed{\;\{\,\textbf{true}\,\}\;\; \texttt{Screen}()\;\;\{\, out = \textbf{ScreenString}(w,h)\ \land\ \text{no input is read}\,\}\;}
+\]
+
+* **Pre‑condition** `true` – the program may start in any state; there is no input to be supplied.  
+* **Post‑condition**  
+  * `out = ScreenString(w,h)` – the exact output shown in the example (top line, `h` interior lines, bottom line, each terminated by a newline).  
+  * `no input is read` – an auxiliary assertion that the program never performs a read operation from `stdin` (this formalises the “Input: There is no.” part of the natural‑language description).
+
+---
+
+## 3.  Expanded form (for the concrete example)
+
+If we instantiate the constants with the values that appear in the statement (`w = 39`, `h = 5`):
+
+\[
+\begin{aligned}
+\text{Top}(39) &= \underbrace{\text{``---------------------------------------''}}_{39\text{ dashes}} \\
+\text{Mid}(39) &= \text{``|} \;\underbrace{\text{``                                    ''}}_{37\text{ blanks}}\;\text{|''} \\
+\textbf{ScreenString}(39,5) &= 
+\text{Top}(39)\,\text{nl}\;
+\bigl(\text{Mid}(39)\,\text{nl}\bigr)^{5}\;
+\text{Top}(39)\,\text{nl}
+\end{aligned}
+\]
+
+Thus the Hoare triple for the concrete problem is
+
+\[
+\{\,\textbf{true}\,\}\; \texttt{Screen}()\;
+\{\, out = 
+\text{``---------------------------------------''}\,\text{nl}\,
+\bigl(\text{``|                                   |''}\,\text{nl}\bigr)^{5}\,
+\text{``---------------------------------------''}\,\text{nl}
+\;\land\; \text{no input is read}\,\}.
+\]
+
+---
+
+### Remarks  
+
+* The specification is **purely functional**: it talks only about the observable effect (`out`).  
+* If the teacher later decides to make `w` and `h` parameters, the same schema works with `w` and `h` quantified as *input constants* rather than fixed numbers.  
+* In a proof‑assistant or verification tool one would encode the auxiliary definitions (`dash`, `space`, `repeat`) as recursive functions on natural numbers, and the Hoare triple would be the verification goal for the implementation of `Screen`.

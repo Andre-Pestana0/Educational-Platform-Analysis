@@ -1,0 +1,105 @@
+**Hoare‑logic specification**
+
+We describe one *iteration* of the program (i.e. the processing of a single test case).  
+Let  
+
+* `V` – the volume that is read (cm³)  
+* `D` – the inner diameter that is read (cm)  
+
+Both values are double‑precision floating‑point numbers that appear in the input
+exactly as a pair of numbers on two successive lines (the program stops when
+EOF is reached).
+
+--------------------------------------------------------------------
+### 1.  Pre‑condition  **P**
+
+\[
+P\; \equiv\;
+\bigl( V\in\mathbb{R}\;\wedge\; D\in\mathbb{R}\bigr)\;
+\wedge\;
+\bigl( 1.00\le V\le 10\,000.00 \bigr)
+\;\wedge\;
+\bigl( 1.00\le D\le 100.00 \bigr)
+\]
+
+The pre‑condition states that the two input numbers are real and lie inside the
+intervals required by the statement of the problem.
+
+--------------------------------------------------------------------
+### 2.  Program fragment  **S**
+
+```
+read  V , D
+h  ←  4·V / (π·D²)                // height of the cylindrical container
+a  ←  π·D² / 4                    // area of the circular mouth
+print "ALTURA = " , round(h,2)
+print "AREA   = " , round(a,2)
+```
+
+* `round(x,2)` denotes the usual “round‑to‑nearest” function that keeps exactly
+two digits after the decimal point (the format required by the output).
+
+--------------------------------------------------------------------
+### 3.  Post‑condition  **Q**
+
+\[
+\begin{aligned}
+Q\; \equiv\; &\bigl( h = \frac{4V}{\pi D^{2}} \bigr)
+            \;\wedge\;
+            \bigl( a = \frac{\pi D^{2}}{4} \bigr) \\[4pt]
+            &\wedge\;
+            \bigl( \text{output line 1 is } 
+                \text{“ALTURA = }\,\operatorname{round}(h,2)\text{”} \bigr) \\[2pt]
+            &\wedge\;
+            \bigl( \text{output line 2 is } 
+                \text{“AREA = }\,\operatorname{round}(a,2)\text{”} \bigr)
+\end{aligned}
+\]
+
+The post‑condition guarantees that the two numbers printed are the exact
+cylindrical height and the exact mouth area (as given by the geometric formulas)
+rounded to two decimal places, and that they appear in the prescribed format.
+
+--------------------------------------------------------------------
+### 4.  Hoare triple for a single test case
+
+\[
+\boxed{\; \{P\}\; S\; \{Q\}\;}
+\]
+
+--------------------------------------------------------------------
+### 5.  Whole‑program specification (repetition until EOF)
+
+Let  
+
+\[
+\mathsf{Iter} \equiv \{P\}\;S\;\{Q\}
+\]
+
+The complete program satisfies the following Hoare specification:
+
+\[
+\{\,\top\,\}\;
+\textbf{while}\;(\text{not EOF})\;
+\bigl(\mathsf{Iter}\bigr)\;
+\{\,\top\,\}
+\]
+
+i.e. starting from any state (the input file may be empty or contain many
+test cases), the program repeatedly executes **Iter** until the end of file is
+reached, and each iteration fulfills the pre‑/post‑conditions described above. 
+
+--------------------------------------------------------------------
+### 6.  Summary of the mathematical relations used
+
+\[
+\boxed{
+\begin{aligned}
+h & = \frac{V}{\pi r^{2}} = \frac{4V}{\pi D^{2}} \\[2pt]
+a & = \pi r^{2} = \frac{\pi D^{2}}{4}
+\end{aligned}}
+\qquad\text{with } r = \frac{D}{2}
+\]
+
+These are the exact formulas that the post‑condition requires the program to
+compute (and then round to two decimal digits for the output).

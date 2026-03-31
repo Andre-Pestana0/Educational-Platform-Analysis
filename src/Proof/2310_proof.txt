@@ -1,0 +1,218 @@
+Below is a **complete Hoare‑logic proof** that the program prints exactly the three percentages required in the statement of the problem.
+
+---------------------------------------------------------------------
+
+## 1.  The specification  
+
+*Input*  
+
+* `n` – a non‑negative integer (`n ≥ 0`).  
+* For each player `k = 1 … n` three non‑negative integers  
+
+```
+Tk = (TkS , TkB , TkA)   – number of *tentativas* (attempts)
+Sk = (SkS , SkB , SkA)   – number of *sucessos*   (successes)
+```
+
+and for each component `j∈{0,1,2}` we have `Tkj > 0` (the original problem guarantees that at least one attempt is made, otherwise the division would be undefined).
+
+*Output*  
+
+The program must print, with two decimal digits,  
+
+```
+Pontos de Saque:   100·( Σk SkS / Σk TkS )  %
+Pontos de Bloqueio:100·( Σk SkB / Σk TkB )  %
+Pontos de Ataque:  100·( Σk SkA / Σk TkA )  %
+```
+
+---------------------------------------------------------------------
+
+## 2.  Notation  
+
+* `Tj(i)` – the value stored in `total_tentativas[j]` after the first `i` players have been processed (`i = 0 … n`).  
+* `Sj(i)` – the value stored in `total_sucessos[j]` after the first `i` players have been processed.  
+
+Both are vectors of length three, indexed by `j = 0,1,2`.
+
+* `ΣTkj` denotes the sum `∑_{k=1}^{n} Tkj`.  
+* `ΣSkj` denotes the sum `∑_{k=1}^{n} Skj`.
+
+---------------------------------------------------------------------
+
+## 3.  Hoare triples for the program fragments  
+
+We write `{P} C {Q}` for a Hoare triple, `C` a command and `P,Q` predicates over the program state.
+
+### 3.1  Initialisation  
+
+```
+total_tentativas = [0] * 3
+total_sucessos   = [0] * 3
+```
+
+Using the **assignment axiom** we obtain  
+
+```
+{ true } total_tentativas = [0,0,0] ; total_sucessos = [0,0,0] 
+{ ∀j∈{0,1,2}. Tj(0)=0 ∧ Sj(0)=0 }                     (1)
+```
+
+### 3.2  Loop invariant  
+
+For the `for i in range(n):` loop we propose the invariant `I(i)`:
+
+```
+I(i) ≡  ( 0 ≤ i ≤ n ) ∧
+        (∀j∈{0,1,2}. Tj(i) = Σ_{k=1}^{i} Tkj  ∧
+                     Sj(i) = Σ_{k=1}^{i} Skj )
+```
+
+In words: after processing the first `i` players the two accumulator
+vectors contain exactly the partial sums of attempts and successes.
+
+---------------------------------------------------------------------
+
+## 4.  Proof that `I(i)` is a loop invariant  
+
+### 4.1  Base case (`i = 0`)  
+
+From (1) we have `Tj(0)=0` and `Sj(0)=0`.  
+Since the empty sum is `0`, `Σ_{k=1}^{0} Tkj = 0` and `Σ_{k=1}^{0} Skj = 0`.  
+Thus `I(0)` holds.
+
+### 4.2  Inductive step  
+
+Assume `I(i)` holds for some `i` with `0 ≤ i < n`.  
+During the `(i+1)`‑st iteration the program executes
+
+```
+tentativas = map(int, input().split())
+total_tentativas = [x + y for x, y in zip(tentativas, total_tentativas)]
+
+sucessos   = map(int, input().split())
+total_sucessos   = [x + y for x, y in zip(sucessos, total_sucessos)]
+```
+
+Let  
+
+```
+tentativas = (TkS , TkB , TkA)      (the (i+1)-st player’s attempts)
+sucessos    = (SkS , SkB , SkA)      (the (i+1)-st player’s successes)
+```
+
+The list‑comprehension `[x+y …]` is exactly the pointwise addition of the
+two length‑3 vectors. Consequently, for each component `j`
+
+```
+Tj(i+1) = Tj(i) + Tkj
+Sj(i+1) = Sj(i) + Skj
+```
+
+Using the induction hypothesis `Tj(i) = Σ_{k=1}^{i} Tkj` we obtain
+
+```
+Tj(i+1) = Σ_{k=1}^{i} Tkj + Tkj = Σ_{k=1}^{i+1} Tkj
+Sj(i+1) = Σ_{k=1}^{i} Skj + Skj = Σ_{k=1}^{i+1} Skj .
+```
+
+Thus `I(i+1)` holds.  Hence `I(i)` is preserved.
+
+### 4.3  Termination  
+
+The loop counter `i` runs from `0` to `n-1`; therefore after the last
+iteration we have `i = n`.  By the **loop rule** we obtain the Hoare
+triple
+
+```
+{ true }  for i in range(n): …  { I(n) }                (2)
+```
+
+and `I(n)` expands to
+
+```
+∀j∈{0,1,2}. Tj(n) = Σ_{k=1}^{n} Tkj  ∧
+          Sj(n) = Σ_{k=1}^{n} Skj .
+```
+
+---------------------------------------------------------------------
+
+## 5.  Computing the percentages  
+
+After the loop the program executes
+
+```
+porcentagens = [s / t for s, t in zip(total_sucessos, total_tentativas)]
+```
+
+Using the definition of the list‑comprehension and the invariant `I(n)` we obtain, for each `j`:
+
+```
+porcentagens[j] = Sj(n) / Tj(n)
+                = ( Σ_{k=1}^{n} Skj ) / ( Σ_{k=1}^{n} Tkj ).
+```
+
+Hence the vector `porcentagens` contains exactly the three required
+fractions.
+
+---------------------------------------------------------------------
+
+## 6.  Final output  
+
+The three `print` statements are simple *output* commands; they do not
+modify the program state.  By the **output rule** we can attach the
+post‑condition directly to the preceding command:
+
+```
+{  ∀j∈{0,1,2}. porcentagens[j] = Σ_{k=1}^{n} Skj / Σ_{k=1}^{n} Tkj }
+print( … )
+{  true }
+```
+
+Because the format string `f"{porcentagens[j]*100:.2f} %"` multiplies the
+fraction by `100` and prints it with exactly two digits after the decimal
+point, the visible output is
+
+```
+Pontos de Saque:    100·( Σ SkS / Σ TkS )  %
+Pontos de Bloqueio: 100·( Σ SkB / Σ TkB )  %
+Pontos de Ataque:   100·( Σ SkA / Σ TkA )  %
+```
+
+which is precisely the specification required by the problem.
+
+---------------------------------------------------------------------
+
+## 7.  Whole Hoare triple  
+
+Putting the pieces together we have proved the following Hoare triple for the
+entire program `Prog`:
+
+```
+{  n ≥ 0  ∧  (∀k∈[1..n], ∀j∈{0,1,2}. Tkj > 0) }
+Prog
+{  the three lines printed are
+     “Pontos de Saque:    100·( Σ SkS / Σ TkS )  %”
+     “Pontos de Bloqueio: 100·( Σ SkB / Σ TkB )  %”
+     “Pontos de Ataque:   100·( Σ SkA / Σ TkA )  %” }
+```
+
+Thus **the program is correct with respect to the given formal
+pre‑ and post‑conditions**. ∎
+
+---------------------------------------------------------------------
+
+### Remarks on the proof style  
+
+* The **assignment axiom** justifies the two initializations.  
+* The **loop invariant** is the cornerstone; it captures exactly the
+  cumulative sums that the problem statement talks about.  
+* The **list‑comprehension** and `zip` are treated as ordinary pointwise
+  vector addition and division, which are justified by the semantics of
+  Python’s list comprehension.  
+* The final `print` statements are pure I/O; the Hoare rule for output
+  allows us to state the required property of the printed text without
+  affecting the logical state.
+
+With these ingredients the proof follows the standard Hoare‑logic
+methodology and shows that the program fulfills its specification.

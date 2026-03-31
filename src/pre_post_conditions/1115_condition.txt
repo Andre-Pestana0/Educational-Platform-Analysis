@@ -1,0 +1,107 @@
+**Formal Hoare‑style specification**
+
+We describe the whole program as a single command **C** that reads a (possibly infinite) stream of integer pairs and writes a finite list of strings.  
+The Hoare triple we want is  
+
+\[
+\{\,P\,\}\;C\;\{\,Q\,\}
+\]
+
+where **P** (the pre‑condition) tells what we may assume about the input before the program starts, and **Q** (the post‑condition) tells exactly what must be true of the output after the program terminates.
+
+---
+
+### 1.   Notation used in the specification  
+
+* \(\mathbb Z\) – the set of all integers.  
+* A **pair** is denoted \((x,y)\in\mathbb Z\times\mathbb Z\).  
+* The input is a (finite or infinite) sequence of pairs  
+
+\[
+\mathsf{In}= \langle (x_{1},y_{1}), (x_{2},y_{2}),\dots\rangle \in (\mathbb Z\times\mathbb Z)^{*}\cup(\mathbb Z\times\mathbb Z)^{\omega}.
+\]
+
+* The **termination index**  
+
+\[
+n \;=\;\min\{\,i\in\mathbb N\mid x_{i}=0\;\lor\;y_{i}=0\,\},
+\]
+
+if such an index exists; otherwise \(n=\infty\). (The program is required to stop as soon as the first “NULL’’ coordinate appears, i.e. when \(i=n\).)
+
+* The **quadrant function**  
+
+\[
+\mathsf{quad}:\mathbb Z\times\mathbb Z\longrightarrow\{\text{primeiro},
+\text{segundo},\text{terceiro},\text{quarto}\}
+\]
+
+\[
+\mathsf{quad}(x,y)=
+\begin{cases}
+\text{primeiro} & x>0\;\land\;y>0,\\[2mm]
+\text{segundo}  & x<0\;\land\;y>0,\\[2mm]
+\text{terceiro} & x<0\;\land\;y<0,\\[2mm]
+\text{quarto}   & x>0\;\land\;y<0 .
+\end{cases}
+\]
+
+* The **output** produced by the program is a finite list  
+
+\[
+\mathsf{Out}= \langle o_{1},o_{2},\dots ,o_{n-1}\rangle .
+\]
+
+---
+
+### 2.   Pre‑condition \(P\)
+
+\[
+\boxed{
+P \; \equiv\;
+\Bigl(\mathsf{In}= \langle (x_{1},y_{1}), (x_{2},y_{2}),\dots\rangle\Bigr)
+\;\land\;
+\bigl(\exists i\in\mathbb N\;.\;x_{i}=0\;\lor\;y_{i}=0\bigr)
+}
+\]
+
+*The program may assume that it receives a (possibly unbounded) stream of integer pairs and that at least one pair satisfies the “NULL’’ condition (otherwise the program would never terminate). No other side‑effects are assumed.*
+
+---
+
+### 3.   Post‑condition \(Q\)
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\;&
+\bigl(\mathsf{Out}= \langle o_{1},\dots ,o_{n-1}\rangle\bigr)\\[2mm]
+&\land\;
+\bigl(\forall i\in\mathbb N\;(1\le i < n \;\Longrightarrow\;
+      o_{i}= \mathsf{quad}(x_{i},y_{i}))\bigr)\\[2mm]
+&\land\;
+\bigl(\text{the program stops immediately after reading the pair }(x_{n},y_{n})\bigr)\\[2mm]
+&\land\;
+\bigl(\text{no output is produced for the terminating pair }(x_{n},y_{n})\bigr).
+\end{aligned}
+}
+\]
+
+In words:
+
+* The output list contains exactly one element for each input pair **before** the first “NULL’’ pair.
+* The \(i\)-th output element is the Portuguese name of the quadrant that \((x_{i},y_{i})\) belongs to, according to the definition of \(\mathsf{quad}\).
+* After the first pair \((x_{n},y_{n})\) with \(x_{n}=0\) or \(y_{n}=0\) is read, the program terminates and prints nothing for that pair.
+
+---
+
+### 4.   Hoare triple for the whole program  
+
+\[
+\boxed{
+\{\,P\,\}\;C\;\{\,Q\,\}
+}
+\]
+
+where **C** is the concrete algorithm (e.g., a `while (x≠0 ∧ y≠0) { print quadrant; read next pair; }` loop).  
+The triple states that, assuming the input satisfies the pre‑condition \(P\), the program terminates after the first “NULL’’ coordinate and produces an output that exactly matches the sequence of quadrants described by the post‑condition \(Q\).

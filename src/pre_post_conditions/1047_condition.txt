@@ -1,0 +1,98 @@
+Below is a **Hoare‑logic specification** of the whole program (the only command that really does work is the computation of the duration; the I/O actions are treated as atomic “read’’ and “print’’ statements).
+
+---
+
+### 1.  Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `hi`   | initial hour (input) |
+| `mi`   | initial minute (input) |
+| `hf`   | final hour (input) |
+| `mf`   | final minute (input) |
+| `Δ`    | duration in **minutes** (internal) |
+| `dh`   | duration in **hours** (output) |
+| `dm`   | duration in **minutes** (output) |
+
+All variables are of type **integer** (`ℤ`).
+
+---
+
+### 2.  Pre‑condition  
+
+The input must be a valid time of day (24‑h clock).
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\; &0\le hi < 24\;\land\;0\le mi < 60  \\
+            &\land\;0\le hf < 24\;\land\;0\le mf < 60 .
+\end{aligned}}
+\]
+
+---
+
+### 3.  Program (abstract)
+
+```
+read hi, mi, hf, mf               // atomic input
+Δ  ←  if (hf·60+mf) = (hi·60+mi) 
+        then 24·60 
+        else ((hf·60+mf) - (hi·60+mi) + 24·60) mod (24·60);
+dh ← Δ div 60;                     // integer division
+dm ← Δ mod 60;
+print "O JOGO DUROU ", dh, " HORA(S) E ", dm, " MINUTO(S)";
+```
+
+The statements `read …` and `print …` are treated as *atomic* actions that do not change the logical variables except for the obvious assignment of the input values and the output of the result.
+
+---
+
+### 4.  Post‑condition  
+
+After the computation the two output variables contain the exact duration of the game, expressed in whole hours and remaining minutes.
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\; &\Delta = 
+\begin{cases}
+24\cdot 60, &\text{if } hf\cdot 60+mf = hi\cdot 60+mi,\\[2mm]
+\bigl((hf\cdot 60+mf) - (hi\cdot 60+mi) + 24\cdot 60\bigr)\bmod (24\cdot 60),
+ &\text{otherwise},
+\end{cases}\\[4mm]
+&dh = \Delta \operatorname{div} 60,\\
+&dm = \Delta \operatorname{mod} 60 .
+\end{aligned}}
+\]
+
+The two equalities guarantee that  
+
+* `dh` is the **integer quotient** of the total minutes by 60 (the number of whole hours), and  
+* `dm` is the **remainder** (the number of minutes left after extracting the whole hours).
+
+---
+
+### 5.  Hoare triple  
+
+Putting the pieces together we obtain the formal Hoare specification of the whole program:
+
+\[
+\boxed{
+\{P\}\; \texttt{read\;hi,mi,hf,mf;  Δ←…; dh←Δ div 60; dm←Δ mod 60;  print …}\; \{Q\}
+}
+\]
+
+In words:
+
+*If the four input integers represent two valid clock times (pre‑condition `P`), then after executing the program the variables `dh` and `dm` contain respectively the number of hours and minutes that elapsed between the start time and the end time, taking into account that the game may cross midnight (post‑condition `Q`).*  
+
+This specification exactly captures the three examples given in the problem statement:
+
+| Input `(hi, mi, hf, mf)` | `Δ` (minutes) | `dh` | `dm` |
+|--------------------------|----------------|------|------|
+| (7, 8, 9, 10)            | 122            | 2    | 2    |
+| (7, 7, 7, 7)             | 1440           | 24   | 0    |
+| (7, 10, 8, 9)            | 59             | 0    | 59   |
+
+Thus the Hoare‑logic pre‑ and post‑conditions above constitute a complete formal specification of the problem.

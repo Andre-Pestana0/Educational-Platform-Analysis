@@ -1,0 +1,119 @@
+Below is a **Hoare‑logic style specification** for a program that reads the data described in the statement, computes the required totals and percentages, and prints them.  
+Only the *pre‑condition* (what must hold before the program starts) and the *post‑condition* (what must hold after it terminates) are given – the body of the program is omitted on purpose, because the request was for the formal specification only.
+
+---
+
+### 1. Notation
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℕ`    | set of natural numbers (including 0) |
+| `ℤ⁺`   | set of positive integers |
+| `ℝ`    | set of real numbers |
+| `⟦·⟧`  | “the value of” (semantic brackets) |
+| `Σ_{i=1}^{k} e_i` | sum of the expressions `e_i` for `i = 1 … k` |
+| `type_i ∈ {C,R,S}` | the animal type of the *i*‑th record |
+| `amount_i ∈ ℤ⁺` | the number of animals of that record |
+| `⌊x⌋` | floor (integer part) of a real `x` |
+| `round₂(x)` | rounding of the real `x` to **exactly two decimal digits** (ties to even, as required by the usual “printf %0.2f” semantics) |
+| `output = ( … )` | the concrete string that the program prints (see the “output format” clause below) |
+
+All indices start at 1.
+
+---
+
+### 2. Variables used in the specification  
+
+| Variable | Type | Intended meaning |
+|----------|------|-------------------|
+| `N`      | `ℤ⁺` | number of test cases (records) |
+| `amount_i` | `ℤ⁺` (1 ≤ `amount_i` ≤ 15) | amount of animals in the *i*‑th record |
+| `type_i` | `{C,R,S}` | type of animal in the *i*‑th record |
+| `total`  | `ℤ⁺` | total number of animals over all records |
+| `total_C`| `ℤ⁺` | total number of **C** (coelhos) |
+| `total_R`| `ℤ⁺` | total number of **R** (ratos) |
+| `total_S`| `ℤ⁺` | total number of **S** (sapos) |
+| `perc_C` | `ℝ` (0 ≤ `perc_C` ≤ 100) | percentage of coelhos w.r.t. `total` |
+| `perc_R` | `ℝ` (0 ≤ `perc_R` ≤ 100) | percentage of ratos w.r.t. `total` |
+| `perc_S` | `ℝ` (0 ≤ `perc_S` ≤ 100) | percentage of sapos w.r.t. `total` |
+| `out`    | string | the exact text printed by the program |
+
+---
+
+### 3. Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \; \equiv\; & N \in \mathbb{Z}^{+} \\
+            & \land\; \forall i \in \{1,\dots ,N\}\;.\; 1 \leq \text{amount}_i \leq 15 \\
+            & \land\; \forall i \in \{1,\dots ,N\}\;.\; \text{type}_i \in \{C,R,S\}
+\end{aligned}
+\]
+
+In words: the program receives a positive integer `N`, followed by `N` pairs
+`(amount_i , type_i)` such that every amount lies in the interval \([1,15]\) and
+every type is one of the three admissible characters.
+
+---
+
+### 4. Post‑condition  **Q**
+
+\[
+\begin{aligned}
+Q \; \equiv\; & \text{total} \;=\; \sum_{i=1}^{N} \text{amount}_i \\[4pt]
+            & \land\; \text{total\_C} \;=\; \sum_{i=1}^{N} \bigl[\text{type}_i = C\bigr] \cdot \text{amount}_i \\[4pt]
+            & \land\; \text{total\_R} \;=\; \sum_{i=1}^{N} \bigl[\text{type}_i = R\bigr] \cdot \text{amount}_i \\[4pt]
+            & \land\; \text{total\_S} \;=\; \sum_{i=1}^{N} \bigl[\text{type}_i = S\bigr] \cdot \text{amount}_i \\[4pt]
+            & \land\; \text{total} \;=\; \text{total\_C} + \text{total\_R} + \text{total\_S} \\[6pt]
+            & \land\; \text{perc\_C} \;=\; round_{2}\!\Bigl(100 \cdot \frac{\text{total\_C}}{\text{total}}\Bigr) \\[4pt]
+            & \land\; \text{perc\_R} \;=\; round_{2}\!\Bigl(100 \cdot \frac{\text{total\_R}}{\text{total}}\Bigr) \\[4pt]
+            & \land\; \text{perc\_S} \;=\; round_{2}\!\Bigl(100 \cdot \frac{\text{total\_S}}{\text{total}}\Bigr) \\[6pt]
+            & \land\; \text{out} \;=\; \\
+            & \quad\text{“Total: ”} \; \Vert\; \text{total} \; \Vert\; \text{“ cobaias\n”} \\
+            & \quad\Vert\; \text{“Total de coelhos: ”} \; \Vert\; \text{total\_C} \; \Vert\; \text{“\n”} \\
+            & \quad\Vert\; \text{“Total de ratos: ”} \; \Vert\; \text{total\_R} \; \Vert\; \text{“\n”} \\
+            & \quad\Vert\; \text{“Total de sapos: ”} \; \Vert\; \text{total\_S} \; \Vert\; \text{“\n”} \\
+            & \quad\Vert\; \text{“Percentual de coelhos: ”} \; \Vert\; \text{perc\_C} \; \Vert\; \text{“ %\n”} \\
+            & \quad\Vert\; \text{“Percentual de ratos: ”} \; \Vert\; \text{perc\_R} \; \Vert\; \text{“ %\n”} \\
+            & \quad\Vert\; \text{“Percentual de sapos: ”} \; \Vert\; \text{perc\_S} \; \Vert\; \text{“ %\n”}
+\end{aligned}
+\]
+
+Explanation of the clauses:
+
+* `[…]` is the **Iverson bracket**: it evaluates to `1` if the condition holds
+  and `0` otherwise.  
+  Hence, for example `Σ_{i=1}^{N} [type_i = C]·amount_i` adds `amount_i` only
+  when the record’s type is `C`.
+
+* `round₂(x)` denotes **round‑to‑nearest with two decimal digits** (the same
+  effect as printing `x` with the format specifier `"%0.2f"`).  
+
+* The string concatenation operator `‖` builds the exact output that must be
+  produced.  New‑line characters are written as `\n`.  The percentages are
+  followed by a space and the character `%` exactly as shown in the sample
+  output.
+
+* The equality `total = total_C + total_R + total_S` is a derived property that
+  follows from the definitions of the three subtotals; it is included in the
+  post‑condition to make the relationship explicit.
+
+---
+
+### 5. Hoare triple
+
+Putting the two parts together, the formal specification of the whole program
+is the Hoare triple
+
+\[
+\boxed{\{\,P\,\}\;\; \textbf{Program}\;\; \{\,Q\,\}}
+\]
+
+where  
+
+*`P`* is the pre‑condition described in section 3, and  
+*`Q`* is the post‑condition described in section 4.
+
+Any implementation that, when started in a state satisfying `P`, terminates
+with a state satisfying `Q` (and does not diverge) is **correct** with respect
+to the problem

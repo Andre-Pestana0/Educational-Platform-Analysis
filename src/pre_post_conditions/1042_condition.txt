@@ -1,0 +1,102 @@
+**Hoare‑logic specification**
+
+Let the program be denoted by **`Read‑Sort‑Print`**.  
+The program works on three integer variables that are read from the input
+and are called  
+
+\[
+x_1,\;x_2,\;x_3 \in \mathbb Z .
+\]
+
+---
+
+### Pre‑condition  \(P\)
+
+The only requirement on the state before execution is that the three
+input values exist; no further restriction is imposed.
+
+\[
+\boxed{P \;:\; \exists\,x_1,x_2,x_3\in\mathbb Z\;.\;{\sf input}= (x_1,x_2,x_3)}
+\]
+
+(Equivalently, we may write simply \(P \equiv \text{true}\) because any
+triple of integers is admissible.)
+
+---
+
+### Post‑condition  \(Q\)
+
+After termination the program must have produced a *deterministic* output
+sequence that consists of  
+
+1. the three input numbers **sorted in non‑decreasing order**, and  
+2. a blank line (represented by the special symbol \(\blank\)), and  
+3. the three numbers **in the order they were read**.
+
+Formally we introduce a *sorting function*  
+
+\[
+\operatorname{sort} : \mathbb Z^{3}\longrightarrow\mathbb Z^{3},
+\qquad
+\operatorname{sort}(x_1,x_2,x_3) = (y_1,y_2,y_3)
+\]
+
+such that  
+
+\[
+\begin{aligned}
+&\{y_1,y_2,y_3\}= \{x_1,x_2,x_3\} &&\text{(permutation)}\\
+&y_1\le y_2\le y_3 &&\text{(non‑decreasing order)} .
+\end{aligned}
+\]
+
+The *output* of the program is a finite list of strings; we denote it by
+\(\mathsf{out}\).  The required shape of \(\mathsf{out}\) is
+
+\[
+\boxed{Q\;:\;
+\mathsf{out}= \bigl( y_1,\;y_2,\;y_3,\;\blank,\;x_1,\;x_2,\;x_3 \bigr)
+}
+\]
+
+where \((y_1,y_2,y_3)=\operatorname{sort}(x_1,x_2,x_3)\).
+
+If the blank line is omitted (as in the given examples), the post‑condition
+simply becomes
+
+\[
+\mathsf{out}= ( y_1,\;y_2,\;y_3,\;x_1,\;x_2,\;x_3 ).
+\]
+
+---
+
+### Hoare triple
+
+Putting the two predicates together we obtain the Hoare triple that
+characterises the whole program:
+
+\[
+\boxed{\{P\}\; \textsf{Read‑Sort‑Print}\; \{Q\}}
+\]
+
+In words:
+
+*If the program starts with three arbitrary integers \((x_1,x_2,x_3)\) read
+from the input, then after termination it prints the sorted triple
+\((y_1,y_2,y_3)\) (where \((y_1,y_2,y_3)=\operatorname{sort}(x_1,x_2,x_3)\)),
+optionally a blank line, and finally the original triple \((x_1,x_2,x_3)\).*
+
+---
+
+### Remarks on the mathematical notation used
+
+* **Permutation condition** – \(\{y_1,y_2,y_3\}= \{x_1,x_2,x_3\}\) expresses that
+  the sorted values are exactly the same multiset as the input values.
+* **Ordering condition** – \(y_1\le y_2\le y_3\) guarantees ascending order.
+* **Output list** – \(\mathsf{out}\) is a list of printed lines; the special
+  symbol \(\blank\) denotes an empty line (if required by the specification).
+
+This specification is completely abstract; any concrete implementation
+(e.g. using comparisons and swaps, or calling a library sort routine) that
+satisfies the Hoare triple is correct with respect to the natural‑language
+description of the problem.

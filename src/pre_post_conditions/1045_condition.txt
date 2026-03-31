@@ -1,0 +1,142 @@
+Below is a **Hoare‑logic style specification** for the program that reads three positive real numbers, orders them, checks whether they can be the sides of a triangle and prints every classification that applies.
+
+---
+
+### 1.  Variables  
+
+*Input variables* (read from the environment)  
+
+\[
+a_0 , b_0 , c_0 \in \mathbb {R}
+\]
+
+*Program variables* (after the first step of the program)  
+
+\[
+a , b , c \in \mathbb {R}\qquad\text{(the three numbers after sorting)}
+\]
+
+*Output*  
+
+\[
+\text{out} \subseteq \mathcal{M}
+\]
+
+where  
+
+\[
+\mathcal{M}= \{
+\text{«TRIANGULO ACUTANGULO»},
+\text{«TRIANGULO RETANGULO»},
+\text{«TRIANGULO OBTUSANGULO»},
+\text{«TRIANGULO EQUILATERO»},
+\text{«TRIANGULO ISOSCELES»},
+\text{«NAO FORMA TRIANGULO»}
+\}
+\]
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\boxed{P \; \equiv\; a_0>0\;\land\;b_0>0\;\land\;c_0>0}
+\]
+
+The program is invoked only when three strictly positive numbers are supplied.
+
+---
+
+### 3.  Post‑condition  
+
+Let  
+
+\[
+\begin{aligned}
+\{a,b,c\}&=\operatorname{sort\_desc}(a_0,b_0,c_0)  \\
+&\text{ i.e. } a\ge b\ge c\text{ and }\{a,b,c\}=\{a_0,b_0,c_0\}.
+\end{aligned}
+\]
+
+Define the following predicates (all evaluated on the sorted triple):
+
+\[
+\begin{aligned}
+\mathsf{tri\_valid}&\equiv a < b + c \\[2mm]
+\mathsf{equil}&\equiv a = b \land b = c \\[2mm]
+\mathsf{isos}&\equiv (a = b \lor b = c) \land \neg\mathsf{equil} \\[2mm]
+\mathsf{right}&\equiv a^{2}=b^{2}+c^{2} \\[2mm]
+\mathsf{obtuse}&\equiv a^{2}>b^{2}+c^{2} \\[2mm]
+\mathsf{acute}&\equiv a^{2}<b^{2}+c^{2}
+\end{aligned}
+\]
+
+The **output set** `out` must satisfy:
+
+\[
+\boxed{
+\begin{aligned}
+Q \equiv\;&\bigl(\neg\mathsf{tri\_valid}\;\rightarrow\; \text{out}= \{\text{«NAO FORMA TRIANGULO»}\}\bigr) \\[1mm]
+&\land\bigl(\mathsf{tri\_valid}\;\rightarrow\;
+      \text{out}= \;\mathcal{A}\;\cup\;\mathcal{S}\bigr)
+\end{aligned}}
+\]
+
+where  
+
+*Angle classification*  
+
+\[
+\mathcal{A}= 
+\begin{cases}
+\{\text{«TRIANGULO RETANGULO»}\} & \text{if }\mathsf{right}\\[1mm]
+\{\text{«TRIANGULO OBTUSANGULO»}\} & \text{if }\mathsf{obtuse}\\[1mm]
+\{\text{«TRIANGULO ACUTANGULO»}\} & \text{if }\mathsf{acute}\\[1mm]
+\emptyset & \text{otherwise}
+\end{cases}
+\]
+
+*Side‑length classification*  
+
+\[
+\mathcal{S}= 
+\begin{cases}
+\{\text{«TRIANGULO EQUILATERO»}\} & \text{if }\mathsf{equil}\\[1mm]
+\{\text{«TRIANGULO ISOSCELES»}\} & \text{if }\mathsf{isos}\\[1mm]
+\emptyset & \text{otherwise}
+\end{cases}
+\]
+
+The two parts are **unioned** (so that more than one message can appear, e.g. an acute‑isosceles triangle).  
+When `tri_valid` holds, the program must **print the messages in the order**
+
+1. the (unique) angle message (`right`, `obtuse` or `acute`);
+2. the side‑length message (`equil` or `isos`).
+
+If `tri_valid` is false, the only printed line is *«NAO FORMA TRIANGULO»*.
+
+---
+
+### 4.  Hoare triple  
+
+\[
+\boxed{\{P\}\; \text{Program}\; \{Q\}}
+\]
+
+where the program consists of the following abstract steps (each step is assumed to be correct with respect to the above logical definitions):
+
+1. **Read** three numbers `a₀, b₀, c₀`.  
+2. **Sort** them descending to obtain `a, b, c`.  
+3. **Evaluate** the predicates `tri_valid`, `right`, `obtuse`, `acute`, `equil`, `isos`.  
+4. **Print** the messages described by `Q`.
+
+---
+
+### 5.  Remarks on the specification  
+
+* The sorting step guarantees a unique representation of the triangle, which makes the geometric predicates (`right`, `obtuse`, `acute`) well‑defined.  
+* The triangle‑inequality test (`a < b + c`) is the *only* condition that can make the triangle **invalid**; when it fails the program must not evaluate the other predicates.  
+* The angle predicates are mutually exclusive (`right` ⇔ `a² = b² + c²`, `obtuse` ⇔ `a² > b² + c²`, `acute` ⇔ `a² < b² + c²`).  
+* The side‑length predicates are also mutually exclusive except that an equilateral triangle is also isosceles; the specification excludes the latter by the clause `¬equil` in `isos`.  
+
+Thus the Hoare‑logic specification captures **exactly** the behaviour required by the natural‑language problem statement.

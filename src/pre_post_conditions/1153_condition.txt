@@ -1,0 +1,79 @@
+Below is a **Hoare‑logic style specification** for the “read‑\(N\), write‑\(N!\)” program.  
+Only the **pre‑condition** (what must be true before execution) and the **post‑condition** (what is guaranteed after execution) are given; the body of the program is omitted because the request asks only for the specification.
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(N\)   | Integer read from the input (the argument of the factorial). |
+| \(F\)   | Integer that will be written to the output (the computed factorial). |
+| \(\mathbb N\) | Set of non‑negative integers \(\{0,1,2,\dots\}\). |
+| \(!\)   | Factorial operator, defined for \(n\in\mathbb N\) by \(\displaystyle n! = \prod_{i=1}^{n} i\) with the convention \(0! = 1\). |
+
+---
+
+### Hoare Triple  
+
+\[
+\boxed{\{\,P(N)\,\}\; \textbf{read } N; \; \textbf{compute } F; \; \textbf{write } F\; \{\,Q(N,F)\,\}}
+\]
+
+---
+
+### Pre‑condition \(P(N)\)
+
+\[
+\begin{aligned}
+P(N) \;\equiv\;& N \in \mathbb N\ \land\ 0 < N < 13 \\[2mm]
+      &\quad\text{(i.e. } N\text{ is a positive integer strictly smaller than }13\text{).}
+\end{aligned}
+\]
+
+*Why the bound 13?*  
+\(12! = 479\,001\,600 < 2^{31}\) fits comfortably in a 32‑bit signed integer, while \(13! = 6\,227\,020\,800\) would overflow a typical 32‑bit `int`. The specification therefore restricts the domain to the range guaranteed to be representable.
+
+---
+
+### Post‑condition \(Q(N,F)\)
+
+\[
+\begin{aligned}
+Q(N,F) \;\equiv\;& F \in \mathbb N \ \land\  F = N! \\
+          &\quad\text{where } N! = \displaystyle\prod_{i=1}^{N} i .
+\end{aligned}
+\]
+
+Equivalently, using the recursive definition of factorial:
+
+\[
+F = 
+\begin{cases}
+1                     & \text{if } N = 1,\\[2mm]
+N \times (N-1)! & \text{if } N > 1 .
+\end{cases}
+\]
+
+The post‑condition therefore guarantees that the value written to the output is **exactly** the mathematical factorial of the input value.
+
+---
+
+### Full Specification in Hoare‑logic notation  
+
+\[
+\boxed{
+\{\,N\in\mathbb N \land 0<N<13\,\}
+\; \textbf{read } N; \; \textbf{compute } F; \; \textbf{write } F
+\; \{\,F\in\mathbb N \land F = N!\, \}
+}
+\]
+
+---
+
+#### Remarks  
+
+* **Total correctness** (termination) is immediate: the algorithm consists of a finite loop that iterates exactly \(N\) times, and \(N\) is bounded by 12, so termination is guaranteed.  
+* The specification is **implementation‑independent**; any algorithm that satisfies the Hoare triple (e.g., an iterative product, a recursive function, or a table‑lookup) is correct with respect to the given natural‑language description.  
+
+That is the complete formal pre‑/post‑condition pair requested.

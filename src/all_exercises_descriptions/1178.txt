@@ -1,0 +1,19 @@
+Description: Read a numberX. Put this X at the first position of an arrayN[100]. In each subsequent position (1 up to 99) put half of the number inserted at the previous position, according to the example below. Print all the vectorN.
+
+Input: The input contains a double precision number with four decimal places.
+
+Output: For each position of the arrayNprint "N[i] = Y", whereiis the array position andYis the number stored in that position. Each number ofN[...] must be printed with 4 digits after the decimal point.
+
+Examples:
+- Example 1:
+  Input:
+200.0000
+  Output:
+N[0] = 200.0000
+N[1] = 100.0000
+N[2] = 50.0000
+N[3] = 25.0000
+N[4] = 12.5000
+...
+
+--

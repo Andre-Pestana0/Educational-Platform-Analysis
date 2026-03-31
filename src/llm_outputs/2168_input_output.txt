@@ -1,0 +1,17 @@
+"input": "1\n0 0\n0 0",
+"output": "U"
+
+"input": "1\n1 1\n1 1",
+"output": "S"
+
+"input": "2\n1 1 0\n0 0 0\n0 0 0",
+"output": "SU\nUU"
+
+"input": "2\n1 1 1\n1 0 0\n0 0 0",
+"output": "SS\nUU"
+
+"input": "3\n1 0 1 0\n0 1 0 1\n1 0 1 0\n0 1 0 1",
+"output": "SSS\nSSS\nSSS"
+
+"input": "3\n1 0 1 0\n0 1 0 1\n1 0 0 0\n0 1 0 1",
+"output": "SSS\nSUS\nSSS"

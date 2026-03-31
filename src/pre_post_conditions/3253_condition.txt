@@ -1,0 +1,157 @@
+**Formal Hoare‑logic specification**
+
+We describe the program that reads a directed road‑network and prints the
+information required in the statement of the problem.  
+All identifiers are natural numbers,  
+
+\[
+\mathit{Id}= \{\,i\in\mathbb N\mid 0<i<1000\,\}\cup\{0\}.
+\]
+
+The special identifier `0` denotes the surrounding circular road; every
+other identifier denotes a (segment of a) street inside the medieval
+core.
+
+--------------------------------------------------------------------
+### 1.   Data structures (mathematical model)
+
+* `V ⊆ Id` – the set of vertices (streets) that actually appear in the
+  input. By definition `0∈V`.
+
+* `E ⊆ V×V` – the set of directed edges.  
+  For a line  
+
+  ```
+  u  k  v1 v2 … vk
+  ```
+
+  we have  
+
+  \[
+  (u,v_i)\in E\qquad\text{for }i=1,\dots ,k .
+  \]
+
+* `reach(u,v)` – the usual reachability predicate in a directed graph,
+  i.e. the reflexive‑transitive closure of `E`:
+
+  \[
+  \operatorname{reach}(u,v)\; \stackrel{\text{def}}{\iff}\;
+  (u=v)\;\lor\; \exists\,u_0,\dots ,u_m\;(u_0=u\land u_m=v\land
+  \forall j<m\;(u_j,u_{j+1})\in E).
+  \]
+
+--------------------------------------------------------------------
+### 2.   Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\; &\text{The input consists of a finite sequence}\\
+              &\text{of lines }(u,k,v_1,\dots ,v_k) \text{ with }\\
+              &\quad u\in\mathit{Id},\;k\in\mathbb N,\;v_i\in\mathit{Id},\\
+              &\quad 0<k<|V|,\; \text{and the collection of all }u\text{'s}\\
+              &\quad\text{forms the vertex set }V\text{ (with }0\in V\text{)}.\\
+              &\text{The graph }G=(V,E) \text{ defined from the lines is a}\\
+              &\text{finite directed graph.}
+\end{aligned}}
+\]
+
+In words: the program receives a well‑formed description of a finite
+directed graph whose vertices are the street identifiers, the special
+vertex `0` being present.
+
+--------------------------------------------------------------------
+### 3.   Post‑condition  
+
+Let  
+
+\[
+\begin{aligned}
+\mathit{TRAPPED} &:= \{\,v\in V\setminus\{0\}\mid
+                     \operatorname{reach}(0,v)\;\land\;
+                     \neg\operatorname{reach}(v,0)\,\},\\[2mm]
+\mathit{UNREACHABLE}&:= \{\,v\in V\setminus\{0\}\mid
+                     \neg\operatorname{reach}(0,v)\,\}.
+\end{aligned}
+\]
+
+The program must output **exactly** the following:
+
+* For every \(v\in\mathit{TRAPPED}\) one line  
+
+  \[
+  \text{``TRAPPED }v\text{''}
+  \]
+
+  (in any order, each line appearing once).
+
+* For every \(v\in\mathit{UNREACHABLE}\) one line  
+
+  \[
+  \text{``UNREACHABLE }v\text{''}
+  \]
+
+  (again, each line once, order irrelevant).
+
+* If both sets are empty, the single line  
+
+  \[
+  \text{``NO PROBLEMS''}
+  \]
+
+  must be printed.
+
+Formally,
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\; &\bigl(\forall v\in\mathit{TRAPPED}\;
+      \text{output contains the line ``TRAPPED }v\text{''}\bigr)\\
+      &\land\bigl(\forall v\in\mathit{UNREACHABLE}\;
+      \text{output contains the line ``UNREACHABLE }v\text{''}\bigr)\\
+      &\land\bigl(\forall\text{ line printed }L\;
+      L\text{ is of one of the two forms above}\bigr)\\
+      &\land\bigl(\mathit{TRAPPED}=\varnothing\land
+                 \mathit{UNREACHABLE}=\varnothing
+                 \;\Longrightarrow\;
+                 \text{output is exactly ``NO PROBLEMS''}\bigr).
+\end{aligned}}
+\]
+
+--------------------------------------------------------------------
+### 4.   Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{solve\_city\_traps} \;\; \{\,Q\,\}}
+\]
+
+where `solve_city_traps` denotes the whole algorithm (reading the input,
+building the graph, computing the two reachability sets, and printing
+the required lines).
+
+--------------------------------------------------------------------
+### 5.   Remarks on the algorithmic part (not part of the logical
+specification)
+
+A concrete implementation may compute the two sets by two depth‑first
+searches (or BFS) on the graph:
+
+* `reachFrom0 := DFS(0)` – the set of vertices reachable **from** `0`;
+* `reachTo0   := { v∈V | 0 ∈ DFS(v) }` – the set of vertices that can
+  reach `0` (equivalently the vertices reachable **to** `0` in the
+  transposed graph).
+
+Then  
+
+\[
+\mathit{TRAPPED}= \bigl(\operatorname{reachFrom0}\setminus\{0\}\bigr)
+                 \;\cap\;
+                 \bigl(V\setminus\operatorname{reachTo0}\bigr),
+\qquad
+\mathit{UNREACHABLE}= V\setminus\{0\}\;\setminus\;\operatorname{reachFrom0}.
+\]
+
+The Hoare‑logic specification above is independent of the concrete
+algorithm; it only states what must hold **before** (`P`) and **after**
+(`Q`) the execution of the program.

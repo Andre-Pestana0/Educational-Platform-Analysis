@@ -1,0 +1,346 @@
+**Answer – a Hoare‑logic proof sketch**
+
+Below we give a complete *correctness proof* of the program that solves the
+Beecrowd 1187 problem.  
+The proof follows the usual Hoare‑logic style:
+
+* a **pre‑condition**  \(P\) that describes what is true before the program starts,
+* a **post‑condition** \(Q\) that describes what must be true after the program terminates,
+* a sequence of **Hoare triples**  \(\{A\}\;S\;\{B\}\) for each command \(S\),
+* a **loop invariant** for each `for`‑loop,
+* a termination argument for each loop.
+
+The program is written in a very small imperative language (the same language
+that is used in the textbook for Hoare logic).  
+All expressions are side‑effect‑free, the only mutable variables are the
+program variables themselves, and the input operation `input()` returns a
+value of the required type.
+
+--------------------------------------------------------------------------
+
+### 1.  Specification
+
+We first formalise what the program is required to compute.
+
+*Let*  
+
+* `c` – a character read from the input, guaranteed to be either `'S'` or `'M'`;
+* `a[i][j]` – the 144 floating‑point numbers that are read afterwards
+  (the matrix is 12 × 12, indexed from 0).
+
+Define the **left‑area** of the matrix as the 30 positions that satisfy  
+
+\[
+\begin{array}{l}
+0\le i\le 4,\\[2pt]
+i+1\le j\le 10-i .
+\end{array}
+\tag{L}
+\]
+
+(These are exactly the positions that the nested loops of the program visit.)
+
+Define  
+
+\[
+\text{SUM} \;=\;\sum_{(i,j)\;\text{satisfies}\;(L)} a[i][j] .
+\tag{1}
+\]
+
+The required output is  
+
+\[
+\text{out}= 
+\begin{cases}
+\text{SUM}      &\text{if }c='S',\\[4pt]
+\displaystyle\frac{\text{SUM}}{30} &\text{if }c='M'.
+\end{cases}
+\tag{2}
+\]
+
+All numbers have to be printed with one digit after the decimal point.
+
+Consequently we take as **pre‑condition**  
+
+\[
+P\;:\;c\in\{'S','M'\}\;\wedge\;\bigl(\forall i,j\;(0\le i,j<12\;\Rightarrow\;a[i][j]\text{ defined})\bigr)
+\]
+
+and as **post‑condition**  
+
+\[
+Q\;:\;\text{the program prints the value described by (2)} .
+\]
+
+--------------------------------------------------------------------------
+
+### 2.  Overview of the proof
+
+The program consists of three parts:
+
+| part | purpose |
+|------|---------|
+|1|read the character `c` |
+|2|read the whole matrix into the variable `m` |
+|3|compute the sum of the left‑area (`soma`) and finally print either `soma` or `soma/30` |
+
+Parts 1 and 2 are straightforward input statements.  
+The only non‑trivial piece is the double loop that computes `soma`.  
+We give a loop invariant for the outer loop and a nested invariant for the inner
+loop, prove that they are preserved, and then show that after the loop finishes
+`soma = SUM`.  The final `if‑elif` statement is a simple case distinction that
+matches the specification (2).
+
+--------------------------------------------------------------------------
+
+### 3.  Detailed Hoare triples
+
+We write a Hoare triple as \(\{A\}\;S\;\{B\}\) where \(A\) and \(B\) are assertions
+over the program variables.
+
+----------------------------------------------------------------------
+#### 3.1  Reading the operation code  
+
+```
+c = input()
+```
+
+*Triple*  
+
+\[
+\{P\}\;c:=\text{input()}\;\{c\in\{'S','M'\}\}
+\]
+
+The specification of the problem guarantees that the first line of the input
+contains exactly one of those two characters, therefore the triple holds.
+The rest of the pre‑condition (the existence of the matrix entries) is untouched.
+
+----------------------------------------------------------------------
+#### 3.2  Reading the matrix
+
+```
+m = []                         #  m will become a list of 12 rows
+for i in range(12):           # outer loop
+    n = []                     #  n will become the i‑th row
+    for j in range(12):       # inner loop
+        n.append(float(input()))
+    m.append(n)
+```
+
+We need two invariants, one for each loop.
+
+*Outer loop invariant* (holds at the beginning of each iteration with index `i`):
+
+\[
+I_{\text{out}}(i) \;:\;
+\begin{cases}
+0\le i\le 12,\\
+\displaystyle\forall p\;(0\le p<i\;\Rightarrow\;|m[p]|=12
+   \wedge\forall q\;(0\le q<12\;\Rightarrow\;m[p][q]=a[p][q] )),\\
+\displaystyle\forall p\;(i\le p<12\;\Rightarrow\;m[p]\text{ undefined}).
+\end{cases}
+\tag{I₁}
+\]
+
+*Inner loop invariant* (holds at the beginning of each iteration with index `j`,
+inside the outer iteration `i`):
+
+\[
+I_{\text{in}}(i,j) \;:\;
+\begin{cases}
+0\le j\le 12,\\
+|n| = j,\; \forall q\;(0\le q<j\;\Rightarrow\;n[q]=a[i][q]),\\
+\text{the variable }m\text{ is unchanged.}
+\end{cases}
+\tag{I₂}
+\]
+
+*Proof for the inner loop*  
+
+* **Initialization** (`j = 0`): `n` is created as an empty list, therefore
+  `|n| = 0` and the universal condition is vacuously true – `I₂(i,0)` holds.
+
+* **Preservation**: Assume `I₂(i,j)` holds at the start of an iteration.
+  The body executes `n.append(float(input()))`. The input value is stored in
+  `n[j]`. By the problem statement the input on line `i·12 + j + 2` is exactly
+  `a[i][j]`. Hence after the append we have `|n| = j+1` and
+  `n[q] = a[i][q]` for all `0 ≤ q ≤ j`. Thus `I₂(i,j+1)` holds.
+
+* **Termination**: The loop runs while `j < 12`. When `j = 12` the guard
+  becomes false, the loop stops and we obtain `|n| = 12` and
+  `n[q] = a[i][q]` for all `0 ≤ q < 12`. At that point the statement
+  `m.append(n)` stores the whole row `a[i][·]` as `m[i]`.
+
+*Proof for the outer loop*  
+
+* **Initialization** (`i = 0`): `m` is the empty list, therefore the universal
+  condition of `I₁(0)` is true.
+
+* **Preservation**: Assume `I₁(i)` holds at the start of an iteration.
+  By the inner‑loop proof we obtain a freshly built list `n` that equals the
+  row `a[i][·]`. The command `m.append(n)` therefore extends `m` with exactly
+  that row, and the universal condition for indices `< i+1` becomes true.
+  Consequently `I₁(i+1)` holds.
+
+* **Termination**: The outer loop stops when `i = 12`. At that moment
+  `I₁(12)` tells us that for every `0 ≤ p < 12` the list `m[p]` has length 12
+  and contains precisely the values `a[p][q]`. Hence the matrix is correctly
+  stored in `m`.
+
+Thus after the two nested loops we have the **state**
+
+\[
+\{\,\forall i,j\;(0\le i,j<12\;\Rightarrow\;m[i][j]=a[i][j])\,\}.
+\tag{S\_matrix}
+\]
+
+----------------------------------------------------------------------
+#### 3.3  Summation of the left‑area
+
+```
+soma = 0
+n = 1
+for i in range(5):
+    for j in range(n,12-n):
+        soma = soma + m[j][i]
+    n = n + 1
+```
+
+The program uses a variable `n` that grows from 1 to 5.  
+We give a single invariant for the **outer** loop; the inner loop has a very
+simple invariant that follows directly from the outer one.
+
+*Outer‑loop invariant* (holds at the start of each iteration with index `i`,
+`0 ≤ i ≤ 5`):
+
+\[
+I_{\text{sum}}(i) \;:\;
+\begin{cases}
+0\le i\le 5,\\
+\displaystyle n = i+1,\\[4pt]
+\displaystyle 
+soma = \sum_{p=0}^{i-1}\;\sum_{q=p+1}^{10-p}\; m[q][p].
+\end{cases}
+\tag{I₃}
+\]
+
+(The double sum is precisely the contribution of the rows already processed.)
+
+*Proof of the invariant*  
+
+* **Initialization** (`i = 0`): Before the first iteration we have
+  `soma = 0` and `n = 1`. The outer sum over an empty index set is `0`,
+  therefore `I₃(0)` holds.
+
+* **Preservation**: Assume `I₃(i)` holds at the beginning of the outer iteration.
+  The inner loop runs for `j` from `n` (= i+1) up to `12-n-1` (= 10‑i).  
+  Its body executes `soma := soma + m[j][i]`. By the matrix invariant
+  `S_matrix` we know that `m[j][i] = a[j][i]`.  
+  Hence after the inner loop finishes we have added exactly the terms
+
+  \[
+  \sum_{j=i+1}^{10-i} a[j][i]
+  \]
+
+  to the previous value of `soma`. Consequently
+
+  \[
+  soma = \sum_{p=0}^{i-1}\sum_{q=p+1}^{10-p} a[q][p]
+        \;+\;\sum_{q=i+1}^{10-i} a[q][i]
+      = \sum_{p=0}^{i}\sum_{q=p+1}^{10-p} a[q][p].
+  \]
+
+  The next statement `n = n + 1` makes `n = i+2`, i.e. `n = (i+1)+1`.  
+  Therefore after the whole outer iteration we have
+
+  \[
+  I_{\text{sum}}(i+1) \;:\;
+  n = (i+1)+1 \;\wedge\;
+  soma = \sum_{p=0}^{i}\sum_{q=p+1}^{10-p} a[q][p],
+  \]
+
+  which is exactly the invariant with index `i+1`.
+
+* **Termination**: The outer loop stops when `i = 5`.  
+  Substituting `i = 5` in `I₃(i)` yields
+
+  \[
+  n = 6 \quad\text{and}\quad
+  soma = \sum_{p=0}^{4}\sum_{q=p+1}^{10-p} a[q][p].
+  \]
+
+  The outer sum runs over `p = 0,1,2,3,4`.  
+  For each `p` the inner sum runs over `q = p+1, … , 10-p`.  
+  Counting the pairs \((p,q)\) shows that there are exactly 30 of them,
+  which are precisely the matrix positions described by condition (L).  
+  Therefore after the loops:
+
+  \[
+  soma = \text{SUM} \qquad\text{(definition (1)).}
+  \tag{S\_sum}
+  \]
+
+----------------------------------------------------------------------
+#### 3.4  Final case distinction
+
+```
+if c == 'S':
+    print(f'{soma:.1f}')
+elif c == 'M':
+    media = soma / 30
+    print(f'{media:.1f}')
+```
+
+At this point we have the state  
+
+\[
+\{\,c\in\{'S','M'\}\;\wedge\;soma = \text{SUM}\,\}.
+\tag{S\_final}
+\]
+
+*If‑branch* (`c='S'`): the command prints `soma` with one decimal place.
+Because `soma = SUM`, the printed value is exactly the one required by
+(2) for the case `c='S'`.
+
+*Else‑branch* (`c='M'`): the command computes `media = soma/30`.  
+Since `soma = SUM` and there are 30 terms in the sum, `media = SUM/30`,
+which is precisely the value demanded by (2) for the case `c='M'`.  
+The subsequent `print` therefore outputs the correct result.
+
+Thus both branches satisfy the post‑condition \(Q\).
+
+--------------------------------------------------------------------------
+
+### 4.  Termination arguments
+
+All loops are bounded by constant integer ranges:
+
+* the outer matrix‑reading loop iterates 12 times,
+* the inner matrix‑reading loop iterates 12 times,
+* the outer summation loop iterates 5 times,
+* the inner summation loop iterates at most 10 times.
+
+Hence each loop is guaranteed to terminate, and consequently the whole program
+terminates.
+
+--------------------------------------------------------------------------
+
+### 5.  Conclusion
+
+Putting the pieces together we have proved the following Hoare triples:
+
+\[
+\begin{aligned}
+\{P\} &\; c:=\text{input()} \; \{c\in\{'S','M'\}\} \\
+\{c\in\{'S','M'\}\} &\; \text{matrix‑reading loops} \; \{S_{\text{matrix}}\} \\
+\{S_{\text{matrix}}\} &\; \text{summation loops} \; \{S_{\text{sum}}\} \\
+\{S_{\text{sum}}\} &\; \text{if‑elif block} \; \{Q\}.
+\end{aligned}
+\]
+
+Since the pre‑condition \(P\) holds by the definition of the input,
+and each step preserves the respective invariant and finally establishes the
+post‑condition \(Q\), **the program is correct with respect to the given
+formal specification**.
+
+∎

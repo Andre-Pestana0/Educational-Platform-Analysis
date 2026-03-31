@@ -1,0 +1,87 @@
+**Hoare‑logic specification (mathematical notation)**  
+
+Let  
+
+* `read()` be the input operation that returns an integer,  
+* `print(a,b,c)` be the output operation that writes the three integers `a b c` on a single line (followed by a line‑break),  
+* `N` be the value obtained by `read()`,  
+* `O` be the finite sequence of triples that the program prints (in the order they are printed).  
+
+---
+
+### 1.  Pre‑condition  
+
+\[
+P \;\equiv\; 
+\bigl(N\in\mathbb Z \;\wedge\; 1 < N < 1000 \bigr)
+\]
+
+The program may only be started when the input file contains a single integer `N` satisfying the bounds above.
+
+---
+
+### 2.  Post‑condition  
+
+Define, for each integer \(i\) with \(1\le i\le N\),
+
+\[
+\begin{aligned}
+a_i &:= i,\\
+b_i^{(0)} &:= i^{2},          &\qquad b_i^{(1)} &:= i^{2}+1,\\[2mm]
+c_i^{(0)} &:= i^{3},          &\qquad c_i^{(1)} &:= i^{3}+1 .
+\end{aligned}
+\]
+
+Define the **expected output sequence**  
+
+\[
+\mathsf{Exp}(N)\;=\;
+\bigl\langle (a_i,\;b_i^{(\delta)},\;c_i^{(\delta)}) \mid
+i\in\{1,\dots ,N\},\; \delta\in\{0,1\}\bigr\rangle
+\]
+
+ordered lexicographically by the pair \((i,\delta)\) (i.e. for each `i` the line with \(\delta=0\) precedes the line with \(\delta=1\)).
+
+The **post‑condition** is then
+
+\[
+Q \;\equiv\;
+\bigl( O = \mathsf{Exp}(N) \bigr)
+\;\wedge\;
+\bigl(\forall (a,b,c)\in O:\; \text{each of }a,b,c\text{ is printed in decimal notation without scientific notation}\bigr).
+\]
+
+In words: the program must print exactly \(2N\) lines; the \(k\)-th line (with \(k = 2i-1\) or \(k = 2i\)) contains the triple described above, and every integer is output in its full decimal representation (no exponent or rounding).
+
+---
+
+### 3.  Hoare triple  
+
+\[
+\boxed{\; \{\,P\,\}\; \textbf{program}\; \{\,Q\,\}\;}
+\]
+
+where  
+
+* `program` =  
+
+  ```
+  N  ← read()
+  for i = 1 to N do
+      print(i, i*i,   i*i*i)      // δ = 0
+      print(i, i*i+1, i*i*i+1)    // δ = 1
+  od
+  ```
+
+* `P` and `Q` are as given above.
+
+---
+
+#### Remarks on the specification  
+
+* The **domain** of `i` is exactly the set `{1,…,N}`; no other values are ever printed.  
+* The **two‑line pattern** for each `i` is captured by the auxiliary index `δ∈{0,1}`.  
+* The bound `1 < N < 1000` guarantees that all intermediate calculations (`i²`, `i³`) fit easily in standard 64‑bit signed integers, but the post‑condition does **not** rely on any overflow semantics – it merely states the mathematical values that must appear.  
+* The clause about “no scientific notation” is expressed as a property of every printed integer; it can be enforced in an implementation by using a decimal conversion routine that never switches to exponential form.  
+
+Thus the Hoare‑logic triple fully captures the required behaviour of the program in a precise mathematical form.

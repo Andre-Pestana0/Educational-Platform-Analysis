@@ -1,0 +1,303 @@
+## 1.  What we have to prove  
+
+We are asked to show, **using Hoare‑logic style reasoning**, that the program below satisfies the specification that is implicit in the statement of the problem:
+
+*Given an initial number of open tabs `n_abas₀` and a sequence of `n_acoes` actions, each action being either the string `"fechou"` (a tab was **closed**) or `"clicou"` (a tab was **clicked** and therefore **opened**), the program must finish with the number of open tabs equal to*  
+
+\[
+n\_{abas}^{\,\text{final}} \;=\; n\_{abas}^{\,0}\;+\;\#\text{(fechou)}\;-\;\#\text{(clicou)} .
+\]
+
+In Hoare‑logic notation we want to prove a triple  
+
+\[
+\{ \text{Pre} \}\; \text{Program}\; \{ \text{Post} \}
+\]
+
+where  
+
+* **Pre**  : the input values are well‑formed (non‑negative integers) and the two variables `n_abas` and `n_acoes` contain the values supplied by the user.  
+* **Post** : after termination the variable `n_abas` holds exactly the value described above.
+
+The program (written in a Python‑like pseudo‑language) is
+
+```text
+1  n_abas, n_acoes = map(int, input().split(" "))
+2  for i in range(n_acoes):
+3      acao = input()
+4      if (acao == "fechou"):
+5          n_abas += 1
+6      elif (acao == "clicou"):
+7          n_abas -= 1
+8  print(n_abas)
+```
+
+--------------------------------------------------------------------
+
+## 2.  Formalisation of the specification  
+
+Let  
+
+* `A₀` be the value of `n_abas` **before** line 1 (the initial number of open tabs).  
+* `k` be the number of actions that have already been processed (the loop counter).  
+* `F(k)` be the number of occurrences of the word `"fechou"` among the first `k` actions.  
+* `C(k)` be the number of occurrences of the word `"clicou"` among the first `k` actions.
+
+The **post‑condition** we want to obtain is
+
+\[
+\text{Post}\; \equiv\; n\_{abas}=A₀+F(n\_{acoes})-C(n\_{acoes}) .
+\tag{P}
+\]
+
+The **pre‑condition** is simply
+
+\[
+\text{Pre}\; \equiv\; n\_{abas}=A₀\;\land\;n\_{acoes}\ge 0 .
+\tag{Q}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+The only non‑trivial part of the program is the `for`‑loop (lines 2‑7).  
+A classic invariant for a counting loop that updates a variable according to the processed input items is
+
+\[
+I(k)\; \equiv\;
+\bigl(0\le k\le n\_{acoes}\bigr) \;\land\;
+\bigl(n\_{abas}=A₀+F(k)-C(k)\bigr) .
+\tag{I}
+\]
+
+Intuitively: after the first `k` iterations the variable `n_abas`
+contains the initial value plus **+1** for each `"fechou"` seen so far
+and **‑1** for each `"clicou"` seen so far.
+
+--------------------------------------------------------------------
+
+## 4.  Proof structure  
+
+We will show the Hoare triple  
+
+\[
+\{Q\}\; \text{Program}\; \{P\}
+\]
+
+by the usual three steps:
+
+1. **Initialization** – the invariant holds before the first iteration.  
+2. **Maintenance** – assuming the invariant holds at the start of an iteration, it also holds after that iteration.  
+3. **Termination** – when the loop finishes (`k = n_acoes`) the invariant together with the negation of the loop guard yields the post‑condition.
+
+We also have to verify the two statements that lie **outside** the loop (lines 1 and 8) – they are straightforward assignments / I/O and do not affect the invariant.
+
+--------------------------------------------------------------------
+
+## 5.  Detailed Hoare‑logic proof  
+
+### 5.1  The first statement (line 1)
+
+```
+n_abas, n_acoes = map(int, input().split(" "))
+```
+
+*Effect*: the two variables receive the values supplied by the user.
+We treat it as an *atomic* statement that **establishes** the pre‑condition `Q`:
+
+\[
+\{ \text{true} \}\; \text{line 1}\; \{ Q \}
+\]
+
+Thus after line 1 we may assume `Q` holds.
+
+--------------------------------------------------------------------
+
+### 5.2  The loop (lines 2‑7)
+
+The Python `for i in range(n_acoes):` loop is equivalent to the following while‑style representation (the loop counter `i` is a fresh variable that we will not use in the invariant, because the invariant talks about the number `k` of already executed iterations):
+
+```
+i := 0;
+while i < n_acoes do
+    acao := input()
+    if acao == "fechou" then
+        n_abas := n_abas + 1
+    else if acao == "clicou" then
+        n_abas := n_abas - 1
+    else
+        skip                // (the problem guarantees only the two strings)
+    od;
+    i := i + 1
+od
+```
+
+We prove the invariant `I(i)` for this while‑loop.
+
+### 5.2.1  Initialization  
+
+Before the first test of the loop guard we have `i = 0`.  
+From `Q` we know `n_abas = A₀`.  
+Also `F(0) = 0` and `C(0) = 0`.  
+
+Hence  
+
+\[
+n\_{abas}=A₀ = A₀ + F(0) - C(0)
+\]
+
+and `0 ≤ 0 ≤ n_acoes`.  
+Thus `I(0)` holds.
+
+Formally  
+
+\[
+\{ Q \}\; i:=0\; \{ I(0) \}
+\]
+
+### 5.2.2  Maintenance  
+
+Assume `I(k)` holds at the **beginning** of an iteration, i.e.
+
+\[
+n\_{abas}=A₀+F(k)-C(k) \qquad (1)
+\]
+
+and we also have the loop guard `k < n_acoes`.  
+
+The body does three things:
+
+1. **Read the next action** – call it `a`.  
+   By definition of `F` and `C` we have  
+
+   \[
+   \begin{aligned}
+   F(k+1) &= F(k) + [a = \text{``fechou''}]\\
+   C(k+1) &= C(k) + [a = \text{``clicou''}]
+   \end{aligned}
+   \tag{2}
+   \]
+
+   where the bracket `[cond]` is `1` if `cond` is true and `0` otherwise.
+
+2. **Update `n_abas`**  
+
+   * If `a == "fechou"` we execute `n_abas := n_abas + 1`.  
+     Using (1) we obtain  
+
+     \[
+     n\_{abas}' = A₀+F(k)-C(k) + 1
+                = A₀+F(k)+1 - C(k)
+                = A₀+F(k+1)-C(k)          \quad\text{by (2)}
+                = A₀+F(k+1)-C(k+1)        \quad\text{because }C(k+1)=C(k)
+     \]
+
+   * If `a == "clicou"` we execute `n_abas := n_abas - 1`.  
+     Analogously  
+
+     \[
+     n\_{abas}' = A₀+F(k)-C(k)-1
+                = A₀+F(k)-\bigl(C(k)+1\bigr)
+                = A₀+F(k)-C(k+1)
+                = A₀+F(k+1)-C(k+1)
+     \]
+
+   * If the input were something else the program would leave `n_abas` unchanged, but the problem guarantees that only the two strings appear; therefore this case never happens.
+
+   In every possible branch we have  
+
+   \[
+   n\_{abas}' = A₀ + F(k+1) - C(k+1).
+   \tag{3}
+   \]
+
+3. **Increment the loop counter** (`i := i + 1`).  
+   After the increment we have `i = k+1`.  
+
+Putting (3) together with the new value of `i` we obtain exactly the invariant for `k+1`:
+
+\[
+I(k+1) \;:\; n\_{abas}=A₀+F(k+1)-C(k+1)\;\land\;0\le k+1\le n\_{acoes}.
+\]
+
+Thus the invariant is preserved.
+
+Formally we have proved  
+
+\[
+\{ I(k) \land i< n\_{acoes} \}\; \text{body}\; \{ I(k+1) \}
+\]
+
+which is the **maintenance** condition of Hoare logic.
+
+### 5.2.3  Termination  
+
+The loop terminates when the guard `i < n_acoes` becomes false, i.e. when `i = n_acoes`.  
+At that moment the invariant gives
+
+\[
+n\_{abas}=A₀+F(n\_{acoes})-C(n\_{acoes}).
+\]
+
+Since `F(n_acoes)` is precisely the total number of `"fechou"` actions in the whole input,
+and `C(n_acoes)` the total number of `"clicou"` actions,
+the right‑hand side is exactly the value required by the specification (P).
+
+Thus we have shown  
+
+\[
+\{ I(k) \land \neg(i< n\_{acoes}) \}\; \text{skip}\; \{ P \}
+\]
+
+which, together with the previous steps, yields the Hoare triple for the whole loop:
+
+\[
+\{ Q \}\; \text{for‑loop}\; \{ P \}
+\]
+
+--------------------------------------------------------------------
+
+### 5.3  The final `print` (line 8)
+
+```
+print(n_abas)
+```
+
+Printing does not modify any program variable, therefore it preserves the post‑condition:
+
+\[
+\{ P \}\; \text{print}\; \{ P \}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Assembled Hoare triple for the whole program  
+
+Combining the three fragments proved above we obtain
+
+\[
+\boxed{ \;
+\{ \text{true} \}\;
+\begin{array}{l}
+\text{line 1} \\
+\text{for‑loop (lines 2–7)} \\
+\text{line 8}
+\end{array}
+\; \{ \; n\_{abas}=A₀+F(n\_{acoes})-C(n\_{acoes}) \; \}
+\;}
+\]
+
+which is exactly the required correctness statement.
+
+--------------------------------------------------------------------
+
+## 7.  Intuitive interpretation  
+
+In plain English:  
+
+*The program reads the initial number of open tabs (`A₀`) and the number of actions (`n_acoes`).  
+For each action it adds **1** to the counter when the action is `"fechou"` (a tab was closed) and subtracts **1** when the action is `"clicou"` (a tab was opened).  
+When all actions have been processed, the variable `n_abas` contains the initial amount plus the net effect of the actions, i.e. **initial + #closed − #opened**, which is exactly what the problem asks to output.*  
+
+Thus the program is **correct** with respect to the given formal specification.

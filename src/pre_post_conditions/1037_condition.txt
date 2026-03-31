@@ -1,0 +1,80 @@
+Below is a **Hoare‑logic style specification** for the whole program (the only observable effect is the string that is printed).  
+We use the following symbols  
+
+* `x` – the floating‑point number that is read from the input (the only program variable that can influence the result).  
+* `msg` – the string that is printed (the observable output).  
+* `⊤` – the always‑true predicate (the program may be started with any real value).  
+
+The intervals that have to be reported are  
+
+\[
+\begin{aligned}
+I_{1}&=[0,25]      ,\\[2pt]
+I_{2}&=(25,50]    ,\\[2pt]
+I_{3}&=(50,75]    ,\\[2pt]
+I_{4}&=(75,100]   .
+\end{aligned}
+\]
+
+The strings that must be printed are  
+
+\[
+\begin{aligned}
+s_{1}&=\text{``Intervalo [0,25]''},\\
+s_{2}&=\text{``Intervalo (25,50]''},\\
+s_{3}&=\text{``Intervalo (50,75]''},\\
+s_{4}&=\text{``Intervalo (75,100]''},\\
+s_{\text{out}}&=\text{``Fora de intervalo''}.
+\end{aligned}
+\]
+
+---
+
+### Hoare triple (pre‑ / post‑condition)
+
+\[
+\boxed{
+\{\,\top\,\}\;\;
+\textbf{read }x;\;
+\textbf{if }x<0\;\lor\;x>100\;\textbf{then }msg:=s_{\text{out}}
+\;\textbf{elsif }0\le x\le 25\;\textbf{then }msg:=s_{1}
+\;\textbf{elsif }25< x\le 50\;\textbf{then }msg:=s_{2}
+\;\textbf{elsif }50< x\le 75\;\textbf{then }msg:=s_{3}
+\;\textbf{elsif }75< x\le 100\;\textbf{then }msg:=s_{4}
+\;\textbf{fi};\;
+\textbf{print }msg\;
+\{\,\Phi(x,msg)\,\}
+}
+\]
+
+where the **post‑condition** `Φ(x,msg)` is the disjunction that exactly captures the required mapping between the input value and the printed message:
+
+\[
+\begin{aligned}
+\Phi(x,msg) \equiv\;&
+\bigl(0\le x\le 25 \;\land\; msg = s_{1}\bigr) \;\;\lor\\[4pt]
+&\bigl(25 < x\le 50 \;\land\; msg = s_{2}\bigr) \;\;\lor\\[4pt]
+&\bigl(50 < x\le 75 \;\land\; msg = s_{3}\bigr) \;\;\lor\\[4pt]
+&\bigl(75 < x\le 100 \;\land\; msg = s_{4}\bigr) \;\;\lor\\[4pt]
+&\bigl((x<0 \;\lor\; x>100) \;\land\; msg = s_{\text{out}}\bigr).
+\end{aligned}
+\]
+
+---
+
+### Interpretation
+
+* **Pre‑condition** `⊤` says the program may be started with any real (or floating‑point) number `x`.  
+* **Post‑condition** `Φ(x,msg)` guarantees that after termination the printed string `msg` is exactly the one prescribed by the problem statement:
+
+| input range                | printed message (`msg`)                |
+|----------------------------|----------------------------------------|
+| \(0\le x\le 25\)           | “Intervalo \([0,25]\)”                |
+| \(25 < x \le 50\)          | “Intervalo \((25,50]\)”               |
+| \(50 < x \le 75\)          | “Intervalo \((50,75]\)”               |
+| \(75 < x \le 100\)         | “Intervalo \((75,100]\)”              |
+| \(x<0\) or \(x>100\)       | “Fora de intervalo”                    |
+
+* The program **terminates** (the conditional chain is finite and each branch ends with a `print`).  
+
+Thus the Hoare triple above is a complete formal specification (pre‑ and post‑conditions) of the required program.

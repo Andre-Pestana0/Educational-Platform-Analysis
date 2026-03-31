@@ -1,0 +1,24 @@
+Description: Find the longest common substring between the two informed Strings. The substring can be any part of the String, including the entire String. If there is no common substring, return 0. The search iscase sensitive('x' != 'X').
+
+Input: The input contains several test cases. Each test case is composed by two lines that contains a string each. Both input Strings will contain between 1 and 50, inclusive, letters (a-z, A-Z), and/or spaces.
+
+Output: The length of the longest common substring between the two Strings.
+
+Examples:
+- Example 1:
+  Input:
+abcdef
+cdofhij
+TWO
+FOUR
+abracadabra
+open
+Hey This java is hot
+Java is a new paradigm
+  Output:
+2
+1
+0
+7
+
+--

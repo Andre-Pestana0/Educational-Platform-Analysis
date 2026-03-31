@@ -1,0 +1,90 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “black‑box’’ that reads a single integer \(N\) and prints its Roman‑numeral representation).  
+Only the *pre‑condition* \(P\) and the *post‑condition* \(Q\) are given – the body of the program is omitted, because the request is for the formal specification, not for an implementation.
+
+---
+
+### Notation that will be used
+
+| Symbol | Meaning |
+|--------|---------|
+| \(\mathbb N\) | set of non‑negative integers |
+| \(\Sigma = \{ \text{I},\text{V},\text{X},\text{L},\text{C},\text{D},\text{M}\}\) | the alphabet of Roman‑numeral symbols (uppercase) |
+| \(\Sigma^{*}\) | set of all finite strings over \(\Sigma\) |
+| \(\operatorname{val} : \Sigma^{*} \to \mathbb N\) | the *standard Roman‑numeral value* function, defined by the usual additive/subtractive rule (e.g. \(\operatorname{val}(\text{IV}) = 4\), \(\operatorname{val}(\text{MCMXCIX}) = 1999\) etc.). |
+| \(\operatorname{canon} : \{1,\dots ,999\} \to \Sigma^{*}\) | the *canonical* Roman‑numeral representation (the one that the problem expects).  It is the unique string that satisfies the three classical Roman‑numeral constraints listed below. |
+| \(\operatorname{len}(s)\) | length of a string \(s\). |
+
+The canonical representation obeys the usual “no more than three repetitions’’ and “only the six subtractive pairs’’ rules:
+
+* **Repetition rule** – for any \(c\in\{\text{I},\text{X},\text{C},\text{M}\}\) we have \(\operatorname{len}(c^{k})\le 3\) in \(\operatorname{canon}(n)\); the symbols \(\text{V},\text{L},\text{D}\) never repeat.
+* **Subtractive rule** – the only allowed subtractive pairs are  
+  \(\text{IV}, \text{IX}, \text{XL}, \text{XC}, \text{CD}, \text{CM}\); no other “smaller‑before‑larger’’ pattern may appear.
+* **Order rule** – symbols appear in non‑increasing value order except for the allowed subtractive pairs.
+
+Because the domain is limited to \(1\le n\le 999\), the symbol **M** never occurs in the output, but we keep it in \(\Sigma\) for completeness.
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; \texttt{roman\_converter}\; \{\,Q\,\}}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+P \;\equiv\; N\in\mathbb N\;\wedge\;0<N<1000
+\]
+
+The program receives a **single** input variable \(N\) that is a positive integer strictly smaller than \(1000\).
+
+---
+
+### Post‑condition \(Q\)
+
+Let \(R\) be the string that the program writes to the output (the only observable effect of the program apart from termination).
+
+\[
+\begin{aligned}
+Q \;\equiv\; &\;R\in\Sigma^{*} \\
+            &\;\wedge\; \operatorname{val}(R)=N \\
+            &\;\wedge\; \bigl(R = \operatorname{canon}(N)\bigr) \\[2mm]
+            &\;\wedge\; \bigl(\forall i\in\{1,\dots ,\operatorname{len}(R)-1\}\;.\;
+                 \operatorname{val}(R[i])\ge\operatorname{val}(R[i+1])\bigr) \\
+            &\;\wedge\; \bigl(\text{the only substrings of }R\text{ of the form }xy
+                 \text{ with }\operatorname{val}(x)<\operatorname{val}(y)
+                 \text{ are } \text{IV},\text{IX},\text{XL},\text{XC},\text{CD},\text{CM}\bigr)
+\end{aligned}
+\]
+
+Explanation of the conjuncts:
+
+1. **Alphabet constraint** – the output consists only of the seven Roman‑numeral symbols, all in uppercase.
+2. **Numerical correctness** – interpreting the output as a Roman numeral yields exactly the input number \(N\).
+3. **Canonical form** – the output is the *unique* canonical representation \(\operatorname{canon}(N)\).  This guarantees that the program does **not** produce an alternative but still‑correct Roman numeral such as “IIII” for 4.
+4. **Monotonicity (order) rule** – except for the six allowed subtractive pairs, the values of successive symbols never increase.
+5. **Subtractive‑pair rule** – the only places where a smaller‑valued symbol may precede a larger‑valued one are the six standard subtractive combinations.
+
+Because the domain is limited to \(1\le N\le 999\), the canonical strings are exactly those shown in the examples:
+
+* \(\operatorname{canon}(666)=\text{DCLXVI}\)
+* \(\operatorname{canon}(83)=\text{LXXXIII}\)
+* \(\operatorname{canon}(999)=\text{CMXCIX}\)
+
+---
+
+## Full specification in Hoare‑logic notation
+
+\[
+\boxed{
+\{\,0<N<1000\,\}\;
+\texttt{read }N;
+\;R \gets \operatorname{canon}(N);\;
+\texttt{print }R\;
+\{\,R\in\Sigma^{*}\wedge\operatorname{val}(R)=N
+   \wedge R=\operatorname{canon}(N)\,\}
+}
+\]
+
+The **program** therefore satisfies the required functional contract: for every admissible input integer \(N\) ( \(0<N<1000\) ), it terminates and prints a single line containing the uppercase, canonical Roman‑numeral representation of \(N\).

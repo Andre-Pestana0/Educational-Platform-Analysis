@@ -1,0 +1,129 @@
+Below is a **Hoare‑logic style specification** for the whole program (reading the 10 numbers, correcting the array, and printing it).  
+All symbols are defined in the “Notation” block that follows the specification.
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; \texttt{prog}\; \{\,Q\,\}}
+\]
+
+where  
+
+* `prog` is the sequence  
+
+```
+read X[0..9];                     // 10 integers from the input
+for i := 0 to 9 do                // correction loop
+    if X[i] ≤ 0 then X[i] := 1
+    else skip
+    fi
+od;
+for i := 0 to 9 do                // printing loop
+    output  ("X[" ++ i ++ "] = " ++ X[i])
+od
+```
+
+* `P` (pre‑condition) describes the state **before** the program starts.  
+* `Q` (post‑condition) describes the state **after** the program terminates (including the produced output).
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\; &\bigl|X\bigr| = 10                                      &&\text{(the array has exactly 10 cells)}\\[2mm]
+            &\land\;\forall i\in\{0,\dots ,9\}\;.\;X[i]\in\mathbb Z   &&\text{(each cell contains an integer)}\\[2mm]
+            &\land\; \text{input consists of exactly 10 integers } 
+               (x^{\text{in}}_{0},\dots ,x^{\text{in}}_{9})          &&\text{(the numbers that will be read)} 
+\end{aligned}
+\]
+
+(We use the same identifier `X` for the *logical* array that will hold the values after the read; the values read are denoted \(x^{\text{in}}_{i}\).)
+
+---
+
+### Post‑condition  \(Q\)
+
+Let  
+
+* \(X^{0}\) denote the **initial** logical array, i.e.  
+  \(X^{0}[i] = x^{\text{in}}_{i}\) for every \(i\in\{0,\dots ,9\}\).
+
+* \(\operatorname{max}(a,b)\) be the usual maximum of two integers.
+
+* \(\text{out}\) be the finite sequence of strings that the program prints.
+
+Then  
+
+\[
+\begin{aligned}
+Q \;\equiv\; &\forall i\in\{0,\dots ,9\}\;.\;
+      X[i] = \operatorname{max}\bigl(1,\;X^{0}[i]\bigr)                &&\text{(correction of non‑positive entries)}\\[2mm]
+            &\land\;
+      \text{out}= \bigl\langle
+          \; “X[”\ \Vert\ i\ \Vert\ “] = ”\ \Vert\ X[i]\ \Vert\ ;
+          \; i=0,\dots ,9
+      \bigr\rangle                                    &&\text{(exact printing order)}\\[2mm]
+            &\land\;
+      \bigl|\text{out}\bigr| = 10                                   &&\text{(ten lines are produced)}
+\end{aligned}
+\]
+
+In words:
+
+* **Array condition** – after the correction loop each cell contains the original value if it was **strictly positive**, otherwise it contains `1`.  
+  This can be written also as  
+
+  \[
+  X[i]=\begin{cases}
+        1               &\text{if } X^{0}[i]\le 0,\\[1mm]
+        X^{0}[i]        &\text{if } X^{0}[i] > 0 .
+       \end{cases}
+  \]
+
+* **Output condition** – the program prints exactly ten lines, the \(i\)-th line being the literal string  
+
+  \[
+  \text{“X[}i\text{] = }X[i]\text{”}
+  \]
+
+  (concatenation of the characters “X[”, the decimal representation of `i`, “] = ” and the decimal representation of the final value stored in `X[i]`).
+
+---
+
+## Notation used
+
+| Symbol | Meaning |
+|--------|---------|
+| \(\{\,P\,\}\;C\;\{\,Q\,\}\) | Hoare triple: if the pre‑condition \(P\) holds before executing command \(C\), then upon termination the post‑condition \(Q\) holds. |
+| \(|X|\) | Length of the array \(X\). |
+| \(\mathbb Z\) | Set of all integers. |
+| \(\forall i\in S.\, \phi(i)\) | “For every \(i\) in the set \(S\), the formula \(\phi(i)\) holds”. |
+| \(\operatorname{max}(a,b)\) | The larger of the two integers \(a\) and \(b\). |
+| \(X^{0}\) | Logical name for the **initial** content of the array (the values read from input). |
+| \(\|\text{out}\|\) | Length of the output sequence (number of printed lines). |
+| \(\langle\;e_{0},e_{1},\dots ,e_{n}\;\rangle\) | Finite sequence (ordered list) of the elements \(e_{k}\). |
+| “\(\Vert\)” | String concatenation operator (used inside the definition of the output sequence). |
+| `i` | Loop index ranging over the set \(\{0,\dots ,9\}\). |
+
+---
+
+### Full Hoare specification
+
+\[
+\boxed{
+\{\,P\,\}\;
+\texttt{read }X[0..9];
+\; \texttt{for }i:=0\texttt{ to }9\texttt{ do }
+   \bigl(\texttt{if }X[i]\le 0\texttt{ then }X[i]:=1\texttt{ else skip}\bigr)
+\texttt{ od };
+\; \texttt{for }i:=0\texttt{ to }9\texttt{ do }
+   \texttt{output }("X["\Vert i\Vert "] = "\Vert X[i])
+\texttt{ od }
+\;\{\,Q\,\}}
+\]
+
+The triple states precisely what the program must achieve: **read** ten integers, **replace** each non‑positive entry by `1`, and **print** the resulting array in the required format.

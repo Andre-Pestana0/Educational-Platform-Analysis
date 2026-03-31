@@ -1,0 +1,34 @@
+Description: Often, when we round a real valued number to an integer, we round up if the fractional part is 0.5 or greater, and down if the fractional part is less than 0.5. In this problem, you have to write a method round, which takes a real valued number as a String,num, and a cutoff as a String,cutoff.cutoffwill be formatted exactly as"0.####", where each'#'represents a digit ('0'-'9'). At least one of the digits to the right of the decimal point incutoffwill be non-zero. Your task is to roundnumup if its fractional part is greater than cutoff, and down otherwise, and return the result as an int. To avoid issues with double imprecision, the fractional part ofnumwill not be exactly equal tocutoff. Hence, the traditional rounding method described in
+                    the opening sentence would be represented by cutoff = "0.5000".
+
+Input: The input contains several test cases. Each one is given in two lines. Thenumstring is at the first line and thecutoffis at the second line.numwill be a sequence of one or more digits ('0'-'9'), with an optional decimal point ('.').numwill contain between 1 and 10 characters, inclusive.cutoffwill be formatted exactly as "0.####", where each '#' represents a digit ('0'-'9'). The fractional part ofnumwill NOT be exactly equal tocutoff.
+
+Output: Your program should output one line to each test case. This line contains only the integer part ofnumrounded up or down according to the givencutoff.
+
+Examples:
+- Example 1:
+  Input:
+003.656930
+0.5000
+.001
+0.0001
+1.99999999
+0.9999
+135
+0.6531
+135.
+0.6531
+1356.13671
+0.1367
+0.00010001
+0.0001
+  Output:
+4
+1
+2
+135
+135
+1357
+1
+
+--

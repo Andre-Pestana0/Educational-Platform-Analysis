@@ -1,0 +1,142 @@
+Below is a **Hoare‑logic style specification** (pre‑condition \(P\), loop invariant \(I\), and post‑condition \(Q\)) for a program that reads a list of integers and prints, for each one, whether it is *perfect* in the mathematical sense.
+
+---
+
+### 1.  Auxiliary definitions  
+
+*Divisors* of a positive integer \(x\)
+
+\[
+\operatorname{Div}(x)=\{\,d\in\mathbb N \mid 1\le d < x\ \wedge\ d\mid x \,\}.
+\]
+
+*Perfect‑number predicate*
+
+\[
+\operatorname{Perfect}(x)\;\stackrel{\text{def}}{\iff}\;
+\sum_{d\in\operatorname{Div}(x)} d \;=\; x .
+\tag{1}
+\]
+
+*Output string for a given \(x\)*  
+
+\[
+\operatorname{Msg}(x)=
+\begin{cases}
+\text{``}x\ \text{eh perfeito''}      &\text{if }\operatorname{Perfect}(x),\\[4pt]
+\text{``}x\ \text{nao eh perfeito''} &\text{otherwise.}
+\end{cases}
+\tag{2}
+\]
+
+---
+
+### 2.  Variables used by the program  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(N\)   | number of test cases (input) |
+| \(X_1,\dots ,X_N\) | the \(N\) input integers |
+| \(i\)   | loop counter (0‑based) |
+| \(O_1,\dots ,O_N\) | the sequence of strings printed by the program |
+
+All variables are **immutable** except the loop counter \(i\) (which is updated by the loop).
+
+---
+
+### 3.  Pre‑condition \(P\)
+
+\[
+\boxed{
+P\;:\;
+\begin{aligned}
+& N\in\mathbb N,\qquad 1\le N\le 100,\\
+& \forall k\;(1\le k\le N)\;:\; X_k\in\mathbb N,\; 1\le X_k\le 10^{8}.
+\end{aligned}
+}
+\tag{3}
+\]
+
+The pre‑condition states that the input respects the limits given in the problem statement.
+
+---
+
+### 4.  Loop invariant \(I(i)\)
+
+The program processes the test cases one after another.  
+For a given value of the loop counter \(i\) (the number of already processed cases) we define
+
+\[
+\boxed{
+I(i)\;:\;
+\begin{aligned}
+&0\le i\le N,\\[2pt]
+&\forall k\;(1\le k\le i)\;:\;O_k = \operatorname{Msg}(X_k).
+\end{aligned}
+}
+\tag{4}
+\]
+
+Interpretation  
+
+* all already‑handled indices \(k\le i\) have an output string that is exactly the one prescribed by \(\operatorname{Msg}\);  
+* the remaining indices \(k>i\) have not been examined yet.
+
+---
+
+### 5.  Post‑condition \(Q\)
+
+When the loop terminates (\(i = N\)) the whole output must be correct:
+
+\[
+\boxed{
+Q\;:\;
+\forall k\;(1\le k\le N)\;:\;O_k = \operatorname{Msg}(X_k).
+}
+\tag{5}
+\]
+
+Equivalently, the program prints for each input integer \(X_k\) the sentence “\(X_k\) eh perfeito’’ **iff** \(\operatorname{Perfect}(X_k)\) holds, and “\(X_k\) nao eh perfeito’’ otherwise.
+
+---
+
+### 6.  Full Hoare triple
+
+Putting the pieces together, the whole program (pseudocode below) satisfies the Hoare triple  
+
+\[
+\{P\}\; \textbf{read } N;\; i:=0;\\
+\mathbf{while}\; i<N\; \mathbf{do}\\
+\qquad\textbf{read } X_{i+1};\\
+\qquad\mathbf{if}\;\operatorname{Perfect}(X_{i+1})\;\mathbf{then}\\
+\qquad\qquad\textbf{print } \text{``}X_{i+1}\ \text{eh perfeito''};\\
+\qquad\mathbf{else}\\
+\qquad\qquad\textbf{print } \text{``}X_{i+1}\ \text{nao eh perfeito''};\\
+\qquad\mathbf{fi};\\
+\qquad i:=i+1;\\
+\mathbf{od}\; \{Q\}
+\]
+
+The **loop invariant** (4) is established before the first iteration (trivially true for \(i=0\)), preserved by the body of the loop (the body computes \(\operatorname{Perfect}(X_{i+1})\) and prints the appropriate message), and together with the termination condition \(i=N\) yields the post‑condition \(Q\).
+
+---
+
+### 7.  Summary in compact notation  
+
+\[
+\boxed{
+\begin{aligned}
+&\{P\}\;\text{read }N; i:=0;\\
+&\;\;\mathbf{while}\; i<N\;\mathbf{do}\\
+&\qquad\text{read }X_{i+1};\\
+&\qquad\mathbf{if}\;\operatorname{Perfect}(X_{i+1})\;\mathbf{then}\\
+&\qquad\qquad\text{print } \operatorname{Msg}(X_{i+1})\\
+&\qquad\mathbf{else}\\
+&\qquad\qquad\text{print } \operatorname{Msg}(X_{i+1})\\
+&\qquad\mathbf{fi};\; i:=i+1\\
+&\mathbf{od}\;\{Q\}
+\end{aligned}
+}
+\]
+
+where \(P\) is (3), the invariant \(I(i)\) is (4), and the final condition \(Q\) is (5). This formal specification captures **exactly** the behaviour requested in the natural‑language problem statement.

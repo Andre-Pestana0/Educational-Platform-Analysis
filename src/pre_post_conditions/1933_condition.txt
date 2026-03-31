@@ -1,0 +1,73 @@
+Below is a **Hoare‑logic style specification** for the program that solves the “Tri‑du” problem.  
+Only the *pre‑condition* (what is assumed about the input) and the *post‑condition* (what must hold after the program terminates) are given; the body of the program is left implicit.
+
+---
+
+### 1.  Notation
+
+| Symbol | Meaning |
+|--------|---------|
+| `a , b` | the two card values read from the input (ordered as they appear). |
+| `c`     | the integer written to the output (the program’s result). |
+| `ℕ₁₃`   | the set `{1,2,…,13}` – the admissible card values. |
+| `max(x,y)` | the usual maximum function on integers: `max(x,y)=x` if `x≥y`, otherwise `max(x,y)=y`. |
+| `⊢`    | the Hoare‑logic turnstile, i.e. “the program satisfies the triple”. |
+| `{P}`   | a *pre‑condition* (assertion that must be true before execution). |
+| `{Q}`   | a *post‑condition* (assertion that must be true after normal termination). |
+| `→`    | logical implication. |
+| `∧`    | logical conjunction. |
+| `=`    | equality of integers. |
+
+---
+
+### 2.  Pre‑condition  
+
+The program receives **exactly two** integers, each representing a card value.  
+Both must lie in the allowed range and the input must be well‑formed (no extra tokens, no missing tokens).
+
+\[
+\boxed{P\;\equiv\; \bigl(a\in\mathbb{N}_{13}\bigr)\;\land\;\bigl(b\in\mathbb{N}_{13}\bigr)\;}
+\]
+
+In words: *“The input consists of two integers `a` and `b` such that `1 ≤ a ≤ 13` and `1 ≤ b ≤ 13`.”*
+
+---
+
+### 3.  Post‑condition  
+
+The program must output a **single integer** `c` that is the card value giving the highest probability of winning.  
+For the Tri‑du game this value is simply the larger of the two cards (if they are equal, either card works, but we return that common value).
+
+\[
+\boxed{Q\;\equiv\; \bigl(c\in\mathbb{N}_{13}\bigr)\;\land\; \bigl(c = \max(a,b)\bigr)}
+\]
+
+In words: *“The output integer `c` belongs to the same domain `{1,…,13}` and equals the maximum of the two input values.”*
+
+---
+
+### 4.  Hoare Triple  
+
+Putting the two assertions together, the formal specification of the whole program (let us denote the program by `TriDu`) is
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{TriDu}\;\; \{\,Q\,\}}
+\]
+
+or, expanded:
+
+\[
+\{\,a\in\mathbb{N}_{13}\;\land\;b\in\mathbb{N}_{13}\,\}\;
+\texttt{TriDu}
+\;\{\,c\in\mathbb{N}_{13}\;\land\;c=\max(a,b)\,\}
+\]
+
+---
+
+### 5.  Remarks  
+
+* **Determinism** – The specification forces a *unique* result (`c = max(a,b)`). If the implementation were to choose any value in `{a,b}` when `a = b`, the post‑condition still holds because `max(a,b) = a = b`.  
+* **Total correctness** – The pre‑condition guarantees that the program can read the two numbers without error; the post‑condition guarantees that after termination the produced line satisfies the problem’s requirement.  
+* **Absence of side‑effects** – No other variables are observable after termination; only the output line matters.
+
+The above Hoare‑logic specification completely captures the intended behaviour of the “Tri‑du” solver in a mathematically precise way.

@@ -1,0 +1,30 @@
+Menor valor: -10
+Posicao: 0
+
+Menor valor: -10
+Posicao: 1
+
+Menor valor: -2
+Posicao: 3
+
+Menor valor: 1
+Posicao: 0
+
+Menor valor: 0
+Posicao: 3
+
+Menor valor: 0
+Posicao: 2
+
+Menor valor: 1
+Posicao: 998
+
+Menor valor: 0
+Posicao: 499
+
+Menor valor: -2147483648
+Posicao: 0
+
+Menor valor: -400
+Posicao: 3
+

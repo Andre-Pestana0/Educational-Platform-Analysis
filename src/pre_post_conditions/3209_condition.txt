@@ -1,0 +1,105 @@
+Below is a **Hoare‑logic style specification** of the program that solves the “single‑wall‑outlet / power‑strip” problem.  
+Only the *pre‑condition* (what we are allowed to assume about the input) and the *post‑condition* (what the program must guarantee about the output) are given; the body of the program is omitted because the request is for a formal specification, not an implementation.
+
+---
+
+## 1. Notation
+
+| Symbol | Meaning |
+|--------|---------|
+| `N` | Number of test cases. |
+| `K_t` | Number of power strips in test case `t` ( `1 ≤ t ≤ N` ). |
+| `O_{t,i}` | Number of outlets on the *i*‑th strip of test case `t` ( `1 ≤ i ≤ K_t` ). |
+| `Σ_{i=1}^{K_t} O_{t,i}` | Sum of the outlets of all strips in test case `t`. |
+| `max(t)` | The value that must be printed for test case `t`. |
+| `output[t]` | The *t*‑th line produced by the program (the integer printed for that test case). |
+| `⌊·⌋` | Integer floor (not needed here but kept for completeness). |
+| `⊢` | Hoare‑logic turnstile, i.e. “{Pre} Program {Post}”. |
+| `∀`, `∃` | Universal / existential quantifiers. |
+| `∈` | Set membership. |
+| `ℕ` | Set of non‑negative integers (`0,1,2,…`). |
+| `ℕ⁺` | Set of positive integers (`1,2,…`). |
+| `ℤ` | Set of all integers. |
+
+All input data are assumed to be read from **standard input** and all output to be written to **standard output**.
+
+---
+
+## 2. Pre‑condition `P`
+
+The program may be started **only** when the input satisfies the constraints given in the statement.
+
+\[
+\begin{aligned}
+P \;\equiv\;& 
+\bigl( N \in \mathbb{N} \;\wedge\; 1 \le N \le 20 \bigr) \;\wedge \\
+&\forall t \in \{1,\dots,N\} \;.\;
+\bigl( K_t \in \mathbb{N} \;\wedge\; 1 \le K_t \le 10 \bigr) \;\wedge \\
+&\qquad\qquad\forall i \in \{1,\dots,K_t\}\;.\;
+\bigl( O_{t,i} \in \mathbb{N} \;\wedge\; 2 \le O_{t,i} \le 10 \bigr).
+\end{aligned}
+\]
+
+In words:
+
+* There is a positive integer `N` ( ≤ 20 ) that tells how many test cases follow.
+* For each test case `t` there is a positive integer `K_t` ( ≤ 10 ) that tells how many power strips are present.
+* For each strip `i` in that test case the number of outlets `O_{t,i}` is an integer between 2 and 10 inclusive.
+
+The input is *well‑formed*: the numbers appear in the exact order described (first `N`, then for each test case the integer `K_t` followed by `K_t` outlet‑counts on the same line).
+
+---
+
+## 3. Post‑condition `Q`
+
+The program must produce exactly `N` output lines, one per test case, and each line must contain the **maximum number of appliances that can be powered simultaneously** for the corresponding test case.
+
+For a single test case `t` the maximum number of appliances, denoted `max(t)`, can be derived mathematically as follows.
+
+*When a strip is plugged into another strip (or into the wall‑outlet) it occupies **one** of the receiving strip’s outlets.*  
+Therefore each strip “consumes” one outlet, except the *last* strip in the chain, which is plugged directly into the wall. Hence the total usable outlets are
+
+\[
+\begin{aligned}
+max(t) &=
+\Bigl(\sum_{i=1}^{K_t} O_{t,i}\Bigr) \;-\; (K_t - 1).
+\end{aligned}
+\]
+
+The post‑condition therefore requires that the program’s output exactly matches this value for every test case.
+
+\[
+\begin{aligned}
+Q \;\equiv\;&
+\bigl( \text{the program writes exactly } N \text{ lines to stdout} \bigr) \;\wedge\\
+&\forall t \in \{1,\dots,N\}\;.\;
+\bigl( output[t] = max(t) \bigr)\\[4pt]
+\text{where } & max(t) = \Bigl(\sum_{i=1}^{K_t} O_{t,i}\Bigr) - (K_t-1).
+\end{aligned}
+\]
+
+---
+
+## 4. Hoare Triple
+
+Putting the two parts together, the **formal specification** of the whole program is the Hoare triple
+
+\[
+\boxed{
+\{\,P\,\}\;\; \textbf{solve\_max\_appliances} \;\; \{\,Q\,\}
+}
+\]
+
+where `solve_max_appliances` denotes the (unspecified) algorithm that reads the input, computes the expression above for each test case, and prints the results.
+
+---
+
+## 5. Remarks (optional)
+
+* The expression `Σ O_{t,i} - (K_t-1)` is the well‑known “plug‑in‑chain” formula for power strips.  
+* Because all quantities are bounded by small constants ( `N ≤ 20`, `K_t ≤ 10`, `O_{t,i} ≤ 10` ), the value of `max(t)` is guaranteed to fit in a 32‑bit signed integer (the worst case is `K_t = 10`, each `O_{t,i}=10` → `max = 10·10 - 9 = 91`).  
+* The specification is **total**: for every input satisfying `P` the program is required to terminate and produce an output satisfying `Q`.  
+
+--- 
+
+That completes the required formal (pre‑/post‑condition) specification in mathematical notation.

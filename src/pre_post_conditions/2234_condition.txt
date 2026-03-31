@@ -1,0 +1,82 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “read‑compute‑print” fragment).  
+Only the **pre‑condition** (what must hold before the program starts) and the **post‑condition** (what is guaranteed after the program terminates) are given – the body of the program is left abstract (it can be any sequence of statements that respects the specification).
+
+---
+
+### Notation used  
+
+* `ℤ` – set of integers, `ℚ` – set of rational numbers, `ℝ` – set of real numbers.  
+* `⌊x⌋` – floor (greatest integer ≤ x).  
+* `round(x) ≜ ⌊x+½⌋` – the usual “round‑to‑nearest‑integer, ties up” function.  
+* `format₂(r)` – the *canonical* decimal representation of a rational number `r` **with exactly two digits after the decimal point** (e.g. `format₂(0.1) = "0.10"`).  
+* `output` – the string that the program writes to standard output.  
+* `H` and `P` – the two integer variables read from the input line.  
+
+---
+
+## Hoare triple  
+
+\[
+\boxed{\{\,\text{Pre}\,\}\; \textbf{Prog}\; \{\,\text{Post}\,\}}
+\]
+
+### Pre‑condition  
+
+\[
+\text{Pre}\; \equiv\;
+\begin{aligned}
+& H,\,P \in \mathbb Z \\
+& 1 \le H \le 1000 \\
+& 1 \le P \le 1000                \tag{1}
+\end{aligned}
+\]
+
+(Condition (1) guarantees that the input line is well‑formed and that division by zero never occurs.)
+
+### Post‑condition  
+
+\[
+\text{Post}\; \equiv\;
+\begin{aligned}
+&\exists\, r \in \mathbb Q \;.\;
+   r = \frac{\operatorname{round}\!\bigl(\frac{H}{P}\cdot 100\bigr)}{100}
+   \;\land\;
+   \text{output}= \operatorname{format}_{2}(r)                \tag{2}
+\end{aligned}
+\]
+
+Explanation of (2):
+
+* `\frac{H}{P}` is the exact (real) average number of hot‑dogs per participant.  
+* Multiplying by 100, rounding to the nearest integer, and dividing back by 100 yields the **rounded‑to‑two‑decimals** value `r`.  
+* `format₂(r)` is the textual representation of `r` that contains **exactly two digits after the decimal point** (the required output format).  
+
+Thus the program, when started in a state satisfying (1), terminates with the string `output` that is precisely the required average, correctly rounded and formatted.
+
+---
+
+## Full specification in Hoare‑logic style  
+
+\[
+\boxed{
+\{\,1\le H\le 1000 \land 1\le P\le 1000\,\}
+\;
+\begin{array}{l}
+\textbf{read } H, P;\\[2pt]
+\textbf{avg} \;\gets\; H/P;\\[2pt]
+\textbf{r}   \;\gets\; \dfrac{\operatorname{round}(\textbf{avg}\times 100)}{100};\\[2pt]
+\textbf{output} \;\gets\; \operatorname{format}_{2}(\textbf{r});\\[2pt]
+\textbf{print } \textbf{output}
+\end{array}
+\;
+\{\,\exists r\in\mathbb Q.\; r = \frac{\operatorname{round}\bigl(\frac{H}{P}\cdot100\bigr)}{100}\;\land\;
+          \textbf{output}= \operatorname{format}_{2}(r)\,\}
+}
+\]
+
+The triple above captures **exactly** what the problem statement demands:
+
+* the input constraints,
+* the computation of the average,
+* rounding to the nearest hundredth,
+* and the production of a decimal string with two fractional digits.

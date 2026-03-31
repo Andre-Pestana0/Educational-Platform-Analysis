@@ -1,0 +1,266 @@
+Below is a **pure Hoare‑logic specification** (pre‑condition / post‑condition pairs together with the loop invariants that make the triples provable).  
+All the mathematical symbols are written in standard set‑theoretic / first‑order notation; the program is abstracted as a collection of commands that manipulate the following logical variables:
+
+| Logical variable | Meaning |
+|------------------|------------------------------------------|
+| `I = ⟨i₁,i₂,…⟩`  | the (infinite) input stream, each `iₖ ∈ ℝ ∪ ℤ` |
+| `pos ∈ ℕ`        | the current position in `I` (the next element to be read) |
+| `out = ⟨o₁,o₂,…⟩`| the output stream that the program builds, each `oₖ` a string |
+| `s₁ , s₂ ∈ ℝ`    | the two *valid* scores that have been read in the current “calculation” |
+| `avg ∈ ℝ`        | the semester average ` (s₁+s₂)/2 ` |
+| `X ∈ ℤ`          | the integer that follows the two valid scores (the *continue* flag) |
+| `stop ∈ {false,true}` | `true` iff the whole program has terminated (`X = 2`) |
+
+We also need a predicate that tells whether a real number is a **legal score**:
+
+\[
+\text{ValidScore}(v)\;\;\stackrel{\text{def}}{\Longleftrightarrow}\;0\le v\le 10 .
+\]
+
+--------------------------------------------------------------------
+### 1.   Whole program (outermost loop)
+
+```
+while (stop = false) do
+      READ‑SCORES
+      PRINT‑AVERAGE
+      READ‑X
+      PRINT‑PROMPT
+end while
+```
+
+*Pre‑condition* (what is known before the program starts)
+
+\[
+P_{\text{prog}} \;=\; \bigl(pos = 0 \;\wedge\; out = \langle\rangle \;\wedge\; stop = false\bigr)
+\]
+
+*Post‑condition* (what must hold when the program finishes)
+
+\[
+Q_{\text{prog}} \;=\; 
+\begin{cases}
+\text{out is exactly the sequence described in the statement,}\\[2mm]
+\text{and the last value read for }X\text{ equals }2,\\[2mm]
+\text{and }stop = true .
+\end{cases}
+\]
+
+The outer loop is proved with the invariant  
+
+\[
+\boxed{
+\mathcal I_{\text{outer}} \;=\;
+\bigl(stop = false\bigr)
+\;\wedge\;
+\bigl(pos \text{ points to the first unread item of } I\bigr)
+\;\wedge\;
+\bigl(out \text{ contains the correct output for all previous calculations}\bigr)
+}
+\]
+
+*Hoare triple* for the outer loop  
+
+\[
+\{P_{\text{prog}}\}\;
+\mathbf{while}\;(stop = false)\;\mathbf{do}\;C_{\text{outer}}\;
+\{Q_{\text{prog}}\}
+\]
+
+where `C_outer` is the body described by the four commands listed above.  
+The invariant is obviously preserved by each command (proved below) and when the guard becomes false we have `stop = true`, i.e. `X = 2`, which yields the required post‑condition.
+
+--------------------------------------------------------------------
+### 2.   Command **READ‑SCORES** (two inner loops, one per score)
+
+```
+s₁ ← readScore()
+s₂ ← readScore()
+```
+
+The procedure `readScore()` is defined as
+
+```
+repeat
+      v ← next(I,pos)                // read next number, advance pos
+      if ValidScore(v) then
+            return v
+      else
+            out := out ⧺ ⟨"nota invalida"⟩
+      end if
+until false
+```
+
+*Pre‑condition* for a single invocation  
+
+\[
+P_{\text{read}} \;=\; \bigl(pos < |I|\bigr) .
+\]
+
+*Post‑condition*  
+
+\[
+Q_{\text{read}}(v) \;=\;
+\bigl(
+   \text{ValidScore}(v) \;\wedge\;
+   out = out_{old} \;\cup\; \bigl\langle\underbrace{\text{"nota invalida"}}_{\text{once for each rejected value}}\bigr\rangle^{k}
+   \bigr)
+\]
+
+where `k ≥ 0` is the number of invalid values that were encountered before the first valid one, and `pos` has been increased by `k+1`.
+
+*Loop invariant* for `readScore`  
+
+\[
+\boxed{
+\mathcal I_{\text{read}} \;=\;
+\bigl(pos \le |I|\bigr) \;\wedge\;
+\bigl(\text{out contains exactly the messages printed for the values }i_{old},\dots,i_{pos-1}\bigr)
+}
+\]
+
+*Hoare triple*  
+
+\[
+\{P_{\text{read}}\}\; \mathbf{repeat}\;S_{\text{read}}\; \mathbf{until}\; \text{ValidScore}(v)\; \{Q_{\text{read}}(v)\}.
+\]
+
+Applying the triple twice yields the values `s₁` and `s₂` that satisfy  
+
+\[
+\text{ValidScore}(s₁) \;\wedge\; \text{ValidScore}(s₂) .
+\]
+
+--------------------------------------------------------------------
+### 3.   Command **PRINT‑AVERAGE**
+
+```
+avg ← (s₁ + s₂)/2
+out := out ⧺ ⟨ "media = " ⧺ format(avg,2) ⟩
+```
+
+*Pre‑condition*  
+
+\[
+P_{\text{avg}} \;=\; \bigl(\text{ValidScore}(s₁) \wedge \text{ValidScore}(s₂)\bigr) .
+\]
+
+*Post‑condition*  
+
+\[
+Q_{\text{avg}} \;=\; 
+\bigl(
+   avg = \frac{s₁+s₂}{2} \;\wedge\;
+   out = out_{old} \;\cup\; \bigl\langle\text{"media = "} \; \|\,\text{avg with two decimals}\,\|\bigr\rangle
+\bigr).
+\]
+
+The triple is immediate because the command is a straight‑line assignment followed by a pure concatenation.
+
+--------------------------------------------------------------------
+### 4.   Command **READ‑X** (the “continue?” flag)
+
+```
+repeat
+      X ← next(I,pos)                // integer read, advance pos
+      if X = 1 ∨ X = 2 then
+            stop ← (X = 2)
+            break
+      else
+            out := out ⧺ ⟨"novo calculo (1-sim 2-nao)"⟩
+      end if
+until false
+```
+
+*Pre‑condition*  
+
+\[
+P_{\text{readX}} \;=\; pos < |I| .
+\]
+
+*Post‑condition*  
+
+\[
+Q_{\text{readX}} \;=\;
+\bigl(
+   X \in \{1,2\} \;\wedge\;
+   \bigl(stop = (X=2)\bigr) \;\wedge\;
+   out = out_{old} \;\cup\; \bigl\langle\underbrace{\text{"novo calculo (1-sim 2-nao)"} }_{\text{once for each illegal X}}\bigr\rangle^{m}
+\bigr)
+\]
+
+with `m ≥ 0` the number of illegal integers read before the first legal one.
+
+*Loop invariant*  
+
+\[
+\boxed{
+\mathcal I_{\text{readX}} \;=\;
+\bigl(pos \le |I|\bigr) \;\wedge\;
+\bigl(\text{out contains exactly the prompts printed for the values }i_{old},\dots,i_{pos-1}\bigr)
+}
+\]
+
+*Hoare triple*  
+
+\[
+\{P_{\text{readX}}\}\; \mathbf{repeat}\;S_{\text{readX}}\; \mathbf{until}\;(X=1\vee X=2)\; \{Q_{\text{readX}}\}.
+\]
+
+--------------------------------------------------------------------
+### 5.   Command **PRINT‑PROMPT**
+
+```
+out := out ⧺ ⟨ "novo calculo (1-sim 2-nao)" ⟩
+```
+
+*Pre‑condition*  
+
+\[
+P_{\text{prompt}} \;=\; \top .
+\]
+
+*Post‑condition*  
+
+\[
+Q_{\text{prompt}} \;=\; out = out_{old} \;\cup\; \bigl\langle\text{"novo calculo (1-sim 2-nao)"}\bigr\rangle .
+\]
+
+--------------------------------------------------------------------
+### 6.   Putting the pieces together
+
+Define the **whole program command**  
+
+\[
+C_{\text{prog}} \;=\;
+\mathbf{while}\;(stop = false)\;\mathbf{do}\;
+\bigl(
+   s₁ \gets \text{readScore}();\;
+   s₂ \gets \text{readScore}();\;
+   \text{PRINT‑AVERAGE};\;
+   X \gets \text{readX}();\;
+   \text{PRINT‑PROMPT}
+\bigr)
+\]
+
+The final Hoare triple that fully captures the specification is
+
+\[
+\boxed{
+\{\,pos = 0 \;\wedge\; out = \langle\rangle \;\wedge\; stop = false\,\}\;
+C_{\text{prog}}\;
+\{\,\text{out is exactly the sequence required by the statement } \wedge\; X = 2 \wedge\; stop = true\,\}
+}
+\]
+
+--------------------------------------------------------------------
+### 7.   Intuitive reading of the specification
+
+* **Pre‑condition** – before the program starts we know nothing about the input except that the input stream exists; the output buffer is empty and the termination flag is false.
+* **Post‑condition** – when the program terminates the output buffer contains, in order,
+  1. a line `"nota invalida"` for every score that was outside `[0,10]`,
+  2. a line `"media = <average>"` (average printed with two decimal digits) for each *pair* of valid scores,
+  3. a line `"novo calculo (1-sim 2-nao)"` after each integer read, repeated as many times as the user entered a value different from `1` or `2`,
+  4. and finally the last integer read is `2` (so the user chose *não* to continue).
+
+All the intermediate invariants guarantee that each component of the program respects the required behaviour, which is exactly the formal Hoare‑logic description of the natural‑language problem.

@@ -1,0 +1,45 @@
+Media: 0.0
+Aluno reprovado.
+
+Media: 10.0
+Aluno aprovado.
+
+Media: 7.0
+Aluno aprovado.
+
+Media: 5.0
+Aluno em exame.
+Nota do exame: 5.0
+Aluno aprovado.
+Media final: 5.0
+
+Media: 6.9
+Aluno em exame.
+Nota do exame: 0.0
+Aluno reprovado.
+Media final: 3.5
+
+Media: 4.9
+Aluno reprovado.
+
+Media: 7.1
+Aluno aprovado.
+
+Media: 6.9
+Aluno em exame.
+Nota do exame: 6.0
+Aluno aprovado.
+Media final: 6.4
+
+Media: 5.5
+Aluno em exame.
+Nota do exame: 4.5
+Aluno aprovado.
+Media final: 5.0
+
+Media: 5.0
+Aluno em exame.
+Nota do exame: 4.0
+Aluno reprovado.
+Media final: 4.5
+

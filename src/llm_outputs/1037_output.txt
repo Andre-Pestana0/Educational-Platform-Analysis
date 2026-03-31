@@ -1,0 +1,32 @@
+Fora de intervalo
+
+Intervalo [0,25]
+
+Intervalo [0,25]
+
+Intervalo (25,50]
+
+Intervalo (25,50]
+
+Intervalo (50,75]
+
+Intervalo (50,75]
+
+Intervalo (75,100]
+
+Intervalo (75,100]
+
+Fora de intervalo
+
+Fora de intervalo
+
+Fora de intervalo
+
+Intervalo [0,25]
+
+Intervalo (25,50]
+
+Intervalo (50,75]
+
+Intervalo (75,100]
+

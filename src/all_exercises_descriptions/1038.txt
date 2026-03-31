@@ -1,0 +1,26 @@
+Description: Using the following table, write a program that reads a code and the amount of an item. After, print the value to pay. This is a very simple program with the only intention of practice of selection commands.
+
+Input: The input file contains two integer numbersXandY.Xis the product code andYis the quantity of this item according to the above table.
+
+Output: The output must be a message "Total: R$ " followed by the total value to be paid, with 2 digits after the decimal point.
+
+Examples:
+- Example 1:
+  Input:
+3 2
+  Output:
+Total: R$ 10.00
+
+- Example 2:
+  Input:
+4 3
+  Output:
+Total: R$ 6.00
+
+- Example 3:
+  Input:
+2 3
+  Output:
+Total: R$ 13.50
+
+--

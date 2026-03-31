@@ -1,0 +1,110 @@
+Below is a **Hoare‑logic specification** for the program that reads an integer *N* and prints the smallest possible set of Brazilian bank‑notes ( 100, 50, 20, 10, 5, 2, 1 ) that compose *N*.
+
+---
+
+### 1.  Notation  
+
+* Let  
+
+\[
+\mathbf d = (d_1,d_2,\dots ,d_7) = (100,50,20,10,5,2,1)
+\]
+
+be the ordered list of admissible denominations.  
+
+* For a given input value *N* we denote the **output vector** of note‑quantities by  
+
+\[
+\mathbf c = (c_1,c_2,\dots ,c_7)\in\mathbb N^7 .
+\]
+
+* Define the **remaining amount after the first *i* denominations** recursively:
+
+\[
+\begin{aligned}
+r_0 &:= N,\\[2mm]
+c_i &:= \Big\lfloor\frac{r_{i-1}}{d_i}\Big\rfloor ,\qquad i=1,\dots ,7,\\[2mm]
+r_i &:= r_{i-1} - c_i\;d_i .
+\end{aligned}
+\]
+
+Thus  
+
+\[
+r_i = N-\sum_{j=1}^{i}c_j d_j\quad\text{and}\quad 0\le r_i < d_i .
+\]
+
+* The **total number of notes** used is  
+
+\[
+\| \mathbf c\|_1 = \sum_{i=1}^{7}c_i .
+\]
+
+* The **output text** produced by the program is  
+
+\[
+\text{out}= \bigl(N,\; (c_1\text{ “nota(s) de R\$ }d_1,00”),\dots ,(c_7\text{ “nota(s) de R\$ }d_7,00”)\bigr)
+\]
+
+where each line ends with a line‑break (EOL).
+
+---
+
+### 2.  Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\; \texttt{program}\; \{\,Q\,\}}
+\]
+
+#### Pre‑condition  \(P\)
+
+\[
+P \;:\; N\in\mathbb Z\;\land\;0<N<10^{6}.
+\]
+
+(Only a single integer is read from the input file.)
+
+#### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \;:\; &\exists \mathbf c\in\mathbb N^{7}\;.\;
+\bigl(\forall i\in\{1,\dots ,7\}\;.\;c_i = \big\lfloor\frac{r_{i-1}}{d_i}\big\rfloor\bigr) \\
+&\land\bigl(r_7 = 0\bigr)                                   \tag{1}\\[2mm]
+&\land\bigl(\sum_{i=1}^{7}c_i d_i = N\bigr)                \tag{2}\\[2mm]
+&\land\bigl(\forall \mathbf c'\in\mathbb N^{7}\;.\;
+\bigl(\sum_{i=1}^{7}c'_i d_i = N\bigr) \;\Rightarrow\;
+\|\mathbf c\|_1 \le \|\mathbf c'\|_1\bigr)                \tag{3}\\[2mm]
+&\land\; \text{the program prints exactly the text } \texttt{out}.
+\end{aligned}
+\]
+
+*Explanation of the conjuncts*
+
+* **(1)** – The vector \(\mathbf c\) is computed by the greedy (floor‑division) rule; the remaining amount after the last denomination is zero, i.e. the decomposition is exact.
+* **(2)** – The decomposition really represents the original amount *N*.
+* **(3)** – Among all possible decompositions of *N* into the given denominations, \(\mathbf c\) uses the **minimum total number of notes**. (For the canonical set \(\{100,50,20,10,5,2,1\}\) the greedy rule is optimal, so (3) follows from (1).)
+* The last clause guarantees that the produced output lines are exactly those required by the problem statement (first the value *N*, then one line per denomination in the order 100, 50, 20, 10, 5, 2, 1).
+
+---
+
+### 3.  Summary in plain‑English  
+
+*If the program is started with an integer input \(N\) such that \(0<N<10^{6}\), then after termination it prints*  
+
+1. *the value \(N\) itself;*  
+2. *for each denomination \(d_i\in\{100,50,20,10,5,2,1\}\) the number \(c_i\) of notes computed by the greedy rule \(c_i=\big\lfloor\frac{r_{i-1}}{d_i}\big\rfloor\);*  
+
+*the numbers \(c_i\) satisfy*  
+
+\[
+\sum_{i=1}^{7}c_i d_i = N
+\]
+
+*and they constitute a decomposition that uses the fewest possible notes.*  
+
+*All lines end with a line‑break, exactly as required.*  
+
+---  
+
+This Hoare‑logic specification captures **the whole functional contract** of the program: the admissible inputs (pre‑condition) and the exact relationship between the input and the printed output (post‑condition).

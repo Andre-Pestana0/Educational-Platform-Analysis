@@ -1,0 +1,99 @@
+Below is a **Hoare‑logic style specification** for the (very small) program that solves the task described in the statement.  
+Only the *pre‑condition* **P** (what must be true before the program starts) and the *post‑condition* **Q** (what is guaranteed after it finishes) are given – the actual code is omitted because it is irrelevant for the formal contract.
+
+---
+
+## 1.  Notation that will be used
+
+| Symbol | Meaning |
+|--------|---------|
+| `R` | input value (real number) – the radius of the circle |
+| `π` | the mathematical constant π (≈ 3.141592653589793…) |
+| `circ(R)` | the exact (real) circumference of a circle of radius `R`: `circ(R) = 2·π·R` |
+| `round₂(x)` | “round to the nearest hundredth” (i.e. to two decimal places). Formally:  <br> `round₂(x) = \frac{\lfloor 100·x + 0.5 \rfloor}{100}`  <br> (ties are broken upward, as in the usual “round‑half‑up” rule). |
+| `out` | the single real value printed by the program (the *output*) |
+| `ℝ_{\ge 0}` | set of non‑negative real numbers |
+| `⊢` | “provable / valid” in Hoare logic (the triple `{P} C {Q}` holds) |
+
+All arithmetic is performed in exact real arithmetic; the only source of imprecision is the final rounding step, which is part of the specification.
+
+---
+
+## 2.  Hoare triple
+
+\[
+\boxed{\{\,P\,\}\;C\; \{\,Q\,\}}
+\]
+
+where  
+
+* `C` is the (implicit) program that reads `R`, computes the required value and prints it, and  
+
+* `P` and `Q` are defined below.
+
+---
+
+## 3.  Pre‑condition  **P**
+
+\[
+P \;\equiv\; R \in \mathbb{R}_{\ge 0}
+\]
+
+*The input radius must be a real, non‑negative number.*  
+(If the problem statement guarantees that the input is always a valid real number, we may even weaken this to `R ∈ ℝ` – the formula for the circumference works for negative radii as well, but the physical interpretation of a “radius” suggests `R ≥ 0`.)
+
+---
+
+## 4.  Post‑condition **Q**
+
+\[
+Q \;\equiv\; out \in \mathbb{R}
+\;\land\;
+\bigl(out = round_{2}\bigl(2\pi R\bigr)\bigr)
+\;\land\;
+\bigl(\text{out has exactly two decimal digits in its decimal representation}\bigr)
+\]
+
+In words:
+
+* The program produces a real number `out`.  
+* `out` equals the circumference `2πR` rounded to the nearest hundredth.  
+* Consequently `out` can be printed with exactly two digits after the decimal point (e.g. `6.28`, `19.53`).
+
+If one prefers to avoid the auxiliary `round₂` function, the same condition can be written explicitly:
+
+\[
+out = \frac{\bigl\lfloor 100\cdot (2\pi R) + 0.5 \bigr\rfloor}{100}.
+\]
+
+---
+
+## 5.  Full specification in Hoare‑logic notation
+
+\[
+\boxed{
+\{\,R \in \mathbb{R}_{\ge 0}\,\}\;
+\textbf{read }R;
+\;out \gets \frac{\bigl\lfloor 100\cdot (2\pi R) + 0.5 \bigr\rfloor}{100};
+\;\textbf{print }out\;
+\{\,out = round_{2}(2\pi R)\,\}
+}
+\]
+
+The triple asserts that **whenever** the program is started with a non‑negative real radius, **after** it terminates the printed value is exactly the circumference of the corresponding circle, rounded to two decimal places.
+
+---
+
+### 6.  Example verification (informal)
+
+*Input* `R = 1.00`  
+
+- Exact circumference: `2π·1 = 6.283185…`  
+- Rounded: `round₂(6.283185…) = 6.28` → matches the required output.
+
+*Input* `R = 3.11`  
+
+- Exact circumference: `2π·3.11 ≈ 19.527…`  
+- Rounded: `round₂(19.527…) = 19.53` → matches the required output.
+
+Both examples satisfy the post‑condition, confirming that the specification correctly captures the intended behaviour.

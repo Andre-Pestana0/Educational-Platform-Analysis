@@ -1,0 +1,63 @@
+**Hoare‑logic specification**
+
+We denote  
+
+* input variables `A1 , A2 , A3` (the numbers of employees on floor 1, 2, 3)  
+* auxiliary variable `f ∈ {1,2,3}` (the floor where the espresso machine is installed)  
+* auxiliary function `cost(f) = Σ_{i=1}^{3} 2·|i‑f|·Ai` (the total travelling time if the machine is on floor `f`)  
+* output variable `M` (the value that has to be printed).
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P \;\equiv\;
+\bigl(A_1 ,A_2 ,A_3 \in \mathbb{N}\bigr) \;\land\;
+\bigl(0 \le A_i \le 1000 \;\text{for } i=1,2,3\bigr)
+\]
+
+The program may be started only when the three inputs are natural numbers
+between 0 and 1000 (inclusive).
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+Q \;\equiv\;
+\Bigl(M = \min_{f\in\{1,2,3\}} \; \underbrace{\sum_{i=1}^{3} 2\;|i-f|\;A_i}_{\displaystyle\text{total minutes if the machine is on floor }f}\Bigr)
+\]
+
+That is, after termination the variable `M` must contain the **minimum possible
+total number of minutes** spent by all employees when each employee makes a
+round‑trip (up‑and‑down) to the espresso machine.
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; \text{Program}\; \{\,Q\,\}}
+\]
+
+where “Program’’ is any algorithm that
+
+1. reads the three numbers `A1 , A2 , A3`,
+2. computes `cost(1)`, `cost(2)`, `cost(3)`,
+3. stores `M = min\{cost(1),cost(2),cost(3)\}`,
+4. prints `M`.
+
+---
+
+#### Remarks (for clarity)
+
+* The factor **2** in `2·|i‑f|·Ai` reflects that each employee must go **up** to the
+machine and **down** again, i.e. a round‑trip.
+* The absolute value `|i‑f|` is the number of floors that have to be traversed
+(one floor per minute, according to the problem statement).
+* The specification is **total**: for every admissible input (`P` true) the
+program terminates and yields a value satisfying `Q`.  
+
+Thus the Hoare‑logic pre‑ and post‑conditions completely capture the natural‑language
+problem.

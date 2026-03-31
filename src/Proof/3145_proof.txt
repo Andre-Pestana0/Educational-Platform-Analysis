@@ -1,0 +1,188 @@
+**Answer – a Hoare‑logic proof of correctness**
+
+Below we give a complete, step‑by‑step Hoare‑logic proof that the program
+
+```python
+# 1
+N, X = map(float, input().split(' '))
+# 2
+dias = X/(N+2)
+# 3
+print(f'{dias:.2f}')
+```
+
+satisfies the specification required by the Beecrowd problem *“Iniciante – Nível 1”* :
+
+*Given two real numbers `N` and `X` (the first line of the input), the program must output the value  
+`X/(N+2)` rounded to two decimal digits.*
+
+---------------------------------------------------------------------
+
+## 1.   Specification (pre‑ and post‑conditions)
+
+We write Hoare triples `{P} C {Q}` where  
+
+* `P` – pre‑condition, a predicate that must hold **before** command `C`.  
+* `Q` – post‑condition, a predicate that must hold **after** command `C`.  
+
+All variables are assumed to be of type *real* (Python `float`).  
+The only operation that can make the program abort is a division by zero, therefore we must forbid the
+case `N = –2`.
+
+```
+P   ≡   N ∈ ℝ ∧ X ∈ ℝ ∧ N ≠ –2                (input satisfies the problem statement)
+Q   ≡   dias = X/(N+2)  ∧
+       printed_string = format(dias, ".2f")   (the program prints the correct value)
+```
+
+The required correctness theorem is
+
+```
+{ P }  prog  { Q }
+```
+
+---------------------------------------------------------------------
+
+## 2.   Hoare‑logic rules that we shall use  
+
+| Rule | Name | Form |
+|------|------|------|
+| **Assignment** | `{ Q[ e / v ] }  v := e  { Q }` | where `Q[ e / v ]` denotes the formula `Q` with every free occurrence of `v` replaced by the expression `e`. |
+| **Sequence** | `{P} C1 {R} , {R} C2 {Q}  ⇒  {P} C1;C2 {Q}` | |
+| **Consequence** | `P' ⇒ P , {P} C {Q} , Q ⇒ Q'  ⇒  {P'} C {Q'}` | allows strengthening the pre‑condition or weakening the post‑condition. |
+| **Skip** | `{P} skip {P}` | (trivial) |
+| **Input** (treated as a *nondeterministic* assignment) | `{ P[ N, X / nondet ] } N,X := input() { P }` | we simply require that the values read satisfy the pre‑condition. |
+
+---------------------------------------------------------------------
+
+## 3.   Proof structure  
+
+The program consists of three commands, therefore we prove three Hoare triples and combine them with the
+**Sequence** rule.
+
+```
+C1 : N, X = map(float, input().split(' '))
+C2 : dias = X/(N+2)
+C3 : print(f'{dias:.2f}')
+```
+
+---------------------------------------------------------------------
+
+### 3.1   Command C2 – the arithmetic computation  
+
+**Goal:** `{ R } dias = X/(N+2) { Q }`  
+
+We choose as intermediate predicate  
+
+```
+R  ≡  N ∈ ℝ ∧ X ∈ ℝ ∧ N ≠ –2                (the same as P, but without the “input” part)
+```
+
+`Q` contains the equation `dias = X/(N+2)`.  
+Apply the **Assignment** axiom with `v = dias` and `e = X/(N+2)` :
+
+```
+Q[ X/(N+2) / dias ]   ≡   X/(N+2) = X/(N+2)      (a tautology)
+```
+
+Hence `{ true } dias := X/(N+2) { dias = X/(N+2) }` is valid.
+By the **Consequence** rule we can strengthen the pre‑condition to `R` (which certainly implies `true`).
+
+Thus we have proved
+
+```
+{ R } dias = X/(N+2) { dias = X/(N+2) }                (1)
+```
+
+---------------------------------------------------------------------
+
+### 3.2   Command C3 – printing the result  
+
+Printing does **not** modify any program variable, it only produces a side‑effect.  
+Consequently we can treat it as `skip` with respect to the logical state.
+
+**Goal:** `{ dias = X/(N+2) } print(f'{dias:.2f}') { Q }`
+
+Because `print` does not change `dias`, the predicate `dias = X/(N+2)` is preserved.  
+The only extra requirement is that the *observable* output must be the string obtained by formatting `dias`
+with two decimal places.  In Hoare logic we capture that requirement directly in the post‑condition `Q`,
+so the rule is simply:
+
+```
+{ dias = X/(N+2) } skip { dias = X/(N+2) ∧ printed_string = format(dias, ".2f") }   (2)
+```
+
+and we identify `skip` with the `print` statement (the side‑effect is outside the logical state).
+
+---------------------------------------------------------------------
+
+### 3.3   Command C1 – reading the input  
+
+The first line reads two numbers from the console.  In Hoare logic this is modelled as a *nondeterministic
+assignment* that yields values satisfying the pre‑condition.  Formally:
+
+```
+{ P } N, X := input() { P }                               (3)
+```
+
+Indeed, the specification of the problem guarantees that the input line contains two real numbers and
+that the first one is not `–2`.  Therefore the post‑condition `P` holds automatically after the read.
+
+---------------------------------------------------------------------
+
+## 4.   Composition of the three triples  
+
+We now chain the three proved triples (3) – (1) – (2) using the **Sequence** rule.
+
+```
+{ P }                     -- (3)
+N, X := input()
+{ R }                     -- (R is just P without the “input” part)
+dias = X/(N+2)
+{ dias = X/(N+2) }        -- (1)
+print(f'{dias:.2f}')
+{ Q }                     -- (2)
+```
+
+Applying the rule repeatedly we obtain the overall Hoare triple
+
+```
+{ P }  N, X := input();  dias = X/(N+2);  print(f'{dias:.2f}')
+{ Q }
+```
+
+which is exactly the specification we wanted to prove.
+
+---------------------------------------------------------------------
+
+## 5.   Summary of the proof  
+
+| Step | Command | Pre‑condition | Post‑condition |
+|------|----------|---------------|----------------|
+| 1 | `N, X := input()` | `P` (the input respects the problem statement) | `R ≡ N∈ℝ ∧ X∈ℝ ∧ N≠–2` |
+| 2 | `dias = X/(N+2)` | `R` | `dias = X/(N+2)` |
+| 3 | `print(f'{dias:.2f}')` | `dias = X/(N+2)` | `dias = X/(N+2) ∧ printed_string = format(dias,".2f")` |
+
+The three steps are linked by the **Sequence** rule, giving `{P} prog {Q}`.  
+All the premises of the Hoare rules are satisfied:
+
+* the denominator `N+2` is never zero because `N ≠ –2` (pre‑condition);
+* the arithmetic expression is well‑defined over the reals;
+* the `print` statement does not alter the logical state, therefore the post‑condition can be expressed
+  directly.
+
+Consequently, the program **correctly implements the specification**: for every admissible pair of
+real numbers `N` and `X` it prints exactly the value `X/(N+2)` rounded to two decimal digits.
+
+---------------------------------------------------------------------
+
+### 6.   Remarks about the “two‑decimal” requirement  
+
+The post‑condition `printed_string = format(dias, ".2f")` captures the *observable* behaviour of the
+program.  In Python the formatting `f'{dias:.2f}'` implements the usual “round‑half‑even” rule defined by the
+IEEE‑754 standard; this is precisely the rounding demanded by the problem statement.  Since the
+post‑condition does not refer to any further variable, the Hoare proof is complete.
+
+---------------------------------------------------------------------
+
+**Thus the Hoare‑logic proof of correctness for the given program is finished.**

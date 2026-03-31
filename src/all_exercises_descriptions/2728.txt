@@ -1,0 +1,24 @@
+Description: Grace Murray Hopper, also known as "COBOL Grandma", was a Systems Analyst and US Navy Admiral in the 1940s and 1950s. Grace created the Flow-Matic programming language that served as the foundation for the creation of COBOL, in addition, she also participated in the creation of the first COBOL compiler. Also known to have been the creator of the term BUG occasionally when she discovered a problem in its computer and realized that it was a dead insect in the valve, since at that time the computers were formed by valves. Since then the term BUG has been used for errors. Grace Hopper is one of the most important women in the history of female participation in computing, taking her name at one of the most important conferences, Grace Hopper Celebration of Women in Computing.In this problem are given five words in each test line separated by hyphen. For each line the word 'GRACE HOPPER' will be printed if the letters that form the word COBOL are found in the beginning or end of each word in order. If it does not find, the word 'BUG' will be printed.
+
+Input: The entry contains several test cases. Each test case consists of a single line containing 1 to 50 characters, consisting of lower case and upper case letters ('a' - 'z', 'A' - 'Z') and hyphens ('-'), with no spaces.
+
+Output: For each test case, print the corresponding word.
+
+Examples:
+- Example 1:
+  Input:
+cap-one-best-opinion-language
+Ana-number-once-a-night
+fantastic-officio-dumb-onto-label
+historic-opposite-ball-photo-real
+Caio-init-bug-bing-love
+corner-octal-bond-ago-pencil
+  Output:
+GRACE HOPPER
+BUG
+GRACE HOPPER
+GRACE HOPPER
+BUG
+GRACE HOPPER
+
+--

@@ -1,0 +1,18 @@
+Description: Bino and Cino are close friends. Bino likes to create mathematical challenges to Cino. This time, Bino created a list of numbers and asked to Cino: How many numbers are multiples of2,3,4and5?
+
+Input: The first line of input consists of an integerN(1 â¤Nâ¤1000), representing the amount of numbers in the Bino's list.
+
+Output: Print the amount of multiples of2,3,4and5in the list. Note the formatting of the output in the output sample, because it must be followed strictly. "Multiplo(s)" means "Multiple(s)" in English, but you must print the message in Portuguese.
+
+Examples:
+- Example 1:
+  Input:
+5
+2 5 4 20 10
+  Output:
+4 Multiplo(s) de 2
+0 Multiplo(s) de 3
+2 Multiplo(s) de 4
+3 Multiplo(s) de 5
+
+--

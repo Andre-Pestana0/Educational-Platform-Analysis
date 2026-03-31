@@ -1,0 +1,51 @@
+**Hoare‑style specification**
+
+We denote  
+
+* `x , y ∈ ℤ` – the two integer values read from the input,  
+* `s ∈ ℤ` – the integer that the program prints,  
+* `MAX_INT` – the greatest integer that can be represented in the target language,  
+* `odd(i) ≡ (i  \bmod 2 ≠ 0)` – the predicate “*i* is odd”,  
+
+and we introduce the auxiliary bounds  
+
+\[
+\begin{aligned}
+a &:= \min (x,y)+1,\\[2pt]
+b &:= \max (x,y)-1 .
+\end{aligned}
+\]
+
+If the interval is empty (`a>b`) the sum is defined to be 0.
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{P \;:\; x\in\mathbb Z \;\wedge\; y\in\mathbb Z \;\wedge\;
+|x|\le MAX\_INT \;\wedge\; |y|\le MAX\_INT}
+\]
+
+(Only the requirement that the two inputs are representable integers is needed.)
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+Q \;:\;& s = \sum_{i=a}^{\,b}\; odd(i)\cdot i \\
+      &\qquad\text{(the sum is 0 if }a>b\text{)}\\[4pt]
+      &\wedge\; s\in\mathbb Z \;\wedge\; |s|\le MAX\_INT
+\end{aligned}}
+\]
+
+In words: `s` equals the sum of every odd integer strictly between the two
+input values (order‑independent), and the result also fits in an integer.
+
+---
+
+### Hoare triple for the whole program  
+

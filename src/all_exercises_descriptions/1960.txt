@@ -1,0 +1,26 @@
+Description: The ECI (Editio Chronica Incredibilisor Amazing Chronicles Editors) is very traditional when numbering the pages of its books. It always uses the Roman numerals for that. And its books never have more than 999 pages. When necessary, the books are split into volumes.
+
+Input: The input is a positive integer numberN(0 <N< 1000).
+
+Output: The output is the numberNwritten as Roman numerals in a single line. Always use uppercase letters.
+
+Examples:
+- Example 1:
+  Input:
+666
+  Output:
+DCLXVI
+
+- Example 2:
+  Input:
+83
+  Output:
+LXXXIII
+
+- Example 3:
+  Input:
+999
+  Output:
+CMXCIX
+
+--

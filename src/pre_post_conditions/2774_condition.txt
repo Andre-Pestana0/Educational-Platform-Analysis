@@ -1,0 +1,126 @@
+Below is a **Hoare‑logic style specification** for a program that solves the problem described in the statement.  
+Only the **pre‑condition** (what is assumed about the input) and the **post‑condition** (what must hold after the program terminates) are given – no implementation details are required.
+
+---
+
+### Notation used  
+
+* `ℕ` – set of non‑negative integers.  
+* `ℝ` – set of real numbers.  
+* A *test case* is a triple  
+
+\[
+t = (h,m,\;X) \qquad
+\begin{cases}
+h\in\mathbb N ,\\[2pt]
+m\in\mathbb N ,\\[2pt]
+X = (x_1,\dots ,x_n),\; n\in\mathbb N,\; n\ge 2,\\
+x_i\in\mathbb R\;\;(1\le i\le n).
+\end{cases}
+\]
+
+* For a finite sequence \(X=(x_1,\dots ,x_n)\) we use  
+
+\[
+\mu(X)=\frac{1}{n}\sum_{i=1}^{n} x_i \qquad\text{(arithmetic mean)},
+\]
+
+\[
+\sigma^{2}(X)=\frac{1}{n-1}\sum_{i=1}^{n}\bigl(x_i-\mu(X)\bigr)^{2}
+\qquad\text{(sample variance)},
+\]
+
+\[
+\operatorname{acc}(X)=\sqrt{\sigma^{2}(X)}\qquad\text{(sample standard deviation)} .
+\]
+
+* `format_5(a)` denotes the decimal representation of the real number `a` rounded
+to **exactly five digits after the decimal point** (as required by the output format).
+
+* `output(a_1,\dots ,a_k)` means that the program writes the numbers
+\(a_1,\dots ,a_k\) each on its own line, in the order given.
+
+---
+
+### Specification for **one** test case  
+
+\[
+\boxed{\{\,P_{\text{single}}\,\}\; \texttt{ComputeAccuracy}\; \{\,Q_{\text{single}}\,\}}
+\]
+
+*Pre‑condition*  
+
+\[
+P_{\text{single}} \;:\;
+\exists\;h,m\in\mathbb N,\; X=(x_1,\dots ,x_n)\;
+\bigl[n\ge 2\land (x_i\in\mathbb R)_{i=1}^{n}\bigr].
+\]
+
+(The values `h` and `m` are read but never used in the computation.)
+
+*Post‑condition*  
+
+\[
+Q_{\text{single}} \;:\;
+\text{the program prints } a = \operatorname{acc}(X)
+\text{ and } a =\operatorname{format\_5}\bigl(\operatorname{acc}(X)\bigr).
+\]
+
+That is,
+
+\[
+a = \sqrt{\frac{1}{\,n-1\,}
+          \sum_{i=1}^{n}\bigl(x_i-\mu(X)\bigr)^{2}}
+\quad\text{and}\quad
+\text{the printed line is } \operatorname{format\_5}(a).
+\]
+
+---
+
+### Specification for the whole input (multiple test cases)
+
+Let the whole input consist of a finite list  
+
+\[
+\mathcal T = (t_1,\dots ,t_K),\qquad
+t_j = (h_j,m_j,X_j),\; K\ge 1 .
+\]
+
+For each \(j\) we denote \(n_j = |X_j|\) and
+\(a_j = \operatorname{acc}(X_j)\).
+
+\[
+\boxed{\{\,P_{\text{all}}\,\}\; \texttt{MainProgram}\; \{\,Q_{\text{all}}\,\}}
+\]
+
+*Pre‑condition*  
+
+\[
+P_{\text{all}} \;:\;
+\forall j\in\{1,\dots ,K\}\;
+\bigl(h_j,m_j\in\mathbb N\land X_j=(x_{j,1},\dots ,x_{j,n_j})\land
+      n_j\ge 2\land x_{j,i}\in\mathbb R\bigr).
+\]
+
+*Post‑condition*  
+
+\[
+Q_{\text{all}} \;:\;
+\text{the program outputs the sequence }
+\bigl(\operatorname{format\_5}(a_1),\dots ,
+      \operatorname{format\_5}(a_K)\bigr)
+\text{, one value per line},
+\]
+
+where for each test case  
+
+\[
+a_j = \sqrt{\frac{1}{\,n_j-1\,}
+          \sum_{i=1}^{n_j}\bigl(x_{j,i}-\mu(X_j)\bigr)^{2}} .
+\]
+
+---
+
+### Summary
+
+The Hoare‑logic specification therefore states that, **provided each test case contains at least two real sensor readings**, the program must compute the **sample standard deviation** of those readings and print it with exactly five digits after the decimal point. The auxiliary integers `h` and `m` read from the first line of each test case are not used in the computation, but they are part of the input format and are required to exist for the pre‑condition to hold.

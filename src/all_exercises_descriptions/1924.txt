@@ -1,0 +1,26 @@
+Description: Thereâs no one in the world more indecisive than VitÃ³ria. Despite the fact that she knows sheâs a great programmer, like one of the that have a lot of projects in IT field published and many others being written, sheâs not sure if sheâs going to be a professional programmer. There are nights that she wants to study Computer Science (CiÃªncia da ComputaÃ§Ã£o, in portuguese), there are days she wants to study some Engineering, some days she even talks about taking some Humanities course, what a sin! But you can help her do the right choice. Your task is simple, Itâll be given a list with the bachelor courses that VitÃ³ria is in doubt, the output should be the course she must choose.
+
+Input: The first line of the input is an integer 1 â¤nâ¤ 2000, representing the number of courses that must be considered. Each of the nextnlines, there is a courseS, 1 â¤ |S| â¤ 100, the name of one of the courses VitÃ³ria is in the doubt.
+
+Output: Print the name of the course VitÃ³ria must take in portuguese without accentuation.
+
+Examples:
+- Example 1:
+  Input:
+3
+Ciencia da Computacao
+Engenharia Eletrica
+Matematica
+  Output:
+Ciencia da Computacao
+
+- Example 2:
+  Input:
+3
+Sociologia
+Filosofia
+Fisica
+  Output:
+Ciencia da Computacao
+
+--

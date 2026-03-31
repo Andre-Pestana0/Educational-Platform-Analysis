@@ -1,0 +1,94 @@
+Below is a **Hoare‑logic style specification** of the program that solves the task.  
+All symbols are written in standard mathematical notation (LaTeX‑style) and the
+pre‑ and post‑conditions are expressed only in terms of the input variables,
+the internal counters that the program computes and the observable output.
+
+---
+
+## 1.  Variables that appear in the specification  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N` | Number of elements supplied in the input list. |
+| `a[1] … a[N]` | The integer values of the list (the *i*‑th element is denoted `a[i]`). |
+| `c₂ , c₃ , c₄ , c₅` | Counters that will hold the number of multiples of 2, 3, 4 and 5, respectively. |
+| `out` | The sequence of four lines that the program writes to *stdout*. |
+| `⌊·⌋` | Integer floor (used only for the definition of the indicator function). |
+| `δ(P)` | Indicator (characteristic) function of a predicate `P` :
+
+\[
+\delta(P)=\begin{cases}
+1 & \text{if }P\text{ is true},\\[2mm]
+0 & \text{otherwise}.
+\end{cases}
+\]
+
+---
+
+## 2.  Pre‑condition  \(P\)
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\;&  N\in\mathbb{N}\ \land\ 1\le N\le 1000 \\[1mm]
+      &\land\ \forall i\in\{1,\dots ,N\}\;:\; a[i]\in\mathbb{Z}
+\end{aligned}}
+\]
+
+The program may assume that the input respects the limits imposed by the
+statement (the list length is bounded and every element is an integer).
+
+---
+
+## 3.  Post‑condition  \(Q\)
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\;& 
+\begin{cases}
+c_2 = \displaystyle\sum_{i=1}^{N}\delta\bigl( a[i]\equiv 0\pmod{2}\bigr),\\[4mm]
+c_3 = \displaystyle\sum_{i=1}^{N}\delta\bigl( a[i]\equiv 0\pmod{3}\bigr),\\[4mm]
+c_4 = \displaystyle\sum_{i=1}^{N}\delta\bigl( a[i]\equiv 0\pmod{4}\bigr),\\[4mm]
+c_5 = \displaystyle\sum_{i=1}^{N}\delta\bigl( a[i]\equiv 0\pmod{5}\bigr),
+\end{cases} \\[8mm]
+&\text{and the observable output `out` consists of exactly the four lines}\\[2mm]
+&\text{``}c_2\ \text{Multiplo(s) de 2\textquotesingle\textquotesingle}\\
+&\qquad c_3\ \text{Multiplo(s) de 3\textquotesingle\textquotesingle}\\
+&\qquad c_4\ \text{Multiplo(s) de 4\textquotesingle\textquotesingle}\\
+&\qquad c_5\ \text{Multiplo(s) de 5\textquotesingle\textquotesingle}\text{''}\\[2mm]
+&\text{where each line ends with a newline character.}
+\end{aligned}}
+\]
+
+The four counters therefore equal the cardinalities of the corresponding
+sub‑sets of the input list, and the program prints them in the exact format
+required by the statement.
+
+---
+
+## 4.  Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; \textbf{Program}\; \{\,Q\,\}}
+\]
+
+The body of *Program* may be any implementation that, starting from a state
+satisfying the pre‑condition `P`, terminates and reaches a state satisfying the
+post‑condition `Q`.  The triple expresses precisely what must be true before
+the program starts and what must be true after it finishes, independent of the
+concrete algorithm used.
+
+---
+
+### Remarks (optional, not part of the formal triple)
+
+* The indicator formulation makes the post‑condition **exactly** the
+  mathematical definition of “how many numbers are multiples of *k*”.
+* The output format is part of the post‑condition because the judge checks the
+  textual representation, not only the numerical values.
+* No additional side‑effects (e.g., modifying the input array) are required,
+  therefore they are omitted from `Q`.  
+
+With the above specification a verifier or a reviewer can check that any
+implementation that respects the Hoare triple indeed solves the problem.

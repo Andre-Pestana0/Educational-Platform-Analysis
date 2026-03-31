@@ -1,0 +1,233 @@
+**Answer – a Hoare‑logic proof that the program computes the correct total price**
+
+Below we give a complete correctness proof in the style of Hoare logic.  
+We first write the *specification* (pre‑ and post‑condition), then we introduce a **loop invariant** for the `for`‑loop and finally we prove, by a succession of Hoare triples, that the program satisfies the specification.
+
+---
+
+## 1.  Specification  
+
+We assume that the input is well‑formed:
+
+* `n` – a non‑negative integer that tells how many different items were bought.  
+* For each `i ∈ {1,…,n}` a line `item_i quantidade_i` is read, where  
+
+  * `item_i ∈ {1001,1002,1003,1004,1005}` (the only codes accepted by the program)  
+  * `quantidade_i` is a non‑negative integer.
+
+The *price* of a code is a fixed constant  
+
+```
+price(1001)=1.50 , price(1002)=2.50 , price(1003)=3.50 ,
+price(1004)=4.50 , price(1005)=5.50 .
+```
+
+### Pre‑condition  
+
+```
+P0  ≡   n ∈ ℕ   ∧   ∀ i∈[1..n] . ( item_i ∈ {1001,…,1005}  ∧  quantidade_i ∈ ℕ )
+```
+
+### Post‑condition  
+
+Let  
+
+```
+TOTAL = Σ_{i=1..n} quantidade_i * price(item_i) .
+```
+
+The program must print the value `TOTAL` with exactly two decimal digits.  
+
+```
+Q0  ≡   printed_value = TOTAL   ∧   printed with two decimal places
+```
+
+---
+
+## 2.  Program (annotated)
+
+```python
+1  n = int(input())                     # read n
+2  valor = 0.0                          # accumulator
+3  for i in range(n):                   # i = 0,…,n‑1
+4      entrada = input()
+5      item, quantidade = entrada.split(' ')
+6      if int(item) == 1001:
+7          valor += int(quantidade) * 1.50
+8      elif int(item) == 1002:
+9          valor += int(quantidade) * 2.50
+10     elif int(item) == 1003:
+11         valor += int(quantidade) * 3.50
+12     elif int(item) == 1004:
+13         valor += int(quantidade) * 4.50
+14     elif int(item) == 1005:
+15         valor += int(quantidade) * 5.50
+16 print('%.2f' % valor)
+```
+
+---
+
+## 3.  Loop invariant  
+
+The only non‑trivial part is the `for`‑loop (lines 3‑15).  
+We use the following invariant **I(k)** that describes the state after the first `k` iterations (`k` may be 0).
+
+```
+I(k)  ≡   0 ≤ k ≤ n  ∧
+         valor = Σ_{j=1..k} quantidade_j * price(item_j)
+```
+
+*When `k = 0` the sum is empty, i.e. `valor = 0`, which matches line 2.*
+
+The invariant captures exactly what the accumulator must contain after processing the first `k` items.
+
+---
+
+## 4.  Proof outline  
+
+We prove the Hoare triple  
+
+```
+{P0}  whole_program  {Q0}
+```
+
+by the usual rule for sequential composition and by the **while/for rule** (which is a special case of the while rule).  
+The proof consists of three steps:
+
+1. **Initialization** – show that the invariant holds before the first iteration.  
+2. **Maintenance** – assume the invariant holds at the beginning of an iteration and prove it holds after the body finishes (i.e. after processing the `(k+1)`‑st line).  
+3. **Termination** – after the loop ends (`k = n`) the invariant gives the desired total; the final `print` statement then satisfies the post‑condition.
+
+All other statements (reading `n`, initializing `valor`, printing) are trivial assignments and can be proved with the assignment axiom.
+
+Below each step is written as a Hoare triple.
+
+---
+
+### 4.1  Initialization  
+
+```
+{ P0 }
+n = int(input()) ;
+valor = 0.0 ;
+{ I(0) }
+```
+
+*Proof*:  
+`valor` is set to `0.0`. By definition of the empty sum we have  
+
+```
+valor = Σ_{j=1..0} quantidade_j * price(item_j) = 0 .
+```  
+
+Because `0 ≤ 0 ≤ n` (from `P0`) we obtain `I(0)`.
+
+---
+
+### 4.2  Loop – body  
+
+We treat the loop as a `while` with counter `i`.  
+The Hoare rule for a `for`‑loop (or `while`) is:
+
+```
+{ I(k) }   body   { I(k+1) }
+```
+
+Assume `I(k)` holds at the start of an iteration, i.e.
+
+```
+valor = Σ_{j=1..k} quantidade_j * price(item_j) .          (1)
+```
+
+The body reads the next line (line 4‑5) and stores `item = item_{k+1}` and `quantidade = quantidade_{k+1}`.  
+Exactly one of the five `if`‑branches is true because `item_{k+1}` belongs to the set `{1001,…,1005}` (pre‑condition).  
+
+Suppose the true branch is the one with code `c`. Then `price(c)` is the constant that appears in that branch (1.50, 2.50, …, 5.50).  
+The executed statement is
+
+```
+valor := valor + int(quantidade) * price(c) .
+```
+
+Using (1) and the fact that `int(quantidade) = quantidade_{k+1}` we obtain
+
+```
+valor' = Σ_{j=1..k} quantidade_j * price(item_j)   +
+         quantidade_{k+1} * price(item_{k+1}) .
+```
+
+Thus  
+
+```
+valor' = Σ_{j=1..k+1} quantidade_j * price(item_j) .
+```
+
+and `0 ≤ k+1 ≤ n` (the loop bound guarantees `k+1 ≤ n`).  
+Hence `I(k+1)` holds after the iteration.
+
+All five branches are proved identically; the `elif` chain guarantees exactly one of them is taken, so no other case exists.
+
+---
+
+### 4.3  Termination  
+
+The loop executes exactly `n` iterations, therefore when it finishes we have `k = n`.  
+From the invariant we obtain
+
+```
+valor = Σ_{j=1..n} quantidade_j * price(item_j) = TOTAL .
+```
+
+Now the final statement (line 16) is an assignment to the output device:
+
+```
+{ valor = TOTAL }   print('%.2f' % valor)   { printed_value = TOTAL }
+```
+
+The formatting `%.2f` prints the floating‑point number with exactly two decimal places, which is precisely the required output format.  
+
+Thus the post‑condition `Q0` is satisfied.
+
+---
+
+## 5.  Full Hoare derivation (concise)
+
+```
+{ P0 }
+n = int(input) ;
+valor = 0.0 ;
+{ I(0) }
+
+while i < n do               // i is the loop counter (implicit in range)
+   { I(i) }
+   entrada = input ;
+   item, quantidade = entrada.split(' ') ;
+   // one of the five branches:
+   if int(item) == 1001 then valor := valor + int(quantidade)*1.50
+   elif int(item) == 1002 then valor := valor + int(quantidade)*2.50
+   elif int(item) == 1003 then valor := valor + int(quantidade)*3.50
+   elif int(item) == 1004 then valor := valor + int(quantidade)*4.50
+   elif int(item) == 1005 then valor := valor + int(quantidade)*5.50
+   { I(i+1) }
+od
+{ I(n) }                     // after the loop
+
+print('%.2f' % valor)
+{ Q0 }
+```
+
+By the **assignment rule**, the **if‑rule**, the **while‑rule** (using invariant `I`), and the **consequence rule**, we have derived the Hoare triple `{P0} program {Q0}`. Hence the program is *partially correct* with respect to the given specification.
+
+---
+
+## 6.  Termination argument  
+
+The loop counter `i` ranges over `0,1,…,n‑1`. Because `n` is a non‑negative integer (pre‑condition) the loop body is executed a finite number `n` of times and then the condition `i < n` becomes false. Therefore the program always terminates.  
+
+Consequently we have proved **total correctness** (partial correctness + termination).
+
+---
+
+## 7.  Conclusion  
+
+We have exhibited a loop invariant that exactly captures the accumulated total price, shown that the invariant holds initially, is preserved by every iteration of the `for`‑loop, and yields the required sum when the loop ends. The final `print` statement outputs that sum with two decimal digits, satisfying the post‑condition. By Hoare logic the program therefore meets its formal specification. ∎

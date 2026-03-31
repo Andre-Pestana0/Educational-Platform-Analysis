@@ -1,0 +1,29 @@
+Description: Mariazinha created an exercise for her sisters Paula and Marta: she distributes a text and asks both to correct this text, knowing that only the OBI and URI words may be written incorrectly, and the error can be only in the last letter.
+
+Input: The input contains two lines. The first line contain a integer numberN(1 <N< 10000) that indicates the amount of text words. The second line contains these text words, each one with up to 20 characters ('A'-'Z'), inclusive, or at least, one letter ('A'-'Z').
+
+Output: Your program must correct the text distributed by Mariazinha, according to the criteria above defined.
+
+Examples:
+- Example 1:
+  Input:
+2
+OBO URU
+  Output:
+OBI URI
+
+- Example 2:
+  Input:
+3
+EURO AVOID OBITS
+  Output:
+EURO AVOID OBITS
+
+- Example 3:
+  Input:
+10
+URA URO URI URU UROS IBO OBA OBAS OBES OBE
+  Output:
+URI URI URI URI UROS IBO OBI OBAS OBES OBI
+
+--

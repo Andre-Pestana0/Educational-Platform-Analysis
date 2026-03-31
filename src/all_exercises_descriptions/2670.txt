@@ -1,0 +1,32 @@
+Description: The new building of the Brazilian Computer Society (SBC) has 3 floors. At certain times of the year, SBC employees drink a lot of coffee. Because of this, the president of SBC has decided to give the employees a new espresso machine. This machine is to be installed on one of the 3 floors, but the installation must be done in such a way that people do not waste too much time going up and down stairs.
+
+Input: The input consists of 3 numbers,A1,A2,A3(0 â¤A1,A2,A3â¤ 1000), one per line, whereAirepresents the number of people working on thei-th floor.
+
+Output: Your program is required to print a single line, containing the total number of minutes to be spent with the best possible positioning of the machine.
+
+Examples:
+- Example 1:
+  Input:
+10
+20
+30
+  Output:
+80
+
+- Example 2:
+  Input:
+10
+30
+20
+  Output:
+60
+
+- Example 3:
+  Input:
+30
+10
+20
+  Output:
+100
+
+--

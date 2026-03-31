@@ -1,0 +1,14 @@
+Description: Given a letter of the alphabet, state its position.
+
+Input: A single characterL, an uppercase letter ('A' - 'Z') of the alphabet.
+
+Output: A single integer, which represents the position of the letter in the alphabet.
+
+Examples:
+- Example 1:
+  Input:
+C
+  Output:
+3
+
+--

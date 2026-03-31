@@ -1,0 +1,26 @@
+Description: Schoenfeld and Rosser published a paper in 1962 describing a minimum and a maximum value to the quantity of prime numbers up ton, fornâ¥ 17. This quantity is represented by the function(n)and the inequality is shown below.
+
+Input: The input is a natural numbern(17 â¤nâ¤ 109).
+
+Output: The output is given as two valuesPandMwith 1 decimal place each, such thatP<(n)<Maccording to the given inequality above. These two values have one blank space between them.
+
+Examples:
+- Example 1:
+  Input:
+17
+  Output:
+6.0 7.5
+
+- Example 2:
+  Input:
+50
+  Output:
+12.8 16.0
+
+- Example 3:
+  Input:
+100
+  Output:
+21.7 27.3
+
+--

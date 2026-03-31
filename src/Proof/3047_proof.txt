@@ -1,0 +1,201 @@
+Below is a **Hoare‑logic proof** that the program
+
+```python
+monica = int(input())
+filhoA = int(input())
+filhoB = int(input())
+filhoC = monica - (filhoA + filhoB)
+print(max(filhoA, filhoB, filhoC))
+```
+
+conforms to the specification  
+
+\[
+\{\,P\,\}\;{\tt program}\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P \;\equiv\;  M,\;A,\;B\in \mathbb Z \;\land\; M\ge 0\;\land\;A\ge 0\;\land\;B\ge 0\;\land\;M\ge A+B
+\]
+
+* **Post‑condition**  
+
+\[
+Q \;\equiv\; \text{the value printed is } \max\{A,B,M-(A+B)\}
+\]
+
+(we use the conventional names `M` for *monica*, `A` for *filhoA*, `B` for *filhoB* and `C` for *filhoC*).
+
+The proof proceeds by **annotating** each program line with an invariant (a Hoare assertion) and then applying the standard Hoare inference rules:
+
+* **Assignment rule**  
+
+  \[
+  \frac{}{\{\,P[E/x]\,\}\;x:=E\;\{\,P\,\}}
+  \]
+
+* **Sequence rule**  
+
+  \[
+  \frac{\{P\}\;S_1\;\{R\}\qquad\{R\}\;S_2\;\{Q\}}{\{P\}\;S_1;S_2\;\{Q\}}
+  \]
+
+* **Rule for a call to a primitive function** (here `max`).  
+  We give `max` the following *specification* :
+
+  \[
+  \{\,x,y,z\in\mathbb Z\,\}\;\texttt{max}(x,y,z)\;\{\,v=\max\{x,y,z\}\,\}
+  \tag{max‑spec}
+  \]
+
+  The rule for a function call is an instance of the **consequence rule**:
+  if a command `c` satisfies `{R} c {S}` and `P ⇒ R` and `S ⇒ Q`,
+  then `{P} c {Q}`.
+
+--------------------------------------------------------------------
+### 1.  Input statements  
+
+The three `input()` statements are modelled as **nondeterministic assignments** that respect the pre‑condition.  
+After the three reads we have the following assertion:
+
+\[
+\{\,P\}\;
+\begin{array}{l}
+\texttt{monica = M}\\
+\texttt{filhoA = A}\\
+\texttt{filhoB = B}
+\end{array}
+\;\{\,P\}
+\tag{A1}
+\]
+
+The post‑condition of the block is still `P` because the reads do not change any relationship among the variables; they only *instantiate* the abstract values `M, A, B` with the concrete inputs.
+
+--------------------------------------------------------------------
+### 2.  Computing the third child’s age  
+
+```python
+filhoC = monica - (filhoA + filhoB)
+```
+
+We apply the assignment rule.  
+Let  
+
+\[
+R_2 \;=\;  M,\;A,\;B\in\mathbb Z \;\land\; M\ge 0\;\land\;A\ge 0\;\land\;B\ge 0\;\land\;M\ge A+B
+\]
+
+and substitute `C` with the right‑hand side expression:
+
+\[
+R_2[C\!:=\!M-(A+B)] \;=\;
+\begin{aligned}
+& M,\;A,\;B\in\mathbb Z \;\land\; M\ge 0\;\land\;A\ge 0\;\land\;B\ge 0\;\land\;M\ge A+B \\
+&\land\; C = M-(A+B)
+\end{aligned}
+\]
+
+Thus we obtain the Hoare triple
+
+\[
+\{R_2[C\!:=\!M-(A+B)]\}\;
+\texttt{filhoC = monica - (filhoA + filhoB)}\;
+\{R_2\}
+\tag{A2}
+\]
+
+Because the pre‑condition already guarantees `M ≥ A+B`, we can also deduce
+
+\[
+C = M-(A+B) \;\ge\; 0 .
+\]
+
+Hence after this assignment we have the **invariant**
+
+\[
+I_2 \;=\; R_2\;\land\; C = M-(A+B) .
+\tag{Inv2}
+\]
+
+--------------------------------------------------------------------
+### 3.  Printing the maximum  
+
+```python
+print(max(filhoA, filhoB, filhoC))
+```
+
+We treat the call to `max` as a command whose specification is (max‑spec).  
+First we instantiate (max‑spec) with the actual arguments:
+
+\[
+\{\,A,B,C\in\mathbb Z\,\}\;
+\texttt{max}(A,B,C)\;
+\{\,v = \max\{A,B,C\}\,\}
+\tag{A3}
+\]
+
+The current invariant `Inv2` entails the antecedent of (A3) because `A, B, C` are integers (the program never modifies them after the previous step).  
+
+Consequently, by the **consequence rule** we obtain
+
+\[
+\{\,Inv2\,\}\;\texttt{max}(filhoA,filhoB,filhoC)\;
+\{\,v = \max\{A,B,C\}\,\}
+\tag{A3'}
+\]
+
+The `print` statement does not change program state; it merely observes the value `v`.  
+Therefore the Hoare triple for the whole `print` line is
+
+\[
+\{\,Inv2\,\}\;
+\texttt{print(max(filhoA,filhoB,filhoC))}\;
+\{\,\text{output}= \max\{A,B,C\}\,\}
+\tag{A4}
+\]
+
+--------------------------------------------------------------------
+### 4.  Composition of the three blocks  
+
+Using the **sequence rule** repeatedly we combine the triples (A1), (A2) and (A4):
+
+\[
+\begin{aligned}
+\{P\}&\; \texttt{monica = int(input())}\\
+    &\; \texttt{filhoA = int(input())}\\
+    &\; \texttt{filhoB = int(input())}\\
+    &\; \texttt{filhoC = monica - (filhoA + filhoB)}\\
+    &\; \texttt{print(max(filhoA,filhoB,filhoC))}\; \{\,\text{output}= \max\{A,B,C\}\,\}
+\end{aligned}
+\]
+
+Recall that `C = M-(A+B)`.  Substituting back the program variables we obtain the **post‑condition** required by the specification:
+
+\[
+Q \;\equiv\; \text{the printed value } = \max\{\,\texttt{filhoA},\;\texttt{filhoB},\;
+\texttt{monica}-(\texttt{filhoA}+\texttt{filhoB})\,\}.
+\]
+
+Thus we have proved the Hoare triple
+
+\[
+\boxed{\{\,P\,\}\;\texttt{program}\;\{\,Q\,\}}
+\]
+
+i.e. **the program is correct with respect to the given pre‑ and post‑conditions**.
+
+--------------------------------------------------------------------
+## Summary of the Proof Steps
+
+| Step | Code fragment                              | Hoare triple (pre → post)                                    |
+|------|--------------------------------------------|--------------------------------------------------------------|
+| 1    | `monica = int(input())`<br>`filhoA = int(input())`<br>`filhoB = int(input())` | `{P}` → `{P}` (inputs just instantiate the abstract values) |
+| 2    | `filhoC = monica - (filhoA + filhoB)`      | `{P[C:=M-(A+B)]}` → `{P ∧ C = M-(A+B)}`                       |
+| 3    | `print(max(filhoA,filhoB,filhoC))`         | `{P ∧ C = M-(A+B)}` → `{output = max{A,B,C}}`                |
+| —    | **Composition**                            | `{P}` → `{output = max{A,B,C}}`                               |
+
+All verification conditions generated by the assignment rule and by the use of the `max` specification are *trivially true* under the pre‑condition `M ≥ A + B`. Consequently the program satisfies the specification. ∎

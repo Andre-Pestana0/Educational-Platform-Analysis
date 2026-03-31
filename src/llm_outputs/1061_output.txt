@@ -1,0 +1,50 @@
+0 dia(s)
+4 hora(s)
+30 minuto(s)
+45 segundo(s)
+
+0 dia(s)
+2 hora(s)
+4 minuto(s)
+40 segundo(s)
+
+0 dia(s)
+1 hora(s)
+29 minuto(s)
+25 segundo(s)
+
+0 dia(s)
+0 hora(s)
+1 minuto(s)
+0 segundo(s)
+
+1 dia(s)
+0 hora(s)
+0 minuto(s)
+0 segundo(s)
+
+1 dia(s)
+13 hora(s)
+49 minuto(s)
+50 segundo(s)
+
+29 dia(s)
+23 hora(s)
+59 minuto(s)
+59 segundo(s)
+
+0 dia(s)
+1 hora(s)
+0 minuto(s)
+0 segundo(s)
+
+0 dia(s)
+0 hora(s)
+19 minuto(s)
+40 segundo(s)
+
+3 dia(s)
+0 hora(s)
+0 minuto(s)
+0 segundo(s)
+

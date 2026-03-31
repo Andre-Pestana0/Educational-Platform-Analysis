@@ -1,0 +1,88 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “program’’ is the sequence *read → compute → print*).  
+All symbols are written in standard mathematical notation.
+
+---
+
+### 1. State variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `a₁,…,a₆ ∈ ℝ` | the six numbers that are read from the input (order is irrelevant for the result) |
+| `c ∈ ℕ` | the number of positive values among the six inputs |
+| `s ∈ ℝ` | the sum of the positive values (used only as an auxiliary variable) |
+| `m ∈ ℝ` | the arithmetic mean of the positive values (the value that must be printed) |
+| `out₁ , out₂` | the two strings that are produced by the program (first line and second line) |
+
+---
+
+### 2. Preconditions  
+
+\[
+\boxed{P\;:\;
+\begin{aligned}
+&\bigl(a_{1},a_{2},a_{3},a_{4},a_{5},a_{6}\bigr) \in \mathbb{R}^{6} \\
+&\exists i\in\{1,\dots ,6\}\;.\; a_{i}>0
+\end{aligned}}
+\]
+
+*Explanation*: the program is started with exactly six real numbers already supplied on the input stream, and at least one of them is strictly positive (the problem statement guarantees this).
+
+---
+
+### 3. Postconditions  
+
+\[
+\boxed{Q\;:\;
+\begin{aligned}
+&c = \bigl|\{\,i\mid 1\le i\le 6 \;\land\; a_{i}>0\,\}\bigr| \\[4pt]
+&s = \displaystyle\sum_{\,i\;:\;a_{i}>0} a_{i} \\[4pt]
+&m = \frac{s}{c} \qquad (\text{well‑defined because }c>0)\\[4pt]
+&\text{out}_{1}= \text{``}c\;\text{valores positivos''} \\[2pt]
+&\text{out}_{2}= \text{``}\operatorname{round}_{1}(m)\text{''} 
+\end{aligned}}
+\]
+
+*Details*  
+
+* `c` is the **cardinality** of the set of indices whose associated input value is positive.  
+* `s` is the **sum** of exactly those positive values.  
+* Because the precondition guarantees `c>0`, the mean `m = s / c` is always defined.  
+* `out₁` (the first line of output) must be the literal string consisting of the integer `c` followed by the words *“valores positivos”*.  
+* `out₂` (the second line) must be the value of `m` **rounded to one decimal digit** (the usual “round‑to‑nearest, ties‑to‑even’’ rule is assumed, but any deterministic rounding to one digit is acceptable).  
+
+---
+
+### 4. Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\; \textbf{read\_6\_numbers};\;
+\textbf{compute\_c\_and\_m};\;
+\textbf{print\_out₁\_out₂}\;\; \{\,Q\,\}}
+\]
+
+where  
+
+* `read_6_numbers` reads the six values into the variables `a₁,…,a₆`.  
+* `compute_c_and_m` evaluates the auxiliary variables `c`, `s`, and `m` according to the definitions in **Q**.  
+* `print_out₁_out₂` produces the two output lines exactly as specified in **Q**.
+
+---
+
+### 5. Summary in pure mathematical form  
+
+\[
+\begin{aligned}
+&\{\, (a_{1},\dots ,a_{6})\in\mathbb{R}^{6}\;\land\;\exists i\;.\;a_{i}>0 \,\}\\[2pt]
+&\quad\text{read }a_{1},\dots ,a_{6};\;
+c:=|\{i\mid a_{i}>0\}|;\;
+s:=\sum_{i:a_{i}>0}a_{i};\;
+m:=s/c;\\[2pt]
+&\quad\text{print }c\;\text{``valores positivos''};\;
+\text{print }\operatorname{round}_{1}(m)\\[2pt]
+&\{\, c = |\{i\mid a_{i}>0\}|,\; m = \frac{\sum_{i:a_{i}>0} a_{i}}{c},\;
+\text{output format as above}\,\}
+\end{aligned}
+\]
+
+This Hoare‑logic specification captures **exactly** what the program must accomplish:  
+*count the positive inputs* and *output their average rounded to one decimal place*.

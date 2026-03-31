@@ -1,0 +1,78 @@
+**Hoare‑style specification (pre‑ and post‑conditions only)**  
+
+We introduce the following notation  
+
+* `a , b , c ∈ ℤ` – the three integer values that are read from the input file.  
+* `max3(a,b,c) ≝ max{a,b,c}` – the greatest of the three numbers.  
+* `out` – the string that the program writes to the output file.  
+* `⟨x⟩` – the textual representation (decimal expansion) of an integer `x`.  
+
+---
+
+### Preconditions  
+
+The only requirement on the initial state is that the input file contains exactly three
+integers.  Formally  
+
+\[
+\boxed{\;P \;≡\; \exists a,b,c\in\mathbb Z\;.\; \text{input} = \langle a\rangle\;\langle\;{\rm space}\;\rangle\;\langle b\rangle\;\langle\;{\rm space}\;\rangle\;\langle c\rangle\;}
+\]
+
+(If we prefer to state the precondition as “true” because the problem guarantees a
+well‑formed input, we can simply write `P ≡ true`.)
+
+---
+
+### Postconditions  
+
+After termination the program must have produced exactly one line consisting of the
+decimal representation of the greatest input value, followed by a single space and the
+literal phrase *“eh o maior”*.  Hence  
+
+\[
+\boxed{\;Q \;≡\; out = \langle \max3(a,b,c) \rangle\;\;{\tt\;“\;eh\;o\;maior\;”}\;}
+\]
+
+or, written out with explicit concatenation,
+
+\[
+Q \;:\; out = \underbrace{\langle\max3(a,b,c)\rangle}_{\text{decimal digits}}
+            \; \mathbin{+\!} \; {\tt\;“\; \;eh\; \;o\; \;maior\; ”}.
+\]
+
+---
+
+### Hoare triple  
+
+Putting the two parts together, the formal specification of the required program is  
+
+\[
+\boxed{\;\{P\}\;\; \texttt{read three ints; compute max; print “max eh o maior”}\;\; \{Q\}\;}
+\]
+
+where  
+
+* `P` guarantees that the input consists of three integers `a, b, c`;  
+* `Q` guarantees that the output string is exactly the decimal representation of
+  `max3(a,b,c)` followed by a space and the literal text *“eh o maior”*.
+
+---  
+
+#### Remarks  
+
+* The definition of `max3` can be expressed in pure arithmetic if desired:  
+
+  \[
+  \max3(a,b,c)=\frac{a+b+|a-b|}{2}\;\; \text{if } a\ge b,\; \text{etc.}
+  \]
+
+  but the set‑theoretic definition `max{a,b,c}` is sufficient for a Hoare‑logic
+  specification.  
+
+* The specification does **not** prescribe how the program computes the maximum
+  (e.g., pairwise comparisons, sorting, etc.); it only constrains the observable
+  behaviour (the output) relative to the input.  
+
+* If the input file may contain leading/trailing whitespace, the precondition can be
+  relaxed to `∃a,b,c∈ℤ . input ∈ WS* ⟨a⟩ WS+ ⟨b⟩ WS+ ⟨c⟩ WS*`, where `WS` denotes any
+  whitespace character. The postcondition remains unchanged.  

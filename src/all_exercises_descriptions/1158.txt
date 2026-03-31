@@ -1,0 +1,17 @@
+Description: Read an integerNthat is the number of test cases that follows. Each test case contains two integersXandY. Print one output line for each test case that is the sum ofYodd numbers fromXincluding it if is the case. For example:for the input 4 5, the output must be 45, that is: 5 + 7 + 9 + 11 + 13for the input 7 4, the output must be 40, that is: 7 + 9 + 11 + 13
+
+Input: The first line of the input is an integerNthat is the number of test cases that follow. Each test case is a line containing two integerXandY.
+
+Output: Print the sum of all consecutive odd numbers fromX.
+
+Examples:
+- Example 1:
+  Input:
+2
+4 3
+11 2
+  Output:
+21
+24
+
+--

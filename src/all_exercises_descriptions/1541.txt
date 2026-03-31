@@ -1,0 +1,19 @@
+Description: Mr Pi is a famous constructor of Codingland. He needs your help to find out the best lands in the city to his projects.
+
+Input: The input has many test cases. Each one is made by three integer numbersA,BandC(> 0 and <= 1000) separated by one blank space. This numbers are the size of the house (AandB) and the maximum percentage allowed to build in this neighborhood (C). An unique 0 (zero) value means end of inputs.
+
+Output: Should be printed an integer number, that is the size of the land. This value should be truncated.
+
+Examples:
+- Example 1:
+  Input:
+8 10 20
+1 10 100
+10 3 100
+0
+  Output:
+20
+3
+5
+
+--

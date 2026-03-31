@@ -1,0 +1,25 @@
+Description: Well, we have to admit: we need your help. This year things have not been running as smoothly as we wished, and we could not finish the contest system software in time. One vital part is missing, and as you know, we need the system working by this afternoon, for the real contest. The missing part is the module that computes the teamâs scores, given the teamâs list of submissions. Please, please, someone help us!
+
+Input: The input contains several test cases. The first line of a test case contains a single integer N indicating the number of submissions in the test (1 â¤Nâ¤ 300). Each of the followingNlines describe a submission; each of these lines contains a problem identifier (a single letter from âAâ to âZâ), followed by an integerTrepresenting the time in minutes (0 â¤Tâ¤ 300), followed by a judgement (the word âcorrectâ or the word âincorrectâ). The input is in ascending order by time, and there will be at most one âcorrectâ judgement for each problem. The end of input is indicated byN= 0. The input must be read from standard input.
+
+Output: For each test case in the input your program should output a line containing two integersSandP, separated by a space, whereSis the number of distinct problems with a âcorrectâ judgement andPis the time at which each distinct problem is first judged âcorrectâ, plus 20 for each âincorrectâ submission for a problem that is later judged âcorrectâ. The output must be written to standard output.
+
+Examples:
+- Example 1:
+  Input:
+3
+A 120 incorrect
+A 130 incorrect
+A 200 incorrect
+5
+A 100 correct
+B 110 incorrect
+B 111 correct
+C 200 correct
+D 300 incorrect
+0
+  Output:
+0 0
+3 431
+
+--

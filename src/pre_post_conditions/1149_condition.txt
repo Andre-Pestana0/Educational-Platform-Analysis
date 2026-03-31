@@ -1,0 +1,109 @@
+**Hoare‑style specification (pre‑condition / post‑condition only)**  
+
+---
+
+### Notation that will be used  
+
+* The whole input line is a finite sequence of integers  
+
+\[
+\mathbf I = (i_0,i_1,i_2,\dots ,i_m)\qquad (m\ge 1)
+\]
+
+* The first element is the value **A**  
+
+\[
+A \;=\; i_0
+\]
+
+* The remaining elements are candidate values for **N**.  
+  Let  
+
+\[
+j \;=\; \min\{k\in\{1,\dots ,m\}\mid i_k>0\}
+\]
+
+  (the index of the **first strictly positive** integer after *A*).  
+  We assume such a \(j\) exists; otherwise the program would never terminate.
+
+* The *effective* value of **N** that will be used by the algorithm is  
+
+\[
+N' \;=\; i_j .
+\]
+
+* The required result (the sum of the first \(N'\) numbers starting with \(A\)) is  
+
+\[
+S \;=\; \sum_{t=0}^{N'-1}(A+t)
+      \;=\; N'\,A + \frac{N'(N'-1)}{2}.
+\]
+
+* The program prints a single integer, denoted \(\mathsf{out}\).
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{
+P \;:\;
+\begin{aligned}
+&\mathbf I\text{ is a finite non‑empty sequence of integers,}\\
+&|\mathbf I|\ge 2,\\
+&\exists k\;(1\le k\le |\mathbf I|-1\;\land\; i_k>0).
+\end{aligned}}
+\]
+
+In words: the input line contains at least two integers, the first one is the
+starting value \(A\), and **there is at least one positive integer after it**.
+
+---
+
+### Program (informal sketch, only to make the specification clear)
+
+```
+read A, N                // N ← i1
+while N ≤ 0 do
+        read N            // N ← next element of I
+od
+S ← Σ_{t=0}^{N-1} (A+t)
+print S
+```
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{
+Q \;:\;
+\begin{aligned}
+&\mathsf{out}=S,\\[2mm]
+&\text{where }N'=i_j\text{ with }j=\min\{k\ge 1\mid i_k>0\},\\
+& S = N' \,A + \frac{N'(N'-1)}{2}.
+\end{aligned}}
+\]
+
+Thus the program terminates with the **unique** integer equal to the sum of the
+\(N'\) consecutive numbers that start at \(A\), where \(N'\) is the first
+positive integer read after \(A\).
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{read\;A,N; while\;N≤0\;read\;N; print\; Σ_{t=0}^{N-1}(A+t)}\; \{Q\}}
+\]
+
+The triple states that, **provided the input satisfies the pre‑condition \(P\)**,
+the algorithm described above **guarantees** the post‑condition \(Q\), i.e.
+it prints exactly the integer  
+
+\[
+\displaystyle N' A + \frac{N'(N'-1)}{2},
+\]
+
+with \(N'\) defined as the first positive integer occurring after the initial
+value \(A\) in the input line.

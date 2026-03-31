@@ -1,0 +1,26 @@
+Description: Two cars (X and Y) leave in the same direction. The car X leaves with a constant speed of 60 km/h and the car Y leaves with a constant speed of 90 km / h.
+
+Input: The input file contains 1 integer value.
+
+Output: Print the necessary time followed by the message "minutos" that means minutes in Portuguese.
+
+Examples:
+- Example 1:
+  Input:
+30
+  Output:
+60 minutos
+
+- Example 2:
+  Input:
+110
+  Output:
+220 minutos
+
+- Example 3:
+  Input:
+7
+  Output:
+14 minutos
+
+--

@@ -1,0 +1,20 @@
+05:12 - A porta abriu!
+
+00:00 - A porta fechou!
+23:59 - A porta abriu!
+
+00:05 - A porta fechou!
+08:00 - A porta abriu!
+12:07 - A porta fechou!
+
+15:31 - A porta fechou!
+15:31 - A porta abriu!
+10:10 - A porta fechou!
+10:10 - A porta abriu!
+
+00:00 - A porta abriu!
+00:00 - A porta fechou!
+23:59 - A porta abriu!
+23:59 - A porta fechou!
+09:30 - A porta abriu!
+

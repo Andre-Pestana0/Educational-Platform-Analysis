@@ -1,0 +1,119 @@
+Below is a **Hoare‑logic style specification** for the program that reads the three coefficients of a quadratic equation  
+
+\[
+a\,x^{2}+b\,x+c=0
+\]
+
+and either prints the two roots given by the Bhaskara (quadratic) formula or prints the
+message *“Impossivel calcular”* when the formula cannot be evaluated.
+
+---
+
+### 1.  State variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(a,b,c\) | input numbers (type `double`, i.e. real numbers) |
+| \(\Delta\) | discriminant \(\Delta = b^{2}-4ac\) |
+| \(d\)      | denominator \(d = 2a\) |
+| \(\mathit{out}\) | the observable result of the program.  It can be either a **pair of real numbers** \((r_{1},r_{2})\) (the two roots) or the special value \(\bot\) that denotes the error message *“Impossivel calcular”*. |
+
+---
+
+### 2.  Pre‑condition  
+
+The only requirement before execution is that the three inputs are real numbers (the
+language already guarantees that they are read as `double`s).
+
+\[
+\boxed{P \;\equiv\; a\in\mathbb{R}\;\wedge\;b\in\mathbb{R}\;\wedge\;c\in\mathbb{R}}
+\]
+
+(If one wishes to be more explicit, one can write \(P\equiv\text{true}\) because the
+type system already enforces the above.)
+
+---
+
+### 3.  Post‑condition  
+
+Let  
+
+\[
+\Delta \;=\; b^{2}-4ac,\qquad
+d \;=\; 2a .
+\]
+
+Define the mathematically exact roots (when they exist)
+
+\[
+r_{1}^{\!*}= \frac{-b+\sqrt{\Delta}}{d},\qquad
+r_{2}^{\!*}= \frac{-b-\sqrt{\Delta}}{d}.
+\]
+
+The observable result after the program terminates must satisfy:
+
+\[
+\boxed{
+\begin{aligned}
+Q\;\equiv\; &\bigl(a\neq 0 \;\wedge\; \Delta \ge 0\bigr)
+               \;\Longrightarrow\; \mathit{out}= (r_{1}^{\!*},\,r_{2}^{\!*})\\[2mm]
+           &\;\wedge\;
+               \bigl(a = 0 \;\vee\; \Delta < 0\bigr)
+               \;\Longrightarrow\; \mathit{out}= \bot .
+\end{aligned}}
+\]
+
+*Explanation*  
+
+* **Case 1 – successful computation**  
+  If the denominator \(d=2a\) is non‑zero **and** the discriminant \(\Delta\) is
+  non‑negative, the program must output the two real roots
+  \((r_{1}^{\!*},r_{2}^{\!*})\).  (The required printing with five digits after the
+  decimal point is a formatting issue that does not affect the logical value of the
+  result.)
+
+* **Case 2 – impossible to compute**  
+  If either \(a=0\) (division by zero) **or** \(\Delta<0\) (square‑root of a negative
+  number), the only admissible observable result is the special value \(\bot\),
+  which the implementation will render as the literal string  
+  *“Impossivel calcular”*.
+
+---
+
+### 4.  Hoare triple  
+
+Putting the pieces together, the whole program \(S\) (read three numbers, compute the
+discriminant, decide which branch to follow, and print) satisfies the Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; S\; \{\,Q\,\}}
+\]
+
+where  
+
+* \(P\) is the pre‑condition defined in §2, and  
+* \(Q\) is the post‑condition defined in §3.
+
+---
+
+### 5.  Remarks on rounding  
+
+The specification above treats the roots as exact real numbers.  
+The requirement *“print the result with 5 digits after the decimal point”* can be
+modelled by an additional **output‑formatting predicate**:
+
+\[
+\mathit{out\_fmt}(r_{1},r_{2}) \equiv
+   \bigl(\text{printf}("R1 = %.5f\\nR2 = %.5f",r_{1},r_{2})\bigr)
+\]
+
+and the post‑condition can be refined to  
+
+\[
+\bigl(a\neq 0\wedge\Delta\ge 0\bigr)\Longrightarrow
+   \mathit{out\_fmt}(r_{1}^{\!*},r_{2}^{\!*})\; .
+\]
+
+The logical part of the specification, however, remains the same: the program must
+produce the mathematically correct roots whenever they exist, otherwise it must
+produce the error message.

@@ -1,0 +1,33 @@
+Description: Read four numbers (N1, N2, N3, N4), which one with 1 digit after the decimal point, corresponding to 4 scores obtained by a student. Calculate the average with weights 2, 3, 4 e 1 respectively, for these 4 scores and print the message"Media: "(Average), followed by the calculated result. If the average was 7.0 or more, print the message"Aluno aprovado."(Approved Student). If the average was less than 5.0, print the message:"Aluno reprovado."(Reproved Student). If the average was between 5.0 and 6.9, including these, the program must print the message "Aluno em exame." (In exam student).
+
+Input: The input contains four floating point numbers that represent the students' grades.
+
+Output: Print all the answers with one digit after the decimal point.
+
+Examples:
+- Example 1:
+  Input:
+2.0 4.0 7.5 8.0
+6.4
+  Output:
+Media: 5.4
+Aluno em exame.
+Nota do exame: 6.4
+Aluno aprovado.
+Media final: 5.9
+
+- Example 2:
+  Input:
+2.0 6.5 4.0 9.0
+  Output:
+Media: 4.8
+Aluno reprovado.
+
+- Example 3:
+  Input:
+9.0 4.0 8.5 9.0
+  Output:
+Media: 7.3
+Aluno aprovado.
+
+--

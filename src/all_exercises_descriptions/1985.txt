@@ -1,0 +1,34 @@
+Description: The MacPRONALTS is with a super promotion, exclusive to the contestants of the first Selective MaratonaTEC. But they had a problem, all runners were trying to buy at the same time, so this generated a very long queue. The worst is that the cashier girl no have calculator or a program to help her to calculate more quickly. You are the person that will help the girl and the MacPRONALTS increase their sells. Bellow has a menu day, that contains the product number and its value.
+
+Input: The first entry is reported the number of purchased products (1 <=p<= 5). For each product follows the quantity (1 <=q<= 500) that the customer purchased.
+
+Output: You must print the purchase amount with two decimal places.
+
+Examples:
+- Example 1:
+  Input:
+2
+1001 2
+1005 3
+  Output:
+19.50
+
+- Example 2:
+  Input:
+1
+1003 500
+  Output:
+1750.00
+
+- Example 3:
+  Input:
+5
+1001 500
+1005 300
+1003 23
+1002 52
+1004 44
+  Output:
+2808.50
+
+--

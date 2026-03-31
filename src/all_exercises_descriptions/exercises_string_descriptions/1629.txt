@@ -1,0 +1,24 @@
+Description: In 2013, FACE Fair compressed their visitors data with a free zipper. Unfortunately, this tool started to be paid and you were asked to create an algorithm to unzip the data. The data are compressed in a decimal format, and in order to run the unzipped you are asked to find each compressed line checksum. FACE organization got a documentation of how the process worked, but some information on how to get the digits are not clear, the document only provides some examples, as follow:
+
+Input: The input contains several test cases. A test case first line contains an integerN(1 â¤Nâ¤ 25), representing the visitors data number from that file, wherein, each line represents a visitor. The followingNlines consist ofKdigits (1 â¤Kâ¤ 103) without space representing the compacted line. The stop is given byNequals 0.
+
+Output: For each compacted line you must display the uncompressed checksum digit.
+
+Examples:
+- Example 1:
+  Input:
+5
+7
+54782
+0158309
+12345678910
+987654321
+0
+  Output:
+7
+8
+17
+10
+9
+
+--

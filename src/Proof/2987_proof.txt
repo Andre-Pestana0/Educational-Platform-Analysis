@@ -1,0 +1,183 @@
+## 1.  What we have to prove  
+
+We want to show, **by Hoare‑logic**, that the program  
+
+```python
+letra = input()                     # ①
+posLetra = ord(letra) - 64          # ②
+print(posLetra)                     # ③
+```
+
+satisfies the specification that was given in the statement of the
+Bee‑Crowd problem:
+
+* **Pre‑condition** `P` : the value read from the user is a **single
+  uppercase Latin letter**  
+
+  \[
+  P \;\equiv\;  \bigl(\text{letra}\in\{‘A’,‘B’,\dots,‘Z’\}\bigr)
+  \]
+
+* **Post‑condition** `Q` : the program prints the **position of that
+  letter in the alphabet** (i.e. `1` for **A**, `2` for **B**, …,
+  `26` for **Z**)  
+
+  \[
+  Q \;\equiv\;
+  \bigl(\text{posLetra}= \operatorname{ord}(\text{letra})-64\;
+      \land\;1\le \text{posLetra}\le 26\;
+      \land\;\text{output}= \text{posLetra}\bigr)
+  \]
+
+Thus we must prove the Hoare triple  
+
+\[
+\{P\}\; \text{program}\; \{Q\}
+\]
+
+---
+
+## 2.  Hoare‑logic ingredients we will use  
+
+| Rule | Shape | Meaning |
+|------|-------|---------|
+| **Assignment axiom** | \(\{\,\phi[e/x]\,\}\;x:=e\;\{\,\phi\,\}\) | Substitutes the right‑hand side for the variable in the predicate. |
+| **Composition** | \(\{A\}\;S_1\;\{B\}\)   \(\{B\}\;S_2\;\{C\}\)  ⇒  \(\{A\}\;S_1;S_2\;\{C\}\) | Sequential statements can be chained. |
+| **Rule of consequence** | \(\{A\}\;S\;\{C\}\)   with   \(A\Rightarrow B\) and \(C\Rightarrow D\)  ⇒  \(\{B\}\;S\;\{D\}\) | We may strengthen the pre‑condition or weaken the post‑condition. |
+| **Input (nondeterministic assignment)** | \(\{\,\phi(\text{letra})\,\}\;\text{letra}= \text{input}()\;\{\,\phi(\text{letra})\,\}\) | The statement reads any value that satisfies the predicate that we assume about the input. |
+| **Output** | \(\{\,\phi\,\}\;\text{print}(e)\;\{\,\phi\land \text{output}=e\,\}\) | The only effect of `print` is to add a relation between the (external) output and the expression `e`. |
+
+The program contains **no loops**, therefore we do not need an invariant.
+
+---
+
+## 3.  Proof step‑by‑step  
+
+### 3.1  Statement ① – reading the letter  
+
+We start from the pre‑condition  
+
+\[
+P\;:\; \text{letra}\in\{‘A’,\dots,‘Z’\}.
+\]
+
+The statement `letra = input()` is modelled as a *nondeterministic
+assignment* that may choose any value satisfying the predicate we have
+already assumed. Therefore the **input rule** gives us directly  
+
+\[
+\{P\}\; \text{letra}= \text{input}()\; \{P\}.
+\tag{1}
+\]
+
+(If we wanted to be more explicit we could write the rule as
+\(\{\,\phi(\text{letra})\,\}\;\text{letra}= \text{input}()\;\{\,\phi(\text{letra})\,\}\) with \(\phi(x)\equiv x\in\{‘A’,\dots,‘Z’\}\).)
+
+### 3.2  Statement ② – computing the position  
+
+We now apply the **assignment axiom** to the second line  
+
+```
+posLetra = ord(letra) - 64
+```
+
+Let  
+
+\[
+\psi \equiv \bigl(\text{posLetra}= \operatorname{ord}(\text{letra})-64
+                 \land 1\le\text{posLetra}\le 26\bigr).
+\]
+
+The axiom tells us that the triple  
+
+\[
+\{\psi[\,\operatorname{ord}(\text{letra})-64\;/\;\text{posLetra}\,]\}
+\; \text{posLetra}= \operatorname{ord}(\text{letra})-64\;
+\{\psi\}
+\tag{2}
+\]
+
+holds.  The substituted predicate on the left‑hand side is simply  
+
+\[
+\operatorname{ord}(\text{letra})-64 = 
+\operatorname{ord}(\text{letra})-64 \;\land\;
+1\le \operatorname{ord}(\text{letra})-64 \le 26 .
+\]
+
+Because the pre‑condition `P` guarantees that `letra` is an uppercase
+letter, we know (by the definition of the ASCII table)  
+
+\[
+\operatorname{ord}(\text{‘A’}) = 65,\qquad
+\operatorname{ord}(\text{‘Z’}) = 90,
+\]
+
+hence for every `letra∈{‘A’,…,‘Z’}`  
+
+\[
+1 \le \operatorname{ord}(\text{letra})-64 \le 26 .
+\]
+
+Thus the left‑hand side of (2) is **implied** by `P`.  Using the **rule of
+consequence** we can strengthen the pre‑condition of (2) from the
+substituted predicate to `P`:
+
+\[
+\{P\}\; \text{posLetra}= \operatorname{ord}(\text{letra})-64\; \{\psi\}.
+\tag{3}
+\]
+
+### 3.3  Statement ③ – printing the result  
+
+The third line is a pure output command.  The output rule gives
+
+\[
+\{\psi\}\; \text{print}(\text{posLetra})\;
+\{\psi \land \text{output}= \text{posLetra}\}.
+\tag{4}
+\]
+
+The post‑condition we finally want, `Q`, is exactly the right‑hand side
+of (4).  Hence (4) already proves the desired post‑condition.
+
+### 3.4  Composition of the three statements  
+
+Now we chain the three triples (1), (3) and (4) using the **composition
+rule**:
+
+\[
+\{P\}\; \text{letra}= \text{input}()\;
+\{P\}\; \text{posLetra}= \operatorname{ord}(\text{letra})-64\;
+\{\psi\}\; \text{print}(\text{posLetra})\;
+\{\psi\land \text{output}= \text{posLetra}\}
+\]
+
+which yields the overall triple  
+
+\[
+\boxed{\; \{P\}\; \text{program}\; \{Q\}\; } .
+\]
+
+Thus the program is **totally correct** with respect to the given
+specification:  
+
+*If the user supplies a single uppercase Latin letter, the program
+terminates and prints its position in the alphabet (1 … 26).*
+
+---
+
+## 4.  Summary in plain English  
+
+1. **Pre‑condition** – we assume the user types a capital letter `A…Z`.  
+2. The first statement merely *receives* that letter; it does not change
+   the truth of the pre‑condition.  
+3. The second statement computes `posLetra = ord(letra) – 64`.  
+   Because `ord('A') = 65` and `ord('Z') = 90`, the subtraction yields a
+   number between `1` and `26`.  Hence after this assignment we have the
+   exact formula for the alphabetic position.  
+4. The third statement prints that number, so the observable output of
+   the program is precisely the required position.  
+
+All three steps are justified by the standard Hoare‑logic rules, and
+the proof shows that the program meets its formal specification. ∎

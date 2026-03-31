@@ -1,0 +1,26 @@
+Description: Your teacher would like to make a program with the following characteristics:
+
+Input: The entry consists of several test files. In each test file there is one line. The line has the following formatXXX.YYY.ZZZ-DD, where XXX, YYY, ZZZ, DD are integers. As shown in the following input example.
+
+Output: For each file in the entry, you have an output file. The output file has four rows with an integer in each of them as it has been entered. As shown in the following output example.
+
+Examples:
+- Example 1:
+  Input:
+000.000.000-00
+  Output:
+000
+000
+000
+00
+
+- Example 2:
+  Input:
+320.025.102-01
+  Output:
+320
+025
+102
+01
+
+--

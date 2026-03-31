@@ -1,0 +1,264 @@
+**Answer**
+
+Below is a complete Hoare‑logic proof that the program
+
+```python
+faltam = int(input())                 # 1
+A, B   = map(int, input().split(' ')) # 2
+if A + B > faltam:                     # 3
+    print('Deixa para amanha!')       # 4
+else:                                  # 5
+    print('Farei hoje!')              # 6
+```
+
+conforms to the specification that
+
+*the program must print  
+
+  “Deixa para amanha!” **iff** `A + B > faltam`  
+
+  “Farei hoje!”    **iff** `A + B ≤ faltam`.*
+
+The proof uses the three standard Hoare‑logic rules that are needed:
+
+| Rule | Form |
+|------|------|
+| **Assignment** | `{ Q[x←E] }  x := E  { Q }` |
+| **Composition** | `{P} S1 {Q} , {Q} S2 {R}  ⇒  `{P} S1;S2 {R}` |
+| **Conditional** | `{P ∧ B} S1 {Q} , `{P ∧ ¬B} S2 {Q}`  ⇒  `{P} if B then S1 else S2 {Q}` |
+
+(Printing statements are treated as *skip* with respect to the program state – they do not change any variable.)
+
+---------------------------------------------------------------------
+
+## 1.  Specification (pre‑ and post‑conditions)
+
+*Variables*  
+
+```
+faltam , A , B ∈ ℕ          (natural numbers, i.e. non‑negative integers)
+```
+
+*Pre‑condition*  
+
+```
+P ≡ (faltam ≥ 0 ∧ A ≥ 0 ∧ B ≥ 0)                -- the program receives only natural numbers
+```
+
+*Post‑condition*  
+
+```
+Q ≡  ( (A + B > faltam) ∧ out = "Deixa para amanha!" )
+   ∨ ( (A + B ≤ faltam) ∧ out = "Farei hoje!" )
+```
+
+`out` denotes the string that the program writes to the standard output
+(at most one of the two strings, because exactly one branch of the `if`
+is executed).
+
+The goal is to prove the Hoare triple
+
+```
+{ P }  Program  { Q }
+```
+
+---------------------------------------------------------------------
+
+## 2.  Decomposition of the program
+
+We split the program into three blocks that are easier to reason about:
+
+```
+S1 : faltam = input()                (line 1)
+S2 : A, B   = input()                (line 2)
+S3 : if A+B > faltam then
+          print('Deixa para amanha!')
+      else
+          print('Farei hoje!')
+```
+
+The overall triple will be obtained by the **Composition** rule:
+
+```
+{P} S1 ; S2 ; S3 {Q}
+```
+
+---------------------------------------------------------------------
+
+## 3.  Reasoning about the input statements
+
+In Hoare logic an *input* statement is modelled as an assignment whose right‑hand side
+is an arbitrary value that satisfies the intended type constraints.  
+Therefore we can replace the two input statements by the following *axioms*:
+
+```
+{ P }   faltam := any_nat   { P }                     (A1)
+{ P }   (A,B) := any_nat_pair { P }                  (A2)
+```
+
+Both axioms preserve the pre‑condition because `any_nat` and `any_nat_pair`
+are guaranteed to be non‑negative. Consequently we obtain
+
+```
+{ P } S1 ; S2 { P }                                    (C1)
+```
+
+So after the two reads the state still satisfies `P`.  
+From now on we can *assume* that the variables `faltam`, `A` and `B` hold the
+values read from the user and that they are non‑negative.
+
+---------------------------------------------------------------------
+
+## 4.  The conditional part `S3`
+
+We apply the **Conditional** rule.  
+Let  
+
+```
+Bcond ≡ (A + B > faltam)                -- the guard of the if‑statement
+```
+
+We must prove two triples:
+
+* **True branch**  
+
+  ```
+  { P ∧ Bcond }  print('Deixa para amanha!')  { Q }
+  ```
+
+* **False branch**  
+
+  ```
+  { P ∧ ¬Bcond } print('Farei hoje!')        { Q }
+  ```
+
+Because a `print` does not modify the program state, the **Assignment**
+axiom reduces to the **Skip** rule:
+
+```
+{ R } skip { R }                      (S)
+```
+
+Thus we only have to show that the *assertion* that holds *before* the
+`print` already implies the post‑condition `Q`.
+
+---------------------------------------------------------------------
+
+### 4.1  True branch (`Bcond` holds)
+
+Assume the pre‑condition of the true branch:
+
+```
+P ∧ Bcond   ≡   (faltam ≥ 0 ∧ A ≥ 0 ∧ B ≥ 0) ∧ (A + B > faltam)
+```
+
+From the conjunct `A + B > faltam` we can immediately infer the first
+disjunct of `Q`:
+
+```
+(A + B > faltam) ∧ out = "Deixa para amanha!"
+```
+
+The `print` statement makes `out` equal to exactly that string, therefore
+
+```
+(P ∧ Bcond)  ⟹  Q
+```
+
+and by the **Skip** rule we have
+
+```
+{ P ∧ Bcond } print('Deixa para amanha!') { Q }      (T1)
+```
+
+---------------------------------------------------------------------
+
+### 4.2  False branch (`¬Bcond` holds)
+
+Analogously, the pre‑condition of the false branch is
+
+```
+P ∧ ¬Bcond   ≡   (faltam ≥ 0 ∧ A ≥ 0 ∧ B ≥ 0) ∧ ¬(A + B > faltam)
+            ≡   (faltam ≥ 0 ∧ A ≥ 0 ∧ B ≥ 0) ∧ (A + B ≤ faltam)
+```
+
+From the conjunct `A + B ≤ faltam` we obtain the second disjunct of `Q`:
+
+```
+(A + B ≤ faltam) ∧ out = "Farei hoje!"
+```
+
+Again the `print` makes `out` exactly that string, hence
+
+```
+(P ∧ ¬Bcond)  ⟹  Q
+```
+
+and by **Skip**
+
+```
+{ P ∧ ¬Bcond } print('Farei hoje!') { Q }          (T2)
+```
+
+---------------------------------------------------------------------
+
+### 4.3  Assemble the conditional
+
+Having proved both branches (`T1` and `T2`), the **Conditional** rule yields
+
+```
+{ P } if A + B > faltam
+          then print('Deixa para amanha!')
+          else print('Farei hoje!')
+      { Q }                                          (C2)
+```
+
+---------------------------------------------------------------------
+
+## 5.  Whole program
+
+We now combine the three parts:
+
+* From **(C1)** we have `{ P } S1 ; S2 { P }`.
+* From **(C2)** we have `{ P } S3 { Q }`.
+
+Applying the **Composition** rule twice gives
+
+```
+{ P } S1 ; S2 ; S3 { Q }
+```
+
+which is exactly the Hoare triple that expresses the required correctness.
+
+---------------------------------------------------------------------
+
+## 6.  Summary of the proof
+
+| Step | Reasoning rule | Statement |
+|------|----------------|-----------|
+| 1 | Assignment axiom (input) | `{P} faltam := any_nat {P}` |
+| 2 | Assignment axiom (input) | `{P} (A,B) := any_nat_pair {P}` |
+| 3 | Composition | `{P} S1;S2 {P}` |
+| 4 | Conditional (true branch) | `{P ∧ (A+B>faltam)} print('Deixa para amanha!') {Q}` |
+| 5 | Conditional (false branch) | `{P ∧ ¬(A+B>faltam)} print('Farei hoje!') {Q}` |
+| 6 | Conditional rule | `{P} if … then … else … {Q}` |
+| 7 | Composition | `{P} S1;S2;S3 {Q}` |
+
+Thus **the program satisfies the specification**: it prints exactly the
+message required by the relation between `A + B` and `faltam`.
+
+---------------------------------------------------------------------
+
+### Remarks on the proof style
+
+* The *input* statements are treated as nondeterministic assignments that
+  respect the type constraints (`ℕ`). This is the standard way to reason
+  about interactive programs in Hoare logic.
+* The `print` statements are *observational* – they do not affect the
+  logical state of the variables, so they are modelled as `skip` with an
+  additional side‑condition on the output variable `out`.
+* No loop invariant is needed because the program contains no loops.
+
+The proof therefore demonstrates, in a formal Hoare‑logic fashion,
+that the program is **correct** with respect to the given pre‑ and
+post‑conditions. ∎

@@ -1,0 +1,100 @@
+Below is a **Hoare‑logic style specification** of the program that computes the \(N\)-th convergent of the periodic continued fraction for \(\sqrt{2}\) and prints it with ten decimal digits.
+
+---
+
+### 1.   Auxiliary definitions  
+
+\[
+\begin{aligned}
+\text{Let }&\operatorname{CF}_0 \;:=\; 1, \\[2mm]
+\text{and for }k\ge 1 &
+\begin{cases}
+x_0   &:= 2,\\[1mm]
+x_i   &:= 2+\dfrac{1}{x_{i-1}}\qquad (1\le i\le k),\\[3mm]
+\operatorname{CF}_k &:= 1+\dfrac{1}{x_k}.
+\end{cases}
+\end{aligned}
+\]
+
+* \(\operatorname{CF}_k\) is exactly the value of the finite continued fraction  
+
+\[
+1+\cfrac{1}{\displaystyle 2+\cfrac{1}{\displaystyle 2+\;\cdots\;+\cfrac{1}{2}}}
+\qquad\text{(the denominator “2’’ appears \(k\) times).}
+\]
+
+* For \(k=0\) the definition yields \(\operatorname{CF}_0 = 1\).
+
+* The function that the program must return is  
+
+\[
+\phi:\{0,\dots,100\}\longrightarrow\mathbb{Q},\qquad
+\phi(k)=\operatorname{CF}_k .
+\]
+
+* The required printed value is the decimal representation of \(\phi(k)\) **rounded to 10 digits after the decimal point**.  
+Denote this rounding operator by  
+
+\[
+\operatorname{round}_{10}(r)=\left\lfloor 10^{10}r+0.5\right\rfloor\;10^{-10}.
+\]
+
+---
+
+### 2.   Hoare triple  
+
+\[
+\boxed{\;\{\,P(N)\,\}\; \texttt{program}\; \{\,Q(N,\text{out})\,\}\;}
+\]
+
+where  
+
+\[
+\begin{aligned}
+P(N) &\;:=\; N\in\mathbb{N}\;\land\;0\le N\le 100, \\[2mm]
+Q(N,\text{out}) &\;:=\;
+\begin{cases}
+\text{out}= \operatorname{round}_{10}\bigl(\phi(N)\bigr) \\
+\qquad\land\; |\text{out}-\sqrt{2}|\le 5\cdot10^{-11},
+\end{cases}
+\end{aligned}
+\]
+
+i.e. after termination the variable `out` (the value that is printed) must be the **10‑decimal‑place rounding** of the \(N\)-th convergent \(\phi(N)\).  
+The inequality on the right follows from the definition of `round₁₀`; it guarantees that the printed number is the correctly rounded decimal representation.
+
+---
+
+### 3.   Expanded form of the post‑condition (for readability)
+
+\[
+\begin{aligned}
+Q(N,\text{out}) \equiv\;&
+\bigl(N=0\;\Rightarrow\;\text{out}=1.0000000000\bigr) \\
+&\land
+\bigl(N\ge 1\;\Rightarrow\;
+\text{out}= \operatorname{round}_{10}\bigl(1+\frac{1}{x_N}\bigr)\bigr),\\[2mm]
+&\text{where }x_0=2,\;x_i=2+\frac{1}{x_{i-1}}\;(1\le i\le N).
+\end{aligned}
+\]
+
+---
+
+### 4.   Summary in plain words  
+
+* **Pre‑condition**: the input integer `N` satisfies \(0\le N\le 100\).  
+* **Post‑condition**: the program prints the number  
+
+\[
+\operatorname{round}_{10}\!\bigl(\operatorname{CF}_N\bigr)
+\]
+
+where \(\operatorname{CF}_N\) is the \(N\)-fold continued‑fraction approximation of \(\sqrt{2}\) defined above.  
+
+Thus the Hoare triple  
+
+\[
+\{0\le N\le 100\}\; \texttt{program}\; \{\texttt{out}= \operatorname{round}_{10}(\operatorname{CF}_N)\}
+\]
+
+formally captures the required behaviour of the algorithm.

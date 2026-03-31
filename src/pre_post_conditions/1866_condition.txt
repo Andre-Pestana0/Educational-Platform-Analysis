@@ -1,0 +1,119 @@
+Below is a **Hoare‑logic style specification** of the whole program that solves the problem.  
+All symbols are written in ordinary mathematical notation; the only programming‑level
+constructs that appear are the *read* and *print* statements and a `for`‑loop.  
+
+--------------------------------------------------------------------
+### 1.  Data‑model
+
+* `C ∈ ℕ` – number of test cases (the first integer of the input).  
+* `N[1],…,N[C] ∈ ℕ` – the value that is read for each test case.  
+* `S[1],…,S[C] ∈ ℤ` – the value that is printed for each test case.  
+
+For each index `i` we use the auxiliary function  
+
+\[
+\operatorname{alt}(n)=\sum_{k=1}^{n}(-1)^{k+1}
+      =\begin{cases}
+          1 &\text{if } n\text{ is odd},\\[2mm]
+          0 &\text{if } n\text{ is even}.
+        \end{cases}
+\]
+
+--------------------------------------------------------------------
+### 2.  Pre‑condition  (**P**)
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\;& C\in\mathbb N,\;C\ge 1                              \\[1mm]
+          &\land\; \bigl(\forall i\in\{1,\dots ,C\}\bigr)\;
+                \bigl( N[i]\in\mathbb N \land
+                       1\le N[i]\le 1000 \bigr)
+\end{aligned}}
+\]
+
+The pre‑condition simply states that the input is well‑formed:
+*the first integer is a positive natural number* and *every following integer
+lies in the interval \([1,1000]\)*.
+
+--------------------------------------------------------------------
+### 3.  Post‑condition  (**Q**)
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\;& \bigl(\forall i\in\{1,\dots ,C\}\bigr)\;
+        S[i]\;=\;\operatorname{alt}\bigl(N[i]\bigr)                \\[1mm]
+          &\land\; \text{the program prints the sequence }
+                \bigl(S[1],S[2],\dots ,S[C]\bigr) \text{ each on its own line.}
+\end{aligned}}
+\]
+
+Thus, for every test case the printed number is exactly the sum of the first
+`N[i]` terms of the alternating series \(1-1+1-1+\dots\).
+
+--------------------------------------------------------------------
+### 4.  Hoare triple for the whole program  
+
+Let the (imperative‑style) program be
+
+```text
+read C;                                 // line 1
+i := 1;
+while i ≤ C do                         // line 2
+    read N[i];                         // line 3
+    if (N[i] mod 2 = 1) then           // line 4
+        S[i] := 1;                     // line 5
+    else                               // line 6
+        S[i] := 0;                     // line 7
+    print S[i];                        // line 8
+    i := i + 1;                        // line 9
+od
+```
+
+The **loop invariant** `Inv(i)` that is used to prove correctness is
+
+\[
+\begin{aligned}
+Inv(i) \;\equiv\;& 1\le i\le C+1\;\land\\
+&\bigl(\forall j\in\{1,\dots ,i-1\}\bigr)\; 
+      S[j]=\operatorname{alt}\bigl(N[j]\bigr)
+\end{aligned}
+\]
+
+With this invariant we obtain the following Hoare triple:
+
+\[
+\boxed{
+\{P\}\;\text{program}\;\{Q\}
+}
+\]
+
+*Proof sketch* (not required by the assignment but supplied for completeness)
+
+1. **Initialization** – after line 1 we have `i = 1` and no `S[j]` is defined, so
+   `Inv(1)` holds trivially.
+2. **Preservation** – assuming `Inv(i)` and `i ≤ C`, the body of the loop
+   (lines 3‑9) computes `S[i]` as `alt(N[i])` (by the `if` statement) and then
+   increments `i`. Consequently `Inv(i+1)` holds.
+3. **Termination** – when the loop ends we have `i = C+1`. By `Inv(C+1)` we know
+   that for every `j = 1,…,C` the relation `S[j]=alt(N[j])` holds, i.e. the
+   post‑condition `Q` is satisfied.
+
+--------------------------------------------------------------------
+### 5.  Compact mathematical specification (optional)
+
+If one prefers to describe the whole algorithm as a pure mathematical function
+instead of a program, it can be written as:
+
+\[
+\begin{aligned}
+\text{solve} :\;& \mathbb N^{+}\times\bigl(\mathbb N_{[1,1000]}\bigr)^{C}
+      \longrightarrow \{0,1\}^{C} \\[1mm]
+\text{solve}(C, (N_1,\dots ,N_C)) &=
+      \bigl(\operatorname{alt}(N_1),\dots ,\operatorname{alt}(N_C)\bigr).
+\end{aligned}
+\]
+
+The Hoare‑logic specification above is precisely the formalisation of this
+function in terms of pre‑ and post‑conditions.

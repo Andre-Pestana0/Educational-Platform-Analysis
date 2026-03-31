@@ -1,0 +1,70 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “read‑compute‑print” routine).  
+Only the **pre‑condition** and the **post‑condition** are given; the body of the program is omitted because the request is for the logical contract, not the implementation.
+
+---
+
+### Notation used  
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℤ`    | set of all (mathematical) integers |
+| `a , b`| the two integer values supplied by the input file (in that order) |
+| `PROD` | program variable that will hold the product |
+| `out`  | the complete text that the program writes to the standard output (including the final newline) |
+| `·`    | ordinary integer multiplication |
+| `⟨·⟩`  | “string concatenation” (e.g. `"PROD = "`⟨x⟩ = `"PROD = "` followed by the decimal representation of the integer *x*) |
+| `toString(x)` | decimal representation of the integer *x* (without leading spaces) |
+| `\n`   | the line‑feed character (end‑of‑line) |
+| `⊢ {P} C {Q}` | Hoare triple: if the pre‑condition `P` holds before command `C`, then after termination `Q` holds. |
+
+---
+
+### Formal contract
+
+\[
+\boxed{
+\begin{array}{c}
+\displaystyle
+\{\, a\in\mathbb Z \;\land\; b\in\mathbb Z \,\}
+\;\;\; \text{read\_prod}
+\;\;\;
+\{\, \text{PROD}=a\cdot b 
+   \;\land\; 
+   \text{out}= \langle\text{"PROD = "}\rangle\;\text{toString}(a\cdot b)\;\langle\text{"\n"}\rangle \,\}
+\end{array}
+}
+\]
+
+In words:
+
+* **Pre‑condition** (`{ a∈ℤ ∧ b∈ℤ }`) – the input file supplies **exactly two** integer values, which we name `a` (the first line) and `b` (the second line). No other assumptions are required; the program must work for any pair of integers.
+
+* **Post‑condition** (`{ PROD = a·b ∧ out = "PROD = " ⟨ a·b ⟩ "\n" }`) – after the program terminates  
+
+  1. the variable `PROD` contains the mathematical product of the two input integers, and  
+  2. the whole output written to the standard output is the literal string  
+
+     ```
+     PROD = <product>
+     ```
+     
+     where `<product>` is the decimal representation of `a·b`, **preceded and followed by exactly one blank space** around the `=` sign, and terminated by a newline character.
+
+---
+
+### Optional expansion of the body (for illustration)
+
+If one wishes to see how a concrete program satisfies the contract, a typical implementation can be expressed as a sequence of elementary commands:
+
+\[
+\begin{aligned}
+&\{a,b\in\mathbb Z\}\\
+&\textbf{read } a;\\
+&\textbf{read } b;\\
+&\textbf{PROD } := a\cdot b;\\
+&\textbf{print }(\langle\text{"PROD = "}\rangle\;\text{toString}(PROD)\;\langle\text{"\n"}\rangle)\\
+&\{ \text{PROD}=a\cdot b \;\land\; \text{out}= \langle\text{"PROD = "}\rangle\;\text{toString}(a\cdot b)\;\langle\text{"\n"}\rangle \}
+\end{aligned}
+\]
+
+The Hoare triple shown in the boxed formula above captures precisely the logical effect of this whole block, independent of the concrete statements used to achieve it.

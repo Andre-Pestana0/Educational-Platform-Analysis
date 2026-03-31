@@ -1,0 +1,16 @@
+Description:
+
+Problem 1001
+
+Input: This problem has no input.
+
+Output: You must print the messageHello World!and then the endline as shown below.
+
+Examples:
+- Example 1:
+  Input:
+
+  Output:
+Hello World!
+
+--

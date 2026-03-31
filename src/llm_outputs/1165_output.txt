@@ -1,0 +1,118 @@
+2 eh primo
+
+4 nao eh primo
+
+3 eh primo
+9 nao eh primo
+10 nao eh primo
+
+5 eh primo
+6 nao eh primo
+7 eh primo
+8 nao eh primo
+11 eh primo
+
+9999991 eh primo
+10000000 nao eh primo
+
+2 eh primo
+3 eh primo
+4 nao eh primo
+5 eh primo
+6 nao eh primo
+7 eh primo
+8 nao eh primo
+9 nao eh primo
+10 nao eh primo
+11 eh primo
+12 nao eh primo
+13 eh primo
+14 nao eh primo
+15 nao eh primo
+16 nao eh primo
+17 eh primo
+18 nao eh primo
+19 eh primo
+20 nao eh primo
+21 nao eh primo
+22 nao eh primo
+23 eh primo
+24 nao eh primo
+25 nao eh primo
+26 nao eh primo
+27 nao eh primo
+28 nao eh primo
+29 eh primo
+30 nao eh primo
+31 eh primo
+32 nao eh primo
+33 nao eh primo
+34 nao eh primo
+35 nao eh primo
+36 nao eh primo
+37 eh primo
+38 nao eh primo
+39 nao eh primo
+40 nao eh primo
+41 eh primo
+42 nao eh primo
+43 eh primo
+44 nao eh primo
+45 nao eh primo
+46 nao eh primo
+47 eh primo
+48 nao eh primo
+49 nao eh primo
+50 nao eh primo
+51 nao eh primo
+52 nao eh primo
+53 eh primo
+54 nao eh primo
+55 nao eh primo
+56 nao eh primo
+57 nao eh primo
+58 nao eh primo
+59 eh primo
+60 nao eh primo
+61 eh primo
+62 nao eh primo
+63 nao eh primo
+64 nao eh primo
+65 nao eh primo
+66 nao eh primo
+67 eh primo
+68 nao eh primo
+69 nao eh primo
+70 nao eh primo
+71 eh primo
+72 nao eh primo
+73 eh primo
+74 nao eh primo
+75 nao eh primo
+76 nao eh primo
+77 nao eh primo
+78 nao eh primo
+79 eh primo
+80 nao eh primo
+81 nao eh primo
+82 nao eh primo
+83 eh primo
+84 nao eh primo
+85 nao eh primo
+86 nao eh primo
+87 nao eh primo
+88 nao eh primo
+89 eh primo
+90 nao eh primo
+91 nao eh primo
+92 nao eh primo
+93 nao eh primo
+94 nao eh primo
+95 nao eh primo
+96 nao eh primo
+97 eh primo
+98 nao eh primo
+99 nao eh primo
+100 nao eh primo
+101 eh primo
+

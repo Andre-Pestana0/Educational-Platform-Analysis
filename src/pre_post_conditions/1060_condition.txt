@@ -1,0 +1,86 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) written in standard mathematical notation.  
+All symbols are defined in the “Notation” block that follows the specification.
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\;\{P\}\; \texttt{countPositives}\; \{Q\}\;}
+\]
+
+where  
+
+* **\(P\)** – the pre‑condition that describes the admissible input,  
+* **\(Q\)** – the post‑condition that describes the required output after the program terminates.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P \;\equiv\;
+\begin{aligned}
+&\bigl(x_{1},x_{2},x_{3},x_{4},x_{5},x_{6}\bigr) \in \mathbb{R}^{6}
+\\[2mm]
+&\land\;\forall i\in\{1,\dots ,6\}\;.\;x_{i}\neq 0
+\end{aligned}
+\]
+
+*The program receives exactly six real numbers, each of which is **non‑zero** (the statement “disregard null values’’ means that the input will never contain a zero; if a zero were supplied it would be ignored and therefore does not belong to the domain of the program).*
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+Q \;\equiv\;
+\begin{aligned}
+&\text{let } \operatorname{pos}(x_{1},\dots ,x_{6}) 
+   \;=\;\sum_{i=1}^{6} \mathbf{1}\!\bigl(x_{i}>0\bigr) \\[2mm]
+&\text{output } \; \bigl(\operatorname{pos}(x_{1},\dots ,x_{6})\;\text{``valores positivos''}\bigr) 
+\end{aligned}
+\]
+
+*The function \(\mathbf{1}(P)\) is the **indicator** (or characteristic) function:*
+
+\[
+\mathbf{1}(P)=
+\begin{cases}
+1 & \text{if }P\text{ is true},\\[1mm]
+0 & \text{otherwise}.
+\end{cases}
+\]
+
+Thus \(\operatorname{pos}(x_{1},\dots ,x_{6})\) counts exactly those input numbers that are **strictly positive**.  
+The program must print that integer together with the literal text *“valores positivos’’* (as shown in the examples).
+
+---
+
+### Full specification in Hoare‑logic notation
+
+\[
+\boxed{
+\Bigl\{\,\bigl(x_{1},\dots ,x_{6}\bigr)\in\mathbb{R}^{6}\;\land\;\forall i\in\{1,\dots ,6\}\;x_{i}\neq0\Bigr\}
+\; \texttt{countPositives}
+\;
+\Bigl\{\,\text{output } = \operatorname{pos}(x_{1},\dots ,x_{6})\;\text{``valores positivos''}\Bigr\}
+}
+\]
+
+---
+
+## Notation summary
+
+| Symbol | Meaning |
+|--------|----------|
+| \(\mathbb{R}\) | set of real numbers |
+| \((x_{1},\dots ,x_{6})\) | the six input values, in the order they are read |
+| \(\forall i\in\{1,\dots ,6\}\) | “for every index \(i\) from 1 to 6’’ |
+| \(x_{i}\neq0\) | each input is non‑zero (positive or negative) |
+| \(\mathbf{1}(P)\) | indicator function (1 if proposition \(P\) holds, 0 otherwise) |
+| \(\operatorname{pos}(x_{1},\dots ,x_{6})\) | \(\displaystyle\sum_{i=1}^{6}\mathbf{1}(x_{i}>0)\); the number of strictly positive inputs |
+| “output’’ | the string printed on the standard output stream |
+| “valores positivos’’ | literal Spanish phrase required by the problem statement |
+
+With this specification, any implementation that satisfies the Hoare triple \(\{P\}\,\texttt{countPositives}\,\{Q\}\) is guaranteed to read six non‑zero numbers and to print the correct count of the positive ones.

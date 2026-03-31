@@ -1,0 +1,76 @@
+Below is a **Hoare‑logic style specification** (pre‑condition \(P\) and post‑condition \(Q\)) for the program that solves the stated problem.  
+All symbols are defined in the “Notation” paragraph.
+
+---
+
+### Notation  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(\mathbb N\) | set of non‑negative integers |
+| \(\Sigma\) | the alphabet of printable characters (the problem only uses letters, but the specification does not need to restrict them) |
+| \(C\) | number of test cases read from the input |
+| \(w_i\) | the \(i\)-th word read from the input, \(1\le i\le C\) |
+| \(|w_i|\) | length (number of characters) of the word \(w_i\) |
+| \(\operatorname{time}(w_i)\) | real‑valued time (in seconds) required to type \(w_i\) on the given computer |
+| \(\operatorname{fmt}(x)\) | the string obtained by printing the real number \(x\) with **exactly two decimal digits** (rounded half‑up) |
+| \(\mathbf{out}[i]\) | the \(i\)-th line that the program writes to the output (a string) |
+| \(\displaystyle\frac{1}{100}\) | the time (in seconds) needed for a single keystroke (the statement “1/100 second per key”)
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P\; \equiv\;& C\in\mathbb N\;\land\;C\ge 1 \\[2mm]
+&\land\;\forall i\in\{1,\dots ,C\}\;:\;
+\bigl(w_i\in\Sigma^{*}\;\land\;9\le |w_i|\le 10\,000\bigr)
+\end{aligned}
+\]
+
+*Interpretation*:  
+* the first integer of the input exists and is at least 1;  
+* each of the following \(C\) lines contains a non‑empty word whose length is between 9 and 10 000 characters.
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q\; \equiv\;& \forall i\in\{1,\dots ,C\}\;:\;
+\Bigl(\operatorname{time}(w_i)=\frac{|w_i|}{100}\Bigr) \\[1mm]
+&\land\; \bigl(\mathbf{out}[i]=\operatorname{fmt}\bigl(\operatorname{time}(w_i)\bigr)\bigr)
+\end{aligned}
+\]
+
+*Interpretation*:  
+
+* For each test case \(i\) the *real* time spent typing the word is the number of characters divided by 100 (because each keystroke costs \(1/100\) s).  
+* The program writes, on line \(i\) of the output, exactly that value formatted with two decimal digits.
+
+---
+
+### Hoare triple for the whole program  
+
+\[
+\boxed{\;\{P\}\;\; \texttt{program}\;\; \{Q\}\;}
+\]
+
+where *program* is any implementation that
+
+1. reads the integer \(C\);
+2. reads the \(C\) words \(w_1,\dots ,w_C\);
+3. for each \(i\) computes \(t_i = |w_i|/100\);
+4. prints \(\operatorname{fmt}(t_i)\) on its own line.
+
+---
+
+### Remarks on the specification  
+
+* The computer “does not process keystrokes” only means that **every press** is registered as **exactly one character**; therefore the time needed is **linear** in the length of the word.  
+* No additional constraints (e.g., on the case of letters) are required for correctness; the specification works for any string over \(\Sigma\).  
+* The rounding rule implicit in \(\operatorname{fmt}\) is the usual “round‑half‑up to two decimal places”, which matches the sample output (e.g., \(25\) characters → \(0.25\) s).  
+
+With the above pre‑ and post‑conditions, any program that satisfies the Hoare triple is provably correct for the problem statement.

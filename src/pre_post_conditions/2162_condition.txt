@@ -1,0 +1,93 @@
+Below is a **Hoare‑logic style specification** for the program that decides whether a given height‑sequence follows the “alternating peak/valley” pattern described in the statement.
+
+---
+
+### 1.  Notation  
+
+* `N ∈ ℕ` – number of measurements (the length of the input sequence).  
+* `H[1‥N]` – the array of the measured heights, each `H[i] ∈ ℤ`.  
+* `Δ[i] = H[i] – H[i‑1]` for `i = 2 … N` – the *difference* between two consecutive measures.  
+* `sgn(x)` – the sign of a non‑zero integer `x` (`sgn(x)=+1` if `x>0`, `sgn(x)=‑1` if `x<0`).  
+* `ans ∈ {0,1}` – the integer that the program finally prints.  
+
+We also use the usual logical symbols  
+
+* `∀` – “for all”,  
+* `∃` – “there exists”,  
+* `∧, ∨, ¬, →, ↔` – logical connectives,  
+* `∈` – set‑membership,  
+* `≤, <, >` – the usual order on integers.
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\text{Pre} \;\equiv\; &\bigl(1 < N \le 100\bigr) \\
+                      &\;\;\land\; \bigl(\forall i\in\{1,\dots ,N\}\;:\;-10\,000 \le H[i] \le 10\,000\bigr)
+\end{aligned}}
+\]
+
+The pre‑condition guarantees that the input satisfies the limits given in the problem statement.
+
+---
+
+### 3.  Post‑condition  
+
+Define the *alternation predicate*  
+
+\[
+\begin{aligned}
+\mathit{Alt}(H) \;\equiv\;
+   &\bigl(\forall i\in\{2,\dots ,N\}\;:\; \Delta[i] \neq 0 \bigr) \\
+   &\;\land\;
+   \bigl(\forall i\in\{3,\dots ,N\}\;:\; \Delta[i]\cdot\Delta[i-1] < 0 \bigr)
+\end{aligned}
+\tag{1}
+\]
+
+*The first conjunct* forbids two consecutive equal heights (otherwise the notion of “peak” or “valley” would be undefined).  
+*The second conjunct* forces the sign of each difference to be the opposite of the sign of the previous difference; i.e. the sequence of peaks/valleys strictly alternates.
+
+The required post‑condition is then
+
+\[
+\boxed{
+\begin{aligned}
+\text{Post} \;\equiv\; &\bigl(ans \in \{0,1\}\bigr) \\
+                       &\;\land\; \bigl(ans = 1 \;\leftrightarrow\; \mathit{Alt}(H)\bigr)
+\end{aligned}}
+\tag{2}
+\]
+
+In words: the program must output **1** exactly when the input heights satisfy the alternating‑peak/valley condition, otherwise **0**.
+
+---
+
+### 4.  Hoare triple for the whole program  
+
+\[
+\boxed{\{\,\text{Pre}\,\}\; \texttt{read }N;\;\texttt{read }H[1\ldots N];\;
+        ans := \bigl(\mathit{Alt}(H)?1:0\bigr);\;
+        \texttt{print }ans\; \{\,\text{Post}\,\}}
+\]
+
+Any implementation that respects the above triple is correct with respect to the natural‑language specification.
+
+---
+
+### 5.  Equivalent arithmetic formulation (optional)
+
+Because `Δ[i]·Δ[i‑1] < 0` is equivalent to `sgn(Δ[i]) = -sgn(Δ[i‑1])`, (1) can also be written as  
+
+\[
+\mathit{Alt}(H) \equiv
+   \bigl(\forall i\in\{2,\dots ,N\}\;:\; H[i] \neq H[i-1]\bigr)
+   \;\land\;
+   \bigl(\forall i\in\{3,\dots ,N\}\;:\;
+        sgn\!\bigl(H[i]-H[i-1]\bigr) = -\,sgn\!\bigl(H[i-1]-H[i-2]\bigr)\bigr).
+\]
+
+Both forms are mathematically exact and can be used as the specification of the required program.

@@ -1,0 +1,184 @@
+Below is a **complete Hoare‑logic proof** that the program you posted satisfies the specification that  
+
+*“the program prints exactly the first `N` characters of the fixed quotation”*  
+
+where `N` is the integer supplied on standard input.
+
+---
+
+## 1.  The program (in a Hoare‑logic friendly syntax)
+
+```text
+1  read N               // N ← int(input())
+2  citacao ← [...]
+3  n_primeiros ← "".join(citacao[0..N‑1])
+4  print n_primeiros
+```
+
+*Line 2* is a **constant‑initialisation** statement; it does not depend on any program variable, therefore it can be treated as an assignment of a constant list.
+
+*Line 3* uses Python slicing (`citacao[:N]`) and `join`.  In Hoare‑logic we model it as an **assignment** whose right‑hand side is a pure expression that can be described mathematically.
+
+---
+
+## 2.  Formal specification
+
+*Let*  
+
+* `len = |citacao|` (the length of the quotation, a known constant; for the given list `len = 44`).  
+* `quote(i)` be the *i‑th* character of the list `citacao` (0‑based indexing).
+
+### Pre‑condition  
+
+\[
+\mathbf{P}\;:\; 0 \le N \le len \;\land\; N\in\mathbb Z
+\]
+
+The specification requires that the input integer be non‑negative and not larger than the quotation length – otherwise the slice `citacao[:N]` would be ill‑defined.
+
+### Post‑condition  
+
+\[
+\mathbf{Q}\;:\; \text{output} = \bigl(\,\displaystyle\prod_{i=0}^{N-1}\!quote(i)\,\bigr)
+\]
+
+The product symbol `∏` denotes concatenation of characters; i.e. the output string is exactly the concatenation of the first `N` characters of the quotation.
+
+---
+
+## 3.  Hoare triples for each statement
+
+We will prove the **global Hoare triple**
+
+\[
+\{\,\mathbf{P}\,\}\; \text{Program}\; \{\,\mathbf{Q}\,\}
+\]
+
+by the **sequence rule** (rule S) together with the **assignment rule** (rule A).
+
+### 3.1  Line 1 – reading the input
+
+```
+read N
+```
+
+In Hoare logic the *read* statement is treated as an **assignment** that nondeterministically chooses a value satisfying the pre‑condition of the following code.  Formally we use the rule:
+
+\[
+\frac{\{\,\mathbf{P}[N\mapsto v]\,\}\; \text{skip}\; \{\,\mathbf{P}[N\mapsto v]\,\}}
+     {\{\,\mathbf{P}\,\}\; N \leftarrow \text{input}()\; \{\,\exists v.\; \mathbf{P}[N\mapsto v]\,\}}
+\]
+
+Because the *input* is exactly the integer supplied by the user, the rule yields the **weakest pre‑condition**:
+
+\[
+\{\,0 \le N \le len \,\}
+\]
+
+Thus after line 1 the state satisfies the same condition that we required as the global pre‑condition.
+
+### 3.2  Line 2 – initialise the constant list
+
+```
+citacao ← C
+```
+
+where  
+
+\[
+C = [\,quote(0), quote(1),\dots,quote(len-1)\,]
+\]
+
+The assignment rule (A) tells us that the weakest pre‑condition of this statement is simply the post‑condition with `citacao` replaced by `C`.  Since `C` is a constant, the statement does **not** change any of the variables that appear in `P` or `Q`.  Consequently the Hoare triple is
+
+\[
+\{\,0 \le N \le len\,\}\; citacao \leftarrow C\; \{\,0 \le N \le len\,\}
+\]
+
+### 3.3  Line 3 – compute the slice and join
+
+```
+n_primeiros ← "".join(citacao[0..N‑1])
+```
+
+Define the pure expression  
+
+\[
+E(N) \;=\; \bigl(\,\displaystyle\prod_{i=0}^{N-1}\!quote(i)\,\bigr)
+\]
+
+The semantics of Python slicing together with `join` is exactly the function `E`.  Hence line 3 is the assignment
+
+\[
+n\_primeiros \leftarrow E(N)
+\]
+
+Applying rule (A) we obtain the Hoare triple
+
+\[
+\{\,0 \le N \le len\,\}\; n\_primeiros \leftarrow E(N)\; \{\,n\_primeiros = E(N)\,\}
+\]
+
+Note that the post‑condition now *mentions* the new variable `n_primeiros`.
+
+### 3.4  Line 4 – printing
+
+```
+print n_primeiros
+```
+
+Printing is a *output* statement; it does not modify the program state.  In Hoare logic we treat it as the command `skip` with the side‑effect that the value of `n_primeiros` is sent to the external world.  Therefore the Hoare triple is
+
+\[
+\{\,n\_primeiros = E(N)\,\}\; \text{print } n\_primeiros\; \{\,n\_primeiros = E(N)\,\}
+\]
+
+The **observable effect** of this command is precisely the string `E(N)` written on standard output.
+
+---
+
+## 4.  Composition of the triples (Sequence rule)
+
+Using rule (S) we chain the four triples:
+
+```
+{P}          read N               {P}
+{P}          citacao ← C          {P}
+{P}          n_primeiros ← E(N)   {n_primeiros = E(N)}
+{n_primeiros = E(N)}  print n_primeiros   {n_primeiros = E(N)}
+---------------------------------------------------------------
+{P}          whole program        {n_primeiros = E(N)}
+```
+
+Since the final state contains `n_primeiros = E(N)` and the only observable action of the program is the `print` of that variable, the **observable behaviour** is exactly `E(N)`.  By definition of `E(N)` we have
+
+\[
+\text{output} = \bigl(\,\displaystyle\prod_{i=0}^{N-1}\!quote(i)\,\bigr)
+\]
+
+which is precisely the post‑condition `Q`.
+
+Thus we have proved the global Hoare triple
+
+\[
+\boxed{\{\,0 \le N \le len\,\}\; \text{Program}\; \{\,\text{output}=E(N)\,\}}
+\]
+
+i.e. **the program is correct with respect to the given specification**.
+
+---
+
+## 5.  Remarks on edge cases
+
+* If `N = 0` the slice `citacao[:0]` is the empty list, `join` returns the empty string, and the program prints nothing – which satisfies `Q` because the product over an empty index set is the empty string.
+* If `N = len` the slice contains the entire list, `join` yields the whole quotation, and the program prints the complete quote – again matching `Q`.
+* The pre‑condition forbids `N > len`; in the original problem statement the test data guarantees `0 ≤ N ≤ 44`, so the program never encounters an out‑of‑bounds slice.
+
+---
+
+### TL;DR
+
+* **Pre‑condition** `0 ≤ N ≤ 44` (the length of the fixed quotation).  
+* **Post‑condition** the program writes the concatenation of the first `N` characters of that quotation.  
+
+By applying the Hoare‑logic assignment and sequence rules to each line we obtain a chain of valid Hoare triples, whose composition yields the required global triple. Consequently the program is **provably correct** with respect to the specification.

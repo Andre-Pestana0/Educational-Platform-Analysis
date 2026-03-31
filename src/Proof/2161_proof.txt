@@ -1,0 +1,346 @@
+## 1.  What we have to prove  
+
+We are asked to **show that the program satisfies its Hoare‐style specification**.  
+The specification is given by a **pre‑condition** (what we assume about the input) and a
+**post‑condition** (what we claim about the value that is printed).
+
+```
+{ P }  program  { Q }
+```
+
+where  
+
+* **P** – “`repeticoes` is a non‑negative integer.”  
+* **Q** – “the value printed is  
+
+\[
+\displaystyle 3+\underbrace{f^{\,\text{repeticoes}}(0)}_{\text{‘repeticoes’ applications of }f},
+\qquad
+f(x)=\frac{1}{x+6}.
+\]
+
+In other words the program computes  
+
+\[
+\text{result}=3+\frac{1}{6+\frac{1}{6+\dots+\frac{1}{6}}}
+\]
+
+with exactly `repeticoes` nested fractions.
+
+Our goal is to prove  
+
+\[
+\{\,\texttt{repeticoes}\in\mathbb N\;\wedge\;\texttt{repeticoes}\ge 0 \,\}
+\;\; \texttt{program} \;\;
+\{\,\texttt{output}=3+f^{\,\texttt{repeticoes}}(0)\,\}.
+\]
+
+---
+
+## 2.  The program (rewritten in a more “Hoare‑friendly’’ form)
+
+```text
+1  repeticoes := input()                // integer ≥ 0
+2  soma := 0.0                           // real
+3  i := 0
+4  while i < repeticoes do
+5        soma := 1.0 / (soma + 6.0)      // (∗)
+6        i := i + 1
+7  od
+8  soma := soma + 3.0
+9  print soma
+```
+
+Lines 1‑2 are initialisation, 4‑7 is the loop, 8‑9 finalisation.
+
+---
+
+## 3.  Loop invariant  
+
+The heart of a Hoare‑logic proof for a `while`‑loop is an **invariant** `I(i,soma)` that
+holds
+
+* **before** the first iteration,
+* **is preserved** by one iteration of the loop body,
+* **together with the exit condition** yields the desired post‑condition.
+
+### 3.1  Definition of the invariant  
+
+\[
+\boxed{I(i,s)=\; 0\le i\le \texttt{repeticoes}\ \land\ s = f^{\,i}(0)}
+\]
+
+where  
+
+* `i` is the loop counter (the variable that counts how many times the body has already been executed),
+* `s` is the current value of `soma`,
+* `f^{\,i}` denotes the *i‑th iterate* of the function  
+
+\[
+f(x)=\frac{1}{x+6}.
+\]
+
+In words: after `i` iterations `soma` is exactly the result of applying `f`
+`i` times to the initial value `0`.
+
+### 3.2  Why this invariant is natural  
+
+The loop body (line 5) is precisely the definition of one application of `f`:
+
+```
+s' = 1/(s + 6)   ⇔   s' = f(s)
+```
+
+Therefore after each iteration the exponent of `f` in the expression for `soma`
+must increase by one. This observation leads directly to the invariant above.
+
+---
+
+## 4.  Proof that the invariant holds  
+
+We use the standard Hoare‑logic rules:
+
+* **Assignment rule**  
+
+  \[
+  \{\,Q[x:=E]\,\}\;x:=E\;\{\,Q\,\}
+  \]
+
+* **Consequence rule**  
+
+  \[
+  \frac{P\Rightarrow P' \qquad \{P'\}\;S\;\{Q'\}\qquad Q'\Rightarrow Q}{\{P\}\;S\;\{Q\}}
+  \]
+
+* **While rule**  
+
+  \[
+  \frac{\{I\land B\}\;S\;\{I\}}{\{I\}\;\textbf{while }B\textbf{ do }S\;\{I\land\neg B\}}
+  \]
+
+Below we annotate each statement with the Hoare triple that we prove.
+
+### 4.1  Initialisation (lines 1‑3)
+
+```
+1  repeticoes := input()
+2  soma := 0.0
+3  i := 0
+```
+
+*Pre‑condition*:  
+
+\[
+P\equiv \texttt{repeticoes}\in\mathbb N\land \texttt{repeticoes}\ge 0 .
+\]
+
+After line 2 we have  
+
+\[
+\{P\}\; \texttt{soma}:=0.0\; \{\,\texttt{soma}=0\land P\,\}.
+\]
+
+After line 3 we have  
+
+\[
+\{\,\texttt{soma}=0\land P\,\}\; \texttt{i}:=0\;
+\{\,I(0,\texttt{soma})\land P\,\},
+\]
+
+because  
+
+\[
+I(0,0)\equiv (0\le 0\le\texttt{repeticoes})\land 0=f^{\,0}(0) \quad\text{holds.}
+\]
+
+Thus **the invariant holds before the first test of the loop**.
+
+### 4.2  Preservation of the invariant (loop body, lines 5‑6)
+
+We must prove  
+
+\[
+\{\,I(i,s)\land i<\texttt{repeticoes}\,\}\;
+\begin{array}{l}
+\texttt{soma}:=1.0/(s+6.0);\\
+\texttt{i}:=i+1
+\end{array}
+\;\{\,I(i',s')\,\},
+\]
+
+where `i' = i+1` and `s' = 1/(s+6)`.
+
+1. **Assignment to `soma`**  
+
+   Using the assignment rule with  
+
+   \[
+   Q(s')\equiv s' = f(s) \land I(i,s)
+   \]
+
+   we obtain  
+
+   \[
+   \{\,I(i,s)\,\}\;\texttt{soma}:=1/(s+6)\;\{\,s' = f(s) \land I(i,s)\,\}.
+   \]
+
+2. **Assignment to `i`**  
+
+   Substitute `i' = i+1` in the invariant:
+
+   \[
+   I(i',s')\equiv 0\le i+1\le\texttt{repeticoes}\ \land\ s' = f^{\,i+1}(0).
+   \]
+
+   From the induction hypothesis `s = f^{\,i}(0)` we have  
+
+   \[
+   s' = f(s) = f\bigl(f^{\,i}(0)\bigr)=f^{\,i+1}(0).
+   \]
+
+   Hence the required conjunct holds.  
+   The bound `i+1 ≤ repeticoes` follows from the loop guard `i < repeticoes`.
+
+Thus the invariant is **preserved**.
+
+### 4.3  Exit condition (after the loop, line 7)
+
+The while‑rule gives us  
+
+\[
+\{\,I(i,s)\,\}\;\textbf{while }i<\texttt{repeticoes}\textbf{ do }S\;
+\{\,I(i,s)\land\neg(i<\texttt{repeticoes})\,\}.
+\]
+
+Since `¬(i<repeticoes)` is equivalent to `i = repeticoes`, we obtain after the loop
+
+\[
+\boxed{I(\texttt{repeticoes},\,s_{\text{loop}})}\qquad
+\text{where } s_{\text{loop}} = f^{\,\texttt{repeticoes}}(0).
+\]
+
+In words: **after the loop** `soma` equals the `repeticoes`‑fold composition of `f` applied to `0`.
+
+### 4.4  Finalisation (lines 8‑9)
+
+Line 8:
+
+```
+soma := soma + 3.0
+```
+
+From the invariant we know `soma = f^{\,repeticoes}(0)`. Adding `3.0` yields
+
+\[
+soma = 3 + f^{\,\texttt{repeticoes}}(0).
+\]
+
+Formally, using the assignment rule:
+
+\[
+\{\,s = f^{\,\texttt{repeticoes}}(0)\,\}\;
+\texttt{soma}:=s+3\;
+\{\,\texttt{soma}=3+f^{\,\texttt{repeticoes}}(0)\,\}.
+\]
+
+Line 9 simply prints the value; printing does not change the logical state, so the
+post‑condition is preserved.
+
+---
+
+## 5.  Putting everything together  
+
+We have shown the following Hoare triples:
+
+1. **Initialisation**  
+
+   \[
+   \{P\}\; \texttt{soma}:=0.0;\; \texttt{i}:=0\; \{I(0,0)\}.
+   \]
+
+2. **Loop preservation**  
+
+   \[
+   \{I(i,s)\land i<\texttt{repeticoes}\}\;S\; \{I(i+1,s')\},
+   \]
+   where `S` is the body (lines 5‑6).
+
+3. **Loop termination**  
+
+   \[
+   \{I(0,0)\}\;\textbf{while }i<\texttt{repeticoes}\textbf{ do }S\;
+   \{I(\texttt{repeticoes},\,f^{\,\texttt{repeticoes}}(0))\}.
+   \]
+
+4. **Final addition**  
+
+   \[
+   \{I(\texttt{repeticoes},\,f^{\,\texttt{repeticoes}}(0))\}\;
+   \texttt{soma}:=soma+3\;
+   \{\texttt{soma}=3+f^{\,\texttt{repeticoes}}(0)\}.
+   \]
+
+5. **Print** does not affect the state, therefore the **post‑condition**  
+
+   \[
+   Q\equiv \texttt{output}=3+f^{\,\texttt{repeticoes}}(0)
+   \]
+
+   holds.
+
+By the **rule of consequence** we can weaken the pre‑condition to the original
+`P` (non‑negative integer input) and strengthen the final assertion to the
+desired `Q`. Consequently we have proved the Hoare triple
+
+\[
+\boxed{\{\,\texttt{repeticoes}\in\mathbb N\land\texttt{repeticoes}\ge 0\,\}
+\; \texttt{program}\;
+\{\,\texttt{output}=3+f^{\,\texttt{repeticoes}}(0)\,\}}
+\]
+
+which is exactly the specification required for the Beecrowd problem.
+
+---
+
+## 6.  Intuitive interpretation of the computed value  
+
+For a concrete `repeticoes = n` the program prints  
+
+\[
+\displaystyle
+3+\frac{1}{6+\frac{1}{6+\dots+\frac{1}{6}}}
+\quad\text{(with $n$ occurrences of “$\frac{1}{\;\cdot\;+6}$”)}.
+\]
+
+If `n = 0` the loop body is never executed, `soma = 0`, and the program prints `3.0000000000`,
+which agrees with the formula because \(f^{\,0}(0)=0\).
+
+If `n = 1` we obtain  
+
+\[
+3+\frac{1}{6}=3.1666666667,
+\]
+
+if `n = 2`
+
+\[
+3+\frac{1}{6+\frac{1}{6}}=3.1538461538,
+\]
+
+and so on. The Hoare‑logic proof guarantees that **for any non‑negative integer
+`repeticoes` the program always produces exactly this value**, regardless of the
+machine’s floating‑point rounding (the specification is about the *mathematical*
+real numbers; the implementation uses IEEE‑754 doubles, which faithfully
+represent the intermediate results for the range of inputs used in the problem).
+
+---
+
+### TL;DR  
+
+* **Pre‑condition**: `repeticoes` is a non‑negative integer.  
+* **Loop invariant**: after `i` iterations `soma = f^{\,i}(0)` with `f(x)=1/(x+6)`.  
+* **Invariant holds initially**, is **preserved** by the loop body, and together
+  with the exit condition yields `soma = f^{\,repeticoes}(0)`.  
+* Adding `3` gives the final value demanded by the specification.  
+
+Thus the program is **correct** with respect to the given Hoare‑logic specification.

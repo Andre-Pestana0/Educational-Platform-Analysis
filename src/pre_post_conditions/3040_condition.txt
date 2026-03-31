@@ -1,0 +1,102 @@
+Below is a **Hoare‑logic style specification** of the whole program (reading the test cases, deciding for each tree and printing the answer).  
+Only the *pre‑condition* **P** (what we assume about the input) and the *post‑condition* **Q** (what must hold after the program finishes) are given; the body of the program is omitted because it is not required.
+
+---
+
+### 1.  Notation  
+
+*   Let  
+
+\[
+\mathbb N_{>0}= \{\,k\in\mathbb N\mid k>0\,\}
+\]
+
+*   The input consists of  
+
+\[
+N\in\mathbb N,\qquad  
+\mathbf{h}= (h_1,\dots ,h_N),\;
+\mathbf{d}= (d_1,\dots ,d_N),\;
+\mathbf{g}= (g_1,\dots ,g_N)
+\]
+
+with  
+
+\[
+h_i,d_i,g_i\in\mathbb N_{>0}\quad\text{for }i=1,\dots ,N .
+\]
+
+*   The **acceptance predicate** for a single tree is  
+
+\[
+\operatorname{ok}(h,d,g)\; \stackrel{\text{def}}{=}\;
+\bigl(200\le h\le 300\bigr)\;\land\;
+\bigl(d\ge 50\bigr)\;\land\;
+\bigl(g\ge 150\bigr).
+\]
+
+*   The program produces an output vector  
+
+\[
+\mathbf{out}= (out_1,\dots ,out_N)
+\]
+
+where each component is a string, either **“Sim”** (yes) or **“Nao”** (no).
+
+---
+
+### 2.  Hoare Triple  
+
+\[
+\boxed{\;\{P\}\;\; \text{program}\;\; \{Q\}\;}
+\]
+
+---
+
+#### Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \; \equiv\; & 0 < N \le 10\,000                                             \\[2mm]
+            & \land\; \forall i\;(1\le i\le N)\; 
+                \bigl(0 < h_i \le 5\,000 \;\land\; 0 < d_i \le 5\,000 
+                \;\land\; 0 < g_i \le 5\,000 \bigr) .
+\end{aligned}
+\]
+
+*In words*: the first line of the input contains a positive integer `N` not larger than 10 000; each of the following `N` lines contains three positive integers `h`, `d` and `g`, each bounded by 5 000.
+
+---
+
+#### Post‑condition **Q**
+
+\[
+\begin{aligned}
+Q \; \equiv\; & \bigl|\mathbf{out}\bigr| = N                                        \\[2mm]
+            & \land\; \forall i\;(1\le i\le N)\;
+                \bigl( out_i = \text{“Sim”}\;\;\Leftrightarrow\;
+                       \operatorname{ok}(h_i,d_i,g_i) \bigr) .
+\end{aligned}
+\]
+
+*In words*: the program writes exactly `N` lines.  
+For each test case `i`, the line printed is **“Sim”** *iff* the three measurements of that tree satisfy the three constraints (height between 200 cm and 300 cm inclusive, diameter at least 50 cm, and number of branches at least 150). Otherwise the line printed is **“Nao”**.
+
+---
+
+### 3.  Full Specification in a Single Hoare Triple  
+
+\[
+\boxed{
+\begin{array}{c}
+\{\,0<N\le10\,000\;\land\;\forall i\;[0<h_i,d_i,g_i\le5\,000]\,\}\\[1mm]
+\text{read }N,\;(h_i,d_i,g_i)_{i=1}^{N}\;
+\text{and output }out_1,\dots ,out_N\\[1mm]
+\{\,|\mathbf{out}|=N\;\land\;
+\forall i\;(out_i=\text{“Sim”}\Leftrightarrow
+(200\le h_i\le300\;\land\;d_i\ge50\;\land\;g_i\ge150))\,\}
+\end{array}}
+\]
+
+This Hoare triple completely captures the required behaviour of the program:  
+*given a well‑formed input (pre‑condition), the program terminates and produces a line “Sim” exactly for those trees that satisfy Roberto’s three criteria (post‑condition).*

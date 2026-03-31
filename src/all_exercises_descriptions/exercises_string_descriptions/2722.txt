@@ -1,0 +1,22 @@
+Description: Evergreen Bushy, one of Noel's helper elves, is responsible for inventing many of the toys distributed by Noel and also well-known for joking with the good old man, has made another joke this year.
+
+Input: The input contains an integerN(N< 2000) that indicates the number of test cases. Each test case consists of two lines with up to 100 characters (maximum). These two lines contain the name that was mixed by Evergreen Bushy, which is basically composed of uppercase, lowercase, and white spaces.
+
+Output: Based on these two input lines, your program must print the correct children's name, according to the rule to decode it, as described above.
+
+Examples:
+- Example 1:
+  Input:
+3
+Peo lart
+drMazaes
+RortRaul
+bea nta
+JumaTenh
+cir lio
+  Output:
+Pedro Malazartes
+Roberta Rantula
+Jucimar Telinho
+
+--

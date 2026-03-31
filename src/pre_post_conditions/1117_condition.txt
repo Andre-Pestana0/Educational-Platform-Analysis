@@ -1,0 +1,103 @@
+**Formal Hoare‑logic specification**
+
+We denote  
+
+* the (possibly infinite) input stream by  
+
+\[
+\mathbf I = \langle x_{1},x_{2},x_{3},\dots\rangle ,\qquad x_{k}\in\mathbb R
+\]
+
+* the output stream (a finite list of strings) by  
+
+\[
+\mathbf O = \langle o_{1},o_{2},\dots ,o_{L}\rangle ,\qquad o_{j}\in\{\text{“nota invalida”},
+\text{“media = “}\;\|\;{\rm number\;with\;2\;decimals}\}
+\]
+
+* the predicate that tells whether a read value is a *valid score*  
+
+\[
+\operatorname{Valid}(x)\; \stackrel{\text{def}}{\Longleftrightarrow}\;0\le x\le 10 .
+\]
+
+* the two first valid scores that appear in the input  
+
+\[
+\begin{aligned}
+i_{1}&:=\min\{k\mid\operatorname{Valid}(x_{k})\},\\[2mm]
+i_{2}&:=\min\{k>i_{1}\mid\operatorname{Valid}(x_{k})\}.
+\end{aligned}
+\]
+
+If the input never contains two valid numbers, the program never terminates; the
+specification therefore only talks about executions that *do* terminate.
+
+Let  
+
+\[
+s_{1}=x_{i_{1}},\qquad s_{2}=x_{i_{2}},\qquad 
+m=\frac{s_{1}+s_{2}}{2}.
+\]
+
+For a real number \(r\) we write  
+
+\[
+\operatorname{fmt}_{2}(r)=\text{the decimal representation of }r\text{ with exactly two
+fractional digits}.
+\]
+
+---
+
+### Pre‑condition  
+
+\[
+P\;:\;\; \forall k\ge 1\;(x_{k}\in\mathbb R).
+\]
+
+(The program receives an arbitrary (finite or infinite) sequence of real numbers.)
+
+---
+
+### Post‑condition  
+
+\[
+\begin{aligned}
+Q\;:\;&\exists i_{1},i_{2}\;(1\le i_{1}<i_{2})\;\wedge\;
+\operatorname{Valid}(x_{i_{1}})\wedge\operatorname{Valid}(x_{i_{2}})\\[1mm]
+&\;\wedge\;\forall k\;(1\le k<i_{2}\wedge k\neq i_{1}\;\Longrightarrow\;\neg\operatorname{Valid}(x_{k}))\\[1mm]
+&\;\wedge\;L=i_{2}-2+1\quad\text{(total number of output lines)}\\[1mm]
+&\;\wedge\;\bigl(o_{j}=\text{“nota invalida”}\bigr)\ \text{for }1\le j\le i_{2}-2\\[1mm]
+&\;\wedge\;o_{L}= \text{“media = ”}\;\|\;\operatorname{fmt}_{2}(m)\\[1mm]
+&\;\wedge\;m=\dfrac{x_{i_{1}}+x_{i_{2}}}{2}.
+\end{aligned}
+\]
+
+In words:
+
+* exactly two input numbers satisfy `Valid`; they are the *first* and *second*
+  valid numbers in the stream,
+* every number read **before** the second valid one that is not valid causes the
+  output line *“nota invalida”*,
+* after the second valid number is read, the program prints a single line  
+  *“media = \<average\>”* where the average is \((s_{1}+s_{2})/2\) formatted with two
+  decimal places,
+* no further output is produced.
+
+---
+
+### Hoare triple (the required formal specification)
+
+\[
+\boxed{\;\{P\}\; \text{Program}\; \{Q\}\;}
+\]
+
+where **Program** denotes any implementation that
+
+* repeatedly reads the next element of \(\mathbf I\),
+* tests it with `Valid`,
+* prints “nota invalida’’ for each invalid reading,
+* stops after the second valid reading and prints the average as described.
+
+The triple above captures precisely the behaviour demanded in the natural‑language
+statement.

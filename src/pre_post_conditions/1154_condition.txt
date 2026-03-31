@@ -1,0 +1,135 @@
+Below is a **Hoare‑logic style specification** of the required program.  
+All symbols are defined in the “Notation” block; the specification consists of a **pre‑condition** *P* that describes the admissible input, a **loop invariant** *I* that is maintained during the reading phase, and a **post‑condition** *Q* that characterises the value printed by the program.
+
+---
+
+## Notation
+
+| Symbol | Meaning |
+|--------|---------|
+| `ℤ`    | set of all (mathematical) integers |
+| `ℕ`    | set of non‑negative integers `{0,1,2,…}` |
+| `S = ⟨s₁,s₂,…⟩` | an *input stream* of integers (the order in which the program reads the numbers) |
+| `n`    | the number of **non‑negative** elements that appear **before** the first negative element in `S` |
+| `A = ⟨a₁,…,aₙ⟩` | the finite sequence of those non‑negative elements, i.e. `aᵢ = sᵢ` for `1 ≤ i ≤ n` and `aᵢ ≥ 0` |
+| `σ`    | running **sum** of the already processed ages |
+| `κ`    | running **count** of the already processed ages |
+| `avg`  | the arithmetic mean `σ / κ` (defined only when `κ > 0`) |
+| `out`  | the value that the program finally prints (a real number) |
+| `⊥`    | “undefined” (used when a quantity has no meaning, e.g. division by 0) |
+
+---
+
+## Pre‑condition  *P*
+
+The program is started with an input stream `S` that satisfies the sentinel property:
+
+\[
+\boxed{
+P \;\equiv\; 
+\exists n\in\mathbb N\;.\;
+\Bigl(\;
+\bigl(\forall i\; (1\le i\le n \;\Rightarrow\; s_i\in\mathbb Z \land s_i\ge 0)\bigr)
+\;\land\;
+s_{\,n+1}\in\mathbb Z \land s_{\,n+1}<0
+\;\Bigr)
+}
+\]
+
+*Interpretation*: the stream contains a (possibly empty) finite block of non‑negative integers `a₁,…,aₙ` followed by a **negative** integer that stops the input.  
+If one wishes to forbid the degenerate case `n = 0` (division by zero), replace `∃ n∈ℕ` by `∃ n∈ℕ⁺` (`ℕ⁺ = {1,2,…}`).
+
+---
+
+## Loop invariant  *I*
+
+During the repetitive reading we maintain:
+
+\[
+\boxed{
+I \;\equiv\;
+\bigl(\sigma = \sum_{i=1}^{\kappa} a_i \bigr)
+\;\land\;
+\bigl(\kappa \in \mathbb N\bigr)
+\;\land\;
+\bigl(\forall i\;(1\le i\le\kappa \Rightarrow a_i\ge 0)\bigr)
+}
+\]
+
+Initially `σ = 0` and `κ = 0`, so `I` holds before the first iteration.
+
+The body of the loop:
+
+```
+read x;
+if x < 0 then break;
+σ := σ + x;
+κ := κ + 1
+```
+
+preserves `I` because:
+
+* `x ≥ 0` (the guard of the `if` guarantees this) ⇒ `a_{κ+1}=x` satisfies `a_{κ+1}≥0`;
+* after the assignments `σ` becomes `σ + x = Σ_{i=1}^{κ+1} a_i` and `κ` becomes `κ+1`.
+
+When the loop terminates we have read the sentinel `x < 0`; consequently `κ = n` and `σ = Σ_{i=1}^{n} a_i`.
+
+---
+
+## Post‑condition  *Q*
+
+After termination the program prints `out`.  The required relationship between `out` and the data is:
+
+\[
+\boxed{
+Q \;\equiv\;
+\bigl(\kappa = n\bigr)
+\;\land\;
+\bigl(\sigma = \sum_{i=1}^{n} a_i\bigr)
+\;\land\;
+\bigl(
+   n>0 \;\Rightarrow\; out = \frac{\sigma}{n}
+\;\bigr)
+\;\land\;
+\bigl(
+   n=0 \;\Rightarrow\; out = \bot
+\;\bigr)
+}
+\]
+
+If the specification explicitly forbids the empty case (`n>0` in *P*), the last conjunct can be omitted and the post‑condition reduces to
+
+\[
+out = \frac{\displaystyle\sum_{i=1}^{n} a_i}{n}.
+\]
+
+---
+
+## Full Hoare triple
+
+Putting everything together, the program **C** (or any equivalent algorithm) satisfies:
+
+\[
+\boxed{
+\{P\}\; C \;\{Q\}
+}
+\]
+
+where `C` is the concrete loop described above (read‑until‑negative, accumulating `σ` and `κ`, then printing `σ/κ`).  
+
+Thus the formal specification in Hoare‑logic notation is:
+
+\[
+\begin{aligned}
+&\{\,\exists n\in\mathbb N.\;\bigl(\forall i\le n\; s_i\ge0\bigr)\land s_{n+1}<0 \,\} \\
+&\quad\textbf{while}\; \texttt{true}\; \textbf{do}\\
+&\qquad\texttt{read }x;\\
+&\qquad\textbf{if}\; x<0\; \textbf{then break; }\\
+&\qquad\sigma:=\sigma+x;\\
+&\qquad\kappa:=\kappa+1;\\
+&\textbf{od}\\
+&\{\, out = \frac{\sigma}{\kappa}\;\text{ (provided }\kappa>0\text{)} \,\}
+\end{aligned}
+\]
+
+The invariant `I` given above guarantees that the loop indeed computes the sum and the count of all ages before the sentinel, and the post‑condition `Q` guarantees that the printed value is exactly the arithmetic mean required by the problem statement.

@@ -1,0 +1,114 @@
+Below is a **Hoare‑logic style specification** for a program that solves the problem.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true after it finishes) are given; the body of the program is omitted.
+
+---
+
+### 1.  Notation
+
+* Let  
+
+\[
+\mathbb N = \{0,1,2,\dots\}
+\]
+
+* The input variable is  
+
+\[
+N \in \mathbb N .
+\]
+
+* The **alphabet** allowed in the output is  
+
+\[
+\Sigma = \{\,\text{‘A’},\text{‘B’},\dots ,\text{‘Z’},\text{‘ ’}\,\}.
+\]
+
+* The **quote** that must be used (the “underlined letters” of the statement) is a **fixed** string of length  
+
+\[
+|S| = 34 .
+\]
+
+We denote it by an indexed sequence of characters
+
+\[
+S = s_{0}s_{1}\dots s_{33},\qquad s_{i}\in\Sigma .
+\]
+
+(The concrete values of the \(s_i\) are known to the judge; they are not needed for the specification itself.  
+From the examples we know that the prefix of length 7 is “LIFE IS”.)
+
+* For any string \(x\) and any integer \(k\) with \(0\le k\le |x|\) we write  
+
+\[
+\operatorname{pref}_{k}(x)=x[0..k-1]
+\]
+
+for the *prefix* consisting of the first \(k\) characters of \(x\).
+
+* The program writes its result on the standard output.  
+We denote the **output string** (including the final end‑of‑line character) by  
+
+\[
+\mathit{out}.
+\]
+
+* The end‑of‑line character is denoted by **`\(\nl\)`**; it is **not** counted in the length of the visible part of the output.
+
+---
+
+### 2.  Hoare Triple
+
+\[
+\boxed{\;\{\,P(N)\,\}\;\; \textbf{program}\;\; \{\,Q(N,\mathit{out})\,\}\;}
+\]
+
+---
+
+#### Pre‑condition  \(P(N)\)
+
+\[
+P(N) \;\equiv\; N\in\mathbb N\;\land\;1\le N\le 34 .
+\]
+
+The only requirement before execution is that the input integer \(N\) is in the domain prescribed by the statement.
+
+---
+
+#### Post‑condition  \(Q(N,\mathit{out})\)
+
+\[
+\begin{aligned}
+Q(N,\mathit{out})\;\equiv\;
+&\bigl(\mathit{out}= \operatorname{pref}_{N}(S)\;\Vert\;\nl\bigr) \\[2mm]
+&\land\; |\operatorname{pref}_{N}(S)| = N \\[1mm]
+&\land\; \forall i\;(0\le i < N \;\Rightarrow\; s_{i}\in\Sigma) .
+\end{aligned}
+\]
+
+In words:
+
+1. **Exact prefix** – the visible part of the output is precisely the first \(N\) characters of the constant quote \(S\).  
+   The output is terminated by a single newline character `\(\nl\)`.
+
+2. **Length** – the visible part has length exactly \(N\).
+
+3. **Alphabet** – every character that appears in the visible part belongs to the allowed alphabet \(\Sigma\) (capital letters or a blank space).  
+
+Because the newline is not counted in the length, the specification guarantees that the line printed to the screen consists *only* of capital letters and blanks, exactly as required.
+
+---
+
+### 3.  Full Specification in Hoare‑logic Form
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,1\le N\le 34\,\}\;\; \textbf{read }N;\\[1mm]
+\qquad\textbf{write } \operatorname{pref}_{N}(S)\;\nl;\\[1mm]
+\{\,\mathit{out}= \operatorname{pref}_{N}(S)\;\Vert\;\nl\;\land\;|\operatorname{pref}_{N}(S)|=N\,\}
+\end{array}
+}
+\]
+
+The body of the program (the two statements “read \(N\)” and “write …”) is just a convenient way to express the same pre‑/post‑conditions; the essential contract is the pair \((P,Q)\) given above.

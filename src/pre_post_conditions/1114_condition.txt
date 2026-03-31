@@ -1,0 +1,123 @@
+Below is a **Hoare‑logic style formalisation** of the program that reads integers until the correct password (the number 2002) is encountered.  
+Only the *pre‑condition* and the *post‑condition* are asked for, but a useful **loop invariant** and a **termination metric** are also given so that the whole specification is self‑contained and can be used to prove correctness.
+
+---
+
+## 1. Vocabulary
+
+| Symbol | Meaning |
+|--------|----------------------------------------------------------|
+| `I`    | The (finite or infinite) input sequence of integers:  `I = ⟨i₀,i₁,i₂,…⟩`. |
+| `|I|`  | Length of `I` (may be `∞`). |
+| `idx`  | Integer variable that holds the index of the **next** element to be read (`0 ≤ idx ≤ |I|`). |
+| `out`  | Output sequence of strings that the program has printed so far. |
+| `P(i)` | Predicate “*i* is a correct password”, i.e. `i = 2002`. |
+| `Inv(idx,out)` | Loop invariant (defined below). |
+| `⌊·⌋` | Integer floor. |
+| `⊕`   | Sequence concatenation. |
+| `⊥`   | “undefined” (used for the case “no correct password in the input”). |
+
+---
+
+## 2. Pre‑condition  
+
+\[
+\boxed{\;P_{\text{pre}} \;\equiv\; I\;\text{is a (possibly infinite) sequence of integers}\;}
+\]
+
+No further restriction is imposed: the program must be correct for **any** input sequence.
+
+---
+
+## 3. Post‑condition  
+
+Let  
+
+\[
+n \;=\; \min\{\,k \mid 0 \le k < |I| \;\wedge\; P(i_k)\,\}
+\]
+
+be the index of the **first** correct password, **if it exists**.  
+If no such index exists we write `n = ⊥`.
+
+The post‑condition distinguishes the two possible cases:
+
+\[
+\boxed{
+\begin{aligned}
+P_{\text{post}} \;\equiv\; &\bigl(n \neq \bot \;\Rightarrow\; 
+   \bigl( idx = n+1 \;\wedge\; 
+          out = (\underbrace{"Senha Invalida"}_{\text{n times}})^{n} \;\oplus\; 
+                \bigl["Acesso Permitido"\bigr] \bigr) \bigr) \\[4pt]
+\;\wedge\;&\bigl(n = \bot \;\Rightarrow\; 
+   \bigl( \text{the program diverges (does not terminate)} \bigr) \bigr)
+\end{aligned}
+}
+\]
+
+In words:
+
+* If the input eventually contains the password `2002` at position `n`, the program terminates after having read exactly the first `n+1` numbers, prints `"Senha Invalida"` `n` times (once for every wrong password) and finally prints `"Acesso Permitido"`.  
+* If the input never contains `2002`, the program never terminates (the specification allows this because the original problem guarantees that a test case **does** contain the correct password).
+
+---
+
+## 4. Loop (the part that actually implements the “keep reading until valid”)  
+
+The program can be written as the following pseudo‑code (the exact syntax is irrelevant for the Hoare specification):
+
+```text
+idx := 0;
+out := ⟨⟩;
+while ¬P(I[idx]) do
+    out := out ⊕ ⟨"Senha Invalida"⟩;
+    idx := idx + 1
+od;
+out := out ⊕ ⟨"Acesso Permitido"⟩;
+idx := idx + 1   // (index after the successful read)
+```
+
+### 4.1 Loop invariant  
+
+\[
+\boxed{
+Inv(idx,out) \;\equiv\;
+\begin{cases}
+0 \le idx \le |I|,\\[2pt]
+\forall j \;(0 \le j < idx) \; \bigl( out[j] = "Senha Invalida" \;\wedge\; I[j] \neq 2002 \bigr)
+\end{cases}
+}
+\]
+
+*The invariant says:*  
+* All numbers that have already been consumed (`I[0] … I[idx‑1]`) are **wrong passwords**.  
+* For each such number the program has already emitted the message `"Senha Invalida"`.
+
+### 4.2 Verification conditions  
+
+| Step | Hoare triple (simplified) |
+|------|---------------------------|
+| **Initialization** | `{P_pre}` `idx := 0; out := ⟨⟩;` `{Inv(idx,out)}` |
+| **Maintenance** | `{Inv ∧ ¬P(I[idx])}` body of loop `{Inv}` |
+| **Termination** | `{Inv ∧ P(I[idx])}` after the loop `out := out ⊕ ⟨"Acesso Permitido"⟩; idx := idx+1;` `{P_post}` |
+| **Termination metric** | `t = |I| - idx` (non‑negative integer that strictly decreases each iteration, guaranteeing termination when a `2002` exists). |
+
+---
+
+## 5. Full Hoare triple for the whole program  
+
+\[
+\boxed{
+\{\,P_{\text{pre}}\,\}\;\; \text{program as above} \;\; \{\,P_{\text{post}}\,\}
+}
+\]
+
+---
+
+### Summary (in plain English)
+
+*Pre‑condition*: the input is any list of integers.  
+
+*Post‑condition*: if the list contains the number `2002` at position `n`, the program prints `"Senha Invalida"` exactly `n` times, then prints `"Acesso Permitido"` and stops; otherwise it never stops.  
+
+The invariant guarantees that every printed `"Senha Invalida"` corresponds to a previously read wrong password, and the termination metric shows that the loop finishes as soon as the first correct password is encountered.

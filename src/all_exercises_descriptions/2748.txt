@@ -1,0 +1,20 @@
+Description: Your teacher would like to make a screen with the following characteristics:
+
+Input: There is not.
+
+Output: The output will be printed as shown above.
+
+Examples:
+- Example 1:
+  Input:
+
+  Output:
+---------------------------------------
+|        Roberto                      |
+|                                     |
+|        5786                         |
+|                                     |
+|        UNIFEI                       |
+---------------------------------------
+
+--

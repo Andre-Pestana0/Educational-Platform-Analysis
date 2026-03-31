@@ -1,0 +1,102 @@
+Below is a **Hoare‑style specification** of the whole program (reading the data, processing each test case and printing the results).  
+Only the *pre‑condition*  **P**  (what must hold before the program starts) and the *post‑condition* **Q** (what is guaranteed after the program terminates) are given; the body of the program is omitted.
+
+---
+
+### Notation used  
+
+* \( \mathbb N \) – the set of non‑negative integers.  
+* \( \mathbb Z \) – the set of all integers.  
+* \( \operatorname{odd}(k) \;=\; \begin{cases}1 & k\bmod 2\neq 0\\[2pt]0 & k\bmod 2 = 0\end{cases} \) – predicate “\(k\) is odd”.  
+* For a pair \((a,b)\) let  
+
+\[
+\operatorname{low}(a,b)=\min\{a,b\},\qquad 
+\operatorname{high}(a,b)=\max\{a,b\}.
+\]
+
+* For a finite sequence \(X = \langle x_1,\dots ,x_n\rangle\) we write \(|X| = n\) for its length and \(X[i]\) for its \(i\)-th element (1‑based indexing).  
+
+* The **output** of the program is a sequence \(O = \langle o_1,\dots ,o_N\rangle\) that is printed line‑by‑line.
+
+* The **input** is a sequence  
+
+\[
+\mathit{In}= \langle (X_1,Y_1),\dots ,(X_N,Y_N)\rangle
+\]
+
+read from standard input, preceded by the integer \(N\).
+
+* The **summation** over a range is written  
+
+\[
+\sum_{k = a}^{b} f(k) \;=\; 
+\begin{cases}
+0 & a>b\\[2pt]
+f(a)+\sum_{k=a+1}^{b} f(k) & a\le b
+\end{cases}
+\]
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\;\{\,P\,\}\;\; \textbf{Program}\;\; \{\,Q\,\}\;}
+\]
+
+### Pre‑condition  **P**
+
+\[
+\begin{aligned}
+P \;\equiv\;& 
+\bigl(N \in \mathbb N \;\land\; N \ge 0\bigr) \\
+&\;\land\;
+\Bigl(\forall i\;(1\le i\le N \;\Longrightarrow\; X_i\in\mathbb Z \land Y_i\in\mathbb Z)\Bigr)\\[4pt]
+&\;\land\;
+\text{The input stream consists of exactly the integer } N \text{ followed by } N
+\text{ lines each containing two integers } X_i,Y_i .
+\end{aligned}
+\]
+
+In words: the program receives a non‑negative integer \(N\) and then \(N\) pairs of integers; no other data are present.
+
+### Post‑condition **Q**
+
+\[
+\begin{aligned}
+Q \;\equiv\;& 
+\bigl(|O| = N\bigr) \\
+&\;\land\;
+\Bigl(\forall i\;(1\le i\le N \;\Longrightarrow\;
+o_i = 
+\sum_{k = \operatorname{low}(X_i,Y_i)+1}^{\operatorname{high}(X_i,Y_i)-1}
+k\cdot\operatorname{odd}(k)\bigr)\Bigr)\\[4pt]
+&\;\land\;
+\text{The sequence } O \text{ is printed, one element per line, in order } o_1,\dots ,o_N .
+\end{aligned}
+\]
+
+Explanation of the sum:
+
+* The range \(\operatorname{low}(X_i,Y_i)+1 \dots \operatorname{high}(X_i,Y_i)-1\) enumerates **all integers strictly between** the two endpoints.
+* The factor \(\operatorname{odd}(k)\) makes the term contribute \(k\) only when \(k\) is odd; otherwise it contributes \(0\).
+* If the lower bound exceeds the upper bound (i.e. the two numbers are equal or adjacent), the summation convention yields \(0\), which matches the required “no odd numbers → sum = 0”.
+
+Thus for each test case the program outputs exactly the sum of the odd integers that lie **strictly** between the two given numbers, as required.
+
+---
+
+### Full Hoare specification (compact form)
+
+\[
+\boxed{
+\{\,N\in\mathbb N\;\land\;\forall i\le N\;(X_i,Y_i)\in\mathbb Z^2\,\}
+\;\; \textbf{read } N; \textbf{ for } i=1\text{ to }N\; \textbf{read } X_i,Y_i\;
+\textbf{print } o_i\;
+\{\,\forall i\le N\; o_i = \displaystyle\sum_{k=\operatorname{low}(X_i,Y_i)+1}^{\operatorname{high}(X_i,Y_i)-1}
+k\cdot\operatorname{odd}(k)\,\}
+}
+\]
+
+The triple states precisely what must be true before execution (the well‑formed input) and what is guaranteed after execution (the printed sums).

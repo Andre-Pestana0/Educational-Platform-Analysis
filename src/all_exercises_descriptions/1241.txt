@@ -1,0 +1,21 @@
+Description: Paulinho have again in your hands another problem. Now the teacher asked him to make a new program to verify from two big numbers A and B, if B corresponds to the last digit of A.
+
+Input: The input consists of several test cases. The first line of input contains an integerNthat indicates the number of test cases. Each test case consists of two numbersAandBgreather than zero, with up to 1000 digits each.
+
+Output: For each test case, print a message informing if the second number fit ("encaixa" in portughese) or didn't fit ("nao encaixa") in the first number.
+
+Examples:
+- Example 1:
+  Input:
+4
+56234523485723854755454545478690 78690
+5434554 543
+1243 1243
+54 64545454545454545454545454545454554
+  Output:
+encaixa
+nao encaixa
+encaixa
+nao encaixa
+
+--

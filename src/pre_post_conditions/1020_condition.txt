@@ -1,0 +1,61 @@
+**Hoare‑style specification**
+
+Let  
+
+* `n` be the integer read from the input (age expressed in days).  
+* `⌊x⌋` denote the integer floor of a rational number `x`.  
+* `a mod b` denote the remainder of the Euclidean division of `a` by `b` (so `0 ≤ a mod b < b`).  
+
+Define the auxiliary quantities  
+
+\[
+\begin{aligned}
+y &:= \Big\lfloor \frac{n}{365} \Big\rfloor ,                         &&\text{(whole years)}\\[2mm]
+r &:= n \bmod 365 ,                                                &&\text{(days left after removing full years)}\\[2mm]
+m &:= \Big\lfloor \frac{r}{30} \Big\rfloor ,                        &&\text{(whole months)}\\[2mm]
+d &:= r \bmod 30 .                                                  &&\text{(remaining days)}
+\end{aligned}
+\]
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P \;\equiv\; n \in \mathbb Z \;\land\; n \ge 0
+\]
+
+(The program receives exactly one non‑negative integer representing a number of days.)
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\;&\; \text{The program prints three lines exactly in the order}\\
+            &\quad\text{“}y\ \text{ano(s)"}\\
+            &\quad\text{“}m\ \text{mes(es)"}\\
+            &\quad\text{“}d\ \text{dia(s)"}\\[2mm]
+          &\;\land\; y = \Big\lfloor \frac{n}{365} \Big\rfloor\\
+          &\;\land\; r = n \bmod 365\\
+          &\;\land\; m = \Big\lfloor \frac{r}{30} \Big\rfloor\\
+          &\;\land\; d = r \bmod 30 .
+\end{aligned}
+\]
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; \text{ReadAgeAndPrint}\; \{\,Q\,\}}
+\]
+
+where `ReadAgeAndPrint` is the (imperative) program that
+
+1. reads the integer `n` from standard input,
+2. computes the values `y`, `m`, `d` as defined above,
+3. prints the three lines `y ano(s)`, `m mes(es)`, `d dia(s)`.
+
+The triple states that **if** the input satisfies the pre‑condition (a single non‑negative integer), **then** after termination the output satisfies the post‑condition (the correct decomposition into years, months and days, with the required textual format).

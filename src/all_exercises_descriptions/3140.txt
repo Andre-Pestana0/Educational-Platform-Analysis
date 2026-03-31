@@ -1,0 +1,21 @@
+Description: During the pandemic, with the temporary suspension of the academic calendar at UFSC, Lucas has taken advantage of his free time to take several online courses and learn to use new technologies and programming libraries.
+
+Input: The entry has several lines, the lines of the HTML file provided by Lucas, and ends with EOF. Each line consists of a sequence of printable characters from the ASCII Table and it is guaranteed that none of them is longer than 1,000 characters or is blank.
+
+Output: You must print all the lines between the "<body>" and "</body>" tags without including them and keeping the exact original formatting of the file.
+
+Examples:
+- Example 1:
+  Input:
+<html>
+    <head>
+        <title>Meu primeiro programa em HTML</title>
+    </head>
+    <body>
+         <h1>Hello World!</h1>
+    </body>
+</html>
+  Output:
+<h1>Hello World!</h1>
+
+--

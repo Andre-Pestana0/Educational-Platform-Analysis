@@ -1,0 +1,146 @@
+Below is a **Hoare‑logic style specification** of the required program.  
+All symbols are written in standard mathematical notation (LaTeX‐style).
+
+---
+
+### 1.  Notation
+
+* `S = { \texttt{SALIDA},\;\texttt{VUELTA}\,}` – the set of admissible directions.  
+* For a Boolean predicate `p` we use the Iverson bracket  
+
+\[
+[p]=\begin{cases}
+1 & \text{if }p\text{ is true}\\[2pt]
+0 & \text{otherwise}
+\end{cases}
+\]
+
+* For a finite sequence  
+
+\[
+\mathbf{in}= \bigl\langle (d_1,t_1),\dots,(d_n,t_n) \bigr\rangle ,
+\qquad d_i\in S,\;t_i\in\mathbb N,\;0\le t_i\le 20,
+\]
+
+the word **ABEND** terminates the input.  
+If the input contains no pairs we have \(n=0\).
+
+* Two auxiliary counters (the *state* of the system) are introduced:
+
+\[
+\begin{aligned}
+J_k &:= \sum_{i=1}^{k}\bigl[ d_i = \texttt{SALIDA}\bigr]
+        -\sum_{i=1}^{k}\bigl[ d_i = \texttt{VUELTA}\bigr]   &&\text{(jeeps still inside)}\\[4pt]
+T_k &:= \sum_{i=1}^{k}\bigl[ d_i = \texttt{SALIDA}\bigr]\;t_i
+        -\sum_{i=1}^{k}\bigl[ d_i = \texttt{VUELTA}\bigr]\;t_i   &&\text{(tourists still inside)} .
+\end{aligned}
+\]
+
+The values after processing the whole input are written \(J_n\) and \(T_n\).
+
+* The program writes two numbers, each on its own line:
+
+\[
+\text{output}_1 = T_n,\qquad
+\text{output}_2 = J_n .
+\]
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+P \equiv\;&\exists n\in\mathbb N\;.\;
+      \bigl(\forall i\in\{1,\dots ,n\}\;.\;
+           d_i\in S\ \wedge\ 0\le t_i\le 20\bigr)      \\[2pt]
+      &\;\wedge\; \texttt{ABEND} \text{ follows the } n\text{ pairs.}
+\end{aligned}}
+\]
+
+In words: the input is a finite (possibly empty) list of pairs
+\((\texttt{SALIDA}\ \text{or}\ \texttt{VUELTA},\;T)\) with \(0\le T\le 20\),
+terminated by the token **ABEND**.
+
+---
+
+### 3.  Loop (reading the input)
+
+```
+while not ABEND do
+        read (d , t)               // d∈S , 0≤t≤20
+        if d = SALIDA then
+                J := J + 1
+                T := T + t
+        else   // d = VUELTA
+                J := J - 1
+                T := T - t
+        fi
+od
+```
+
+#### Loop invariant  
+
+\[
+\boxed{
+I(k) \equiv
+\begin{cases}
+J = J_k\\[2pt]
+T = T_k\\[2pt]
+J_k \ge 0\ \wedge\ T_k \ge 0
+\end{cases}
+\qquad\text{for every }k\in\{0,\dots ,n\}.
+}
+\]
+
+*Initialization* (`k = 0`): \(J_0 = 0,\;T_0 = 0\); thus \(I(0)\) holds.  
+
+*Preservation*: the body updates `J` and `T` exactly as the definitions of
+\(J_{k+1}\) and \(T_{k+1}\) prescribe, so \(I(k)\Rightarrow I(k+1)\).  
+
+*Termination*: when the loop ends we have processed all \(n\) pairs, hence
+\(I(n)\) holds.
+
+---
+
+### 4.  Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+Q \equiv\;&\text{the program prints }T_n\text{ on the first line and }J_n\text{ on the second line,}\\[2pt]
+        &\qquad\qquad J_n\ge 0,\;T_n\ge 0,\\[2pt]
+        &\qquad\qquad 
+        J_n = \#\{i\mid d_i=\texttt{SALIDA}\}
+               -\#\{i\mid d_i=\texttt{VUELTA}\},\\[2pt]
+        &\qquad\qquad 
+        T_n = \sum_{i\;:\;d_i=\texttt{SALIDA}} t_i
+               -\sum_{i\;:\;d_i=\texttt{VUELTA}} t_i .
+\end{aligned}}
+\]
+
+Thus the two numbers produced are exactly the amount of tourists and the
+amount of jeeps that have **not** yet returned to the centre.
+
+---
+
+### 5.  Hoare triple for the whole program  
+
+\[
+\boxed{\;\{P\}\;\texttt{process\_input}\;\{Q\}\;}
+\]
+
+where `process_input` is the while‑loop described above together with the
+final `print T ; print J`.
+
+The triple is proved by the standard Hoare‑logic rules:
+
+* `P` guarantees that the input satisfies the syntactic restrictions.  
+* The loop invariant `I(k)` is established (initialisation), preserved
+  (body of the loop) and together with the termination condition (`k=n`)
+  yields the post‑condition `Q`.  
+
+Consequently, the program meets the specification: after the shift it
+outputs the **missing tourists** and the **missing jeeps** exactly as
+required.

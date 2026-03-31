@@ -1,0 +1,80 @@
+Below is a **Hoare‑style specification** for the “read an integer \(N\) and print all its positive divisors” task.  
+Only the *pre‑condition* (what must hold before the program starts) and the *post‑condition* (what must hold after it finishes) are given; the body of the program is omitted.
+
+---
+
+### Notation used  
+
+* \(\mathbb Z\) – set of all integers.  
+* \(\mathbb N^+ = \{1,2,3,\dots\}\) – set of **positive** integers.  
+* \(\operatorname{mod}(a,b)\) – the remainder of the Euclidean division of \(a\) by \(b\).  
+* \(\,|\,\) – cardinality of a finite set.  
+* \(\operatorname{Div}(N) \;=\;\{d\in\mathbb N^+ \mid \operatorname{mod}(N,d)=0\}\) – the set of all positive divisors of \(N\).  
+* \(\operatorname{out}\) – the sequence of numbers that the program writes to the output file, one per line; we write \(\operatorname{out}[i]\) for its \(i\)-th element (1‑based indexing).  
+* \(\operatorname{len}(\operatorname{out})\) – length of that sequence.  
+
+---
+
+## Hoare triple  
+
+\[
+\boxed{\{\,P(N)\,\}\; \texttt{Program}\; \{\,Q(N,\operatorname{out})\,\}}
+\]
+
+### Pre‑condition  \(P(N)\)
+
+\[
+\begin{aligned}
+P(N) \; \equiv\; & N \in \mathbb Z \;\land\; N > 0               \\
+                & \;\land\; \text{“the input file contains exactly the integer }N\text{”.}
+\end{aligned}
+\]
+
+*(The problem statement says “read an integer \(N\)”.  We require the integer to be
+strictly positive so that the notion of *positive* divisors is well‑defined.)*
+
+---
+
+### Post‑condition  \(Q(N,\operatorname{out})\)
+
+\[
+\begin{aligned}
+Q(N,\operatorname{out}) \; \equiv\; & \operatorname{len}(\operatorname{out}) = |\operatorname{Div}(N)| \\[2mm]
+ & \land\; \bigl(\forall i\in\{1,\dots,\operatorname{len}(\operatorname{out})\}\;:
+        \operatorname{out}[i]\in\mathbb N^+ \land \operatorname{mod}(N,\operatorname{out}[i]) = 0\bigr) \\[2mm]
+ & \land\; \bigl(\forall i\neq j\;:\; \operatorname{out}[i]\neq\operatorname{out}[j]\bigr)      \qquad\text{(no repetitions)}\\[2mm]
+ & \land\; \bigl(\forall d\in\operatorname{Div}(N)\;:\; \exists i\;:\; \operatorname{out}[i]=d\bigr) 
+        \qquad\text{(completeness)}\\[2mm]
+ & \land\; \bigl(\forall i,j\;:\; 1\le i<j\le\operatorname{len}(\operatorname{out}) \;\Rightarrow\;
+        \operatorname{out}[i] < \operatorname{out}[j]\bigr) 
+        \qquad\text{(strictly increasing order)}\\[2mm]
+ & \land\; \text{the program terminates (halts).}
+\end{aligned}
+\]
+
+In words, after termination the program has produced a *finite sequence* whose
+
+* length equals the number of positive divisors of \(N\);
+* every element is a positive divisor of \(N\);
+* each positive divisor of \(N\) appears **exactly once**;
+* the elements are listed in strictly increasing order (the example output follows this order, though the order requirement can be omitted if desired).
+
+---
+
+### Full specification
+
+\[
+\boxed{
+\begin{array}{l}
+\{\, N\in\mathbb Z \land N>0 \,\}\\[1mm]
+\texttt{read }N; \; \texttt{compute }L; \; \texttt{write each }L_i\text{ on a new line}\\[1mm]
+\{\, \operatorname{len}(L)=|\operatorname{Div}(N)|
+   \;\land\; \forall i\!:\!L_i\in\mathbb N^+ \land \operatorname{mod}(N,L_i)=0\\
+\qquad\land\; \forall i\neq j\!:\!L_i\neq L_j
+   \;\land\; \forall d\in\operatorname{Div}(N)\!:\!\exists i\!:\!L_i=d\\
+\qquad\land\; \forall i<j\!:\!L_i<L_j \,\}
+\end{array}
+}
+\]
+
+That is the complete Hoare‑logic style **pre‑/post‑condition specification** for the given natural‑language problem.

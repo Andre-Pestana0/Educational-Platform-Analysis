@@ -1,0 +1,95 @@
+Below is a **Hoare‑logic style specification** for one iteration of the program (i.e. for a single test case).  
+Only the **pre‑condition** *P* and the **post‑condition** *Q* are given – the body of the program is left implicit (it merely computes the product `X·M` and prints it).
+
+---
+
+### 1.   Variables and Types  
+
+\[
+\begin{aligned}
+X &\in \mathbb N      &&\text{(the “increase” factor)}\\
+M &\in \mathbb N      &&\text{(experience value of the monster)}\\
+E &\in \mathbb N      &&\text{(experience value of the new monster)}\\[2mm]
+2^{31}-1 &:= 2147483647   &&\text{maximum allowed value of }M
+\end{aligned}
+\]
+
+---
+
+### 2.   Pre‑condition  *P*  
+
+The program is invoked with a **pair** \((X,M)\).  
+Two situations are distinguished:
+
+* **Termination request** – the sentinel pair \((0,0)\) that must **not** be processed.
+* **Normal case** – a legitimate test case that has to be processed.
+
+\[
+\boxed{
+P \;\equiv\;
+\bigl( X = 0 \land M = 0 \bigr)\;
+\;\lor\;
+\Bigl( 0 < X \le 3 \;\land\; 10 \le M \le 2^{31}\!-\!1 \Bigr)
+}
+\]
+
+---
+
+### 3.   Post‑condition  *Q*  
+
+*If the sentinel pair was supplied* the program produces **no output** and leaves all variables unchanged.  
+
+*If a normal test case was supplied* the program must output the value  
+
+\[
+E = X\cdot M .
+\]
+
+Because of the bounds on \(X\) and \(M\) we also have a bound on the result:
+
+\[
+10 \le E \le 3\,(2^{31}\!-\!1).
+\]
+
+Formally:
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\; &\bigl( X = 0 \land M = 0 \bigr) \;\Longrightarrow\; 
+   \bigl(\text{no output} \land E = \text{old }E\bigr) \\[1mm]
+&\land \\[1mm]
+&\bigl( 0 < X \le 3 \land 10 \le M \le 2^{31}\!-\!1 \bigr) \;\Longrightarrow\;
+   \bigl( E = X\cdot M \;\land\; 10 \le E \le 3\,(2^{31}\!-\!1) \bigr)
+\end{aligned}
+}
+\]
+
+---
+
+### 4.   Hoare Triple for a Single Test‑case
+
+\[
+\boxed{
+\{\,P\,\}\;\; \texttt{process\_case}(X,M)\;\; \{\,Q\,\}
+}
+\]
+
+where `process_case` reads the pair \((X,M)\), checks the sentinel,
+computes \(E := X\cdot M\) for the normal case, and prints \(E\).
+
+---
+
+### 5.   Whole‑program specification (repeated processing)
+
+If the whole program repeatedly reads pairs until the sentinel appears, the loop invariant is simply the same pre‑condition *P* for each iteration, and the overall post‑condition is that **every** non‑sentinel pair \((X,M)\) that was read has produced an output line equal to \(X\cdot M\).
+
+\[
+\begin{aligned}
+\{\,\text{true}\,\} &\; \texttt{while } (X\neq0 \lor M\neq0)\; \texttt{do } \{\,\{P\}\;\texttt{process\_case}(X,M)\;\{Q\}\,\} \; \{\,\text{true}\,\}
+\end{aligned}
+\]
+
+---
+
+These two formulas (the pre‑condition *P* and the post‑condition *Q*) constitute the **formal specification** of the problem in Hoare‑logic notation.

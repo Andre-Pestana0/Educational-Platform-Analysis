@@ -1,0 +1,96 @@
+Below is a **pure Hoare‑logic specification** (pre‑condition / post‑condition) for the program that, for every test case, reads the time **H** at which Bino wakes up and prints the *maximum possible* delay (in minutes) with respect to the 08 : 00 meeting.
+
+---
+
+### 1.   Notation that will be used  
+
+* Let `hh:mm` be a clock‑time.  
+* `toMin(hh:mm) = 60·hh + mm` – the number of minutes counted from 00 : 00.  
+* The meeting time `M = 08:00` → `mM = toMin(08:00) = 480`.  
+
+* Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `H`    | Bino’s wake‑up time, expressed in minutes (`H = toMin(hh:mm)`). |
+| `τ`    | Travel time from the house to the bus terminal (unknown but bounded). |
+| `X`    | Value printed by the program – the *maximum* possible delay (minutes). |
+
+* Ranges that are given by the statement  
+
+\[
+\begin{aligned}
+& 5{:}00 \le H \le 9{:}00 \qquad\Longleftrightarrow\qquad 300 \le H \le 540,\\[2mm]
+& 30 \le \tau \le 60 .
+\end{aligned}
+\]
+
+* The *arrival* time at the terminal is `A = H + τ`.  
+* The *delay* (if any) with respect to the meeting is  
+
+\[
+\operatorname{delay}(H,\tau)=\max\bigl(0,\;A-mM\bigr)
+                      =\max\bigl(0,\;H+\tau-480\bigr).
+\]
+
+* Because we are asked for the **maximum** possible delay, we must take the
+  worst admissible travel time, i.e. `τ = 60`. Hence
+
+\[
+\boxed{\,D_{\max}(H)=\max\bigl(0,\;H+60-480\bigr)\,}.
+\]
+
+---
+
+### 2.   Hoare triple  
+
+\[
+\boxed{\{\,300 \le H \le 540\,\}\; \texttt{read }H;\;
+       X := \max\bigl(0,\;H+60-480\bigr);\;
+       \texttt{print }X\;
+       \{\,X = \max\bigl(0,\;H+60-480\bigr)\ \land\ 0 \le X \le 120\,\}}
+\]
+
+* **Pre‑condition**  
+
+\[
+P \; \equiv\; 300 \le H \le 540 .
+\]
+
+  (The input line is guaranteed to be a valid time between 05 : 00 and 09 : 00.)
+
+* **Program fragment** (the “implementation” that the Hoare triple refers to)
+
+```text
+read H                     // H is already in minutes
+X := max(0, H + 60 - 480)  // compute the worst‑case delay
+print X
+```
+
+* **Post‑condition**  
+
+\[
+Q \; \equiv\; 
+\bigl(X = \max(0, H+60-480)\bigr)\ \land\ 
+\bigl(0 \le X \le 120\bigr).
+\]
+
+  The second conjunct follows from the bounds on `H`:
+  *If* `H = 540` (09 : 00) then `X = 540+60-480 = 120`;  
+  *If* `H = 300` (05 : 00) then `X = 0`.
+
+Thus the Hoare triple states precisely that **whenever the input wake‑up time
+lies in the allowed interval, the program terminates with `X` equal to the
+maximum possible delay (in minutes) and that delay is a non‑negative integer
+not larger than 120**.
+
+---  
+
+### 3.   Summary in one line  
+
+\[
+\boxed{\{\,300\le H\le540\,\}\;\;X:=\max(0,H+60-480)\;\;\{\,X=\max(0,H+60-480)\,\}}
+\]
+
+which is the formal (pre‑/post‑condition) specification required for the
+problem.

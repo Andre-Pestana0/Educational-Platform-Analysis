@@ -1,0 +1,60 @@
+Below is a **Hoare‑logic style specification** for the program that computes the area of a circle and prints it in the required format.  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what must be true after it terminates) are given; the body of the program is omitted.
+
+---
+
+### Notation used  
+
+* \( \mathbb{R} \) – set of real numbers.  
+* \( \mathit{double} \) – the implementation type for floating‑point numbers (IEEE‑754 double precision).  
+* \( \pi = 3.14159 \) – the constant that must be used.  
+* \( R \in \mathbb{R} \) – the input radius (read from standard input).  
+* \( A = \pi \, R^{2} \) – the exact (real) area of the circle.  
+* \(\operatorname{round}_{4}(x) = \displaystyle\frac{\lfloor 10^{4}x + 0.5 \rfloor}{10^{4}}\) – rounding of a real number to **four** decimal digits (the value that `printf("%.4f")` would display).  
+* \(\text{out} = \text{``A=``} \,\|\, \operatorname{fmt}_{4}(A)\) – the string that the program must write to the output stream, where  
+  \(\operatorname{fmt}_{4}(A) = \) the decimal representation of \(\operatorname{round}_{4}(A)\) with exactly four digits after the decimal point (e.g. `12.5664`).  
+* “\(\|\)” denotes concatenation of strings.  
+
+---
+
+## Specification
+
+\[
+\boxed{\{\,P\,\}\;\; \text{program}\;\; \{\,Q\,\}}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+P \; \equiv\;
+\begin{cases}
+R \in \mathbb{R} \\
+R \ge 0 \qquad\text{(radius of a geometric circle cannot be negative)}\\[4pt]
+\text{The value } R \text{ has been read from the input as a double‑precision number.}
+\end{cases}
+\]
+
+### Post‑condition \(Q\)
+
+\[
+Q \; \equiv\;
+\begin{cases}
+\displaystyle A \;=\; \pi \, R^{2} \\[6pt]
+\displaystyle a \;=\; \operatorname{round}_{4}(A) \\[6pt]
+\text{The program writes exactly the string } 
+\text{``A=``}\,\|\,\operatorname{fmt}_{4}(A) \text{ followed by a line‑break.}\\[6pt]
+\text{Equivalently, the numeric part printed satisfies } 
+\bigl|\,a - A\,\bigr| \;<\; 0.5\times10^{-4}.
+\end{cases}
+\]
+
+In words:
+
+* **Pre‑condition** – the program receives a non‑negative real number \(R\) (stored in a double).  
+* **Post‑condition** – it computes the exact area \(A = \pi R^{2}\), rounds that value to four decimal places, and prints the literal characters `A=` followed by the rounded value with exactly four digits after the decimal point, ending with a newline.  
+
+Thus the Hoare triple that captures the whole task is  
+
+\[
+\boxed{\{\,R\in\mathbb{R},\;R\ge0\,\}\;\; \text{Compute\_Area\_And\_Print}\;\; \{\,\text{out}= ``A='' \,\|\,\operatorname{fmt}_{4}(\pi R^{2})\text{ and a trailing EOL}\,\}} .
+\]

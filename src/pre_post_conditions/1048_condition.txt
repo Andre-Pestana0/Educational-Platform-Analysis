@@ -1,0 +1,127 @@
+Below is a **Hoare‑logic style specification** of the required program.  
+Only the *pre‑condition* \(P\) (what must be true before the program starts) and the *post‑condition* \(Q\) (what must be true after it finishes) are given; the body of the program is omitted because it is not asked for.
+
+---
+
+### 1.  Vocabulary  
+
+| Symbol | Meaning |
+|--------|----------|
+| \(s\) | the **input salary** – a real number that is written with exactly two decimal digits (e.g.  \(400.00\)). |
+| \(\mathbb{R}_{2}\) | the set of all decimal numbers that have at most two fractional digits (i.e. numbers of the form \(\frac{k}{100}\) with \(k\in\mathbb Z\)). |
+| \(\operatorname{perc}: \mathbb R_{2}\rightarrow\{4,7,10,12,15\}\) | the **percentage** (in %) that must be applied to a given salary. |
+| \(p\) | the concrete percentage chosen for the given input salary (i.e. \(p=\operatorname{perc}(s)\)). |
+| \(\operatorname{inc}(s)\) | the **increase amount** (money earned) for salary \(s\). |
+| \(\operatorname{new}(s)\) | the **new salary** after the increase. |
+| \({\tt out}\) | the three textual lines that the program prints (the *observable output*). |
+
+The function \(\operatorname{perc}\) is defined piece‑wise exactly as the table given in the statement:
+
+\[
+\operatorname{perc}(s)=
+\begin{cases}
+15 & \text{if }0\le s\le 400.00,\\[2mm]
+12 & \text{if }400.00< s\le 800.00,\\[2mm]
+10 & \text{if }800.00< s\le 1200.00,\\[2mm]
+7  & \text{if }1200.00< s\le 2000.00,\\[2mm]
+4  & \text{if } s>2000.00.
+\end{cases}
+\tag{1}
+\]
+
+From the percentage we obtain the increase and the new salary:
+
+\[
+\begin{aligned}
+\operatorname{inc}(s) &:= \frac{\operatorname{perc}(s)}{100}\;s,\\[1mm]
+\operatorname{new}(s) &:= s+\operatorname{inc}(s).
+\end{aligned}
+\tag{2}
+\]
+
+All monetary values have to be printed with **exactly two decimal places**; the percentage is printed with a trailing “ %”.
+
+---
+
+### 2.  Hoare Triple  
+
+\[
+\boxed{\{\,P\,\}\; \texttt{Program}\; \{\,Q\,\}}
+\]
+
+---
+
+#### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;& \bigl(s\in\mathbb R_{2}\bigr) \;\land\; 
+                \bigl(s\ge 0\bigr)\; \land\;
+                \bigl(\text{the input stream contains exactly the token }s\bigr).
+\end{aligned}
+\tag{3}
+\]
+
+*Explanation* – the program is invoked with a **single** floating‑point number that has two digits after the decimal point and is non‑negative.
+
+---
+
+#### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\;& \exists p\in\{4,7,10,12,15\}\;
+               \bigl(p = \operatorname{perc}(s)\bigr) \\[1mm]
+            &\land\; \bigl(\operatorname{inc}(s)=\tfrac{p}{100}\,s\bigr) \\[1mm]
+            &\land\; \bigl(\operatorname{new}(s)=s+\operatorname{inc}(s)\bigr) \\[2mm]
+            &\land\; {\tt out}= 
+               \bigl(\text{“Novo salario: ”}\,\Vert\,\texttt{format}(\operatorname{new}(s),2)\bigr)\\
+            &\quad\;\Vert\;\bigl(\text{“Reajuste ganho: ”}\,\Vert\,\texttt{format}(\operatorname{inc}(s),2)\bigr)\\
+            &\quad\;\Vert\;\bigl(\text{“Em percentual: ”}\,\Vert\,p\,\text{ “ %”}\bigr).
+\end{aligned}
+\tag{4}
+\]
+
+*Explanation of the components*  
+
+* `format(x,2)` denotes the usual decimal‑to‑string conversion that rounds *x* to exactly two fractional digits (as required by the output specification).  
+* The three concatenated strings (the “\(\Vert\)” operator) correspond to the three lines that must be printed, in the same order as shown in the examples.  
+
+Thus the post‑condition guarantees that:
+
+1. The **percentage** printed is exactly the one dictated by the salary brackets (1).  
+2. The **increase amount** printed equals the salary multiplied by that percentage (2).  
+3. The **new salary** printed equals the original salary plus the increase (2).  
+4. All monetary numbers appear with two decimal digits, and the percentage appears followed by a space and the character “%”.
+
+---
+
+### 3.  Full Hoare Specification (compact)
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,s\in\mathbb R_{2}\;\land\; s\ge 0\,\}\\[1mm]
+\texttt{read }s;\\
+p:=\operatorname{perc}(s);\\
+\operatorname{inc}:=\tfrac{p}{100}\,s;\\
+\operatorname{new}:=s+\operatorname{inc};\\
+\texttt{print “Novo salario: ”, format}(\operatorname{new},2);\\
+\texttt{print “Reajuste ganho: ”, format}(\operatorname{inc},2);\\
+\texttt{print “Em percentual: ”, p, “ %”};\\[1mm]
+\{\,\exists p\;(p=\operatorname{perc}(s)\land
+     \operatorname{inc}=\tfrac{p}{100}s\land
+     \operatorname{new}=s+\operatorname{inc}\land
+     \texttt{out} \text{ as described in (4)} )\,\}
+\end{array}
+}
+\]
+
+---
+
+#### Remarks  
+
+* The Hoare triple above is *total*: for every admissible input (any non‑negative number with two decimal places) the program terminates after printing exactly the three required lines.  
+* The specification is **language‑independent**; any implementation that respects the pre‑ and post‑conditions will be considered correct.  
+
+This completes the formal (pre‑/post‑condition) specification of the “salary‑increase” problem in mathematical notation suitable for Hoare‑logic reasoning.

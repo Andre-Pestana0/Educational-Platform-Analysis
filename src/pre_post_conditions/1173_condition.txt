@@ -1,0 +1,88 @@
+Below is a **Hoare‑logic style specification** for the whole program (reading the value, filling the array and printing it).  
+Only the *pre‑condition* (what we assume about the input) and the *post‑condition* (what must hold after the program finishes) are given; the body of the program is abstracted away.
+
+---
+
+### 1. Notation used  
+
+| Symbol | Meaning |
+|--------|---------|
+| `V` | the integer read from standard input |
+| `N` | an array of length `10` (indices `0 … 9`) of integers |
+| `⟦·⟧` | semantic interpretation of an expression (value of a term) |
+| `2ⁱ` | the integer power of two (`2⁰ = 1`, `2¹ = 2`, …) |
+| `∀ i ∈ {0,…,9}` | “for every index `i` in the range 0 … 9” |
+| `⟨P⟩ S ⟨Q⟩` | Hoare triple: if pre‑condition `P` holds before executing statement `S`, then post‑condition `Q` holds afterwards (assuming termination) |
+| `print( "N[" || i || "] = " || N[i] )` | the concrete output operation (concatenation of strings) |
+
+---
+
+### 2. Preconditions  
+
+```
+P ≜  V ∈ ℤ  ∧  V < 50
+```
+
+*We assume the program receives a **single** integer `V` that satisfies `V < 50`.  
+No other assumptions are needed (the input routine is assumed to succeed).*
+
+---
+
+### 3. Postconditions  
+
+```
+Q ≜  (∀ i ∈ {0,…,9} • N[i] = V·2ⁱ)                // array contents
+   ∧ (output = ⟨ "N[0] = " || V
+                ∥ "\nN[1] = " || V·2
+                ∥ "\nN[2] = " || V·4
+                ∥ … 
+                ∥ "\nN[9] = " || V·2⁹ ⟩)      // exact printed lines
+```
+
+*Explanation*
+
+* **Array invariant** – after the program finishes, each cell `i` of the array holds the value `V·2ⁱ`.  
+  This captures the “first element is the input, each next element is double the previous one”.
+
+* **Output invariant** – the program prints, **in order**, ten lines of the form  
+
+  `N[i] = X`  
+
+  where `X` is exactly the value stored in `N[i]`.  The concatenation shown above is a compact way of writing the ten separate `print` statements; any equivalent formulation (e.g. a loop that prints `N[i]` for each `i`) is acceptable as long as the produced sequence of characters matches the one written.
+
+---
+
+### 4. Full Hoare triple  
+
+\[
+\boxed{ \; \langle P \rangle\; \textbf{Program} \; \langle Q \rangle \;}
+\]
+
+where **Program** denotes the concrete implementation (read `V`, allocate `N[10]`, fill it with the recurrence `N[0] := V; N[i] := 2·N[i‑1]` for `i = 1 … 9`, then print each `N[i]` as described).
+
+---
+
+### 5. Optional auxiliary invariants (useful when proving correctness)
+
+If one wishes to prove the program by induction over the loop that builds the array, an appropriate loop invariant is:
+
+```
+I(k) ≜ 0 ≤ k ≤ 10  ∧  (∀ i ∈ {0,…,k‑1} • N[i] = V·2ⁱ)
+```
+
+*Initially* (`k = 0`) the invariant holds vacuously.  
+*Maintenance*: assuming `I(k)` and executing the body `N[k] := 2·N[k‑1]` yields `I(k+1)`.  
+*Termination*: when the loop ends (`k = 10`) we obtain `∀ i ∈ {0,…,9} • N[i] = V·2ⁱ`, i.e. the array part of `Q`.  
+A similar invariant can be written for the printing loop.
+
+---
+
+### 6. Summary (in plain English)
+
+*Pre‑condition*: an integer `V` (< 50) is supplied as input.  
+*Post‑condition*: after execution,
+* the array `N[0…9]` contains `V, 2·V, 4·V, …, 2⁹·V`,
+* and the program has printed exactly ten lines  
+  `N[i] = <value>` for `i = 0 … 9` with the same values.
+
+That completes the formal Hoare‑logic specification of the problem.

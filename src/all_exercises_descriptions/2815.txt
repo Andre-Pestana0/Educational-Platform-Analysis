@@ -1,0 +1,20 @@
+Description: Francisco Yote is a different stutterer. Not only does he speak repeating syllables as strangely when he typed a text he repeats some syllables, making the reading very annoying. He repeats just syllables that have exactly 2 letters and never repeats a syllable different than the first syllable of the word. He repeats just one time each syllable. For example the word "repeat" can appear as rerepeat, but never as rererepeat.
+
+Input: The input consists of one line with up to 1000 words (each word with up to 15 characters). This line of text should be corrected by eliminating redundancies, as presented below.
+
+Output: Your program must generate (from the original text typed by Francisco) a text without the repetitions above mentioned.
+
+Examples:
+- Example 1:
+  Input:
+Juca comprou fafarinha na memercearia e papagou 4 reais o quilo. A mamae de Juca pediu para ele comprar mamais 2 quilos.
+  Output:
+Juca comprou farinha na mercearia e pagou 4 reais o quilo. A mae de Juca pediu para ele comprar mais 2 quilos.
+
+- Example 2:
+  Input:
+O papassarinho vovoou para bem longe.
+  Output:
+O passarinho voou para bem longe.
+
+--

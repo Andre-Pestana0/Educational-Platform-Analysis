@@ -1,0 +1,37 @@
+Description: As we know, there's a three-eyed crow. What it isn't well known is that the three-eyed crow can foresaw the results of Westeros lottery. Meanwhile every other crow is flying collecting entries for the lottery, the three-eyed crow already knows the results, and when Bran dreams with the three-eyed crow, the crow tells him the result. Bran always remember these dreams very well, however, he can't understand them fast enough to know the result. Your task is write a program to calculate the result from Bran's dream.
+
+Input: The input describes, in every line, in order, a scream or a blink of the crow.
+
+Output: The output are 3 lines, each one with one result of the lottery.
+
+Examples:
+- Example 1:
+  Input:
+--*
+caw caw
+*--
+caw caw
+caw caw
+  Output:
+1
+4
+0
+
+- Example 2:
+  Input:
+--*
+--*
+--*
+caw caw
+*--
+*--
+caw caw
+--*
+*--
+caw caw
+  Output:
+3
+8
+5
+
+--

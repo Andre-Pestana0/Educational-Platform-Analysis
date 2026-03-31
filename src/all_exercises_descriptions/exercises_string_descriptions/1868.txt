@@ -1,0 +1,53 @@
+Description: The company Animations Free Fault, or ALF, performs the most diverse animation using only characters on the screen. One day, were challenged to make an animation of a spiral Square. This should do the following: * Always display a square table with N rows and N columns, with a character in its respective place without spaces between them; * This number N will always be unique; * The first part of this animation will be with an 'X' character at the center of the table and the rest of the same characters busy with 'O'; * In the charts, the 'X' character will be moved to the other table places, where it was replaced with 'O', always exhibiting since the 'X' in each frame. The offset is in the shape of a square spiral, making the offset to right, up, and down left. Here's an example of all frames of the animation with N = 5:
+
+Input: There will be several test cases . Each test case starts with an integer N ( 1 â¤ N â¤ 25 ), indicating the size of the screen. The last test case is indicated when N = 0 , and this case should not be processed.
+
+Output: For each test case print N x N tables, each separated with '@ ' according to the rules of the animation as described above .
+
+Examples:
+- Example 1:
+  Input:
+3
+1
+0
+  Output:
+OOO
+OXO
+OOO
+@
+OOO
+OOX
+OOO
+@
+OOX
+OOO
+OOO
+@
+OXO
+OOO
+OOO
+@
+XOO
+OOO
+OOO
+@
+OOO
+XOO
+OOO
+@
+OOO
+OOO
+XOO
+@
+OOO
+OOO
+OXO
+@
+OOO
+OOO
+OOX
+@
+X
+@
+
+--

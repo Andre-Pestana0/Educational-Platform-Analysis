@@ -1,0 +1,97 @@
+Below is a **Hoare‑logic style specification** for the program described in the statement.  
+Only the **pre‑condition** \(P\) (what must be true before the program starts) and the **post‑condition** \(Q\) (what must be true after it terminates) are given; the program body itself is omitted.
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(N\)  | the integer read from the input |
+| \(O\)  | the sequence of output lines produced by the program (order matters) |
+| \(\mathbb{Z}\) | the set of all integers |
+| \(\operatorname{Even}(k)\) | predicate “\(k\) is even”, i.e. \(k \bmod 2 = 0\) |
+| \(\operatorname{Sq}(k)\) | the integer square \(k^{2}=k\cdot k\) |
+| \(\operatorname{Line}(k)\) | the text line that must be printed for a given even \(k\):  \(\texttt{`k^2 = `} \,\Vert\, \operatorname{Sq}(k)\)  (where “\(\Vert\)” denotes string concatenation) |
+
+---
+
+### Pre‑condition \(P\)
+
+\[
+\boxed{
+P \; \equiv\; N \in \mathbb{Z}\;\land\; 5 < N < 2000
+}
+\]
+
+The program may be started **only** when an integer \(N\) satisfying the bounds given in the problem statement is available.
+
+---
+
+### Post‑condition \(Q\)
+
+Define the *even‑set* up to \(N\):
+
+\[
+E(N) \; \stackrel{\text{def}}{=}\; \{\,k \in \mathbb{Z}\mid 1 \le k \le N \;\land\; \operatorname{Even}(k)\,\}.
+\]
+
+Define the *expected output sequence* (ascending order of the even numbers):
+
+\[
+\operatorname{Out}(N) \; \stackrel{\text{def}}{=}\;
+\bigl\langle \operatorname{Line}(k) \mid k \in E(N)\bigr\rangle
+\qquad\text{(ordered by increasing }k\text{)}.
+\]
+
+The post‑condition states that the program’s actual output \(O\) must be exactly this sequence and nothing else:
+
+\[
+\boxed{
+Q \; \equiv\; O = \operatorname{Out}(N)
+}
+\]
+
+In expanded form:
+
+\[
+\begin{aligned}
+Q \equiv\; & O\text{ is a finite list } \langle o_{1},\dots ,o_{m}\rangle \\
+           & \text{where } m = |E(N)|,\\[2mm]
+           & \text{for each } i\in\{1,\dots ,m\} \text{ there exists a unique }k_{i}\in E(N)\\
+           & \text{ such that } k_{1}<k_{2}<\dots<k_{m} \text{ and }\\
+           & o_{i} = \texttt{`}\,k_{i}^{2}\texttt{ = }\operatorname{Sq}(k_{i})\texttt{'} .
+\end{aligned}
+\]
+
+---
+
+### Hoare triple
+
+Putting the two together, the full specification is the Hoare triple
+
+\[
+\boxed{
+\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}
+}
+\]
+
+i.e.
+
+\[
+\{\,N\in\mathbb{Z}\land 5<N<2000\,\}\;
+\texttt{read }N;\; \texttt{print squares of even numbers}\;
+\{\,O = \operatorname{Out}(N)\,\}.
+\]
+
+---
+
+#### Remarks / Interpretation  
+
+* **Correctness**: If the pre‑condition holds, the program terminates (the loop over the finite range \(1\ldots N\) is bounded) and the output exactly matches the required format: one line per even integer \(k\) in the interval, each line showing “\(k^{2} =\) \(k^{2}\)”.  
+
+* **Determinism**: The specification forces the order to be increasing (the natural order of the loop), which matches the example output.  
+
+* **No extra output**: The equality \(O = \operatorname{Out}(N)\) excludes any trailing newlines, debug prints, or other side‑effects.  
+
+This formalisation can be used as the basis for a proof of partial correctness or for generating verification conditions in a Hoare‑logic verifier.

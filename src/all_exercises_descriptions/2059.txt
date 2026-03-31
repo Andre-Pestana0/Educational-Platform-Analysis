@@ -1,0 +1,26 @@
+Description: A new game called Odd, Even or Cheating is currently (OEC) is now one of the most popular games in the world. This game was created when some friends had no internet connection, no cellphone, no computer, and pretty much nothing to do. The game is so popular that is going to happen the mundial championship of OEC and each country of the world will choose a representant to compete in this championship.
+
+Input: The input consists of one line with 5 integers:p,j1,j2,r,a. ( 0 â¤p, r, aâ¤ 1 e 1 â¤j1,j2â¤ 100).
+
+Output: Print "Jogador 1 ganha!" if player 1 won or "Jogador 2 ganha!" if player 2 won (no quotation marks).
+
+Examples:
+- Example 1:
+  Input:
+1 4 5 0 0
+  Output:
+Jogador 2 ganha!
+
+- Example 2:
+  Input:
+1 4 5 1 0
+  Output:
+Jogador 1 ganha!
+
+- Example 3:
+  Input:
+1 4 5 1 1
+  Output:
+Jogador 2 ganha!
+
+--

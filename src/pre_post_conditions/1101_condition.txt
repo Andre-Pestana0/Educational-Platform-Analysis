@@ -1,0 +1,154 @@
+Below is a **Hoare‑logic style specification** of the program that solves the problem.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what is guaranteed to be true when the program terminates) are given – the body of the program is omitted, but the invariant that a correct implementation must preserve is also shown.
+
+---
+
+## 1. Notation
+
+* `ℤ` – the set of all integers.  
+* `ℕ⁺ = {1,2,3,…}` – the set of positive integers.  
+* A **pair** is an ordered tuple `p = (m,n) ∈ ℤ²`.  
+* `input` – the (finite) sequence of pairs read from the file,  
+  `input = ⟨p₁ , p₂ , … , p_k⟩` with `p_i = (m_i , n_i)`.  
+* `firstBad` – the smallest index `j` such that `m_j ≤ 0 ∨ n_j ≤ 0`.  
+  (If the file is empty we set `firstBad = 0`.)  
+* `good = ⟨p₁ , … , p_{firstBad‑1}⟩` – the prefix of *valid* pairs.  
+
+For a pair `p = (m,n)` we define  
+
+\[
+\begin{aligned}
+\operatorname{low}(p)   &:= \min\{m,n\},\\[2mm]
+\operatorname{high}(p)  &:= \max\{m,n\},\\[2mm]
+\operatorname{seq}(p)   &:= \bigl[\,\operatorname{low}(p),\operatorname{low}(p)+1,\dots,
+                               \operatorname{high}(p)\,\bigr]   \in \mathbb{Z}^{*},\\[2mm]
+\operatorname{sum}(p)   &:= \sum_{x\in\operatorname{seq}(p)} x
+                         = \frac{\operatorname{low}(p)+\operatorname{high}(p)}{2}\,
+                           \bigl(\operatorname{high}(p)-\operatorname{low}(p)+1\bigr).
+\end{aligned}
+\]
+
+`output` is the sequence of lines that the program prints.  
+A line corresponding to a pair `p` is denoted  
+
+\[
+\operatorname{line}(p) \;:=\; \bigl(\operatorname{seq}(p),\; \operatorname{sum}(p)\bigr).
+\]
+
+---
+
+## 2. Hoare Triple
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}}
+\]
+
+### 2.1 Pre‑condition `P`
+
+\[
+\begin{aligned}
+P\; \equiv\;
+&\exists\,k\ge 0\;.\;
+   \text{input}= \langle p_1,\dots ,p_k\rangle \\
+&\land\;
+   \bigl(\forall i\in\{1,\dots ,k-1\}\;.\;m_i>0\land n_i>0\bigr) \\
+&\land\;
+   \bigl(k=0\;\lor\; (m_k\le 0\;\lor\; n_k\le 0)\bigr).
+\end{aligned}
+\]
+
+In words: the file contains a **finite** list of integer pairs; every pair
+until (but not including) the last one has both components **strictly positive**,
+and the last pair (if any) has at least one non‑positive component.  
+If the file is empty (`k=0`) the condition is also satisfied.
+
+### 2.2 Post‑condition `Q`
+
+\[
+\begin{aligned}
+Q\; \equiv\;
+&\text{output}= \bigl\langle \operatorname{line}(p_1),\dots ,
+                     \operatorname{line}(p_{k-1})\bigr\rangle \\[1mm]
+&\land\;
+   \bigl(\forall i\in\{1,\dots ,k-1\}\;.\;
+        \operatorname{line}(p_i) = (\operatorname{seq}(p_i),\operatorname{sum}(p_i))\bigr)\\[1mm]
+&\land\;
+   \bigl(k=0 \;\lor\; (m_k\le0\;\lor\; n_k\le0)\bigr) .
+\end{aligned}
+\]
+
+Thus the program prints **exactly one line for each “good’’ pair**,
+the line containing the increasing integer sequence from the smaller to the larger
+value of the pair and the arithmetic sum of that sequence.
+No line is produced for the terminating pair (the first pair containing a
+zero or a negative number).
+
+---
+
+## 3. Loop (the part that actually processes the file)
+
+A correct implementation will typically use a loop that reads pairs one after another.
+The Hoare invariant that must hold at the start of each iteration is:
+
+\[
+\boxed{
+\begin{aligned}
+\mathcal{I}\; \equiv\;
+&\text{Let } \text{processed}= \langle p_1,\dots ,p_{i-1}\rangle, 
+   \text{remaining}= \langle p_i,\dots ,p_k\rangle \\[1mm]
+&\text{output}= \bigl\langle \operatorname{line}(p_1),\dots ,
+                     \operatorname{line}(p_{i-1})\bigr\rangle \\[1mm]
+&\land\;
+   (\forall j\in\{1,\dots ,i-1\}\;.\;
+        \operatorname{line}(p_j)= (\operatorname{seq}(p_j),\operatorname{sum}(p_j)))\\[1mm]
+&\land\;
+   (\text{remaining}= \langle\rangle \;\lor\;
+    (m_i>0\land n_i>0) ).
+\end{aligned}
+}
+\]
+
+The loop body reads the next pair `p_i`.  
+*If* `m_i>0 ∧ n_i>0` it prints `line(p_i)` and proceeds to the next iteration,
+preserving `\mathcal{I}`.  
+*Otherwise* it terminates, leaving `\mathcal{I}` with `remaining` either empty
+or beginning with the first “bad’’ pair – exactly the situation described by `Q`.
+
+Formally:
+
+\[
+\{\,\mathcal{I}\,\}\;\;\texttt{while } (m>0\land n>0)\; \texttt{do}
+   \; \texttt{print line(m,n)}\;
+   \{\,\mathcal{I}\,\}
+\]
+
+and after the loop the invariant together with the negated guard yields `Q`.
+
+---
+
+## 4. Summary (compact Hoare triple)
+
+\[
+\boxed{
+\begin{array}{l}
+\displaystyle
+\{\,\exists k\ge0.\; \text{input}= \langle p_1,\dots ,p_k\rangle
+   \land (\forall i<k.\;m_i>0\land n_i>0)
+   \land (k=0\lor m_k\le0\lor n_k\le0) \,\}
+   \\[2mm]
+\qquad\texttt{read‑pairs‑and‑print}
+\\[2mm]
+\displaystyle
+\{\,\text{output}= \langle \operatorname{line}(p_1),\dots ,
+                         \operatorname{line}(p_{k-1})\rangle
+   \land (\forall i<k.\; \operatorname{line}(p_i)=
+        (\operatorname{seq}(p_i),\operatorname{sum}(p_i))) \,\}.
+\end{array}
+}
+\]
+
+The specification above is entirely expressed in mathematical notation and
+captures precisely what the program must do:  
+*stop when the first non‑positive integer of a pair is encountered* and, for every
+preceding pair, *output the inclusive integer interval from the smaller to the larger
+value together with its sum*.

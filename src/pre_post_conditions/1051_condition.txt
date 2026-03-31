@@ -1,0 +1,108 @@
+**Hoare‑style specification**
+
+We introduce the following symbols  
+
+| Symbol | Meaning |
+|--------|---------|
+| `S`    | the (only) input value – a non‑negative real number with exactly two decimal digits |
+| `T`    | the tax that has to be paid (real, ≥ 0) |
+| `O`    | the string that the program prints |
+| `⌊x⌋`  | the greatest integer ≤ `x` (used only for the “floor” of a bracket) |
+| `max(a,b)` , `min(a,b)` | the usual maximum and minimum functions |
+| `fmt(x)` | the function that returns the decimal representation of `x` with exactly two digits after the decimal point (rounded half‑up) |
+| `⟦p⟧` | the truth value of the predicate `p` ( `true` / `false` ) |
+
+---
+
+### 1.  Pre‑condition  
+
+\[
+\boxed{P \;\equiv\; S\in\mathbb{R}_{\ge 0}\ \land\ \text{“`S` is given with two decimal digits”}}
+\]
+
+(Only the existence of a well‑formed input is required; the program does not modify `S`.)
+
+---
+
+### 2.  Definition of the tax (mathematical model)
+
+First we split the salary into the three taxable portions that belong to the three tax brackets  
+
+\[
+\begin{aligned}
+b_{1} &:= \max\bigl(0,\ \min(S,\,3000.00)-2000.00\bigr) \\[2mm]
+b_{2} &:= \max\bigl(0,\ \min(S,\,4500.00)-3000.00\bigr) \\[2mm]
+b_{3} &:= \max\bigl(0,\ S-4500.00\bigr)
+\end{aligned}
+\]
+
+(If `S ≤ 2000` all three `b_i` are zero.)
+
+The tax is then
+
+\[
+\boxed{T \;:=\; 0.08\,b_{1}\;+\;0.18\,b_{2}\;+\;0.28\,b_{3}}
+\tag{1}
+\]
+
+---
+
+### 3.  Post‑condition  
+
+\[
+\boxed{
+Q \;\equiv\;
+\begin{cases}
+\displaystyle \bigl(S\le 2000.00\bigr)\;\Longrightarrow\; O = \text{“Isento”} \\[4mm]
+\displaystyle \bigl(S>2000.00\bigr)\;\Longrightarrow\; 
+O = \text{“R\$ ”}\;\|\; \text{fmt}(T)
+\end{cases}
+}
+\tag{2}
+\]
+
+where “\(\|\)” denotes string concatenation.  
+`fmt(T)` guarantees exactly two digits after the decimal point, as required by the statement.
+
+---
+
+### 4.  Hoare triple for the whole program  
+
+\[
+\boxed{\{P\}\; \texttt{tax\_calculator}\; \{Q\}}
+\]
+
+`tax_calculator` is any algorithm that
+
+1. reads the value `S`,
+2. computes `b₁,b₂,b₃` as defined above,
+3. evaluates `T` by (1),
+4. prints the string `O` described in (2).
+
+---
+
+### 5.  Example of the computation (verification)
+
+*Input* `S = 3002.00`
+
+\[
+\begin{aligned}
+b_{1} &= \max(0,\min(3002,3000)-2000) = \max(0,3000-2000)=1000\\
+b_{2} &= \max(0,\min(3002,4500)-3000) = \max(0,3002-3000)=2\\
+b_{3} &= \max(0,3002-4500)=0
+\end{aligned}
+\]
+
+\[
+T = 0.08\cdot1000 + 0.18\cdot2 + 0.28\cdot0 = 80 + 0.36 = 80.36
+\]
+
+Since `S > 2000`, the post‑condition yields  
+
+\[
+O = \text{“R\$ ”}\,\|\;\text{fmt}(80.36) = \text{“R\$ 80.36”},
+\]
+
+which matches the required output.
+
+The same reasoning holds for the other examples, confirming that the Hoare specification (P, Q) precisely captures the intended behaviour of the program.

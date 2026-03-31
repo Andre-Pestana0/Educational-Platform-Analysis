@@ -1,0 +1,88 @@
+Below is a Hoare‑logic specification for a program **P** that reads the two numbers *A* and *B* (the old and the new cinema‑ticket price) and prints the percentage increase with exactly two digits after the decimal point followed by the character ‘%’.
+
+---
+
+### 1.   Variables  
+
+*Input*  
+
+```
+A , B  ∈ ℝ                // old price, new price
+```
+
+*Output*  
+
+```
+out   ∈  String          // the whole line that the program writes
+```
+
+*Auxiliary (logical) variables*  
+
+```
+Δ   = B – A                // absolute price change
+inc = 100·Δ / A            // exact percentage increase (real number)
+r   = round2(inc)          // inc rounded to the nearest 0.01
+```
+
+`round2(x)` denotes the usual rounding of a real number *x* to the nearest hundredth (ties are rounded away from zero).  
+
+---
+
+### 2.   Pre‑condition  
+
+The input line is guaranteed to satisfy the constraints that are stated in the problem text:
+
+\[
+\begin{aligned}
+P \;\equiv\;
+ & 0 < A \le B \le 1000 \;\land\\[2mm]
+ & \exists\,a,b\in\mathbb Z\; \bigl(A = a/100 \;\land\; B = b/100\bigr)
+\end{aligned}
+\]
+
+The second conjunct expresses the requirement “exactly two digits after the decimal point”.
+
+---
+
+### 3.   Post‑condition  
+
+After termination the program must have written **exactly one line** that contains the percentage increase rounded to two decimal places and terminated by the character ‘%’. In logical form:
+
+\[
+\begin{aligned}
+Q \;\equiv\;
+ & r = \operatorname{round2}\!\bigl(100\cdot\frac{B-A}{A}\bigr) \;\land\\[2mm]
+ & out = \operatorname{toString}_{2}(r) \, \mathbin{+\!\!+} \, "\%" .
+\end{aligned}
+\]
+
+* `toString₂(r)` is the decimal representation of the rational number *r* with **exactly** two digits after the decimal point (e.g. `50.00`, `0.00`, `12.34`).  
+* The concatenation operator `\mathbin{+\!\!+}` builds the final output string.
+
+---
+
+### 4.   Hoare triple  
+
+Putting the two parts together we obtain the Hoare specification of the whole program:
+
+\[
+\boxed{\; \{\,P\,\}\; \text{Program }P\; \{\,Q\,\}\;}
+\]
+
+In words:
+
+> **If** the program receives two decimal numbers *A* and *B* such that  
+> \(0 < A \le B \le 1000\) and both have exactly two fractional digits,  
+> **then** it terminates with the single line  
+> `round2( 100·(B‑A)/A )` written with two fractional digits and a trailing ‘%’.
+
+---
+
+### 5.   Remarks on the specification  
+
+* The condition `0 < A` guarantees that the division by *A* is defined.  
+* Because `A ≤ B`, the computed increase `inc` is non‑negative, hence `r ≥ 0`.  
+* The bound `B ≤ 1000` together with `A > 0` ensures the numeric range of `inc` is finite, but the exact upper bound is not needed for correctness.  
+* The rounding function `round2` captures the *exact* formatting rule required by the statement “the value shall contain two digits after the decimal point”.  
+
+The specification above is purely mathematical; any implementation that respects it (e.g. reading the two numbers, computing `inc`, rounding to two decimals, and printing `r%`) will be correct with respect to the problem description.

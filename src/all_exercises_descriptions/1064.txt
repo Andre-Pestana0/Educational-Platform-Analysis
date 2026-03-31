@@ -1,0 +1,20 @@
+Description: Read 6 values that can be floating point numbers. After, print how many of them were positive. In the next line, print the average of all positive values typed, with one digit after the decimal point.
+
+Input: The input consist in 6 numbers that can be integer or floating point values. At least one number will be positive.
+
+Output: Thefirstoutput valueis the amount ofpositive numbers.The nextline should showthe average ofthepositive valuesâtyped.
+
+Examples:
+- Example 1:
+  Input:
+7
+-5
+6
+-3.4
+4.6
+12
+  Output:
+4 valores positivos
+7.4
+
+--

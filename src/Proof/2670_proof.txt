@@ -1,0 +1,277 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the program computes the total number of minutes that all employees spend walking to the coffee‑machine and back, **exactly** as required by the specification given in the statement of the problem.
+
+--------------------------------------------------------------------
+### 1.   Specification
+
+*Input* : three non‑negative integers  
+
+```
+a0 , a1 , a2   ∈  ℕ          (number of employees on floor 0,1,2)
+```
+
+*Output* : an integer `totalMinutos` such that  
+
+```
+c  =  if  max(a0,a1,a2) > (a0+a1+a2) – max(a0,a1,a2)
+          then  argmax_i ai            // the first floor that attains the maximum
+          else  1                     // the second floor (index 1)
+
+totalMinutos = Σ_{i=0}^{2} 2·|i – c|·ai                (1)
+```
+
+The pre‑condition **P** is therefore  
+
+```
+P  ≡  a0 , a1 , a2  are read from the input and are ≥ 0 .
+```
+
+The post‑condition **Q** is  
+
+```
+Q  ≡  totalMinutos satisfies (1) with the c defined above.
+```
+
+--------------------------------------------------------------------
+### 2   Notation used in the proof
+
+* `listFuncAndar` – the Python list that, after the first loop, contains  
+  `[a0 , a1 , a2]`.  
+* `maxFuncionarios` – the maximum value among the three elements.  
+* `andarCafeteira` – the index (0,1 or 2) of the floor where the coffee‑machine
+  will be placed *after* the `if … else` block.  
+* `sumRest` – the sum of the two elements that are **not** the maximum.  
+
+--------------------------------------------------------------------
+### 3   Proof outline
+
+The program is divided into three parts:
+
+1. **Reading the three numbers** – a `for`‑loop that builds `listFuncAndar`.  
+2. **Choosing the floor for the coffee‑machine** – a sequence of assignments,
+   a `remove`, an `if … else`, and an `insert`.  
+3. **Computing the total walking time** – a second `for`‑loop that accumulates
+   `totalMinutos`.
+
+For each part we give a Hoare triple  
+
+```
+{Invariant ∧ loop‑guard}   statement   {Invariant}
+```
+
+and we show that the invariant holds initially, is preserved by the body,
+and implies the desired property when the loop terminates.  
+Finally we combine the three triples to obtain  
+
+```
+{P}  program  {Q}
+```
+
+--------------------------------------------------------------------
+### 4   Part 1 – Input loop  
+
+```
+listFuncAndar = []
+for i in range(3):
+    listFuncAndar.append(int(input()))
+```
+
+**Loop invariant `I₁`**
+
+```
+I₁  ≡  0 ≤ i ≤ 3  ∧
+      listFuncAndar = [a0 , a1 , … , a_{i‑1}]      (the first i inputs)
+```
+
+*Initialization* (`i = 0`) : `listFuncAndar` is `[]`, therefore `I₁` holds.
+
+*Preservation* : assume `I₁` holds for a given `i < 3`.  
+The body reads the next integer `ai` and appends it, producing  
+
+```
+listFuncAndar = [a0 , … , a_{i‑1}, ai] .
+```
+
+Now `i` is incremented to `i+1`, so the invariant holds for the next
+iteration.
+
+*Termination* : the loop stops with `i = 3`.  
+From `I₁` we obtain  
+
+```
+listFuncAndaar = [a0 , a1 , a2] .
+```
+
+Thus after the first loop the program has correctly stored the three
+input values.
+
+--------------------------------------------------------------------
+### 5   Part 2 – Selecting the coffee‑machine floor  
+
+We start with the list `L = [a0 , a1 , a2]`.
+
+1. `maxFuncionarios = max(listFuncAndar)`  
+
+   By definition of `max`,  
+
+   ```
+   maxFuncionarios = max(a0 , a1 , a2) .
+   ```
+
+2. `andarCafeteira = listFuncAndar.index(maxFuncionarios)`  
+
+   `index` returns the **first** position where the maximum occurs, therefore  
+
+   ```
+   andarCafeteira = argmax_i ai   (first such i) .
+   ```
+
+3. `listFuncAndar.remove(maxFuncionarios)`  
+
+   The list becomes `L' = L \ {maxFuncionarios}` – i.e. the two remaining
+   elements, preserving their original order.
+
+4. `if sum(listFuncAndar) > maxFuncionarios:`  
+
+   The guard evaluates
+
+   ```
+   sum(L') > maxFuncionarios   ⇔   sumRest > maxFuncionarios .
+   ```
+
+   *Case A* (`sumRest > max`): the coffee‑machine must be placed on the **second**
+   floor (index 1).  
+   The body executes  
+
+   ```
+   listFuncAndar.insert(andarCafeteira, maxFuncionarios)
+   andarCafeteira = 1
+   ```
+
+   *Case B* (`sumRest ≤ max`): the coffee‑machine stays on the floor that
+   originally held the maximum. The body executes only the `insert`, leaving
+   `andarCafeteira` unchanged.
+
+   In both cases after the `insert` the list is restored to the original
+   order `[a0 , a1 , a2]`.  The value of `andarCafeteira` is exactly the `c`
+   defined in the specification:
+
+   ```
+   c = { argmax_i ai          if max > sumRest
+       { 1                    otherwise } .
+   ```
+
+**Hoare triple for the whole block**
+
+```
+{ listFuncAndar = [a0 , a1 , a2] }   Block   { listFuncAndar = [a0 , a1 , a2] ∧
+                                             andarCafeteira = c } .
+```
+
+All statements are elementary assignments or library calls whose
+semantics are precisely the equations above, so the triple is easily
+derived from the definitions of `max`, `index`, `remove`, `sum`,
+`insert` and the `if` guard.
+
+--------------------------------------------------------------------
+### 6   Part 3 – Computing the total minutes  
+
+```
+totalMinutos = 0
+for i in range(3):
+    fim = andarCafeteira
+    inicio = i
+    if i > andarCafeteira:
+        fim = i
+        inicio = andarCafeteira
+    totalMinutos += 2 * (fim - inicio) * listFuncAndar[i]
+```
+
+Recall that after Part 2 we have  
+
+* `listFuncAndar = [a0 , a1 , a2]` (the original inputs)  
+* `andarCafeteira = c` (the floor selected by the specification).
+
+**Loop invariant `I₂`**
+
+```
+I₂  ≡  0 ≤ i ≤ 3  ∧
+      totalMinutos = Σ_{k=0}^{i‑1} 2·|k – c|·ak .
+```
+
+*Initialization* (`i = 0`) : `totalMinutos = 0`, thus `I₂` holds.
+
+*Preservation* : assume `I₂` holds for some `i < 3`.  
+The body computes  
+
+```
+fim = c ; inicio = i
+if i > c:
+        fim = i ; inicio = c
+```
+
+Hence `fim - inicio = |i – c|`.  
+The update
+
+```
+totalMinutos ← totalMinutos + 2·(fim‑inicio)·listFuncAndar[i]
+```
+
+adds exactly `2·|i – c|·ai` to the accumulator.  
+After the increment of `i` the invariant becomes
+
+```
+totalMinutos = Σ_{k=0}^{i} 2·|k – c|·ak ,
+```
+
+which is precisely `I₂` for the next iteration.
+
+*Termination* : the loop ends with `i = 3`.  
+From `I₂` we obtain
+
+```
+totalMinutos = Σ_{k=0}^{2} 2·|k – c|·ak .
+```
+
+That is exactly the expression (1) required by the post‑condition.
+
+--------------------------------------------------------------------
+### 7   Composition of the three parts
+
+We have proved the following Hoare triples
+
+```
+{P}                     part‑1      {listFuncAndar = [a0 , a1 , a2]}
+{listFuncAndar = …}    part‑2      {listFuncAndar = [a0 , a1 , a2] ∧
+                                         andarCafeteira = c}
+{listFuncAndar = … ∧
+ andarCafeteira = c}   part‑3      {totalMinutos = Σ 2·|i‑c|·ai}
+```
+
+By the rule of **sequential composition**, chaining the three triples yields
+
+```
+{P}  whole‑program  { totalMinutos satisfies (1) }
+```
+
+which is exactly the post‑condition **Q**.
+
+--------------------------------------------------------------------
+### 8   Conclusion
+
+The program satisfies the Hoare triple  
+
+```
+{ a0 , a1 , a2 ≥ 0 }   program   { totalMinutos = Σ_{i=0}^{2} 2·|i – c|·ai }
+```
+
+with  
+
+```
+c =  argmax_i ai            if max(ai) > Σ_{j≠i} aj
+     1                      otherwise .
+```
+
+Therefore the program is **correct** with respect to the given formal
+pre‑ and post‑conditions. ∎

@@ -1,0 +1,64 @@
+**Hoare‑logic specification**
+
+Let  
+
+\[
+S \;:=\; \sum_{k=0}^{19}\frac{2k+1}{2^{\,k}}
+\qquad\text{(the exact mathematical value required by the problem).}
+\]
+
+Denote by `out` the string that the program writes to the standard output.  
+The function  
+
+\[
+\operatorname{fmt}_{2}(x)\;=\;\frac{\big\lfloor 100\,x+ \tfrac12\big\rfloor}{100}
+\]
+
+produces the real number obtained by rounding \(x\) to two decimal places (the usual “printf‑%.2f” behaviour).  
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{P \;=\; \top}
+\]
+
+There is no input; the program may start in any state.
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{Q \;=\; \text{out is the decimal representation of } 
+\operatorname{fmt}_{2}(S)
+\text{ with exactly two digits after the decimal point.}}
+\]
+
+Equivalently, in logical form:
+
+\[
+Q \;:\; \exists\,v\in\mathbb{R}\;.\;
+\Bigl(v = \operatorname{fmt}_{2}(S)\Bigr)\;\land\;
+\bigl(\text{out} = \text{string\_of}(v)\bigr),
+\]
+
+where `string_of(v)` is the usual conversion of a real number to a character
+sequence that shows exactly two fractional digits (e.g. “12.34”).
+
+---
+
+### Hoare triple for the whole algorithm  
+
+\[
+\boxed{\;\{\,\top\,\}\;\; \text{Algorithm} \;\; \{\,\text{out = fmt}_{2}(S)\,\}\;}
+\]
+
+Thus the algorithm must compute the finite sum  
+
+\[
+S = \sum_{k=0}^{19}\frac{2k+1}{2^{k}}
+\]
+
+and print it rounded to two decimal places, satisfying the post‑condition above.

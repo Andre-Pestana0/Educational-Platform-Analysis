@@ -1,0 +1,35 @@
+Description: Matring is a mix of Matrix and String. It was developed by UNILA (Union of Nerds for Integration of Logic and Adventure) to keep messages safe from eavesdropping.
+
+Input: The input is a matring, i.e. a 4x(N+2) matrix of digits (from 0 to 9), 0 <N< 80.
+
+Output: The output is given in one single line and is the decoded string. Include the end-of-line character after the string.
+
+Examples:
+- Example 1:
+  Input:
+41805
+99934
+39127
+23659
+  Output:
+OBI
+
+- Example 2:
+  Input:
+5686702
+0531447
+5115038
+2795214
+  Output:
+UNILA
+
+- Example 3:
+  Input:
+28665943
+68409984
+86877400
+51804393
+  Output:
+Hodor!
+
+--

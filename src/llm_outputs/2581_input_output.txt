@@ -1,0 +1,51 @@
+"input": "1
+Hello?",
+"output": "I am Toorg!"
+
+"input": "1
+
+",
+"output": "I am Toorg!"
+
+"input": "1
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"output": "I am Toorg!"
+
+"input": "2
+What's the time?
+Are you a robot?",
+"output": "I am Toorg!
+I am Toorg!"
+
+"input": "3
+Is this... a test??
+   Leading spaces
+Trailing spaces   ",
+"output": "I am Toorg!
+I am Toorg!
+I am Toorg!"
+
+"input": "0",
+"output": ""
+
+"input": "10
+Q1
+Q2
+Q3
+Q4
+Q5
+Q6
+Q7
+Q8
+Q9
+Q10",
+"output": "I am Toorg!
+I am Toorg!
+I am Toorg!
+I am Toorg!
+I am Toorg!
+I am Toorg!
+I am Toorg!
+I am Toorg!
+I am Toorg!
+I am Toorg!"

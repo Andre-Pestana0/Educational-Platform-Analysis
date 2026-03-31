@@ -1,0 +1,237 @@
+Below is a *Hoare‑logic* style specification of the whole program that reads the list of rounds, simulates each round under the “optimal‑play’’ rule described in the statement, and finally prints the three accumulated scores.
+
+--------------------------------------------------------------------
+### 1.  Vocabulary  
+
+* **Players** \(P=\{O,E,I\}\) (the symbols *Odd*, *Even*, *Ingmariay*).  
+* **Successor** \(\operatorname{next}:P\rightarrow P\)  
+
+\[
+\operatorname{next}(O)=E,\qquad 
+\operatorname{next}(E)=I,\qquad 
+\operatorname{next}(I)=O .
+\]
+
+* **Primes** \(\mathbb P\) denotes the set of prime numbers.  
+
+* **Moves** from a natural number \(x\)  
+
+\[
+\operatorname{Moves}(x)=\{x+1\}\cup\Bigl\{\,\frac{x}{q}\;\big|\;q\in\mathbb P,\;q\mid x\,\Bigr\}.
+\]
+
+All numbers are natural numbers \(\mathbb N=\{0,1,2,\dots\}\).  
+
+* **Round data**  
+
+For every round \(i\;(1\le i\le n)\) we are given  
+
+\[
+\begin{aligned}
+  \mathit{sp}_i &\in P &\text{(starting player)}\\
+  s_i          &\in\mathbb N,\;1\le s_i\le 10\,000 &\text{(starting number)} .
+\end{aligned}
+\]
+
+* **State of a round**  
+
+A state is a 6‑tuple  
+
+\[
+\sigma=(p,x,m_O,m_E,m_I,s_0)
+\]
+
+where  
+
+* \(p\in P\) current player,  
+* \(x\in\mathbb N\) current number,  
+* \(m_O,m_E,m_I\in\mathbb N\cup\{\infty\}\) the *minimum* number claimed so far by the three players
+  (\(\infty\) means “no claim yet’’),  
+* \(s_0\in\mathbb N\) the starting number of the round (kept unchanged).
+
+Initially  
+
+\[
+\sigma_0=(\mathit{sp}_i,\;s_i,\;\infty,\;\infty,\;\infty,\;s_i).
+\]
+
+* **Outcome of a state**  
+
+\[
+\operatorname{out}(\sigma) = (o,e,i)\in\mathbb N^3
+\]
+
+gives the three scores that will be obtained **from this state onwards** when all
+players follow the optimal‑play rule described below.
+
+--------------------------------------------------------------------
+### 2.  Optimal‑play definition (a recursive functional)
+
+For a state \(\sigma=(p,x,m_O,m_E,m_I,s_0)\) :
+
+* **Base case** – the round has finished  
+
+\[
+x=1\;\Longrightarrow\;
+\operatorname{out}(\sigma)=
+\bigl(
+   \operatorname{score}(m_O),\;
+   \operatorname{score}(m_E),\;
+   \operatorname{score}(m_I)
+\bigr)
+\]
+
+where  
+
+\[
+\operatorname{score}(m)=
+\begin{cases}
+0                     &\text{if }s_0=1,\\[2mm]
+m                     &\text{if }m=\infty,\\[2mm]
+m                     &\text{otherwise}.
+\end{cases}
+\]
+
+(The rule “if the starting number is 1 everybody gets 0’’ is encoded by the first line.)
+
+* **Recursive case** – the current player chooses a move  
+
+Let  
+
+\[
+\mathcal M=\operatorname{Moves}(x).
+\]
+
+For each \(y\in\mathcal M\) define the *successor state*
+
+\[
+\sigma(y)=\bigl(\operatorname{next}(p),\,y,\,
+               \min\{m_O,y\}\; \text{if }p=O\text{ else }m_O,\,
+               \min\{m_E,y\}\; \text{if }p=E\text{ else }m_E,\,
+               \min\{m_I,y\}\; \text{if }p=I\text{ else }m_I,\,
+               s_0\bigr).
+\]
+
+The current player \(p\) wants to **minimise his own component** of the outcome.
+Define  
+
+\[
+\begin{aligned}
+\mathcal V &=\bigl\{\,\operatorname{out}(\sigma(y))\mid y\in\mathcal M\,\bigr\},\\
+\mathit{bestScore}_p &=\min\bigl\{\,\pi_p(v)\mid v\in\mathcal V\,\bigr\},
+\end{aligned}
+\]
+
+where \(\pi_O(v),\pi_E(v),\pi_I(v)\) denote respectively the first, second and third
+coordinate of the triple \(v\).
+
+Among all moves that achieve the same minimal personal score the player follows
+the *tie‑breaking rule* “choose the smallest resulting number’’:
+
+\[
+y^{*}= \min\bigl\{\,y\in\mathcal M\mid
+          \pi_p\bigl(\operatorname{out}(\sigma(y))\bigr)=\mathit{bestScore}_p
+      \bigr\}.
+\]
+
+Finally  
+
+\[
+\operatorname{out}(\sigma)=\operatorname{out}\bigl(\sigma(y^{*})\bigr).
+\]
+
+The functional \(\operatorname{out}\) is well‑founded because every move strictly
+decreases the value of the current number (or increases it by 1, but the
+players never loop indefinitely under the optimal‑play rule – this is a standard
+property of the original “prime game’’ and can be proved by induction on the
+starting number).
+
+--------------------------------------------------------------------
+### 3.  Per‑round score function  
+
+For a round described by \((\mathit{sp},s)\) we define  
+
+\[
+f(\mathit{sp},s)=\operatorname{out}\bigl((\mathit{sp},s,\infty,\infty,\infty,s)\bigr)
+                =(s_O,s_E,s_I).
+\]
+
+Thus \(f\) returns the three scores that the three players obtain **in that
+round** when everybody plays optimally as specified above.
+
+--------------------------------------------------------------------
+### 4.  Whole‑program specification  
+
+#### Variables used by the program  
+
+* `n` – integer read from input.  
+* For each round \(i\) (1 … n): `sp[i]∈{O,E,I}` and `start[i]∈ℕ` (the input data).  
+* `Score_O, Score_E, Score_I ∈ ℕ` – accumulated scores, initially 0.  
+
+--------------------------------------------------------------------
+#### **Pre‑condition**  
+
+\[
+\begin{aligned}
+\mathsf{Pre}\;\equiv\;&
+   1\le n\le 1000\;\land\\
+   &\forall i\;(1\le i\le n)\; \bigl(
+        sp[i]\in\{O,E,I\}\;\land\;
+        1\le start[i]\le 10\,000
+      \bigr)\;\land\\
+   &Score_O = Score_E = Score_I =0 .
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+#### **Post‑condition**  
+
+Let  
+
+\[
+(s_O^{(i)},s_E^{(i)},s_I^{(i)}) = f\bigl(sp[i],\,start[i]\bigr)
+\qquad (1\le i\le n).
+\]
+
+Then  
+
+\[
+\begin{aligned}
+\mathsf{Post}\;\equiv\;&
+   Score_O =\sum_{i=1}^{n} s_O^{(i)}\;\land\\
+   &Score_E =\sum_{i=1}^{n} s_E^{(i)}\;\land\\
+   &Score_I =\sum_{i=1}^{n} s_I^{(i)} .
+\end{aligned}
+\]
+
+In words: after the program terminates the three variables contain exactly the
+total points earned by Odd, Even and Ingmariay, respectively, where the points
+for each round are given by the optimal‑play function \(f\) defined above.
+
+--------------------------------------------------------------------
+### 5.  Hoare triple for the whole program  
+
+\[
+\boxed{\;\{\mathsf{Pre}\}\;\; \texttt{solve()} \;\;\{\mathsf{Post}\}\;}
+\]
+
+where `solve()` is the implementation that
+
+1. reads `n` and the `n` pairs \((sp[i],start[i])\);
+2. for each round \(i\) computes \((s_O^{(i)},s_E^{(i)},s_I^{(i)}) = f(sp[i],start[i])\)
+   (using the recursive definition of \(\operatorname{out}\) given in § 2);
+3. adds the three values to the three accumulators `Score_O`, `Score_E`,
+   `Score_I`;
+4. finally prints `Score_O Score_E Score_I`.
+
+--------------------------------------------------------------------
+### 6.  Remarks  
+
+* The only non‑trivial part of the specification is the definition of the
+  functional \(\operatorname{out}\) (or equivalently the per‑round function
+  \(f\)).  It captures **both** the minimisation of a player’s own score and the
+  prescribed tie‑breaking rule.  
+* The pre‑condition guarantees that the input lies inside the limits required
+  by the problem statement; the post‑condition states exactly what the required
+  output must be.  Hence any program that satisfies the Hoare triple above is
+  a correct solution to the problem.

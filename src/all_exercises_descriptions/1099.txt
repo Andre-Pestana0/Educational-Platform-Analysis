@@ -1,0 +1,27 @@
+Description: Read an integerNthat is the number of test cases. Each test case is a line containing two integer numbersXandY. Print the sum of all odd values between them, not includingXandY.
+
+Input: The first line of input is an integerNthat is the number of test cases that follow. Each test case is a line containing two integerXandY.
+
+Output: Print the sum of all odd numbersbetweenX and Y.
+
+Examples:
+- Example 1:
+  Input:
+7
+4 5
+13 10
+6 4
+3 3
+3 5
+3 4
+3 8
+  Output:
+0
+11
+5
+0
+0
+0
+12
+
+--

@@ -1,0 +1,16 @@
+Description: Read an integerN. Print the square of each one of the even values from 1 toNincludingNif it is the case.
+
+Input: The input contains an integerN(5 <N< 2000).
+
+Output: Print the square of each one of the even values from 1 toN, as the given example.
+
+Examples:
+- Example 1:
+  Input:
+6
+  Output:
+2^2 = 4
+4^2 = 16
+6^2 = 36
+
+--

@@ -1,0 +1,122 @@
+Below is a **Hoare‑logic style specification** for the program that solves the “three‑word animal” problem.  
+All symbols are written in standard mathematical notation; the program itself is abstracted as a single command **`Prog`** that reads three words from the standard input, computes the animal, and writes it to the standard output.
+
+---
+
+## 1.   Vocabulary
+
+| Symbol | Meaning |
+|--------|----------|
+| `s₁ , s₂ , s₃` | the three strings read from the input (one per line). |
+| `a` | the string that is printed as the answer (the animal name). |
+| `Animal` | the finite set of possible output names  \(\{ \text{homem},\text{vaca},\text{pomba},\text{aguia},\text{pulga},\text{lagarta},\text{sanguessuga},\text{minhoca}\}\). |
+| `C₁` | first‑level classification = \(\{ \text{vertebrado},\text{invertebrado}\}\). |
+| `C₂` | second‑level classification = \(\{ \text{mamifero},\text{ave},\text{inseto},\text{anelideo}\}\). |
+| `C₃` | third‑level classification = \(\{ \text{onivoro},\text{herbivoro},\text{carnivoro},\text{sanguessugo}\}\). |
+| `⊆` | subset, `∈` – element of, `↦` – mapping, `↔` – equivalence. |
+| `⊤` – true, `⊥` – false. |
+
+---
+
+## 2.   Function that encodes the table  
+
+Define a **total function**  
+
+\[
+\mathsf{animal}:C_{1}\times C_{2}\times C_{3}\longrightarrow Animal
+\]
+
+by the following case analysis (the table given in the statement):
+
+\[
+\begin{aligned}
+\mathsf{animal}(\text{vertebrado},\text{mamifero},\text{onivoro})      &= \text{homem}\\
+\mathsf{animal}(\text{vertebrado},\text{mamifero},\text{herbivoro})   &= \text{vaca}\\
+\mathsf{animal}(\text{vertebrado},\text{ave},\text{carnivoro})       &= \text{aguia}\\
+\mathsf{animal}(\text{vertebrado},\text{ave},\text{onivoro})         &= \text{pomba}\\
+\mathsf{animal}(\text{invertebrado},\text{inseto},\text{hematofago}) &= \text{pulga}\\
+\mathsf{animal}(\text{invertebrado},\text{inseto},\text{herbivoro})  &= \text{lagarta}\\
+\mathsf{animal}(\text{invertebrado},\text{anelideo},\text{sanguessugo})&= \text{sanguessuga}\\
+\mathsf{animal}(\text{invertebrado},\text{anelideo},\text{onivoro})   &= \text{minhoca}
+\end{aligned}
+\]
+
+(Notice that the original Portuguese description uses *carnívoro* and *onívoro*; the implementation works with the exact strings appearing in the input.)
+
+For any triple \((x,y,z)\notin\) the eight listed combinations the function is **undefined**; the pre‑condition below guarantees that the program is never invoked with such a triple.
+
+---
+
+## 3.   Preconditions  
+
+\[
+\boxed{
+P \;\; \equiv\;\;
+\begin{aligned}
+& s_{1}\in C_{1}\;\land\; s_{2}\in C_{2}\;\land\; s_{3}\in C_{3}\\
+&\land\; (s_{1},s_{2},s_{3})\in \operatorname{dom}(\mathsf{animal})
+\end{aligned}}
+\]
+
+In words: each of the three input words belongs to the corresponding column of the table **and** the triple is one of the eight admissible rows.
+
+---
+
+## 4.   Postcondition  
+
+\[
+\boxed{
+Q \;\; \equiv\;\;
+a = \mathsf{animal}(s_{1},s_{2},s_{3})
+}
+\]
+
+The variable `a` (the string printed) must be exactly the animal name prescribed by the table for the given triple.
+
+---
+
+## 5.   Hoare triple for the whole program  
+
+Let **`Prog`** be the (imperative) program that
+
+1. reads `s₁`, `s₂`, `s₃` (one line each) from standard input,
+2. computes `a := \mathsf{animal}(s₁,s₂,s₃)`,
+3. writes `a` to standard output.
+
+The formal specification is the Hoare triple  
+
+\[
+\boxed{ \{\,P\,\}\; \text{Prog}\; \{\,Q\,\} }
+\]
+
+i.e.
+
+\[
+\{\,s_{1}\in C_{1}\land s_{2}\in C_{2}\land s_{3}\in C_{3}\land (s_{1},s_{2},s_{3})\in\operatorname{dom}(\mathsf{animal})\,\}
+\;\text{Prog}\;
+\{\,a = \mathsf{animal}(s_{1},s_{2},s_{3})\,\}
+\]
+
+---
+
+## 6.   Remarks on correctness  
+
+* **Partial correctness** follows directly from the definition of `animal`: if the pre‑condition holds, the computation performed in step 2 yields exactly the value prescribed by the table, therefore the post‑condition holds.  
+* **Total correctness** (termination) is immediate because `Prog` consists of a finite number of I/O operations and a single table lookup; there are no loops or recursive calls.
+
+---
+
+### Summary (compact form)
+
+\[
+\begin{aligned}
+P &\equiv s_{1}\in\{\text{vertebrado},\text{invertebrado}\}\;\land\;
+      s_{2}\in\{\text{mamifero},\text{ave},\text{inseto},\text{anelideo}\}\;\land\\
+   &\qquad s_{3}\in\{\text{onivoro},\text{herbivoro},\text{carnivoro},\text{sanguessugo}\}\;\land\\
+   &\qquad (s_{1},s_{2},s_{3})\in\operatorname{dom}(\mathsf{animal})\\[4pt]
+Q &\equiv a = \mathsf{animal}(s_{1},s_{2},s_{3})\\[4pt]
+\{P\}\;\text{Prog}\;\{Q\}
+\end{aligned}
+\]
+
+This Hoare‑logic specification precisely captures the required behaviour of the program that reads three Portuguese words and prints the animal defined by the given table.

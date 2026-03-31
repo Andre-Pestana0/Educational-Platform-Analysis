@@ -1,0 +1,102 @@
+Below is a **Hoare‑logic style specification** for the whole program (the “algorithm’’ that reads the two coordinates, decides where the point lies and prints the appropriate label).
+
+---
+
+### 1.   Notation  
+
+* Let `x , y ∈ ℝ` be the two floating‑point numbers read from the input.  
+* Let `out ∈ Σ` be the string that the program finally prints, where  
+
+\[
+\Sigma = \{\text{“Q1”},\text{“Q2”},\text{“Q3”},\text{“Q4”},
+          \text{“Eixo X”},\text{“Eixo Y”},\text{“Origem”}\}.
+\]
+
+* The binary relations `= , ≠ , > , <` are the usual relations on real numbers.  
+* “∧”, “∨”, “¬”, “→” are the usual propositional connectives.  
+
+---
+
+### 2.   Pre‑condition  
+
+The only requirement before the program starts is that the input consists of **two real numbers** (the problem statement does not impose any further restriction).
+
+\[
+\boxed{P \; \equiv\;  x\in\mathbb{R}\;\land\; y\in\mathbb{R}}
+\]
+
+(If the program is invoked from a context that guarantees a well‑formed input, the pre‑condition can be taken as the trivial truth `true`.)
+
+---
+
+### 3.   Post‑condition  
+
+The string printed by the program must correctly describe the geometric location of the point \((x,y)\).  
+The post‑condition is a **disjunction of mutually exclusive cases**:
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\; &\bigl(x = 0 \;\land\; y = 0 \;\land\; out = \text{“Origem”}\bigr) \\[2mm]
+\lor\;&\bigl(x = 0 \;\land\; y \neq 0 \;\land\; out = \text{“Eixo Y”}\bigr) \\[2mm]
+\lor\;&\bigl(y = 0 \;\land\; x \neq 0 \;\land\; out = \text{“Eixo X”}\bigr) \\[2mm]
+\lor\;&\bigl(x > 0 \;\land\; y > 0 \;\land\; out = \text{“Q1”}\bigr) \\[2mm]
+\lor\;&\bigl(x < 0 \;\land\; y > 0 \;\land\; out = \text{“Q2”}\bigr) \\[2mm]
+\lor\;&\bigl(x < 0 \;\land\; y < 0 \;\land\; out = \text{“Q3”}\bigr) \\[2mm]
+\lor\;&\bigl(x > 0 \;\land\; y < 0 \;\land\; out = \text{“Q4”}\bigr)
+\end{aligned}}
+\]
+
+The seven clauses are exhaustive and pairwise disjoint, therefore exactly one of them holds for every pair \((x,y)\).
+
+---
+
+### 4.   Hoare Triple  
+
+Putting the two parts together we obtain the formal specification of the whole program **S** (the sequence `read x,y ; decide ; print out`):
+
+\[
+\boxed{\{\,P\,\}\; S\; \{\,Q\,\}}
+\]
+
+or, more explicitly,
+
+\[
+\{\,x\in\mathbb{R}\land y\in\mathbb{R}\,\}\;
+\texttt{read}(x,y);\;
+\texttt{if }(\dots)\texttt{ then out := …;}\;
+\texttt{print}(out)\;
+\{\,Q\,\}.
+\]
+
+---
+
+### 5.   Equivalent Functional Description  
+
+If one prefers to view the algorithm as a pure function  
+
+\[
+f:\mathbb{R}^{2}\longrightarrow\Sigma,
+\qquad
+f(x,y)=
+\begin{cases}
+\text{“Origem”}   & x=0\land y=0,\\[1mm]
+\text{“Eixo Y”}   & x=0\land y\neq0,\\[1mm]
+\text{“Eixo X”}   & y=0\land x\neq0,\\[1mm]
+\text{“Q1”}       & x>0\land y>0,\\[1mm]
+\text{“Q2”}       & x<0\land y>0,\\[1mm]
+\text{“Q3”}       & x<0\land y<0,\\[1mm]
+\text{“Q4”}       & x>0\land y<0,
+\end{cases}
+\]
+
+then the Hoare triple can be read as “the program computes `out = f(x,y)`”.
+
+---
+
+#### Summary  
+
+* **Pre‑condition** `P : x, y ∈ ℝ`  
+* **Post‑condition** `Q` as the disjunction above, guaranteeing that the printed string exactly denotes the quadrant, axis, or the origin in which the point \((x,y)\) lies.  
+
+The Hoare triple `{P} S {Q}` is the formal specification required.

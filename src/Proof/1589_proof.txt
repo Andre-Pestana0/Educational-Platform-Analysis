@@ -1,0 +1,262 @@
+## 1.  What we have to prove  
+
+We are asked to **show that the program satisfies its specification** when it is interpreted as a Hoare‑logic program.  
+The specification is the pair  
+
+\[
+\{\,\text{Pre}\,\}\;P\;\{\,\text{Post}\,\}
+\]
+
+where  
+
+* **Pre** – the only thing we know before the program starts is that the first line of the input
+  contains a non‑negative integer `T`.  
+  \[
+  \text{Pre}\; \equiv\; T\in \mathbb N .
+  \]
+
+* **Post** – after the program terminates it has printed exactly `T` lines; the *i‑th* printed line
+  (for \(1\le i\le T\)) is the sum of the two integers that appear on the *i‑th* line of the
+  remaining input.  
+  \[
+  \text{Post}\;\equiv\;
+  \begin{cases}
+    \text{the output consists of }T\text{ lines }\\[2mm]
+    \forall i\;(1\le i\le T)\;
+    \bigl(\text{output}_i = R1_i+R2_i\bigr)
+  \end{cases}
+  \]
+
+The program (written in a Python‑like pseudo‑language) is  
+
+```
+1  T = int(input())
+2  for _ in range(T):
+3      R1, R2 = map(int, input().split(' '))
+4      print(R1 + R2)
+```
+
+To prove the Hoare triple we shall use the usual inference rules:
+
+* **Assignment** –  \(\{P[E/x]\}\;x:=E\;\{P\}\)
+* **Sequence** –  from \(\{P\}S_1\{Q\}\) and \(\{Q\}S_2\{R\}\) infer \(\{P\}S_1;S_2\{R\}\)
+* **While** –  if \(\{I\land B\}S\{I\}\) then \(\{I\}\; \textbf{while }B\textbf{ do }S\;\{I\land\lnot B\}\)
+* **Consequence** –  if \(P'\Rightarrow P\), \(\{P\}S\{Q\}\) and \(Q\Rightarrow Q'\) then \(\{P'\}S\{Q'\}\)
+
+The only non‑trivial part is the `for` loop; we will treat it as the usual *while* loop
+by introducing a loop counter `i`.
+
+---------------------------------------------------------------------
+
+## 2.  Translating the `for` loop
+
+```
+i = 0
+while i < T:
+    R1, R2 = map(int, input().split(' '))
+    print(R1 + R2)
+    i = i + 1
+```
+
+Thus the whole program becomes the sequence  
+
+```
+S1 :  T = int(input())
+S2 :  i = 0
+S3 :  while i < T do
+          S_body
+```
+
+with  
+
+```
+S_body :   R1, R2 = map(int, input().split(' '))
+           print(R1 + R2)
+           i = i + 1
+```
+
+---------------------------------------------------------------------
+
+## 3.  Loop invariant
+
+The invariant that captures the intended meaning of the loop is
+
+\[
+\boxed{
+I \equiv
+\begin{aligned}
+&0\le i\le T \;\land\\
+&\text{the first }i\text{ lines of output are the sums of the first }i\text{ input pairs}
+\end{aligned}}
+\]
+
+Formally, using a predicate `Out(k)` that denotes “the *k‑th* line of the program output” and a
+predicate `In(k, a,b)` that denotes “the *k‑th* line of the remaining input contains the pair
+\((a,b)\)”, we can write
+
+\[
+I \; \equiv\;
+\bigl(0\le i\le T\bigr)\;\land\;
+\forall k\;(1\le k\le i)\;
+\bigl(\text{Out}(k)=a_k+b_k\;\land\; \text{In}(k,a_k,b_k)\bigr).
+\]
+
+The invariant says:
+
+* the counter `i` never exceeds the number of test cases `T`;
+* after the loop has executed `i` times we have already printed the correct sums for the
+  first `i` test cases.
+
+---------------------------------------------------------------------
+
+## 4.  Proof steps
+
+### 4.1  The first assignment (`T = int(input())`)
+
+We use the *assignment* rule with the post‑condition `T∈ℕ`.  
+The input routine is assumed to return a non‑negative integer (the problem statement guarantees it).
+
+\[
+\frac{\text{(input returns a non‑negative integer)}}{ \{\,T\in\mathbb N\,\}\;T:=\text{int(input())}\;\{\,T\in\mathbb N\,\}}
+\]
+
+Thus after `S1` the precondition of the whole program is still `T∈ℕ`.
+
+---------------------------------------------------------------------
+
+### 4.2  Initialise the counter (`i = 0`)
+
+\[
+\{\,T\in\mathbb N\,\}\;i:=0\;\{\,I\;\text{with}\;i=0\,\}
+\]
+
+Because `i=0` satisfies the invariant `I` (no output has been produced yet).
+
+---------------------------------------------------------------------
+
+### 4.3  Proving the **while** rule  
+
+We must show  
+
+\[
+\{\,I\land i<T\,\}\;S_{\text{body}}\;\{\,I\,\}
+\tag{*}
+\]
+
+and then we can apply the *while* rule to obtain  
+
+\[
+\{\,I\,\}\;\textbf{while }(i<T)\textbf{ do }S_{\text{body}}\;\{\,I\land i\ge T\,\}.
+\]
+
+Finally, from `I ∧ i≥T` we get the desired post‑condition (the loop has finished after
+exactly `T` iterations, therefore all `T` sums have been printed).
+
+---------------------------------------------------------------------
+
+#### 4.3.1  Body of the loop
+
+The body consists of three statements; we prove them one after another, using the
+*sequence* rule.
+
+1. **Reading the pair**  
+
+   ```
+   R1, R2 = map(int, input().split(' '))
+   ```
+
+   This statement is atomic and, by the specification of the input routine, guarantees
+
+   \[
+   \text{In}(i+1,R1,R2)
+   \]
+
+   after its execution.  
+   The invariant `I` does not mention `R1` or `R2`, therefore `I∧i<T` is preserved.
+
+2. **Printing the sum**  
+
+   ```
+   print(R1 + R2)
+   ```
+
+   The *print* statement adds a new line to the output; the value printed is exactly
+   `R1+R2`.  Consequently the following property holds after the statement:
+
+   \[
+   \text{Out}(i+1)=R1+R2 .
+   \]
+
+   Together with the fact that the just‑read pair is `In(i+1,R1,R2)` we obtain
+
+   \[
+   \text{Out}(i+1)=a_{i+1}+b_{i+1}
+   \]
+
+   where `a_{i+1}=R1` and `b_{i+1}=R2`.  Hence the part of the invariant that talks
+   about the first `i+1` outputs becomes true.
+
+3. **Incrementing the counter**  
+
+   ```
+   i = i + 1
+   ```
+
+   Applying the assignment rule to the invariant `I` with the substitution `i←i+1`
+   yields exactly the original invariant again, now with the updated counter value.
+
+Putting the three steps together we have shown that starting from `I∧i<T` we end
+again in a state satisfying `I`.  Hence condition (*) holds.
+
+---------------------------------------------------------------------
+
+### 4.4  Termination condition
+
+When the loop exits we have `¬(i<T)`, i.e. `i≥T`.  
+Because the invariant guarantees `i≤T`, we obtain `i = T`.  Substituting `i=T` in the
+invariant yields
+
+* `0 ≤ T ≤ T` – trivial,
+* “the first `T` lines of output are the sums of the first `T` input pairs”.
+
+That is precisely the **Post** condition required by the specification.
+
+---------------------------------------------------------------------
+
+## 5  Full Hoare derivation (summary)
+
+\[
+\begin{array}{ll}
+1.&\{T\in\mathbb N\}\;T:=\text{int(input())}\;\{T\in\mathbb N\}                       \\
+2.&\{T\in\mathbb N\}\;i:=0\;\{I\}                                                    \\
+3.&\{I\}\;\textbf{while }(i<T)\textbf{ do }S_{\text{body}}\;
+      \{I\land i\ge T\} \qquad\text{(while rule, using (*) proved above)}          \\
+4.&I\land i\ge T \;\Longrightarrow\; \text{Post}                                    \\
+5.&\text{By Consequence on 1–4 we obtain } \{T\in\mathbb N\}\;P\;\{\text{Post}\}.
+\end{array}
+\]
+
+Thus the Hoare triple  
+
+\[
+\boxed{\{\,T\in\mathbb N\,\}\;P\;\{\text{the program prints the sum of each pair of
+integers of the T test cases}\}}
+\]
+
+is proved correct.
+
+---------------------------------------------------------------------
+
+## 6.  Remarks on the proof style
+
+* The proof treats the **input** and **print** statements as *atomic primitives* that
+  satisfy the obvious logical facts (`In(k,…)` and `Out(k)=…`).  This is the usual
+  approach when reasoning about small I/O programs in Hoare logic.
+* The invariant `I` is the essential ingredient: it captures exactly what has been
+  processed so far and guarantees that nothing beyond the current iteration is
+  assumed.
+* The `for _ in range(T):` construct is just syntactic sugar for the `while` loop
+  with a counter, which is why we could apply the standard *while* rule.
+
+With the invariant established and the three body statements shown to preserve it,
+the program is **totally correct** with respect to the given specification. ∎

@@ -1,0 +1,100 @@
+Below is a **Hoare‑logic style specification** for the program that reads the three grades, computes the weighted average and prints the required line.  
+Only the **pre‑condition** (*P*) and the **post‑condition** (*Q*) are given; the body of the program (the statements that actually read, compute and print) is abstracted as a single command **S**.
+
+---
+
+### 1.   Notation used  
+
+| Symbol | Meaning |
+|--------|---------|
+| `A , B , C` | input grades (real numbers) |
+| `ℝ` | set of real numbers |
+| `ℚ₁` | set of decimal numbers with exactly one digit after the point, i.e.  `ℚ₁ = { k/10 | k ∈ ℤ }` |
+| `⊆` | “is a subset of” |
+| `∈` | “belongs to” |
+| `⌊x⌉₁` | rounding of a real number `x` to **one** decimal place (nearest‑tenths, ties to even – the usual IEEE‑754 round‑to‑nearest‑even). |
+| `⟨P⟩ S ⟨Q⟩` | Hoare triple: if the pre‑condition `P` holds before executing `S`, then after termination `Q` holds. |
+| `out` | the string that the program writes to the standard output. |
+
+---
+
+### 2.   Pre‑condition  *P*  
+
+The program expects **exactly three** floating‑point numbers, each in the interval \([0,10]\) and with one decimal digit.
+
+\[
+\boxed{
+P \; \equiv\;
+\begin{aligned}
+& A \in [0,10] \cap \mathbb{Q}_{1} \;\land\;
+  B \in [0,10] \cap \mathbb{Q}_{1} \;\land\;
+  C \in [0,10] \cap \mathbb{Q}_{1} \\[2mm]
+&\text{(the three values are the only inputs to the program).}
+\end{aligned}
+}
+\]
+
+---
+
+### 3.   Post‑condition  *Q*  
+
+Let  
+
+\[
+\begin{aligned}
+\text{rawAvg} &:= \frac{2A + 3B + 5C}{10} \quad\in\; \mathbb{R},\\[2mm]
+\text{avg}    &:= \big\lfloor \text{rawAvg} \big\rceil_{1} \quad\in\; \mathbb{Q}_{1},
+\end{aligned}
+\]
+
+i.e. `avg` is the weighted average rounded to one decimal place.  
+The program must output **exactly** the string
+
+\[
+\text{“MEDIA = ”} \; \Vert \; \text{avg (written with one digit after the decimal point)} .
+\]
+
+Formally:
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\;
+&\; \exists \; \text{avg}\in\mathbb{Q}_{1}\;.\; 
+   \Bigl( \text{avg}= \big\lfloor \tfrac{2A+3B+5C}{10} \big\rceil_{1}\Bigr) \\[1mm]
+&\;\;\land\; 
+   out = \text{“MEDIA = ”} \;\Vert\; \operatorname{fmt}_{1}(\text{avg})
+\end{aligned}
+}
+\]
+
+where `fmt₁(x)` denotes the usual decimal representation of `x` with **exactly one** digit after the decimal point (e.g. `6.0`, `7.5`, `9.0`).
+
+---
+
+### 4.   Hoare triple for the whole program  
+
+\[
+\boxed{
+\langle P \rangle\; S\; \langle Q \rangle
+}
+\]
+
+* `S` may be any sequence of statements that  
+
+  1. reads three numbers into `A`, `B`, `C`;  
+  2. computes `rawAvg = (2*A + 3*B + 5*C)/10`;  
+  3. rounds it to one decimal place obtaining `avg`;  
+  4. prints exactly the string described in `Q`.  
+
+*If the implementation respects the above pre‑ and post‑conditions, the Hoare triple is valid, i.e. the program is **correct** with respect to the natural‑language specification.*
+
+---  
+
+### 5.   Remarks  
+
+* The weight sum is `2+3+5 = 10`, therefore the denominator of the average is always `10`.  
+* Because the inputs are already limited to one decimal place, the exact rational value of `rawAvg` is a multiple of `0.1`; rounding therefore never changes the value – the definition with `⌊·⌉₁` is kept to make the specification robust if the implementation ever uses a floating‑point representation that introduces tiny rounding errors.  
+* The output format (single blank space before and after the `=` sign) is captured by the concatenation `“MEDIA = ”`.  
+
+This completes the formal Hoare‑logic specification of the problem

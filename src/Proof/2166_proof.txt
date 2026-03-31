@@ -1,0 +1,238 @@
+**Answer**  
+Below we give a complete Hoare‑logic proof that the program  
+
+```python
+repeticoes = int(input())          #  (1)
+soma = 0.0                         #  (2)
+for i in range(repeticoes):        #  (3)
+    soma = 1.0/(soma+2.0)          #  (4)
+soma += 1                          #  (5)
+print(f'{soma:.10f}')              #  (6)
+```  
+
+satisfies the specification  
+
+*Pre‑condition*  
+
+\[
+P\;:\; \text{repeticoes}\in \mathbb N  \qquad(\text{the input is a non‑negative integer})
+\]
+
+*Post‑condition*  
+
+\[
+Q\;:\; \text{the value printed is } 
+      1 + s_{\,\text{repeticoes}}
+\text{ where } s_0 = 0,\; s_{k+1}= \frac{1}{s_k+2}
+\tag{*}
+\]
+
+(Equivalently, the printed value is the \(n\)-th convergent of the
+continued fraction  
+
+\[
+\sqrt 2 = 1+\cfrac{1}{2+\cfrac{1}{2+\cfrac{1}{2+\dots}}}
+\]  
+
+with \(n=\text{repeticoes}\).)
+
+The proof consists of three parts:
+
+1. **Loop invariant** for the `for`‑loop.  
+2. **Verification of the invariant** (initialisation, preservation, termination).  
+3. **Derivation of the post‑condition** from the invariant after the loop.
+
+--------------------------------------------------------------------
+### 1.  Loop invariant  
+
+During the execution of the loop we keep track of two variables:
+
+* the loop counter `i` (the Python `for` loop guarantees that after each
+  iteration `i` equals the number of iterations already performed);
+* the variable `soma`.
+
+Define the function  
+
+\[
+F(k) \;:=\; s_k \quad\text{with}\quad 
+s_0 = 0,\qquad s_{k+1}= \frac{1}{s_k+2}.
+\]
+
+The invariant we shall use is  
+
+\[
+\boxed{ I(i,soma) \;:\; 0\le i\le\text{repeticoes}\;\wedge\;
+       soma = F(i) }                                   \tag{I}
+\]
+
+Intuitively, after the loop has executed \(i\) times, `soma` stores exactly the
+\(i\)-th element of the recurrence.
+
+--------------------------------------------------------------------
+### 2.  Verification of the invariant  
+
+We prove the three classic Hoare‑logic obligations.
+
+#### (a) Initialisation  
+
+Before the loop we have executed statements (1)–(2).  
+From (2) we obtain `soma = 0.0`.  
+The loop variable `i` has not been introduced yet, but the first time the
+loop body is entered the Python `for` construct sets `i = 0`.  
+Hence the state just **before** the first evaluation of the body satisfies  
+
+\[
+i = 0 \quad\land\quad soma = 0 = F(0),
+\]
+
+i.e. \(I(0,soma)\) holds.
+
+Formally  
+
+\[
+\{P\}\; \text{(1); (2)}\; \{ I(0,soma) \}
+\]
+
+is provable.
+
+#### (b) Preservation  
+
+Assume that at the beginning of an arbitrary iteration we have the invariant
+\(I(i,soma)\) with the additional loop‑guard condition \(i<\text{repeticoes}\).
+
+The body (4) executes  
+
+\[
+soma := \frac{1}{soma+2}.
+\]
+
+Because the invariant tells us that `soma = F(i)`, after the assignment we get  
+
+\[
+soma = \frac{1}{F(i)+2} = F(i+1) .
+\]
+
+When the `for` loop finishes the current iteration, the loop control
+automatically increments `i` to the next integer, i.e. `i := i+1`.  
+Consequently after the iteration we have  
+
+\[
+i' = i+1,\qquad soma' = F(i+1),
+\]
+
+which is precisely \(I(i',soma')\).
+
+Thus  
+
+\[
+\{ I(i,soma) \land i<\text{repeticoes}\}\;
+      \text{(4)}\;
+\{ I(i+1,soma) \}
+\]
+
+holds, proving preservation.
+
+#### (c) Termination (exit condition)  
+
+The loop stops when the guard \(i<\text{repeticoes}\) becomes false, i.e. when  
+
+\[
+i = \text{repeticoes}.
+\]
+
+By the invariant we then know  
+
+\[
+soma = F(i) = F(\text{repeticoes}).
+\]
+
+Hence after the loop we have the assertion  
+
+\[
+\{ I(\text{repeticoes},soma) \}
+\]
+
+which is exactly what we need for the next statement.
+
+--------------------------------------------------------------------
+### 3.  Deriving the post‑condition  
+
+After the loop we execute (5)  
+
+```python
+soma += 1
+```
+
+Using the fact that immediately before (5)
+
+\[
+soma = F(\text{repeticoes}),
+\]
+
+we obtain  
+
+\[
+soma = 1 + F(\text{repeticoes}).
+\]
+
+Finally (6) prints `soma`.  The format `:.10f` does not change the value,
+it only fixes the visual representation to ten digits after the decimal
+point.  Therefore the value that is printed satisfies the specification
+\((*)\).
+
+Summarising the Hoare triples we have proved
+
+\[
+\{P\}\;
+\underbrace{\text{(1); (2); (3) – (4); (5); (6)}}_{\text{whole program}}
+\;\{Q\}
+\]
+
+where \(P\) and \(Q\) are the pre‑ and post‑conditions given at the
+beginning.
+
+--------------------------------------------------------------------
+### 4.  Remarks on the mathematical meaning of the result  
+
+The recurrence  
+
+\[
+s_{k+1}= \frac{1}{s_k+2},\qquad s_0=0
+\]
+
+has the closed form  
+
+\[
+s_k = -1 + \sqrt{2}\;-\;\frac{(\sqrt{2}-1)^{2k+1}}{1-(\sqrt{2}-1)^{2k+2}}
+\]
+
+and converges, as \(k\to\infty\), to the unique fixed point of
+\(x\mapsto\frac{1}{x+2}\), namely \(\sqrt{2}-1\).  
+Consequently the program prints  
+
+\[
+1+s_{\text{repeticoes}} \;\longrightarrow\; \sqrt{2}
+\]
+
+when `repeticoes` grows large.  For each concrete input it prints the
+\( \text{repeticoes}\)-th convergent of the continued fraction  
+
+\[
+\sqrt{2}=1+\cfrac{1}{2+\cfrac{1}{2+\cfrac{1}{2+\dots}}}.
+\]
+
+--------------------------------------------------------------------
+### 5.  Conclusion  
+
+We have exhibited a loop invariant, proved its initialisation,
+preservation and eventual truth when the loop exits, and shown how the
+subsequent statements transform the invariant into the required post‑condition.
+Hence, by the rules of Hoare logic, the program is **correct** with respect
+to the specification  
+
+\[
+\{\,\text{repeticoes}\in\mathbb N\,\}\;\; \text{program}\;\;
+\{\,\text{output}=1+s_{\text{repeticoes}}\;\text{with } s_0=0,\;s_{k+1}=1/(s_k+2)\,\}.
+\]
+
+∎

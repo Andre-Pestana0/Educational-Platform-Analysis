@@ -1,0 +1,111 @@
+Below is a **Hoare‑logic style specification** for a program whose only effect is to write the picture shown in the statement.  
+The specification is written in ordinary mathematical notation (sets, functions, concatenation “·”, etc.) and contains only a **pre‑condition** and a **post‑condition** – no loop invariants or auxiliary lemmas are needed because the program has no input and terminates after a single print.
+
+---
+
+### 1.  Auxiliary definitions  
+
+* Let  
+
+\[
+W \;:=\; 39                       \qquad\text{(total width of every line, including the two border bars)}
+\]
+
+* For a string \(x\) and an integer \(k\ge 0\) define  
+
+\[
+\operatorname{pad\_center}(x,k)
+      \;:=\;
+      \underbrace{\text{‘ ’}}_{\ell\; \text{spaces}}
+      \;·\;x\;·\;
+      \underbrace{\text{‘ ’}}_{k-\ell-|x| \; \text{spaces}}
+\]
+
+where  
+
+\[
+\ell \;:=\;\Big\lfloor\frac{k-|x|}{2}\Big\rfloor .
+\]
+
+Thus `pad_center(x,k)` produces a string of length exactly \(k\) whose interior contains \(x\) centred (if \(|x|\) and \(k\) have different parity the extra space goes to the right).
+
+* The *blank line* of width \(W\) is  
+
+\[
+\text{blank} \;:=\; \text{‘|’}\;·\;\underbrace{\text{‘ ’}}_{W-2}\;·\;\text{‘|’}\;·\;\text{‘\n’}.
+\]
+
+* The *top/bottom border* is  
+
+\[
+\text{border} \;:=\; \underbrace{\text{‘-’}}_{W}\;·\;\text{‘\n’}.
+\]
+
+* The three centred text lines are  
+
+\[
+\begin{aligned}
+\text{line}_1 &:= \text{‘|’}\;·\;\operatorname{pad\_center}(\text{“Roberto”},\,W-2)\;·\;\text{‘|’}\;·\;\text{‘\n’},\\[2mm]
+\text{line}_2 &:= \text{‘|’}\;·\;\operatorname{pad\_center}(\text{“5786”},\,W-2)\;·\;\text{‘|’}\;·\;\text{‘\n’},\\[2mm]
+\text{line}_3 &:= \text{‘|’}\;·\;\operatorname{pad\_center}(\text{“UNIFEI”},\,W-2)\;·\;\text{‘|’}\;·\;\text{‘\n’}.
+\end{aligned}
+\]
+
+* The **exact output** that must be produced is the concatenation
+
+\[
+\Sigma \;:=\;
+\text{border} \;·\;
+\text{line}_1 \;·\;
+\text{blank}   \;·\;
+\text{line}_2 \;·\;
+\text{blank}   \;·\;
+\text{line}_3 \;·\;
+\text{border}.
+\]
+
+---
+
+### 2.  Hoare triple  
+
+Let the program be called **PrintScreen** and let the *observable effect* of the program be the string that it writes to the standard output; we denote this observable by the variable `out`.
+
+\[
+\boxed{\;\{\,\top\,\}\; \text{PrintScreen}\; \{\,\text{out}= \Sigma\,\}\;}
+\]
+
+* **Pre‑condition** \(\top\) (true) – there are **no inputs** and no assumptions about the state of the machine.  
+
+* **Post‑condition** `out = Σ` – after termination the entire contents of the program’s output stream is exactly the string Σ defined above.  
+
+In words: *If the program starts in any state, then when it terminates the only thing it has produced is the picture consisting of a 39‑character wide rectangular frame whose interior contains the three centred lines “Roberto”, “5786”, and “UNIFEI”, with blank lines in between, exactly as shown in the statement.*
+
+---
+
+### 3.  Optional “concrete” textual form of Σ  
+
+If one prefers the literal characters rather than the derived definition, Σ can be written as the 7‑line literal:
+
+\[
+\begin{aligned}
+\Sigma = \;&\text{``---------------------------------------\n"}\\
+           &\text{``|        Roberto                      |\n"}\\
+           &\text{``|                                     |\n"}\\
+           &\text{``|        5786                         |\n"}\\
+           &\text{``|                                     |\n"}\\
+           &\text{``|        UNIFEI                       |\n"}\\
+           &\text{``---------------------------------------\n"} .
+\end{aligned}
+\]
+
+Both the algebraic definition (using `pad_center`, `border`, etc.) and the literal form are mathematically equivalent; the former is useful for reasoning about the specification, while the latter makes the intended visual output explicit.
+
+---
+
+**Thus the complete formal Hoare‑logic specification of the problem is the single triple**  
+
+\[
+\{\,\top\,\}\;\text{PrintScreen}\;\{\,\text{out}= \Sigma\,\},
+\]
+
+where Σ is defined as above. This captures precisely what the program must do: print the required screen and nothing else.

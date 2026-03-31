@@ -1,0 +1,144 @@
+**Goal**  
+
+Prove, with Hoare‑logic, that the program  
+
+```python
+tomadas = list(map(int, input().split(' ')))      # S1
+print(f'{sum(tomadas) - 3}')                       # S2
+```  
+
+satisfies the specification  
+
+*Pre‑condition*  
+
+```
+P  ≡   the input line consists of exactly four non‑negative integers
+       a , b , c , d   (a,b,c,d ∈ ℕ) .
+```
+
+*Post‑condition*  
+
+```
+Q  ≡   the program prints the value  a + b + c + d – 3 .
+```
+
+--------------------------------------------------------------------
+
+## 1.  Formal description of the statements  
+
+* `S1` reads a line, splits it on blanks, converts each field to an
+  integer and stores the resulting list in the variable **tomadas**.
+
+* `S2` evaluates the arithmetic expression `sum(tomadas) - 3` and
+  prints it.
+
+We introduce an auxiliary predicate  
+
+```
+R  ≡   tomadas = [a , b , c , d]   ∧   a,b,c,d ∈ ℕ .
+```
+
+`R` is the exact state that must hold after the input statement and
+before the printing statement.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare triples for the two statements  
+
+### 2.1  Input statement `S1`
+
+The semantics of `input().split(' ')` together with `map(int, …)` is
+the following *deterministic* assignment:
+
+```
+tomadas := [a , b , c , d]          (a,b,c,d are the four numbers read)
+```
+
+Hence we can use the **assignment rule** of Hoare logic:
+
+```
+{ P }   tomadas := [a , b , c , d]   { R }
+```
+
+*Proof of the triple*  
+
+*   From `P` we know that the line that the environment supplies contains
+    exactly four integers `a , b , c , d` (all non‑negative).
+*   The execution of `S1` stores precisely those four integers, in the
+    given order, into the list variable `tomadas`.  
+    Consequently after `S1` we have `tomadas = [a , b , c , d]` and, by
+    the premise of `P`, each component is a natural number.  
+    This is exactly `R`. ∎
+
+
+
+### 2.2  Printing statement `S2`
+
+The statement `print(f'{sum(tomadas) - 3}')` can be treated as the
+evaluation of the expression `E = sum(tomadas) - 3` followed by an
+output action.  For Hoare logic we are only interested in the value
+that is sent to the output, therefore we use the **output rule**:
+
+```
+{ R }   output( sum(tomadas) - 3 )   { Q }
+```
+
+*Proof of the triple*  
+
+*   By `R` we know that `tomadas = [a , b , c , d]`.  
+    The built‑in function `sum` on a list of four numbers yields  
+
+    ```
+    sum(tomadas) = a + b + c + d .
+    ```
+
+*   Consequently the expression printed is  
+
+    ```
+    sum(tomadas) - 3 = (a + b + c + d) - 3 .
+    ```
+
+*   The post‑condition `Q` states exactly that this value is printed.
+    Hence after executing `S2` the required output has been produced.
+    ∎
+
+
+
+--------------------------------------------------------------------
+
+## 3.  Composition  
+
+Having proved the two triples, we can apply the **composition rule**:
+
+```
+{ P }   S1 ; S2   { Q }
+```
+
+because  
+
+```
+{ P } S1 { R }      and      { R } S2 { Q }
+```
+
+hold.  Therefore the whole program satisfies the specification.
+
+--------------------------------------------------------------------
+
+## 4.  Summary of the proof  
+
+| Statement | Hoare triple (proved) |
+|-----------|-----------------------|
+| `S1` (input) | `{ P } S1 { R }` |
+| `S2` (print) | `{ R } S2 { Q }` |
+| `S1 ; S2`   | `{ P } S1;S2 { Q }` (by composition) |
+
+Thus, under the pre‑condition that the input line contains exactly four
+non‑negative integers, the program prints **the total number of usable
+sockets after the four power strips are chained**, i.e.  
+
+```
+a + b + c + d – 3 .
+```
+
+The program is therefore *correct* with respect to the given formal
+pre‑ and post‑conditions. ∎

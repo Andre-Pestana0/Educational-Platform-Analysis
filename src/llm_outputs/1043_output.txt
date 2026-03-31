@@ -1,0 +1,18 @@
+Area = 0.0
+
+Perimetro = 0.4
+
+Area = 10.5
+
+Perimetro = 3000000000.0
+
+Area = 1500000000000000000.0
+
+Area = 66.0
+
+Perimetro = 12.8
+
+Area = 12.5
+
+Perimetro = 703703.4
+

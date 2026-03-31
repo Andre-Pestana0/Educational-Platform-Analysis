@@ -1,0 +1,304 @@
+**Answer – a Hoare‑logic proof of correctness**
+
+Below we give a complete Hoare‑logic proof that the program shown in the statement
+produces, for every test case, exactly the number of electrical sockets that are
+available after the listed power strips (filters) are plugged in.
+
+The proof is written in the usual style:
+
+```
+{ P }  S  { Q }
+```
+
+where `P` is the *pre‑condition* (what must be true before the program starts),
+`S` is the program and `Q` is the *post‑condition* (what must be true after the
+program finishes).  
+The proof proceeds by giving a loop invariant for the outer `for`‑loop and by
+using the Hoare rules for **assignment**, **sequence**, **conditional** (the
+`for`‑loop is just a syntactic sugar for a `while`‑loop) and **while**.
+
+---------------------------------------------------------------------
+
+## 1.  Specification
+
+### 1.1   Variables
+
+| Symbol | Meaning |
+|--------|---------------------------------------------------------------|
+| `n`    | number of test cases (non‑negative integer)                  |
+| `i`    | loop counter of the outer `for`‑loop (`0 ≤ i ≤ n`)          |
+| `k`    | number of filters in the *i*‑th test case (`k ≥ 0`)          |
+| `filtros` | list of exactly `k` integers, each being the number of sockets of a filter |
+| `out[i]`| the integer printed for the *i*‑th test case                |
+
+We also use the auxiliary arithmetic function  
+
+```
+total(k , filtros) ≜ Σ_{j=1..k} filtros[j]  – k + 1
+```
+
+(the sum of the sockets of all filters, minus the `k` sockets that are used to
+plug the filters, plus the wall socket).
+
+### 1.2   Pre‑condition  
+
+```
+P  ≜  n ∈ ℕ  ∧
+      ∀t ∈ {0,…,n‑1}.  (  k_t ∈ ℕ  ∧  |filtros_t| = k_t  ∧
+                         ∀j. 0 ≤ j < k_t → filtros_t[j] ∈ ℕ )
+```
+
+In words: the first line of the input contains a non‑negative integer `n`.  
+For each of the next `n` lines there is first a non‑negative integer `k_t`
+followed by exactly `k_t` non‑negative integers (the list `filtros_t`).
+
+### 1.3   Post‑condition  
+
+```
+Q  ≜  ∀t ∈ {0,…,n‑1}.  out[t] = total(k_t , filtros_t)
+```
+
+The program must print, for each test case `t`, the value `total(k_t,filtros_t)`.
+
+---------------------------------------------------------------------
+
+## 2.  Proof structure
+
+The program consists of three parts:
+
+1. `n = int(input())`                                          (statement *S₁*)
+2. the outer loop  
+
+   ```
+   for i in range(n):
+       S_body(i)
+   ```
+   (statement *S₂*)
+3. `S_body(i)` – the body of the loop, i.e. the statements that read one line,
+   compute the expression and `print` it (statement *S₃*).
+
+We prove
+
+```
+{P}  S₁ ; S₂  {Q}
+```
+
+by proving separately
+
+* `{P} S₁ {P₁}` – after reading `n` the variable `n` has the required value,
+* `{P₁} S₂ {Q}` – the loop produces the required output.
+
+---------------------------------------------------------------------
+
+## 3.  Proof of the first statement (`S₁`)
+
+`S₁` is a simple assignment that reads a line and converts it to an integer.
+The Hoare rule for assignment gives
+
+```
+{ n = v }   n = int(input())   { n = v }
+```
+
+where `v` is the integer read from the first line.  
+Because the pre‑condition guarantees that the first line indeed contains a
+non‑negative integer, we obtain
+
+```
+{ P }   n = int(input())   { P₁ }
+```
+
+with  
+
+```
+P₁ ≜  n ∈ ℕ ∧
+      ∀t < n .  (k_t ∈ ℕ ∧ |filtros_t| = k_t ∧ …)         (the same as P, but now n is known)
+```
+
+---------------------------------------------------------------------
+
+## 4.  Loop invariant for the outer `for`‑loop
+
+The loop `for i in range(n): …` is syntactic sugar for
+
+```
+i := 0;
+while i < n do
+    S_body(i);
+    i := i + 1
+od
+```
+
+We choose the following invariant `I(i)`:
+
+```
+I(i) ≜  0 ≤ i ≤ n  ∧
+        ∀t < i . out[t] = total(k_t , filtros_t)
+```
+
+*Interpretation*: after the loop has executed `i` times, the first `i` test
+cases have already been printed correctly.
+
+### 4.1   Initialization (`i := 0`)
+
+```
+{ P₁ }  i := 0  { I(0) }
+```
+
+Because `0 ≤ n` (from `P₁`) we have `0 ≤ 0 ≤ n`.  
+The universal quantifier over an empty set (`t < 0`) is true, therefore
+`I(0)` holds.
+
+### 4.2   Maintenance (the body of the `while`)
+
+Assume `{ I(i) ∧ i < n }` holds before an iteration.  
+We must show `{ I(i+1) }` after executing `S_body(i)` and `i := i+1`.
+
+The proof is split into two parts:
+
+* **(a) Correctness of `S_body(i)`** – it must produce exactly the value
+  `total(k_i , filtros_i)` and print it.
+* **(b) The invariant after the increment** – after `i := i+1` the range of the
+  universal quantifier is extended by the newly printed value.
+
+---------------------------------------------------------------------
+
+## 5.  Proof of the loop body `S_body(i)`
+
+`S_body(i)` consists of three statements:
+
+```
+k, *filtros = map(int, input().split())      (B₁)
+print( sum(filtros) - k + 1 )                (B₂)
+```
+
+(The *list‑unpacking* `k, *filtros` is just a convenient notation; formally it
+means: read the first integer of the line into `k` and the remaining `k`
+integers into the list `filtros`.)
+
+### 5.1   Pre‑condition for the body
+
+From the loop invariant we know that the *i*‑th line of the input has not yet
+been consumed, and the global pre‑condition guarantees that this line has the
+form
+
+```
+k_i  f_i1  f_i2  …  f_ik_i
+```
+
+with `k_i ≥ 0` and exactly `k_i` further integers.  
+Thus the statement `map(int, …).split()` returns a sequence of `k_i+1`
+integers, which is correctly unpacked by `k, *filtros`.
+
+Hence after `B₁` we have the following Hoare triple (assignment rule applied
+to a tuple assignment)
+
+```
+{ I(i) ∧ i < n }   k, *filtros = map(int, input().split())
+{ I(i) ∧ i < n ∧ k = k_i ∧ |filtros| = k_i ∧ filtros = (f_i1,…,f_ik_i) }
+```
+
+### 5.2   Computing the result
+
+The expression `sum(filtros) - k + 1` is evaluated using the standard arithmetic
+operators.  By the substitution rule we obtain
+
+```
+{ … ∧ filtros = (f_i1,…,f_ik_i) ∧ k = k_i }
+sum(filtros) - k + 1  =  ( Σ_{j=1..k_i} f_ij ) - k_i + 1
+                     =  total(k_i , filtros_i)
+```
+
+Thus the assignment (the argument of `print`) evaluates to exactly the required
+value.
+
+### 5.3   Printing
+
+`print(e)` has the Hoare rule  
+
+```
+{ P }   print(e)   { P ∧ output = v }       (where v is the value of e)
+```
+
+Applying it with `e = sum(filtros) - k + 1` we obtain
+
+```
+{ I(i) ∧ i < n ∧ k = k_i ∧ filtros = filtros_i }
+print( sum(filtros) - k + 1 )
+{ I(i) ∧ i < n ∧ out[i] = total(k_i , filtros_i) }
+```
+
+Thus after the body finishes we have proved the **new** correct output for the
+*i*‑th test case while all previous outputs remain unchanged.
+
+---------------------------------------------------------------------
+
+## 6.  Preservation of the invariant
+
+After the body we execute `i := i + 1`.  Using the assignment rule we get
+
+```
+{ I(i) ∧ i < n ∧ out[i] = total(k_i , filtros_i) }
+i := i + 1
+{ 0 ≤ i+1 ≤ n ∧
+  (∀t < i . out[t] = total(k_t , filtros_t)) ∧
+  out[i] = total(k_i , filtros_i) }
+```
+
+The right‑hand side is exactly `I(i+1)`.  Hence the invariant is preserved.
+
+---------------------------------------------------------------------
+
+## 7.  Termination of the loop
+
+The loop variable `i` starts at `0` and is increased by `1` each iteration.
+Because the invariant guarantees `i ≤ n` and the guard is `i < n`,
+the loop can execute at most `n` times and therefore terminates.
+
+When the guard becomes false we have `i = n`.  By the invariant
+
+```
+I(n)  ≡  0 ≤ n ≤ n ∧ ∀t < n . out[t] = total(k_t , filtros_t)
+```
+
+which is precisely the post‑condition `Q`.
+
+---------------------------------------------------------------------
+
+## 8.  Whole program
+
+Putting the pieces together:
+
+1. `{P}  n = int(input())  {P₁}`                     (section 3)
+2. `{P₁}  for i in range(n): S_body(i)  {Q}`           (sections 4‑7)
+
+By the **sequence rule** of Hoare logic we obtain
+
+```
+{ P }  n = int(input());  for i in range(n): S_body(i)   { Q }
+```
+
+which is exactly the specification required for the program.
+
+---------------------------------------------------------------------
+
+## 9.  Conclusion
+
+We have exhibited a formal Hoare‑logic proof that the given Python program
+satisfies the specification
+
+```
+{P}  program  {Q}
+```
+
+where  
+
+* `P` guarantees that the input contains a non‑negative integer `n` followed by
+  `n` lines, each line consisting of a non‑negative integer `k` and exactly `k`
+  non‑negative integers (the sockets of the filters);
+* `Q` guarantees that the program prints, for each line, the value  
+
+  ` Σ filtros – k + 1 `, i.e. the total number of electrical sockets that remain
+  free after all the filters are plugged in.
+
+Therefore the program is **correct** with respect to the given pre‑ and
+post‑conditions. ∎

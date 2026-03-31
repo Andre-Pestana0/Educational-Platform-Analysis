@@ -1,0 +1,110 @@
+Below is a **Hoare‑logic style specification** of the whole program.  
+Only the **pre‑condition** (what must be true before the program starts) and the **post‑condition** (what is guaranteed after the program terminates) are given; the body of the program is omitted because the request is for a “formal specification (just pre‑ and post‑conditions)”.
+
+---
+
+### Notation used  
+
+| Symbol | Meaning |
+|--------|---------|
+| `op` | the first input character (type `char`). |
+| `A`   | a 12 × 12 matrix of floating‑point numbers, i.e. `A : {0,…,11} × {0,…,11} → ℝ`. |
+| `ℤ₁₂` | the set `{0,1,…,11}` (indices of the matrix). |
+| `Green(i,j)` | a predicate that is **true exactly for the positions that belong to the “green area’’** in the figure of the statement. (The concrete geometric description of the green area is left abstract; any concrete definition may be substituted here, e.g. `i ≤ j` or `i + j < 12`.) |
+| `G`   | the set of all indices that satisfy `Green`, i.e.  \(\displaystyle G = \{(i,j) \in ℤ_{12}\times ℤ_{12} \mid Green(i,j)\}\). |
+| `|G|` | the cardinality of `G` (the number of matrix elements that belong to the green area). |
+| `Σ_{(i,j)∈G} A[i][j]` | the sum of all matrix entries that lie in the green area. |
+| `result` | the real value that the program finally prints (rounded to one decimal place). |
+| `⌊x⌉₁` | “\(x\) rounded to one digit after the decimal point’’ (the usual C/printf `%.1f` rounding). |
+
+---
+
+## 1.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\; & op \in \{\,'S',\; 'M'\,\} \\
+              & \land \bigl(\forall i,j \in ℤ_{12}\;.\; A[i][j] \in ℝ \bigr) \\
+              & \land \bigl(|G| > 0\bigr)               \tag{P}
+\end{aligned}}
+\]
+
+*Explanation*  
+
+* The program receives **exactly one** character that must be either `'S'` (Sum) or `'M'` (Média / Average).  
+* Afterwards 144 floating‑point numbers are read, filling the whole 12 × 12 matrix `A`.  
+* The green area is assumed to contain at least one element, otherwise the average would be undefined; this is expressed by `|G| > 0`.
+
+---
+
+## 2.  Post‑condition  
+
+Let  
+
+\[
+\text{sum} \;=\; \sum_{(i,j)\in G} A[i][j] ,
+\qquad
+\text{cnt} \;=\; |G| .
+\]
+
+Define the *ideal* mathematical result
+
+\[
+\text{ideal} \;=\;
+\begin{cases}
+\text{sum}                       & \text{if } op = 'S' \\[4pt]
+\displaystyle\frac{\text{sum}}{\text{cnt}} & \text{if } op = 'M'
+\end{cases}
+\]
+
+The post‑condition states that the program prints the value `ideal` rounded to one decimal place:
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\; & \bigl( op = 'S' \;\Rightarrow\; result = ⌊\text{sum}⌉_{1}\bigr) \\
+              & \land \bigl( op = 'M' \;\Rightarrow\; result = ⌊\text{sum} / \text{cnt}⌉_{1}\bigr) \\
+              & \land \text{output}(result)           \tag{Q}
+\end{aligned}}
+\]
+
+*Explanation*  
+
+* If the operation code is `'S'`, the printed value must be the **sum** of all elements in the green area, rounded to one decimal.  
+* If the operation code is `'M'`, the printed value must be the **average** (sum divided by the number of green elements), again rounded to one decimal.  
+* `output(result)` merely says that the program writes this value to standard output; the exact formatting (`printf("%.1f\n", result)`) is left to the implementation.
+
+---
+
+## 3.  Hoare triple for the whole program  
+
+\[
+\boxed{\{\,P\,\}\; \texttt{program}\; \{\,Q\,\}}
+\]
+
+where  
+
+* `program` reads the character `op`, reads the 144 numbers into `A`, computes `sum` and `cnt` over the set `G`, decides between the two formulas according to `op`, rounds the result to one decimal place, and prints it.
+
+---
+
+### Remarks / Possible concrete definition of `Green`
+
+If the figure that accompanies the original statement is, for instance, the **upper‑triangular part including the diagonal**, one would instantiate  
+
+\[
+\text{Green}(i,j) \; \equiv\; i \le j .
+\]
+
+If the figure is a **diamond** (the elements whose Manhattan distance from the centre `(5,5)` is ≤ 5), one would use  
+
+\[
+\text{Green}(i,j) \; \equiv\; |i-5| + |j-5| \le 5 .
+\]
+
+Any such concrete predicate can be substituted for `Green(i,j)` without changing the shape of the specification above.  
+
+---  
+
+Thus the Hoare‑logic specification completely captures the intended behaviour of the program: **given a valid operation code and a fully‑populated 12 × 12 matrix, the program prints either the sum or the average (to one decimal) of exactly those entries that belong to the prescribed green area**.

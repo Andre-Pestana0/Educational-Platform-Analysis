@@ -1,0 +1,240 @@
+**Answer – a Hoare‑logic proof of the program**
+
+Below we give a complete Hoare‑logic proof that the program
+
+```python
+distancia = int(input())
+
+if distancia < 0 or distancia > 2000:
+    print("Distância inválida")
+else:
+    if distancia <= 800:
+        print("1")
+    elif distancia <= 1400:
+        print("2")
+    else:
+        print("3")
+```
+
+satisfies the specification that was given in the statement of the problem.
+
+--------------------------------------------------------------------
+
+## 1.  Specification
+
+* **Program variable** – `d` (the value read from the input).  
+* **Output** – a string printed on the screen.  
+
+We write `out = s` to mean “the program prints the string *s*”.
+
+### Pre‑condition  
+
+The program only assumes that the input can be read as an integer:
+
+```
+P  ≡  true               (or:  “d is an integer”)
+```
+
+### Post‑condition  
+
+```
+Q  ≡  (d < 0 ∨ d > 2000)          → out = "Distância inválida"
+   ∧ (0 ≤ d ≤ 800)                → out = "1"
+   ∧ (801 ≤ d ≤ 1400)             → out = "2"
+   ∧ (1401 ≤ d ≤ 2000)            → out = "3"
+```
+
+The four conjuncts are mutually exclusive, therefore exactly one of the
+four possible outputs must be produced.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare triples for the three elementary statements
+
+*Reading the input*
+
+```
+{ true }   d = int(input())   { d is the integer entered by the user }
+```
+
+The triple is trivial – the assignment only stores the value that has been
+read; it does not affect the truth of `true`.
+
+*Printing a constant string*  
+
+For any constant string `c`
+
+```
+{ true }   print(c)   { out = c }
+```
+
+Again the triple is immediate: after the statement the only observable
+effect is that the program has printed `c`.
+
+--------------------------------------------------------------------
+
+## 3.  Proof of the outer `if`
+
+Let  
+
+```
+B1  ≡  d < 0 ∨ d > 2000          (the outer guard)
+```
+
+The outer conditional is
+
+```
+if B1:
+    print("Distância inválida")
+else:
+    <inner‑if‑chain>
+```
+
+We have to prove the two Hoare triples required by the *if‑rule*:
+
+```
+{ P ∧ B1 }    print("Distância inválida")    { Q }          (1)
+{ P ∧ ¬B1 }   <inner‑if‑chain>                { Q }          (2)
+```
+
+*Proof of (1)*  
+
+`P ∧ B1` is simply `B1`.  
+Printing `"Distância inválida"` makes `out` equal to that string,
+hence the first conjunct of `Q` is satisfied; the other three conjuncts
+are vacuously true because their antecedents (`0 ≤ d ≤ 800`, …) are false
+when `B1` holds.  Therefore `{ B1 } print("Distância inválida") { Q }`
+is valid.
+
+*Proof of (2)*  
+
+`¬B1` is equivalent to `0 ≤ d ≤ 2000`.  Under this condition the program
+executes the inner chain, which we treat next.
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the inner chain (nested `if‑elif‑else`)
+
+Inside the `else` we have three mutually exclusive branches:
+
+```
+if d ≤ 800:
+    print("1")
+elif d ≤ 1400:
+    print("2")
+else:
+    print("3")
+```
+
+Introduce the following guards:
+
+```
+B2  ≡  d ≤ 800
+B3  ≡  d ≤ 1400          (used only when ¬B2 holds)
+```
+
+The three branches correspond to the three cases
+
+```
+C1 :  B2                     (0 ≤ d ≤ 800)
+C2 :  ¬B2 ∧ B3               (801 ≤ d ≤ 1400)
+C3 :  ¬B2 ∧ ¬B3               (1401 ≤ d ≤ 2000)
+```
+
+We must show, using the *if‑rule* (or the equivalent *elif‑rule*), that
+
+```
+{ P ∧ ¬B1 ∧ C1 }   print("1")   { Q }          (3)
+{ P ∧ ¬B1 ∧ C2 }   print("2")   { Q }          (4)
+{ P ∧ ¬B1 ∧ C3 }   print("3")   { Q }          (5)
+```
+
+Because `P` is `true`, each antecedent reduces to the conjunction of the
+relevant guards.
+
+*Proof of (3)*  
+
+`C1` is exactly `0 ≤ d ≤ 800`.  
+Printing `"1"` makes `out = "1"`, which satisfies the second conjunct of
+`Q`.  The other three conjuncts are false because their antecedents are
+false (e.g. `d < 0 ∨ d > 2000` is false when `0 ≤ d ≤ 800`).  Hence (3) holds.
+
+*Proof of (4)*  
+
+`C2` is `801 ≤ d ≤ 1400`.  
+Printing `"2"` satisfies the third conjunct of `Q`.  As before, the
+remaining conjuncts are false, so (4) holds.
+
+*Proof of (5)*  
+
+`C3` is `1401 ≤ d ≤ 2000`.  
+Printing `"3"` satisfies the fourth conjunct of `Q`.  The other conjuncts
+are false, therefore (5) holds.
+
+Since the three cases cover all possibilities under `¬B1` and each case
+establishes `Q`, the Hoare triple for the whole inner chain is proved:
+
+```
+{ ¬B1 }   <inner‑if‑chain>   { Q } .
+```
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the whole program
+
+The program consists of three sequential parts:
+
+1. `d = int(input())`                                                                                                                   
+2. the outer `if … else …`
+3. the inner `if‑elif‑else` (executed only in the `else` branch)
+
+By the **rule of sequential composition**
+
+```
+{P}   S1 ; S2 ; S3   {Q}
+```
+
+holds if
+
+```
+{P}   S1          {R1}
+{R1}  S2          {R2}
+{R2}  S3          {Q}
+```
+
+for suitable intermediate assertions `R1 , R2`.  
+Choosing
+
+```
+R1 ≡ true                 (after the input statement)
+R2 ≡ ¬B1                  (the condition that the outer guard is false)
+```
+
+we have
+
+* `{ true } d = int(input()) { true }`                                                                                    
+* `{ true } if B1 … else … { Q }`                                                                                                       
+  (proved in Sections 3–4)
+
+Thus the three‑step composition yields
+
+```
+{ true }  whole_program  { Q } .
+```
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion
+
+We have exhibited a full Hoare‑logic derivation:
+
+* **Pre‑condition** `P : true` (the input is an integer);
+* **Post‑condition** `Q` exactly matches the required behaviour
+  (invalid distance → “Distância inválida”, otherwise the basket number
+  1, 2 or 3 according to the given intervals);
+* Every elementary statement satisfies its Hoare triple;
+* The conditional statements are proved correct by the *if‑rule*,
+  using the three mutually exclusive cases;
+* By sequential composition the whole program satisfies `{P} prog {Q}`.
+
+Hence the program is **correct with respect to the given specification**. ∎

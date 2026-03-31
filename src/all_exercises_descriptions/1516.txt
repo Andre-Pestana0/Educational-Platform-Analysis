@@ -1,0 +1,24 @@
+Description: Rafael found a new hobbie: to draw using keyboard characters. Even this new kind of art being simple and limited, creativity is enough to make some really cool kind of drawings.
+
+Input: There will be several test cases. Each test case starts with two integersNandM(1 â¤N,Mâ¤ 50), representing, repectively, the height and the width of Rafael's drawing.
+
+Output: For each test case, printAlines, containingBcharacters each, representing the resized Rafael's drawing.
+
+Examples:
+- Example 1:
+  Input:
+3 3
+###
+#__
+###
+6 9
+0 0
+  Output:
+#########
+#########
+###______
+###______
+#########
+#########
+
+--
