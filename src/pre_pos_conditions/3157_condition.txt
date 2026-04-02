@@ -1,0 +1,86 @@
+Below is a **Hoare‑logic style specification** for the required algorithm.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what is guaranteed after it finishes) are given; the body of the program is left unspecified because the specification is independent of any particular implementation.
+
+---
+
+### 1.  Notation
+
+* Let  
+
+\[
+\Sigma \;=\; \{\,a\mid a\in\text{‘a’..‘z’, ‘A’..‘Z’, ‘0’..‘9’, ‘ ’}\,\}
+\]
+
+be the alphabet of **alphanumeric characters and the blank space**.  
+
+* \(\Sigma^{*}\) denotes the set of all finite strings over \(\Sigma\).  
+
+* The input variable is \(S\in\Sigma^{*}\).  
+
+* The output variable (the value returned by the program) is \(O\in\Sigma^{*}\).  
+
+* The constant string that must be printed is  
+
+\[
+C \;=\; \text{``Nao se refuta ciencia com opiniao''}\; .
+\]
+
+* The program (or function) we are specifying will be called  
+
+\[
+\texttt{BotHack}(S) \;:\; \Sigma^{*}\rightarrow\Sigma^{*}.
+\]
+
+---
+
+### 2.  Hoare Triple
+
+\[
+\boxed{\;\{\,P(S)\,\}\;\texttt{BotHack}(S)\;\{\,Q(S,O)\,\}\;}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P(S) \;:\; S\in\Sigma^{*}
+\]
+
+ (the only requirement is that the input be a (possibly empty) string composed of alphanumeric characters and spaces – exactly the format described in the statement).
+
+* **Post‑condition**  
+
+\[
+Q(S,O) \;:\; O = C
+\]
+
+ (the program returns the *fixed* truth string, independent of the concrete content of the input).
+
+---
+
+### 3.  Full Formal Specification
+
+\[
+\begin{aligned}
+&\{\,S\in\Sigma^{*}\,\}\; \\
+&\texttt{function } O \gets \texttt{BotHack}(S) \\
+&\{\,O = \text{``Nao se refuta ciencia com opiniao''}\,\}
+\end{aligned}
+\]
+
+Equivalently, as a functional specification:
+
+\[
+\forall S\in\Sigma^{*}\;:\;\texttt{BotHack}(S)=C .
+\]
+
+---
+
+### 4.  Remarks
+
+* The pre‑condition is deliberately **weak** (any string over the allowed alphabet satisfies it).  
+* The post‑condition is **strong**: it forces the output to be exactly the constant truth string, matching every example in the problem description.  
+* Termination is implicit in the Hoare‑logic framework; the specification asserts that the program *does* produce an output (i.e., it halts) and that the output satisfies the post‑condition.  
+
+Thus the Hoare‑logic specification captures the entire problem: **any admissible input string must be transformed into the single, predetermined truth phrase**.

@@ -1,0 +1,69 @@
+Below is a **Hoare‑logic style specification** of a program that, given a natural number \(n\) (with \(0<n\le 50\)), prints the value of the \(n\)‑th Fibonacci number computed with Binet’s formula and displayed with exactly one decimal digit.
+
+---
+
+### 1.  Notation used  
+
+* \( \mathbb N = \{0,1,2,\dots\}\) – the set of natural numbers.  
+* \( \varphi = \dfrac{1+\sqrt5}{2}\)  (the golden ratio).  
+* \( \psi = \dfrac{1-\sqrt5}{2}\)  (the conjugate of the golden ratio).  
+* \( \displaystyle \operatorname{B}(n) = \frac{\varphi^{\,n}-\psi^{\,n}}{\sqrt5}\) – Binet’s exact formula for \(F_n\).  
+* \( \displaystyle \operatorname{round}_1(x)=\frac{\big\lfloor 10\,x\big\rfloor}{10}\) – rounding **down** to one decimal place (any equivalent “round‑to‑nearest‑0.1” can be used; the examples show that the exact value of \(\operatorname{B}(n)\) already has a terminating decimal with one digit after the point).  
+* \(out\) – the variable that holds the printed result (a real number).  
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\boxed{P(n)\;:=\; n\in\mathbb N \;\land\; 1\le n\le 50}
+\]
+
+The program may be invoked **only** when the input satisfies \(P(n)\).
+
+---
+
+### 3.  Post‑condition  
+
+\[
+\boxed{Q(n,out)\;:=\;
+   out = \operatorname{round}_1\!\bigl(\operatorname{B}(n)\bigr)
+   \;\land\; \text{out has exactly one digit after the decimal point}}
+\]
+
+Equivalently, using the explicit constants:
+
+\[
+out = \frac{\big\lfloor 10\,\frac{\varphi^{\,n}-\psi^{\,n}}{\sqrt5}\big\rfloor}{10}.
+\]
+
+The post‑condition guarantees that the value printed is the Fibonacci number
+\(F_n\) obtained from Binet’s formula, represented with one decimal place.
+
+---
+
+### 4.  Hoare triple  
+
+\[
+\boxed{\{\,P(n)\,\}\; \texttt{fib\_binet}(n, out)\; \{\,Q(n,out)\,\}}
+\]
+
+where `fib_binet` denotes the (deterministic) algorithm that:
+
+1. reads the integer \(n\);
+2. computes \(\displaystyle \frac{\varphi^{\,n}-\psi^{\,n}}{\sqrt5}\);
+3. rounds the result to one decimal place (as defined by \(\operatorname{round}_1\));
+4. stores the rounded value in the variable `out` (and prints it).
+
+---
+
+### 5.  Verification against the examples  
+
+| \(n\) | \(\operatorname{B}(n)\) (exact) | \(\operatorname{round}_1(\operatorname{B}(n))\) | Printed `out` |
+|------|--------------------------------|-----------------------------------------------|---------------|
+| 1    | \(1\)                          | \(1.0\)                                        | **1.0** |
+| 2    | \(1\)                          | \(1.0\)                                        | **1.0** |
+| 3    | \(2\)                          | \(2.0\)                                        | **2.0** |
+
+All three examples satisfy the Hoare triple, confirming that the specification
+captures the intended behaviour.

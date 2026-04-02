@@ -217,8 +217,8 @@ def code_logic(code_list):
         save_io_files_simplified(code, llm_response)
         # save_io_files(code, inputs, outputs)
 
-def formal_specification_logic(code_list):
-    base_prompt = load_base_prompt("formal_specification_prompt")
+def conditions_generation_logic(code_list):
+    base_prompt = load_base_prompt("condition_generation_prompt")
 
     for code in code_list:
         description = load_description(code)
@@ -237,6 +237,18 @@ def formal_specification_logic(code_list):
 
         save_pre_post_conditions(code, llm_response)
 
+def load_conditions(code):
+    file_path = os.path.join(
+        BASE_DIR,
+        "pre_pos_conditions",
+        f"{code}_condition.txt"
+    )
+
+    with open(file_path, "r", encoding="utf-8") as file_condition:
+        content = file_condition.read()
+        return content
+    
+    
 def formal_specification_validation_logic(code_list):
     base_prompt = load_base_prompt("final_verification_prompt")
 
@@ -246,41 +258,47 @@ def formal_specification_validation_logic(code_list):
         if not exercise:
             continue
 
-        full_prompt = f"{base_prompt}\n\n{exercise}"
+        try:
+            loaded_conditions = load_conditions(code)
 
-        llm_response = generate_examples(full_prompt)
+            full_prompt = f"{base_prompt}\n\n{exercise} \n\n With the conditions:{loaded_conditions}"
 
+            llm_response = generate_examples(full_prompt)
+            print(f"Code: {code}")
+            print(f"Generated formal proof.")
+            print("-" * 40)
 
-        print(f"Code: {code}")
-        print(f"Generated formal proof.")
-        print("-" * 40)
+            save_formal_proof(code, llm_response)
 
-        save_formal_proof(code, llm_response)
-    
+        except Exception as e:
+            print(f"Error loading conditions for code {code}: {e}")
+            continue
 
     
 def main():
-    # exercise_codes =[]
-    # iniciante_codes = [
-    #     1173,
-    #     1174, 1176, 1177, 1178, 1180, 1186,
-    #     1189, 1262, 1478, 1534, 1541, 1557, 1564,
-    #     1589, 1759, 1828, 1837, 1848, 1858, 1864, 1865,
-    #     1866, 1914, 1930, 1933, 1957, 1960, 1963, 1973,
-    #     1985, 2003, 2006, 2028, 2029, 2031, 2059, 2060, 2061, 2140,
-    #     2146, 2147, 2152, 2159, 2161, 2162, 2166, 2167, 
-    #     2172, 2176, 2221, 2234, 2235, 2310, 2313, 2344, 2543,
-    #     2670, 2702, 2708, 2717, 2728, 2747, 2748, 2750,
-    #     2752, 2753, 2754, 2756, 2763, 2774, 2779, 2780, 2786, 2787,
-    #     2791, 2861, 2862,  2896, 2936, 2950, 2987, 3040, 3046,
-    #     3047, 3055, 3091,  3142, 3145, 3146, 3147, 
-    #     3170, 3173, 3209, 3250, 3253, 3255
-    # ]
+    exercises_to_generate_solutions = [1188]
     
-    exercises_to_generate_again = [
-        1789
+    missing_conditions_group = [
+        1000, 1001, 1181, 1182, 1183, 1185, 1187, 1188, 1190, 
+        1789, 1827, 1924, 2164, 2168, 2483, 2581, 2879, 3140,
+        3157, 3161, 3174, 3252, 3256
     ]
-
+    
+    missing_proofs_group = [
+        1002, 1003, 1004, 1006, 1007, 1010,
+        1013, 1014, 1015, 1016, 1017, 1018, 
+        1019, 1021, 1038, 1040, 1042, 1043, 
+        1046, 1047, 1048, 1050, 1051, 1052, 
+        1059, 1060, 1064, 1065, 1066, 1067, 
+        1070, 1072, 1073, 1074, 1075, 1078, 
+        1079, 1080, 1094, 1095, 1096, 1097, 
+        1098, 1099, 1101, 1113, 1114, 1115, 
+        1117, 1118, 1131, 1132, 1133, 1134, 
+        1142, 1143, 1144, 1145, 1146, 1150, 
+        1153, 1154, 1155, 1156, 1157, 1158, 
+        1159, 1164, 1165, 1172
+    ]
+    
     # iniciante_codes = [
     #     1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009,
     #     1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019,
@@ -305,9 +323,9 @@ def main():
     #     3170, 3173, 3174, 3209, 3250, 3252, 3253, 3255, 3256
     # ]
 
-    code_logic(exercises_to_generate_again)
-    # formal_specification_logic(iniciante_codes)
-    # formal_specification_validation_logic(iniciante_codes)
+    code_logic(exercises_to_generate_solutions)
+    # conditions_generation_logic(missing_conditions_group)
+    # formal_specification_validation_logic(exercises_for_formal_specification)
 
     
 if __name__ == "__main__":

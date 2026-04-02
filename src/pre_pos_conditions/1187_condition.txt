@@ -1,0 +1,113 @@
+Below is a **Hoare‑logic style specification** of the program that reads the operation character and the 12 × 12 matrix, then prints either the sum or the average of the elements that belong to the “green” region shown in the statement.
+
+---
+
+### 1.  Notation used  
+
+* `op ∈ {'S','M'}` – the operation selector ( **S** = sum, **M** = average).  
+* `A : \{0,\dots ,11\}\times\{0,\dots ,11\}\to\mathbb R` – the matrix that is read from the input.  
+* `G ⊆ \{0,\dots ,11\}\times\{0,\dots ,11\}` – the set of index pairs that belong to the green area.  
+  \[
+  G \;=\;\Bigl\{(i,j)\;\Big|\;0\le i\le 4\;\land\;i+1\le j\le 10-i\Bigr\}
+  \]
+  (there are exactly 30 such pairs).  
+
+* `Σ_G A` – the sum of the matrix entries whose indices are in `G`:
+  \[
+  \Sigma_G A\;=\;\sum_{(i,j)\in G}A[i][j].
+  \]
+
+* `|G| = 30` – cardinality of `G`.  
+
+* `out` – the real number that the program prints (rounded to one decimal place **only for presentation**, the mathematical value is the exact sum or average).
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\boxed{
+P \;:\;
+\begin{aligned}
+&\text{The first input token is a character } op\in\{'S','M'\},\\
+&\text{the next 144 tokens are real numbers forming }A,\\
+&\forall i,j\;(0\le i,j\le 11):\;A[i][j]\in\mathbb R .
+\end{aligned}}
+\]
+
+The pre‑condition only states that the input is well‑formed and that the matrix values are real numbers; no further restriction on the data is required.
+
+---
+
+### 3.  Post‑condition  
+
+Let  
+
+\[
+\text{result}(op,A) \;=\;
+\begin{cases}
+\Sigma_G A &\text{if } op = 'S'\\[4pt]
+\displaystyle\frac{1}{|G|}\,\Sigma_G A &\text{if } op = 'M'
+\end{cases}
+\]
+
+Then the post‑condition is  
+
+\[
+\boxed{
+Q\;:\;
+\text{out}= \text{result}(op,A)
+\quad\text{and}\quad
+\text{out}\text{ is printed with one digit after the decimal point.}
+}
+\]
+
+Formally, the whole program satisfies the Hoare triple  
+
+\[
+\{P\}\; \texttt{Program}\; \{Q\}
+\]
+
+where the program body is:
+
+```
+read op
+for i = 0 .. 11
+    for j = 0 .. 11
+        read A[i][j]
+sum := 0
+for each (i,j) in G
+    sum := sum + A[i][j]
+if op = 'S' then
+    out := sum
+else               // op = 'M'
+    out := sum / 30
+print out (format "%.1f")
+```
+
+---
+
+### 4.  Remarks on the specification  
+
+* The set `G` captures exactly the 30 green‑colored positions that appear in the figure:  
+
+  \[
+  \begin{aligned}
+  &(0,1),(0,2),\dots,(0,10),\\
+  &(1,2),(1,3),\dots,(1,9),\\
+  &(2,3),(2,4),\dots,(2,8),\\
+  &(3,4),(3,5),\dots,(3,7),\\
+  &(4,5),(4,6).
+  \end{aligned}
+  \]
+
+* The cardinality `|G| = 30` is used in the average case; it follows from the definition of `G`:
+  \[
+  |G| = \sum_{i=0}^{4}\bigl((10-i)-(i+1)+1\bigr)=\sum_{i=0}^{4}(10-2i)=30 .
+  \]
+
+* The post‑condition is expressed **mathematically**, independent of any rounding that the output routine may apply. The requirement “one digit after the decimal point” is a formatting constraint, not part of the computed value.
+
+---
+
+Thus the Hoare‑logic specification of the problem is completely captured by the pre‑condition `P` (well‑formed input) and the post‑condition `Q` (the printed value equals the sum or the average of the 30 green‑area elements).

@@ -1,0 +1,108 @@
+Below is a **Hoare‑logic style specification** for the program that, given a map of working cameras, produces the safety status of every downtown block.
+
+---
+
+### 1.  Notation  
+
+* `N` – a natural number read from the first line of the input.  
+* `A` – the input matrix of size \((N+1)\times (N+1)\) whose entries are
+  \[
+      A[i][j]\in\{0,1\},\qquad 0\le i\le N,\;0\le j\le N .
+  \]
+  `A[i][j]=1` means “there is a working camera at corner \((i,j)\)”,  
+  `A[i][j]=0` means “no working camera”.  
+
+* `B` – the output matrix of size \(N\times N\) whose entries are characters
+  \[
+      B[i][j]\in\{\,\text{‘S’},\text{‘U’}\,\},\qquad 0\le i<N,\;0\le j<N .
+  \]
+
+* For a given block \((i,j)\) (the block whose four corners are
+  \((i,j), (i+1,j), (i,j+1), (i+1,j+1)\)) define the **camera‑count**
+  \[
+      C(i,j)\;:=\;A[i][j]+A[i+1][j]+A[i][j+1]+A[i+1][j+1].
+  \]
+
+* The predicate “block \((i,j)\) is **safe**’’ is
+  \[
+      \mathit{Safe}(i,j)\;:\;\;C(i,j)\ge 2 .
+  \]
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\mathit{Pre}\;:=\;&
+   \bigl( N\in\mathbb N \;\land\; 1\le N\le 100 \bigr) \\
+   &\land\; \bigl( A\in\{0,1\}^{(N+1)\times (N+1)} \bigr) .
+\end{aligned}}
+\]
+
+The pre‑condition states that the program receives a well‑formed size
+\(N\) (1 ≤ N ≤ 100) and a rectangular matrix `A` of the correct dimensions,
+whose entries are only 0 or 1.
+
+---
+
+### 3.  Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\mathit{Post}\;:=\;&
+   \bigl( B\in\{\text{‘S’},\text{‘U’}\}^{N\times N} \bigr) \\
+   &\land\; \forall i\in\{0,\dots ,N-1\}\;\forall j\in\{0,\dots ,N-1\}\;:\;
+        \Bigl( B[i][j]=\text{‘S’}\;\Longleftrightarrow\; C(i,j)\ge 2 \Bigr) \\
+   &\land\; \bigl( B[i][j]=\text{‘U’}\;\Longleftrightarrow\; C(i,j)< 2 \bigr) .
+\end{aligned}}
+\]
+
+Equivalently, for every block \((i,j)\),
+
+\[
+   B[i][j]=
+   \begin{cases}
+      \text{‘S’} & \text{if } A[i][j]+A[i+1][j]+A[i][j+1]+A[i+1][j+1]\ge 2,\\[4pt]
+      \text{‘U’} & \text{otherwise.}
+   \end{cases}
+\]
+
+The post‑condition guarantees that the program writes exactly one
+character per block, and that character correctly reflects whether the
+block has **at least two** working cameras at its four corners.
+
+---
+
+### 4.  Hoare Triple  
+
+\[
+\boxed{\;\{\,\mathit{Pre}\,\}\;\; \texttt{algorithm}\;\; \{\,\mathit{Post}\,\}\;}
+\]
+
+where `algorithm` is any terminating implementation that
+
+1. reads `N`,
+2. reads the \((N+1)\times(N+1)\) matrix `A`,
+3. computes `B` according to the definition of `C(i,j)`,
+4. prints the `N` lines of `B` (each line containing `N` characters).
+
+---
+
+### 5.  Informal reading of the specification  
+
+*If the input satisfies the pre‑condition (a size `N` between 1 and 100,
+and a binary matrix `A` of size \((N+1)\times(N+1)\)), then after the
+program terminates the output matrix `B` will contain, for every block,
+the letter **‘S’** exactly when that block’s four corners contain at
+least two working cameras; otherwise it will contain **‘U’**. No other
+output is permitted.*
+
+--- 
+
+This specification, expressed entirely in mathematical notation,
+captures the exact contractual behavior required by the problem
+statement and can be used as the basis for a formal verification
+(e.g., with a Hoare‑logic prover or an interactive theorem prover).

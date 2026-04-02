@@ -76,7 +76,7 @@ def main():
         if file.endswith("_input.txt"):
             code = file.replace("_input.txt", "")
 
-            if code != "1789":
+            if code != "1188":
                 continue
 
             print(f"Processing file: {file} for code {code}")

@@ -1,0 +1,33 @@
+**Hoare‑logic specification (pre‑ and post‑conditions)**  
+
+Let  
+
+* `out` be the content of the program’s output buffer (initially empty),  
+* `σ` denote the whole program state (here the only relevant component is `out`).  
+
+The program `P` for *Problem 1001* has **no input variables** – therefore the pre‑condition does not depend on any external data.
+
+---
+
+\[
+\boxed{\{\,\top\,\}\; P\; \{\, out = \texttt{"Hello World!}\,\backslash n" \,\}}
+\]
+
+### Explanation of the components
+
+| Symbol | Meaning |
+|--------|---------|
+| `⊤` (top) | **True** – the program may start in any state (there are no requirements on the input). |
+| `P` | The concrete program that prints the string `Hello World!` followed by a newline. |
+| `out` | The observable output produced by `P`. |
+| `\texttt{"Hello World!}\,\backslash n"` | The exact string that must appear in the output buffer after termination (the characters `H e l l o ␣ W o r l d !` followed by the line‑feed character). |
+| `\{\,\top\,\}` | **Pre‑condition**: always satisfied. |
+| `\{\, out = … \,\}` | **Post‑condition**: after `P` terminates, the output buffer contains exactly the required message and line‑break. |
+
+If one wishes to make termination explicit, the post‑condition can be written as
+
+\[
+\{\, out = \texttt{"Hello World!}\,\backslash n" \;\land\; \text{terminated}(P) \,\}.
+\]
+
+But in the usual Hoare‑logic setting, the triple \(\{ \top\}\,P\,\{ out = \texttt{"Hello World!}\,\backslash n"\}\) already implies that `P` terminates with the stated output.

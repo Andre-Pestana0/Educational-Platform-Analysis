@@ -1,0 +1,268 @@
+**Proof that the program satisfies the Hoare‑logic specification**  
+
+\[
+\{P\}\;S\;\{Q\},
+\qquad
+P \;:=\; x\in\mathbb R\land y\in\mathbb R,
+\qquad
+Q\;:=\;\bigvee_{i=1}^{7} C_i
+\]
+
+where the seven clauses \(C_i\) are exactly the rows of the post‑condition that appear in the statement of the problem.
+
+---------------------------------------------------------------------
+
+## 1.  The program as a Hoare‑logic command  
+
+```
+read(x,y);               #  S₀
+if x == 0 and y == 0:    #  S₁
+        out := "Origem"
+elif x == 0:             #  S₂
+        out := "Eixo Y"
+elif y == 0:             #  S₃
+        out := "Eixo X"
+elif x > 0 and y > 0:    #  S₄
+        out := "Q1"
+elif x > 0 and y < 0:    #  S₅
+        out := "Q4"
+elif x < 0 and y > 0:    #  S₆
+        out := "Q2"
+else:                    #  S₇   (the only remaining case is x<0∧y<0)
+        out := "Q3"
+print(out)               #  S₈
+```
+
+For the proof we treat `read(x,y)` as a **skip** that merely guarantees the existence of two real numbers; therefore after `S₀` the state still satisfies the pre‑condition \(P\).
+
+---------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules that will be used  
+
+| Rule | Statement |
+|------|------------|
+| **Assignment** | \(\displaystyle\frac{}{\{\,\phi[e/x]\,\}\;x:=e\;\{\phi\}}\) |
+| **Conditional** (binary) | \(\displaystyle\frac{\{P\land B\}\;S_1\;\{Q\}\qquad\{P\land\lnot B\}\;S_2\;\{Q\}}{\{P\}\;\mathbf{if}\;B\;\mathbf{then}\;S_1\;\mathbf{else}\;S_2\;\{Q\}}\) |
+| **Consequence** | From \(\{P'\}S\{Q'\}\) and \(P\Rightarrow P',\;Q'\Rightarrow Q\) infer \(\{P\}S\{Q\}\). |
+| **Sequencing** | \(\displaystyle\frac{\{P\}S_1\{R\}\qquad\{R\}S_2\{Q\}}{\{P\}S_1;S_2\{Q\}}\) |
+
+The chain of `elif`‑branches can be seen as a succession of nested binary conditionals; the proof proceeds by induction on the depth of this nesting.
+
+---------------------------------------------------------------------
+
+## 3.  Correctness of each branch  
+
+Below we list the guard \(B_i\) of the *i‑th* branch, the command that is executed in that branch, and the Hoare triple that is obtained directly from the **assignment** rule.
+
+| i | Guard \(B_i\) | Command | Hoare triple (derived by Assignment) |
+|---|---------------|---------|--------------------------------------|
+| 1 | \(x=0\land y=0\) | `out := "Origem"` | \(\{\,x=0\land y=0\land\text{out} = "Origem"\,\}\) |
+| 2 | \(x=0\land y\neq0\) | `out := "Eixo Y"` | \(\{\,x=0\land y\neq0\land\text{out} = "Eixo Y"\,\}\) |
+| 3 | \(y=0\land x\neq0\) | `out := "Eixo X"` | \(\{\,y=0\land x\neq0\land\text{out} = "Eixo X"\,\}\) |
+| 4 | \(x>0\land y>0\) | `out := "Q1"` | \(\{\,x>0\land y>0\land\text{out} = "Q1"\,\}\) |
+| 5 | \(x>0\land y<0\) | `out := "Q4"` | \(\{\,x>0\land y<0\land\text{out} = "Q4"\,\}\) |
+| 6 | \(x<0\land y>0\) | `out := "Q2"` | \(\{\,x<0\land y>0\land\text{out} = "Q2"\,\}\) |
+| 7 | \(x<0\land y<0\) | `out := "Q3"` | \(\{\,x<0\land y<0\land\text{out} = "Q3"\,\}\) |
+
+Each of the triples above is exactly one of the disjuncts \(C_i\) that appear in the post‑condition \(Q\).
+
+---------------------------------------------------------------------
+
+## 4.  Exhaustiveness of the guards  
+
+We must show that the seven guards form a **partition** of the whole state space \(\mathbb R^2\):
+
+\[
+\begin{aligned}
+\Phi &\equiv
+(x=0\land y=0)\;\lor\\
+&\;(x=0\land y\neq0)\;\lor\\
+&\;(y=0\land x\neq0)\;\lor\\
+&\;(x>0\land y>0)\;\lor\\
+&\;(x>0\land y<0)\;\lor\\
+&\;(x<0\land y>0)\;\lor\\
+&\;(x<0\land y<0).
+\end{aligned}
+\]
+
+A straightforward case analysis on the signs of \(x\) and \(y\) proves \(\Phi\) is a tautology:
+
+* If \(x=0\) then either \(y=0\) (first clause) or \(y\neq0\) (second clause).  
+* If \(x\neq0\) then either \(y=0\) (third clause) or \(y\neq0\).  
+  * When \(y\neq0\) we have four possibilities for the signs of \(x\) and \(y\) – exactly the four remaining clauses.
+
+Consequently for **every** state that satisfies the pre‑condition \(P\) we have  
+
+\[
+P\;\Rightarrow\; \Phi .
+\tag{1}
+\]
+
+---------------------------------------------------------------------
+
+## 5.  Building the whole conditional  
+
+We construct the nested conditional from the innermost `else` outward, applying the **Conditional** rule repeatedly.
+
+### 5.1  The innermost two branches  
+
+Let  
+
+\[
+B_6 \equiv (x<0\land y<0),\qquad
+S_7\equiv\texttt{out := "Q3"} .
+\]
+
+From the assignment rule we have  
+
+\[
+\{\,B_6\,\}\;S_7\;\{C_7\}.
+\tag{2}
+\]
+
+The preceding branch (the *elif* that tests `x < 0 and y > 0`) has guard  
+
+\[
+B_5 \equiv (x<0\land y>0),\qquad
+S_6\equiv\texttt{out := "Q2"} .
+\]
+
+Again  
+
+\[
+\{\,B_5\,\}\;S_6\;\{C_6\}.
+\tag{3}
+\]
+
+Using the Conditional rule with (2) as the *else* part we obtain  
+
+\[
+\{\,B_5\lor B_6\,\}\;
+\mathbf{if}\;B_5\;\mathbf{then}\;S_6\;\mathbf{else}\;S_7\;
+\{\,C_6\lor C_7\,\}.
+\tag{4}
+\]
+
+### 5.2  Adding the next branch (`x>0 and y<0`)  
+
+Guard  
+
+\[
+B_4\equiv (x>0\land y<0),\qquad S_5\equiv\texttt{out := "Q4"} .
+\]
+
+From the assignment rule  
+
+\[
+\{\,B_4\,\}\;S_5\;\{C_5\}.
+\tag{5}
+\]
+
+Apply the Conditional rule with (4) as the *else* part:
+
+\[
+\{\,B_4\lor B_5\lor B_6\,\}\;
+\mathbf{if}\;B_4\;\mathbf{then}\;S_5\;\mathbf{else}\;
+(\mathbf{if}\;B_5\;\mathbf{then}\;S_6\;\mathbf{else}\;S_7)
+\;
+\{\,C_5\lor C_6\lor C_7\,\}.
+\tag{6}
+\]
+
+### 5.3  Continuing upward  
+
+Repeating the same construction for the remaining guards  
+
+\[
+\begin{aligned}
+B_3 &\equiv (x>0\land y>0)   & S_4 &\equiv\texttt{out := "Q1"}   & C_4\\
+B_2 &\equiv (y=0\land x\neq0) & S_3 &\equiv\texttt{out := "Eixo X"} & C_3\\
+B_1 &\equiv (x=0\land y\neq0) & S_2 &\equiv\texttt{out := "Eixo Y"} & C_2\\
+B_0 &\equiv (x=0\land y=0)    & S_1 &\equiv\texttt{out := "Origem"}   & C_1
+\end{aligned}
+\]
+
+each yields a Hoare triple of the form  
+
+\[
+\{\,B_i\,\}\;S_{i+1}\;\{C_{i+1}\}.
+\]
+
+By successive applications of the Conditional rule we eventually obtain the Hoare triple for the *whole* if‑elif‑else chain:
+
+\[
+\boxed{\;
+\{\,B_0\lor B_1\lor\cdots\lor B_6\,\}\;
+\mathbf{if}\;B_0\;\mathbf{then}\;S_1\;\mathbf{elif}\;B_1\;\mathbf{then}\;S_2\;\cdots\;\mathbf{else}\;S_7
+\;
+\{\,C_1\lor C_2\lor\cdots\lor C_7\,\}
+\;}
+\tag{7}
+\]
+
+---------------------------------------------------------------------
+
+## 6.  From the guard disjunction to the pre‑condition  
+
+Recall (1): \(P\Rightarrow (B_0\lor\cdots\lor B_6)\).  
+Applying the **Consequence** rule to (7) we replace the antecedent by the weaker pre‑condition \(P\) and keep the consequent unchanged:
+
+\[
+\{\,P\,\}\;
+\mathbf{if}\ldots\mathbf{else}\ldots
+\;
+\{\,C_1\lor\cdots\lor C_7\,\}= \{\,Q\,\}.
+\tag{8}
+\]
+
+Thus the conditional part of the program satisfies the specification.
+
+---------------------------------------------------------------------
+
+## 7.  Sequencing with the input and the output statements  
+
+* `read(x,y)` does not modify the logical variables; it merely guarantees that after its execution the state still satisfies \(P\).  
+  Hence  
+
+  \[
+  \{P\}\;\texttt{read}(x,y)\;\{P\}.
+  \]
+
+* The final `print(out)` does not change the value of `out`; therefore  
+
+  \[
+  \{Q\}\;\texttt{print}(out)\;\{Q\}.
+  \]
+
+Using the **Sequencing** rule with (8) we obtain the Hoare triple for the whole program \(S\):
+
+\[
+\boxed{\;
+\{P\}\;
+\bigl(\texttt{read}(x,y);\;
+\texttt{if}\ldots\texttt{else}\ldots;\;
+\texttt{print}(out)\bigr)
+\;
+\{Q\}
+\;}
+\]
+
+---------------------------------------------------------------------
+
+## 8.  Conclusion  
+
+We have exhibited a formal Hoare‑logic derivation that starts from the pre‑condition  
+
+\[
+P :\; x\in\mathbb R\land y\in\mathbb R,
+\]
+
+covers each possible case for the pair \((x,y)\) with a branch whose assignment establishes the corresponding clause of the post‑condition, and finally combines the branches using the conditional rule together with the obvious consequence that the guards exhaust all real pairs.  
+
+Consequently the Hoare triple  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+is proved, i.e. **the Python program is correct with respect to the given formal specification**.

@@ -1,0 +1,386 @@
+## 1.  What we have to prove  
+
+We are asked to show that the **Hoare triple**
+
+\[
+\{\,\top \,\}\; \textbf{read }x;\;
+\textbf{if }x<0\lor x>100\;\textbf{then }msg:=s_{\text{out}}
+\;\textbf{elsif }0\le x\le 25\;\textbf{then }msg:=s_{1}
+\;\textbf{elsif }25<x\le 50\;\textbf{then }msg:=s_{2}
+\;\textbf{elsif }50<x\le 75\;\textbf{then }msg:=s_{3}
+\;\textbf{elsif }75<x\le 100\;\textbf{then }msg:=s_{4}
+\;\textbf{fi};\;
+\textbf{print }msg\;
+\{\,\Phi(x,msg)\,\}
+\tag{T}
+\]
+
+holds, where  
+
+\[
+\begin{aligned}
+\Phi(x,msg) \equiv\;&
+\bigl(0\le x\le 25 \land msg = s_{1}\bigr) \;\lor\\
+&\bigl(25 < x\le 50 \land msg = s_{2}\bigr) \;\lor\\
+&\bigl(50 < x\le 75 \land msg = s_{3}\bigr) \;\lor\\
+&\bigl(75 < x\le 100 \land msg = s_{4}\bigr) \;\lor\\
+&\bigl((x<0 \lor x>100) \land msg = s_{\text{out}}\bigr).
+\end{aligned}
+\]
+
+The only observable effect of the program is the string printed, i.e. the value stored in the logical variable `msg`.  
+The Python fragment that implements the specification is
+
+```python
+valor = float(input())                 # read x
+if 100 < valor:                         #  x>100
+    print("Fora de intervalo")         #  msg := s_out
+elif 75 < valor:                        # 75 < x ≤ 100
+    print("Intervalo (75,100]")
+elif 50 < valor:                        # 50 < x ≤ 75
+    print("Intervalo (50,75]")
+elif 25 < valor:                        # 25 < x ≤ 50
+    print("Intervalo (25,50]")
+elif 0 <= valor:                        # 0 ≤ x ≤ 25
+    print("Intervalo [0,25]")
+else:                                   # x<0
+    print("Fora de intervalo")         #  msg := s_out
+```
+
+The control‑flow of the Python program is exactly the same as the `if‑elsif‑…‑else` chain in (T); only the order of the tests is reversed (the Python code first checks the *largest* interval).  
+Hence a proof for (T) is a proof for the concrete program.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules that we shall use  
+
+| Rule | Shape | Meaning |
+|------|-------|---------|
+| **Assignment** | \(\displaystyle \frac{}{ \{\,P[x:=E]\,\}\;x:=E\;\{\,P\,\}}\) | After the assignment the post‑condition is obtained by substituting the right‑hand side for the variable. |
+| **Sequence** | \(\displaystyle \frac{\{P\}S_{1}\{Q\}\qquad\{Q\}S_{2}\{R\}}{\{P\}S_{1};S_{2}\{R\}}\) | Two statements executed one after the other. |
+| **Conditional (if‑then‑else)** | \(\displaystyle \frac{\{P\land B\}S_{1}\{Q\}\qquad\{P\land\neg B\}S_{2}\{Q\}}{\{P\}\textbf{if }B\textbf{ then }S_{1}\textbf{ else }S_{2}\{Q\}}\) | The post‑condition must hold no matter which branch is taken. |
+| **Consequence** | \(\displaystyle \frac{P\Rightarrow P'\qquad\{P'\}S\{Q'\}\qquad Q'\Rightarrow Q}{\{P\}S\{Q\}}\) | Allows strengthening the pre‑condition or weakening the post‑condition. |
+| **Rule for “else‑if” chains** | The chain of `elif`s can be viewed as a nested series of `if‑else`. The rule above is applied repeatedly. |
+
+We shall also use the logical tautology that the five guards are **mutually exclusive and exhaustive**:
+
+\[
+\begin{aligned}
+& (x<0\lor x>100) \;\lor\;
+(0\le x\le 25) \;\lor\;
+(25< x\le 50) \;\lor\;
+(50< x\le 75) \;\lor\;
+(75< x\le 100) \\[2pt]
+&\qquad\text{is always true, and any two different disjuncts are contradictory.}
+\end{aligned}
+\tag{E}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Proof structure  
+
+The program consists of three parts  
+
+1. **Read** – `x := input()`.  
+2. **Conditional chain** – the `if‑elsif‑…‑else` that assigns `msg`.  
+3. **Print** – `print msg` (no effect on the logical state, it only externalises `msg`).  
+
+We will prove, step by step, that after part 2 the invariant  
+
+\[
+\boxed{ \Phi(x,msg) }
+\tag{I}
+\]
+
+holds, and then use the *consequence* rule to conclude (T).
+
+--------------------------------------------------------------------
+
+### 3.1  Part 1 – reading the input  
+
+The statement `read x` is modelled as the assignment `x := input`.  
+Because the pre‑condition is `⊤` (true for any initial state) we have
+
+\[
+\{\,\top\,\}\;x:=\text{input}\;\{\,\top\,\}
+\tag{R1}
+\]
+
+(the post‑condition is still `⊤`, because the value of `x` can be any real number).
+
+--------------------------------------------------------------------
+
+### 3.2  Part 2 – the conditional chain  
+
+We rewrite the chain as a *nesting* of ordinary `if‑else` statements:
+
+```
+if (x<0 ∨ x>100) then
+        msg := s_out
+else
+    if (0 ≤ x ≤ 25) then
+            msg := s1
+    else
+        if (25 < x ≤ 50) then
+                msg := s2
+        else
+            if (50 < x ≤ 75) then
+                    msg := s3
+            else
+                if (75 < x ≤ 100) then
+                        msg := s4
+                else
+                        msg := s_out      -- this ‘else’ is unreachable because of (E)
+```
+
+We prove the correctness of each inner `if‑else` by the *conditional* rule, using the **assignment** rule for the branch bodies.
+
+--------------------------------------------------------------------
+#### 3.2.1  The innermost `if (75 < x ≤ 100)`  
+
+*Guard* \(B_{4}\equiv 75 < x \le 100\)  
+
+*Then‑branch* \(S_{4}\equiv msg:=s_{4}\)  
+
+*Else‑branch* \(S_{5}\equiv msg:=s_{\text{out}}\) (the unreachable case)
+
+**Then‑branch**  
+
+\[
+\{\, (B_{4}) \land (75 < x \le 100)\,\}\;msg:=s_{4}\;\{\,msg = s_{4}\,\}
+\]
+
+by the assignment rule, because the post‑condition is simply the substitution of `s4` for `msg`.
+
+**Else‑branch**  
+
+The negation of the guard is  
+
+\[
+\neg B_{4}\; \equiv\; (x\le 75) \lor (x>100).
+\]
+
+Together with the invariant that all previous guards have already failed we obtain  
+
+\[
+\neg B_{4}\land\neg B_{3}\land\neg B_{2}\land\neg B_{1}
+\;\equiv\;
+(x\le 75)\land (x\le 50)\land (x\le 25)\land (x\ge 0)
+\;\lor\;(x>100).
+\]
+
+The only way the else‑branch can be taken is when \(x>100\).  
+Hence the pre‑condition of the else‑branch is \(x>100\) and the assignment `msg:=s_out`
+produces the post‑condition \(msg=s_{\text{out}}\).
+
+Thus, by the **conditional rule**, we have
+
+\[
+\{\,\top\,\}\;
+\textbf{if }B_{4}\textbf{ then }msg:=s_{4}\textbf{ else }msg:=s_{\text{out}}
+\;\{\, (75<x\le 100\land msg=s_{4})\;\lor\;(x>100\land msg=s_{\text{out}})\,\}.
+\tag{C4}
+\]
+
+--------------------------------------------------------------------
+#### 3.2.2  The next level `if (50 < x ≤ 75)`  
+
+*Guard* \(B_{3}\equiv 50 < x \le 75\)  
+
+*Then‑branch* `msg:=s3`  
+
+*Else‑branch* the whole program proved in (C4) (the “inner” conditional).
+
+**Then‑branch**  
+
+\[
+\{\,B_{3}\,\}\;msg:=s_{3}\;\{\,msg=s_{3}\,\}.
+\]
+
+**Else‑branch**  
+
+Its pre‑condition is \(\neg B_{3}\) together with the post‑condition of (C4).  
+\(\neg B_{3}\) is \((x\le 50)\lor (x>75)\).  
+When combined with the result of (C4) we obtain the disjunction
+
+\[
+\begin{aligned}
+&(75<x\le 100\land msg=s_{4})\\
+\lor &(x>100\land msg=s_{\text{out}})\\
+\lor &(50<x\le 75\land msg=s_{3})\quad\text{(impossible because }\neg B_{3})\\
+\lor &(x\le 50\land msg=s_{\text{out}}) .
+\end{aligned}
+\]
+
+Since the branch `msg:=s3` is not executed, the only surviving cases are  
+
+* \(75 < x \le 100\) with `msg = s4`, or  
+* \(x > 100\) with `msg = s_out`.
+
+Thus the **conditional rule** yields
+
+\[
+\{\,\top\,\}\;
+\textbf{if }B_{3}\textbf{ then }msg:=s_{3}
+\textbf{ else }(\text{C4})
+\;\{\, (50<x\le 75\land msg=s_{3})\;\lor\; (75<x\le 100\land msg=s_{4})\;\lor\; (x>100\land msg=s_{\text{out}})\,\}.
+\tag{C3}
+\]
+
+--------------------------------------------------------------------
+#### 3.2.3  The next level `if (25 < x ≤ 50)`  
+
+Exactly the same pattern, using (C3) as the else‑branch.
+
+Result:
+
+\[
+\{\,\top\,\}\;
+\textbf{if }B_{2}\textbf{ then }msg:=s_{2}
+\textbf{ else }(\text{C3})
+\;\{\, (25<x\le 50\land msg=s_{2})\;\lor\;
+(50<x\le 75\land msg=s_{3})\;\lor\;
+(75<x\le 100\land msg=s_{4})\;\lor\;
+(x>100\land msg=s_{\text{out}})\,\}.
+\tag{C2}
+\]
+
+--------------------------------------------------------------------
+#### 3.2.4  The next level `if (0 ≤ x ≤ 25)`  
+
+Again the same reasoning, with (C2) as the else‑branch.
+
+Result:
+
+\[
+\{\,\top\,\}\;
+\textbf{if }B_{1}\textbf{ then }msg:=s_{1}
+\textbf{ else }(\text{C2})
+\;\{\, (0\le x\le 25\land msg=s_{1})\;\lor\;
+(25<x\le 50\land msg=s_{2})\;\lor\;
+(50<x\le 75\land msg=s_{3})\;\lor\;
+(75<x\le 100\land msg=s_{4})\;\lor\;
+(x>100\land msg=s_{\text{out}})\,\}.
+\tag{C1}
+\]
+
+--------------------------------------------------------------------
+#### 3.2.5  The outermost `if (x<0 ∨ x>100)`  
+
+The guard is  
+
+\[
+B_{0}\equiv (x<0\lor x>100).
+\]
+
+Its **then‑branch** is `msg:=s_out`.  
+Its **else‑branch** is exactly the program proved in (C1).  
+
+*Then‑branch*  
+
+\[
+\{\,B_{0}\,\}\;msg:=s_{\text{out}}\;\{\,msg=s_{\text{out}}\,\}.
+\]
+
+*Else‑branch*  
+
+The pre‑condition of the else‑branch is \(\neg B_{0}\equiv 0\le x\le 100\).  
+When we intersect this with the post‑condition of (C1) we simply **drop** the disjunct
+\((x>100\land msg=s_{\text{out}})\) because it contradicts \(\neg B_{0}\).  
+Hence the else‑branch guarantees the disjunction
+
+\[
+\begin{aligned}
+&(0\le x\le 25\land msg=s_{1})\;\lor\\
+&(25<x\le 50\land msg=s_{2})\;\lor\\
+&(50<x\le 75\land msg=s_{3})\;\lor\\
+&(75<x\le 100\land msg=s_{4}).
+\end{aligned}
+\tag{E1}
+\]
+
+Applying the **conditional rule** one more time we obtain the final Hoare triple for the whole conditional chain:
+
+\[
+\boxed{
+\{\,\top\,\}\;
+\textbf{if }(x<0\lor x>100)\textbf{ then }msg:=s_{\text{out}}
+\textbf{ elsif }0\le x\le 25\textbf{ then }msg:=s_{1}
+\textbf{ elsif }25<x\le 50\textbf{ then }msg:=s_{2}
+\textbf{ elsif }50<x\le 75\textbf{ then }msg:=s_{3}
+\textbf{ elsif }75<x\le 100\textbf{ then }msg:=s_{4}
+\textbf{ fi}
+\;\{\,\Phi(x,msg)\,\}.
+}
+\tag{C0}
+\]
+
+The post‑condition of (C0) is **exactly** the specification \(\Phi(x,msg)\) that we wanted to prove.
+
+--------------------------------------------------------------------
+
+### 3.3  Part 3 – printing  
+
+The statement `print msg` does not change the logical variables `x` or `msg`; it only produces a side‑effect observable by the environment.  
+In Hoare logic we treat it as a *skip* with respect to the logical state, i.e.
+
+\[
+\{\,\Phi(x,msg)\,\}\;\textbf{print }msg\;\{\,\Phi(x,msg)\,\}.
+\tag{Rprint}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Assembling the whole proof  
+
+Using the **sequence rule** three times we combine the three parts:
+
+1. From (R1) we have  
+
+   \(\{\,\top\,\}\;x:=\text{input}\;\{\,\top\,\}\).
+
+2. From (C0) we have  
+
+   \(\{\,\top\,\}\;\text{conditional chain}\;\{\,\Phi(x,msg)\,\}\).
+
+3. From (Rprint) we have  
+
+   \(\{\,\Phi(x,msg)\,\}\;\text{print }msg\;\{\,\Phi(x,msg)\,\}\).
+
+Applying the sequence rule:
+
+\[
+\{\,\top\,\}\;
+x:=\text{input};\;
+\bigl(\text{conditional chain}\bigr);\;
+\text{print }msg
+\;\{\,\Phi(x,msg)\,\}.
+\]
+
+This is precisely the Hoare triple (T) that we set out to prove.
+
+--------------------------------------------------------------------
+
+## 5.  Remarks on the Python implementation  
+
+* The Python `if … elif …` chain tests the conditions in the **reverse order** (first `valor>100`, then `valor>75`, …).  
+  Because the guards are *mutually exclusive* (see (E)), testing them in any order produces the same unique branch.  
+* The `else` clause in Python corresponds to the first guard `x<0 ∨ x>100`.  
+* The `print` statements are the concrete realisation of the abstract assignment `msg := s_i` followed by the abstract `print msg`.  
+
+Thus the concrete program satisfies the same Hoare triple that we have proved for the abstract specification.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have formally derived, using the standard Hoare‑logic inference rules, that starting from an arbitrary input value `x` (pre‑condition `⊤`) the program
+
+* reads `x`,
+* selects exactly one of the five mutually exclusive branches,
+* assigns the corresponding string `msg`,
+* prints `msg`
+
+terminates with a state that satisfies the post‑condition `Φ(x,msg)`.  
+Consequently the program is **correct** with respect to the given specification: for every real (floating‑point) input it prints precisely the interval label required by the problem statement, or “Fora de intervalo” when the value lies outside \([0,100]\). ∎

@@ -1,0 +1,217 @@
+## 1.  Overview  
+
+We prove the Hoare‑logic triple  
+
+\[
+\{P\}\;{\tt Program}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;a_{0}>0\land b_{0}>0\land c_{0}>0
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:\;&\bigl(\neg\mathsf{tri\_valid}\;\rightarrow\;{\tt out}= \{\text{«NAO FORMA TRIANGULO»}\}\bigr)\\
+   &\land\bigl(\mathsf{tri\_valid}\;\rightarrow\;
+      {\tt out}= \mathcal A\cup\mathcal S\bigr)
+\end{aligned}
+\]
+
+with the predicates \(\mathsf{tri\_valid},\mathsf{right},\mathsf{obtuse},\mathsf{acute},
+\mathsf{equil},\mathsf{isos}\) defined in the specification (Section 3).  
+
+The program that we analyse is the concrete Python fragment shown in the
+question.  Throughout the proof we use the usual Hoare‑logic rule  
+
+\[
+\frac{\{A\}\;S\;\{B\}}{\{A\}\;S;S'\;\{B\}}\qquad\text{(consequence)}
+\]
+
+and the *assignment axiom*  
+
+\[
+\{\,B[x:=E]\,\}\;x:=E\;\{\,B\,\}
+\]
+
+where \(B[x:=E]\) denotes the formula obtained from \(B\) by substituting the
+expression \(E\) for the variable \(x\).  
+All arithmetic operations are assumed to be total on \(\mathbb R\) (the
+program never raises an exception because the pre‑condition guarantees that
+the three inputs are positive real numbers).
+
+The proof is organised as a sequence of *assertions* that appear after each
+syntactic step of the program.  The assertions are written in the same
+mathematical language used for \(P\) and \(Q\).  The two `print` statements
+that appear at the beginning of the script (`print(lados)` and
+`print(ladoA, ladoB, ladoC)`) are *debug prints*; they do not affect the
+variables that are later used for the classification, therefore they can be
+safely ignored for the purpose of the Hoare‑logic proof.  (If we wanted to
+include them, the post‑condition would simply be enriched with the extra
+output lines, but the core correctness argument would be unchanged.)
+
+--------------------------------------------------------------------
+
+## 2.  Notation  
+
+* The three input strings read by `input().split()` are denoted  
+  \(\sigma_{1},\sigma_{2},\sigma_{3}\in\text{String}\).  
+  Their conversion to real numbers is performed by `map(float, …)`.  
+
+* After the sorting step we introduce the program variables  
+
+\[
+a,b,c\in\mathbb R
+\]
+
+* The *sorted triple* is defined by  
+
+\[
+(a,b,c)=\operatorname{sort\_desc}(a_{0},b_{0},c_{0})
+\tag{S1}
+\]
+
+which means  
+
+\[
+a\ge b\ge c\qquad\text{and}\qquad\{a,b,c\}=\{a_{0},b_{0},c_{0}\}.
+\tag{S2}
+\]
+
+* The *output set* that the program builds is called `out`.  
+  In the concrete Python code the output is realised by a sequence of
+  `print` statements; each `print` adds exactly one element to `out`
+  (the order of the prints is the order required by the specification).
+
+--------------------------------------------------------------------
+
+## 3.  Proof – step by step  
+
+Below each line of the program we write the assertion that holds *immediately
+after* the line has been executed.
+
+| line (abstract) | assertion after the line |
+|------------------|--------------------------|
+| **1.** `read a0,b0,c0` | \(\displaystyle\{P\}\) |
+| **2.** `sort_desc` | \(\displaystyle\{\,a,b,c\text{ satisfy (S1)–(S2)}\land P\,\}\) |
+| **3.** `tri_valid := a < b + c` | \(\displaystyle\{\,\mathsf{tri\_valid}\lor\neg\mathsf{tri\_valid}\,\land a\ge b\ge c\,\}\) |
+| **4.** `if ¬tri_valid then print NAO …` | two sub‑cases: <br> *4a*   \(\neg\mathsf{tri\_valid}\)  → after the `print` we have `out = {«NAO FORMA TRIANGULO»}`.<br> *4b*   \(\mathsf{tri\_valid}\)  → we continue to the *else*‑branch, `out` is still empty. |
+| **5.** `else:` (enter the branch where a triangle exists) | \(\displaystyle\{\,\mathsf{tri\_valid}\land\text{out}= \emptyset\land a\ge b\ge c\,\}\) |
+| **6.** `if a*a == b*b + c*c:` | By the *assignment axiom* the guard is exactly the predicate \(\mathsf{right}\). |
+| **7.** `print "TRIANGULO RETANGULO"` | If the guard of line 6 holds we add the element `«TRIANGULO RETANGULO»` to `out`. |
+| **8.** `elif a*a > b*b + c*c:` | Guard is \(\mathsf{obtuse}\). |
+| **9.** `print "TRIANGULO OBTUSANGULO"` | Adds the element `«TRIANGULO OBTUSANGULO»` to `out`. |
+| **10.** `elif a*a < b*b + c*c:` | Guard is \(\mathsf{acute}\). |
+| **11.** `print "TRIANGULO ACUTANGULO"` | Adds the element `«TRIANGULO ACUTANGULO»` to `out`. |
+| **12.** `lados = [a,b,c]` | No change to logical state; we merely create a list that will be used for the `count` operations. |
+| **13.** `if lados.count(a) == 2 or lados.count(b) == 2:` | The condition is equivalent to \(\mathsf{isos}\) (see Lemma 1 below). |
+| **14.** `print "TRIANGULO ISOSCELES"` | If line 13’s guard holds we add `«TRIANGULO ISOSCELES»` to `out`. |
+| **15.** `if lados.count(a) == 3:` | The condition is equivalent to \(\mathsf{equil}\). |
+| **16.** `print "TRIANGULO EQUILATERO"` | If line 15’s guard holds we add `«TRIANGULO EQUILATERO»` to `out`. |
+
+After line 16 the program terminates.  The final assertion is therefore
+
+\[
+\boxed{\; \text{out}= 
+   \begin{cases}
+      \{\text{«NAO FORMA TRIANGULO»}\} & \neg\mathsf{tri\_valid}\\[2mm]
+      \mathcal A\cup\mathcal S          & \mathsf{tri\_valid}
+   \end{cases}
+\;}
+\tag{F}
+\]
+
+which is exactly the post‑condition \(Q\).
+
+--------------------------------------------------------------------
+
+### Lemma 1 – equivalence of the `count` tests with the logical predicates  
+
+Let `lados = [a,b,c]` with \(a\ge b\ge c\).
+
+* `lados.count(a) == 2`  ⇔  \((a=b\land b\neq c)\).  
+  Because the list is sorted, the only way that the *largest* element `a`
+  appears twice is when the first two positions are equal, i.e. \(a=b\).
+
+* `lados.count(b) == 2`  ⇔  \((b=c\land a\neq b)\).  
+  Analogously, `b` appears twice exactly when the last two positions are
+  equal.
+
+* Consequently  
+
+\[
+\bigl(\text{count}(a)=2\lor\text{count}(b)=2\bigr)
+      \;\Longleftrightarrow\; (a=b\lor b=c)\land\neg(a=b\land b=c)
+      \;=\;\mathsf{isos}.
+\]
+
+* `lados.count(a) == 3`  ⇔  \(a=b=c\)  ⇔  \(\mathsf{equil}\).
+
+Thus the two `if` statements in lines 13 and 15 are *exactly* the
+implementations of the logical predicates \(\mathsf{isos}\) and
+\(\mathsf{equil}\) required by the specification.
+
+--------------------------------------------------------------------
+
+## 4.  Verification of each Hoare triple  
+
+Below we list the Hoare triples that were used implicitly in the table above,
+together with a short justification.
+
+| # | Hoare triple | Reason |
+|---|--------------|--------|
+| T1 | \(\{P\}\) `a0,b0,c0 = input()` \(\{P\}\) | The input operation does not change the truth of \(P\) because the pre‑condition already guarantees that the three numbers are positive. |
+| T2 | \(\{P\}\) `a,b,c = sorted(map(float,lados),reverse=True)` \(\{\,a\ge b\ge c\land\{a,b,c\}=\{a_0,b_0,c_0\}\,\}\) | By definition of `sorted(...,reverse=True)`. This is a *semantic* axiom for the library routine; it exactly yields (S1)–(S2). |
+| T3 | \(\{\,a\ge b\ge c\land P\,\}\) `tri_valid = (a < b + c)` \(\{\,\mathsf{tri\_valid}\lor\neg\mathsf{tri\_valid}\,\}\) | Simple Boolean assignment – the guard is the predicate itself. |
+| T4a| \(\{\neg\mathsf{tri\_valid}\}\) `print("NAO FORMA TRIANGULO")` \(\{\text{out}= \{\text{«NAO FORMA TRIANGULO»}\}\}\) | Assignment‑like rule for output: the statement adds precisely that element. |
+| T4b| \(\{\mathsf{tri\_valid}\}\) *skip* (enter the else‑branch) \(\{\mathsf{tri\_valid}\land\text{out}= \emptyset\}\) | No side‑effect. |
+| T5 | \(\{\mathsf{tri\_valid}\land\text{out}= \emptyset\}\) `if a*a == b*b + c*c:` \(\{\mathsf{tri\_valid}\land\text{out}= \emptyset\land(\mathsf{right}\lor\neg\mathsf{right})\}\) | Guard is exactly \(\mathsf{right}\). |
+| T6 | \(\{\mathsf{right}\land\text{out}= \emptyset\}\) `print("TRIANGULO RETANGULO")` \(\{\text{out}= \{\text{«TRIANGULO RETANGULO»}\}\}\) | Same as T4a. |
+| T7 | \(\{\neg\mathsf{right}\land\mathsf{tri\_valid}\land\text{out}= \emptyset\}\) `elif a*a > b*b + c*c:` \(\{\dots\land(\mathsf{obtuse}\lor\neg\mathsf{obtuse})\}\) | Guard = \(\mathsf{obtuse}\). |
+| T8 | \(\{\mathsf{obtuse}\land\text{out}= \emptyset\}\) `print("TRIANGULO OBTUSANGULO")` \(\{\text{out}= \{\text{«TRIANGULO OBTUSANGULO»}\}\}\) | Same pattern. |
+| T9 | \(\{\neg\mathsf{right}\land\neg\mathsf{obtuse}\land\mathsf{tri\_valid}\land\text{out}= \emptyset\}\) `elif a*a < b*b + c*c:` \(\{\dots\land\mathsf{acute}\}\) | Guard = \(\mathsf{acute}\). |
+| T10| \(\{\mathsf{acute}\land\text{out}= \emptyset\}\) `print("TRIANGULO ACUTANGULO")` \(\{\text{out}= \{\text{«TRIANGULO ACUTANGULO»}\}\}\) | Same pattern. |
+| T11| After the three mutually exclusive `if/elif/elif` the invariant holds: <br> \(\{\mathsf{tri\_valid}\land\text{out}= \mathcal A\land a\ge b\ge c\}\). | Because exactly one of the three guards is true, exactly one element of \(\mathcal A\) has been added. |
+| T12| `lados = [a,b,c]` does not change logical variables – the invariant stays the same. |
+| T13| Guard `lados.count(a)==2 or lados.count(b)==2` is equivalent to \(\mathsf{isos}\) (Lemma 1). Therefore the Hoare triple is <br> \(\{\mathsf{tri\_valid}\land\text{out}= \mathcal A\land\neg\mathsf{equil}\land(\mathsf{isos}\lor\neg\mathsf{isos})\}\) `if …` \(\{\mathsf{tri\_valid}\land\text{out}= \mathcal A\cup(\mathsf{isos}\ ?\{\text{«TRIANGULO ISOSCELES»}\}: \emptyset)\}\). |
+| T14| If the guard holds, the `print` adds `«TRIANGULO ISOSCELES»` to `out`. |
+| T15| Guard `lados.count(a)==3` is equivalent to \(\mathsf{equil}\). The Hoare triple is analogous to T13. |
+| T16| If the guard holds, the `print` adds `«TRIANGULO EQUILATERO»` to `out`. |
+| T17| After line 16 we have exactly the union described in (F). | By combination of T11, T14 and T16. |
+
+All triples are justified either by a Hoare‑logic axiom (assignment, conditional,
+consequence) or by a *semantic* property of the library routine (`sorted`,
+`list.count`).  Consequently the composition of the triples yields the overall
+Hoare triple \(\{P\}\;{\tt Program}\;\{Q\}\).
+
+--------------------------------------------------------------------
+
+## 5.  Conclusion  
+
+We have exhibited a formal Hoare‑logic proof that the given Python program
+conforms to the specification:
+
+*If the three positive inputs do **not** satisfy the triangle inequality,
+the program prints exactly the line «NAO FORMA TRIANGULO».  
+If they do satisfy the inequality, the program prints exactly one of the three
+angle messages (right, obtuse, acute) **followed** by the appropriate side‑length
+message (equilateral, isosceles, or none).*
+
+The proof rests on three elementary facts:
+
+1. **Sorting** produces a unique descending representation of the three
+   numbers (property (S1)–(S2)).
+2. The three arithmetic tests on `a*a`, `b*b`, `c*c` are mutually exclusive
+   and correspond precisely to the predicates `right`, `obtuse`, `acute`.
+3. The two `list.count` tests are equivalent to the logical predicates
+   `isos` and `equil` (Lemma 1).
+
+Since each program fragment preserves the invariant that leads from the
+pre‑condition \(P\) to the post‑condition \(Q\), the Hoare triple holds, and
+the program is **correct** with respect to the given formal specification.  

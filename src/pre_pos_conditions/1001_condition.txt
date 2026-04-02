@@ -1,0 +1,64 @@
+Below is a **Hoare‑logic style specification** that captures exactly the behaviour described in the problem statement.  
+Only the two input integers **A** and **B** and the result variable **X** appear in the specification; the rest of the program (reading, printing, terminating) is treated as atomic statements whose effect is described by the post‑condition.
+
+---
+
+### Notation used  
+
+* `ℤ` – the set of all (mathematical) integers.  
+* `⟨s⟩` – the *output string* produced by the program (including the final newline).  
+* `toString(v)` – the usual decimal representation of an integer `v` (without leading spaces, with a leading ‘‑’ if negative).  
+* `·` – string concatenation.  
+* `⊕` – logical conjunction (and).  
+
+We write a Hoare triple as  
+
+\[
+\{P\}\; C\; \{Q\}
+\]
+
+where  
+
+* `P` is the **pre‑condition** (what must hold before executing the command `C`),  
+* `C` is the program fragment, and  
+* `Q` is the **post‑condition** (what is guaranteed after `C` terminates).
+
+---
+
+## Formal specification
+
+\[
+\boxed{
+\begin{aligned}
+&\{\, A\in\mathbb Z \;\land\; B\in\mathbb Z \,\}                         \\
+&\quad\textbf{read}\;A;\;\textbf{read}\;B;                               \\
+&\quad X \;:=\; A + B;                                                   \\
+&\quad \textbf{print}\bigl( "X = " \;·\; toString(X) \;·\; "\n" \bigr)   \\
+&\{\, X = A + B \;\land\; \langle s\rangle = "X = "·toString(X)·"\n" \,\}
+\end{aligned}
+}
+\]
+
+### Explanation of the clauses  
+
+| Clause | Meaning |
+|--------|---------|
+| **Pre‑condition** `A∈ℤ ∧ B∈ℤ` | The program starts with two *input* integers. No other assumptions are required (the input file is guaranteed to contain exactly two integers). |
+| **Command sequence** | 1. `read A; read B;` – consumes the two numbers from the input stream.<br>2. `X := A + B;` – computes the sum.<br>3. `print("X = "·toString(X)·"\n")` – writes exactly the string `X = <value>` followed by a newline. |
+| **Post‑condition** `X = A + B ∧ ⟨s⟩ = "X = "·toString(X)·"\n"` | After termination:<br>• The variable `X` holds the arithmetic sum of the two input integers.<br>• The only observable output is the line `X = <sum>` terminated by a line‑feed character. No extra spaces, characters or lines are produced. |
+
+---
+
+### Optional “frame” clause  
+
+If one wishes to be explicit about the variables that remain unchanged, a *frame condition* can be added:
+
+\[
+\{\, A,B\in\mathbb Z \,\}\; C\; \{\, X = A + B \;\land\; \langle s\rangle = "X = "·toString(X)·"\n" \;\land\; \forall v\in\{A,B\}. \; v^{\text{final}} = v^{\text{initial}} \,\}
+\]
+
+which states that the values of `A` and `B` are not altered by the program.
+
+---
+
+**Thus the Hoare triple above completely and formally captures the natural‑language specification of the problem.**

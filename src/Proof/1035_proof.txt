@@ -1,0 +1,258 @@
+## 1.  What we have to show  
+
+We are given the Hoare triple  
+
+\[
+\{\,\top\,\}\;\;{\tt read}\;A,B,C,D;\;
+\textbf{if }P(A,B,C,D)\textbf{ then }{\tt write}(\text{“Valores aceitos”})
+\textbf{ else }{\tt write}(\text{“Valores nao aceitos”})
+\;\; \{\,\Phi\,\}
+\]
+
+with  
+
+\[
+\begin{aligned}
+P(A,B,C,D) &\; \stackrel{\text{def}}{=}\;
+ (B>C)\land(D>A)\land(C+D>A+B)\land(C>0)\land(D>0)\land(A\equiv 0\pmod 2) \\[2mm]
+\Phi &\equiv
+\bigl(\operatorname{msg}= \text{“Valores aceitos”}\bigr)\Leftrightarrow P(A,B,C,D)
+\;\land\;
+\bigl(\operatorname{msg}= \text{“Valores nao aceitos”}\bigr)\Leftrightarrow\neg P(A,B,C,D) .
+\end{aligned}
+\]
+
+The concrete Python program is  
+
+```python
+a, b, c, d = map(int, input().split())          # 1
+if b > c and d > a and (c+d) > (a+b) and c>0 and d>0 and a%2==0:   # 2
+    print('Valores aceitos')                    # 3
+else:
+    print('Valores nao aceitos')                # 4
+```
+
+We must **prove** that the program satisfies the triple, i.e. that after it terminates the
+post‑condition Φ holds.
+
+--------------------------------------------------------------------
+
+## 2.  Modelling the program in Hoare logic  
+
+*We treat the two `print` statements as assignments to a fresh variable `msg` that records the string that is finally written.*
+
+```
+1  a,b,c,d := input()               (read)
+2  if B then
+3        msg := "Valores aceitos"
+4     else
+5        msg := "Valores nao aceitos"
+```
+
+where  
+
+\[
+B \;\stackrel{\text{def}}{=}\; (b>c)\land(d>a)\land(c+d>a+b)\land(c>0)\land(d>0)\land(a\equiv0\pmod 2).
+\]
+
+Notice that **\(B\) is exactly the predicate \(P(a,b,c,d)\)**, only the letters have been renamed.
+
+--------------------------------------------------------------------
+
+## 3.  Proof outline  
+
+We will use the standard Hoare‑logic inference rules:
+
+| Rule | Shape |
+|------|-------|
+| **(Assign)** | \(\displaystyle \frac{}{\{\,Q[x:=E]\,\}\;x:=E\;\{\,Q\,\}}\) |
+| **(If‑Then‑Else)** | \(\displaystyle \frac{\{\,R\land B\,\}\;S_1\;\{\,Q\,\}\qquad\{\,R\land\neg B\,\}\;S_2\;\{\,Q\,\}}{\{\,R\,\}\;\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\;\{\,Q\,\}}\) |
+| **(Seq)** | \(\displaystyle \frac{\{\,P\,\}\;S_1\;\{\,R\,\}\qquad\{\,R\,\}\;S_2\;\{\,Q\,\}}{\{\,P\,\}\;S_1;S_2\;\{\,Q\,\}}\) |
+| **(Conseq)** | \(\displaystyle \frac{R\Rightarrow P\qquad\{\,P\,\}\;S\;\{\,Q\,\}\qquad Q\Rightarrow S}{\{\,R\,\}\;S\;\{\,S\,\}}\) |
+
+The proof will consist of three parts:
+
+1. **Reading the four numbers** – it does not change the truth of the (trivial) pre‑condition.
+2. **The two branches** – we show that each branch establishes the required relation between `msg` and the predicate `P`.
+3. **Putting the pieces together** with the *if‑then‑else* rule and the *sequence* rule.
+
+--------------------------------------------------------------------
+
+## 4.  Detailed proof  
+
+### 4.1  The read statement  
+
+The statement  
+
+```
+a,b,c,d := input()
+```
+
+does not affect any logical condition; it merely introduces the variables `a,b,c,d`.  
+Hence, using the **(Conseq)** rule with the tautology \( \top \Rightarrow \top\),
+
+\[
+\{\,\top\,\}\;a,b,c,d:=\text{input()}\;\{\,\top\,\}.
+\tag{R1}
+\]
+
+### 4.2  The “accepted” branch  
+
+Assume the guard `B` (i.e. `P(a,b,c,d)`) holds.  
+The body of the branch is the assignment  
+
+```
+msg := "Valores aceitos"
+```
+
+Using the **(Assign)** rule with the post‑condition  
+
+\[
+Q_{\text{acc}} \;\stackrel{\text{def}}{=}\;
+\bigl(msg = \text{“Valores aceitos”}\bigr) \;\land\;
+\bigl(msg = \text{“Valores nao aceitos”}\bigr) \Leftrightarrow \bot .
+\]
+
+Because after the assignment the left conjunct is true and the right conjunct is false, we have  
+
+\[
+Q_{\text{acc}} \equiv
+\bigl(msg = \text{“Valores aceitos”}\bigr) .
+\]
+
+Now we must connect this with the required post‑condition Φ.  
+When the guard holds we have \(P(a,b,c,d)\).  Consequently
+
+\[
+\bigl(msg = \text{“Valores aceitos”}\bigr) \;\Leftrightarrow\; P(a,b,c,d)
+\]
+
+and the second part of Φ (the equivalence for the *negative* message) is trivially true because its antecedent is false.  
+Thus  
+
+\[
+Q_{\text{acc}} \;\Rightarrow\; \Phi .
+\tag{R2}
+\]
+
+By the **(Conseq)** rule we obtain the Hoare triple for the true branch:
+
+\[
+\{\,B\,\}\;msg:=\text{“Valores aceitos”}\;\{\Phi\}.
+\tag{T1}
+\]
+
+### 4.3  The “not accepted” branch  
+
+Assume the guard is false, i.e. \(\neg B\) (equivalently \(\neg P(a,b,c,d)\)).  
+The body is  
+
+```
+msg := "Valores nao aceitos"
+```
+
+The same reasoning as in the previous case gives the post‑condition  
+
+\[
+Q_{\text{rej}} \equiv (msg = \text{“Valores nao aceitos”}).
+\]
+
+Because we are under the hypothesis \(\neg P\),
+
+\[
+(msg = \text{“Valores nao aceitos”}) \;\Leftrightarrow\; \neg P(a,b,c,d)
+\]
+
+and the other equivalence in Φ is vacuously true. Hence  
+
+\[
+Q_{\text{rej}} \;\Rightarrow\; \Phi .
+\tag{R3}
+\]
+
+Applying **(Conseq)** we get the Hoare triple for the false branch:
+
+\[
+\{\,\neg B\,\}\;msg:=\text{“Valores nao aceitos”}\;\{\Phi\}.
+\tag{T2}
+\]
+
+### 4.4  The whole conditional  
+
+We have proved  
+
+* (T1) \(\{B\}\;S_{1}\;\{\Phi\}\) with \(S_{1}=msg:=\text{“Valores aceitos”}\)  
+* (T2) \(\{\neg B\}\;S_{2}\;\{\Phi\}\) with \(S_{2}=msg:=\text{“Valores nao aceitos”}\)
+
+Therefore, by the **(If‑Then‑Else)** rule,
+
+\[
+\{\,\top\,\}\;
+\textbf{if }B\textbf{ then }S_{1}\textbf{ else }S_{2}
+\;\{\,\Phi\,\}.
+\tag{C1}
+\]
+
+(The antecedent of the rule is \(\top\) because the guard \(B\) is a pure Boolean expression that does not require any extra hypothesis.)
+
+### 4.5  Sequencing the read and the conditional  
+
+Finally we combine the read statement (R1) with the conditional (C1) using the **(Seq)** rule:
+
+\[
+\frac
+{\{\,\top\,\}\;a,b,c,d:=\text{input()}\;\{\,\top\,\}\qquad
+\{\,\top\,\}\;\textbf{if }B\textbf{ then }S_{1}\textbf{ else }S_{2}\;\{\Phi\}}
+{\{\,\top\,\}\;
+a,b,c,d:=\text{input()};\;
+\textbf{if }B\textbf{ then }S_{1}\textbf{ else }S_{2}
+\;\{\Phi\}}
+\]
+
+which is precisely the Hoare triple that was required:
+
+\[
+\boxed{\;
+\{\,\top\,\}\;
+\texttt{read }A,B,C,D;\;
+\textbf{if }P(A,B,C,D)\textbf{ then write “Valores aceitos” else write “Valores nao aceitos”}
+\;\{\,\Phi\,\}\;}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  What the proof tells us  
+
+* The **pre‑condition** is the trivial truth \(\top\); the program may be started with any four integers.  
+* The **post‑condition** Φ is guaranteed: the string that the program finally writes is exactly  
+
+  * “Valores aceitos” **iff** all six constraints of the predicate \(P\) hold,  
+  * otherwise “Valores nao aceitos”.
+
+Hence the Python program is **correct** with respect to the given Hoare‑logic specification.
+
+--------------------------------------------------------------------
+
+## 6.  Summary of the proof steps (in textbook style)
+
+```
+{⊤}
+a,b,c,d := input()
+{⊤}                                 (R1)
+
+{⊤}
+if B then
+    msg := "Valores aceitos"
+else
+    msg := "Valores nao aceitos"
+{Φ}                                 (C1)
+   ├─ {B} msg := "Valores aceitos" {Φ}   (T1)
+   └─ {¬B} msg := "Valores nao aceitos" {Φ} (T2)
+
+{⊤}
+a,b,c,d := input(); 
+if B then … else …
+{Φ}                                 (Seq)
+```
+
+Thus the program satisfies the specification. ∎

@@ -1,0 +1,105 @@
+Below is a **Hoare‑logic style specification** for the program described in the statement.  
+Only the **pre‑condition** (what must hold before the program starts) and the **post‑condition** (what must hold after it terminates) are given – the body of the program is omitted on purpose, because the request is only for the formal specification.
+
+---
+
+### 1.   Notation that will be used  
+
+* `Σ` – the alphabet of printable characters (letters, digits, …).  
+* `|x|` – length of a string `x`.  
+* `lower : Σ* → Σ*` – the total function that converts every character of a string to its **lower‑case** form.  
+* `rev : Σ* → Σ*` – the total function that returns the **reverse** of a string.  
+* `⊑` – the *substring* relation: `a ⊑ b` iff `a` occurs as a contiguous block inside `b`.  
+* `·` – ordinary string concatenation.  
+
+---
+
+### 2.   Variables that appear in the specification  
+
+| Symbol | Meaning |
+|--------|----------|
+| `N` , `M` | natural numbers read from the first input line |
+| `Q = (q₁,…,q_N)` | the `N` fruit names that have to be **searched** (the “queries”) |
+| `L = (ℓ₁,…,ℓ_M)` | the `M` lines that compose the **scrambled list** stored in the file |
+| `O = (o₁,…,o_N)` | the `N` lines that the program writes to the output (one per query) |
+
+All strings belong to `Σ*`.
+
+---
+
+### 3.   Auxiliary predicate  
+
+\[
+\text{Likes}(q, L) \;\; \stackrel{\text{def}}{=}\;\;
+\exists j\;(1\le j\le M)\; \Bigl(
+   lower(q) \;\⊑\; lower(\ell_j) 
+   \;\; \lor\;\;
+   lower(\,rev(q)\,) \;\⊑\; lower(\ell_j)
+\Bigr)
+\]
+
+`Likes(q, L)` is true exactly when the **lower‑cased** version of `q` (or its reversed form) appears as a substring of at least one line of the scrambled list, after that line has also been lower‑cased.
+
+---
+
+### 4.   Preconditions  
+
+\[
+\begin{aligned}
+P \;\stackrel{\text{def}}{=}\; &
+\bigl( 1 \le N \le 100 \bigr) \;\land\; \bigl( 15 \le M \le 500 \bigr) \\[2mm]
+&\land\; \bigl(\forall i\;(1\le i\le N)\; 4 \le |q_i| \le 100\bigr) \\[1mm]
+&\land\; \bigl(\forall j\;(1\le j\le M)\; 4 \le |\ell_j| \le 100\bigr)
+\end{aligned}
+\]
+
+`P` states that the two integer parameters are inside the limits required by the problem and that **every** fruit name to be searched and **every** line of the list respects the length restriction `[4,100]`.  The input is assumed to be correctly formatted (the first line contains the two integers, the following `M` lines the list, the following `N` lines the queries).
+
+---
+
+### 5.   Post‑condition  
+
+\[
+\begin{aligned}
+Q \;\stackrel{\text{def}}{=}\; &
+\forall i\;(1\le i\le N)\; \Bigl(
+      \bigl(\text{Likes}(q_i, L)\bigr) 
+          \;\Longrightarrow\; 
+          o_i = \bigl(\text{“Sheldon come a fruta ”} \;·\; lower(q_i)\bigr) \\[1mm]
+   &\qquad\qquad\qquad\qquad\qquad\qquad\qquad
+      \land\;
+      \bigl(\neg\text{Likes}(q_i, L)\bigr) 
+          \;\Longrightarrow\; 
+          o_i = \bigl(\text{“Sheldon detesta a fruta ”} \;·\; lower(q_i)\bigr)
+\Bigr)
+\end{aligned}
+\]
+
+Thus, for **each** fruit `q_i`:
+
+* if the predicate `Likes(q_i, L)` holds, the program must output the line  
+
+  `Sheldon come a fruta <q_i‑in‑lower‑case>`  
+
+* otherwise it must output  
+
+  `Sheldon detesta a fruta <q_i‑in‑lower‑case>`.
+
+No other output lines are permitted.
+
+---
+
+### 6.   Hoare triple (the formal specification)
+
+\[
+\boxed{\;\{\,P\,\}\; \textbf{Program}\; \{\,Q\,\}\;}
+\]
+
+where  
+
+* the **pre‑condition** `P` guarantees that the input respects all numerical and length constraints, and  
+* the **post‑condition** `Q` guarantees that the produced output exactly matches the required “likes / detests” sentences, determined by the existence of a (possibly reversed, case‑insensitive) occurrence of the queried fruit name inside at least one line of the scrambled list.
+
+---  
+
+This specification can be used as the formal basis for a correctness proof (e.g., by showing that the algorithm that scans each `ℓ_j` for the two substrings `lower(q_i)` and `lower(rev(q_i))` satisfies the Hoare triple above).

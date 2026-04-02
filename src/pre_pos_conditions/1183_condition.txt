@@ -1,0 +1,101 @@
+Below is a **Hoare‑logic specification** for the whole program (reading the data, performing the computation and printing the answer).  
+Only the **pre‑condition** *P* (what must be true before the program starts) and the **post‑condition** *Q* (what must be true when the program terminates) are given; the body of the program is omitted because the question asks only for the logical specification.
+
+---
+
+### Notation
+
+* `op` – a character read from the first line of the input.  
+
+  \[
+  op \in \{\,\text{‘S’},\;\text{‘M’}\,\}
+  \]
+
+* `A` – the 12 × 12 matrix of floating‑point numbers read from the remaining 144 lines.  
+
+  \[
+  A = \bigl(A_{ij}\bigr)_{0\le i,j\le 11},\qquad 
+  A_{ij}\in\mathbb{R}
+  \]
+
+* `SUM` – the sum of all elements that lie **strictly above** the main diagonal:
+
+  \[
+  \text{SUM}(A) \;=\;
+  \sum_{i=0}^{11}\;\sum_{j=i+1}^{11} A_{ij}
+  \]
+
+* `N` – the number of elements above the main diagonal. For a 12 × 12 matrix  
+
+  \[
+  N = \frac{12\cdot 11}{2}=66
+  \]
+
+* `res` – the real value that the program finally prints (rounded to one decimal place).
+
+---
+
+### Pre‑condition  *P*
+
+\[
+\boxed{
+P\;:\;
+\bigl(op\in\{\text{‘S’},\text{‘M’}\}\bigr)\ \land\
+\bigl(\forall\,i,j\;(0\le i,j\le 11 \;\Rightarrow\; A_{ij}\in\mathbb{R})\bigr)
+}
+\]
+
+In words: the first input character is either **‘S’** (Sum) or **‘M’** (Mean), and the following 144 inputs constitute a well‑defined real matrix `A`.
+
+---
+
+### Post‑condition  *Q*
+
+\[
+\boxed{
+\begin{aligned}
+Q\;:\;&
+\bigl(op = \text{‘S’}\ \Rightarrow\  res = \text{SUM}(A)\bigr) \\
+&\land
+\bigl(op = \text{‘M’}\ \Rightarrow\  res = \frac{\text{SUM}(A)}{N}\bigr) \\
+&\land\ \text{“res is printed with exactly one digit after the decimal point”.}
+\end{aligned}
+}
+\]
+
+Equivalently, using a conditional expression:
+
+\[
+\boxed{
+Q\;:\;
+res = 
+\begin{cases}
+\displaystyle \sum_{i=0}^{11}\sum_{j=i+1}^{11} A_{ij}, & \text{if } op = \text{‘S’},\\[1.2ex]
+\displaystyle \frac{1}{66}\;\sum_{i=0}^{11}\sum_{j=i+1}^{11} A_{ij}, & \text{if } op = \text{‘M’}.
+\end{cases}
+}
+\]
+
+The “one‑digit‑after‑the‑decimal” requirement can be expressed formally as  
+
+\[
+\operatorname{round}_{1}(res) = res,
+\]
+
+where  
+
+\[
+\operatorname{round}_{1}(x) = \frac{\lfloor 10x + 0.5\rfloor}{10}.
+\]
+
+---
+
+### Hoare triple for the whole program
+
+\[
+\boxed{
+\{\,P\,\}\;\; \texttt{program}\;\; \{\,Q\,\}
+}
+\]
+
+That is, **if** the input satisfies the pre‑condition *P* (a correct operation character and a full 12 × 12 real matrix), **then** after execution the program terminates with a value `res` that satisfies the post‑condition *Q* (the required sum or average of the elements above the main diagonal, printed with one decimal place).

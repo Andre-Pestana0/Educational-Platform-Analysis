@@ -1,0 +1,79 @@
+Below is a **Hoare‑logic style specification** for the (implicit) program that reads the description of the hired elves and returns the number of gifts that can be produced in one day.
+
+---
+
+### 1.   Vocabulary  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N` | number of hired elves (input) |
+| `E_i` | name of the *i*‑th elf (string, irrelevant for the computation) |
+| `G_i` | working‑group of the *i*‑th elf, `G_i ∈ 𝔾` |
+| `H_i` | hours per day the *i*‑th elf works, integer |
+| `𝔾 = { bonecos , arquitetos , musicos , desenhistas }` | the four admissible groups |
+| `req : 𝔾 → ℕ` | required hours to finish **one** gift of the group  
+
+\[
+\begin{aligned}
+req(\text{bonecos})      &= 8\\
+req(\text{arquitetos})   &= 4\\
+req(\text{musicos})      &= 6\\
+req(\text{desenhistas})  &= 12
+\end{aligned}
+\]
+
+| `⌊x⌋` | floor (greatest integer ≤ x) |
+| `P` | the integer that the program finally prints – total gifts per day |
+
+---
+
+### 2.   Pre‑condition  
+
+The pre‑condition expresses everything that must be true **before** the program starts executing.
+
+\[
+\boxed{
+\begin{aligned}
+\mathsf{Pre}\; \equiv\;& 1 \le N \le 1000 \\
+&\land\; \forall i\;(1\le i\le N)\; \bigl( H_i \in \mathbb{Z} \land 1 \le H_i \le 24 \bigr)\\
+&\land\; \forall i\;(1\le i\le N)\; \bigl( G_i \in 𝔾 \bigr)\\
+&\land\; \text{the input consists of exactly the tuple }(N, (E_1,G_1,H_1),\dots,(E_N,G_N,H_N)).
+\end{aligned}}
+\]
+
+(Names `E_i` are unrestricted; they are only read and never used.)
+
+---
+
+### 3.   Post‑condition  
+
+The post‑condition describes the state **after** termination.  
+The only observable result of the program is the integer `P` that it writes to the output stream.
+
+\[
+\boxed{
+\begin{aligned}
+\mathsf{Post}\; \equiv\;& P = \sum_{i=1}^{N} \Bigl\lfloor \frac{H_i}{\,req(G_i)\,} \Bigr\rfloor \\
+&\land\; P \in \mathbb{N}
+\end{aligned}}
+\]
+
+In words: for each elf we compute how many *complete* gifts the elf can finish in a day (integer division of the available hours by the group‑specific required hours), then we add those quantities over all elves.
+
+---
+
+### 4.   Hoare triple  
+
+Putting the two parts together, the whole specification of the (implicit) algorithm `ComputeGifts` is
+
+\[
+\boxed{\; \{\,\mathsf{Pre}\,\}\;\; \texttt{ComputeGifts}\;\; \{\,\mathsf{Post}\,\}\;}
+\]
+
+where `ComputeGifts` is any program that
+
+1. reads `N` and the `N` triples `(E_i,G_i,H_i)`,
+2. evaluates the expression in the post‑condition,
+3. prints the resulting integer `P`.
+
+Any implementation that satisfies the Hoare triple above is a correct solution to the problem.

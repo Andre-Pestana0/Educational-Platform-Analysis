@@ -1,0 +1,106 @@
+**Hoare‑style specification for one test case**
+
+We denote  
+
+* `N ∈ ℕ` – the size read from the input,  
+* `c = (N‑1)/2` – the index of the centre cell (note that `N` is odd, so `c ∈ ℕ`),  
+* `A ∈ ℕ^{N×N}` – the matrix that the program has to produce,  
+* indices are counted from `0` (the usual C/Java/Python convention).
+
+---
+
+### Preconditions  
+
+\[
+\begin{aligned}
+\mathbf{Pre}\;\; \equiv\;&
+\bigl(N\in\mathbb{N}\bigr)\;\wedge\;
+\bigl(5\le N\le 101\bigr)\;\wedge\;
+\bigl(N\equiv 1\pmod 2\bigr) \\[2mm]
+&\;\wedge\;
+\bigl(\text{the input stream contains exactly one integer }N\text{ for this test case}\bigr)
+\end{aligned}
+\]
+
+The program is allowed to assume that the input satisfies the three numeric constraints
+(odd, between 5 and 101) and that the value of `N` is already read.
+
+---
+
+### Postconditions  
+
+\[
+\begin{aligned}
+\mathbf{Post}\;\; \equiv\;&
+\bigl(A\in\mathbb{N}^{N\times N}\bigr) \;\wedge\;
+\bigl(\forall\,i,j\in\{0,\dots ,N-1\}:\;A[i,j]=\mathit{val}(i,j)\bigr)
+\end{aligned}
+\]
+
+where the auxiliary function `val` is defined by a **priority order** that matches the
+description “outer part 0, inner part 1, main diagonal 2, secondary diagonal 3,
+central element 4”.
+
+\[
+\mathit{val}(i,j)=
+\begin{cases}
+4 & \text{if } i = j = c \\[2mm]
+2 & \text{if } i=j \;\land\; (i,j)\neq(c,c) \\[2mm]
+3 & \text{if } i+j = N-1 \;\land\; (i,j)\neq(c,c) \\[2mm]
+1 & \text{if } 0<i<N-1 \;\land\; 0<j<N-1 
+      \;\land\; i\neq j \;\land\; i+j\neq N-1 \\[2mm]
+0 & \text{otherwise }   % i.e. border cells that are not on a diagonal
+\end{cases}
+\]
+
+In words  
+
+* the centre cell `(c,c)` is `4`;  
+* all other cells on the **main diagonal** (`i=j`) are `2`;  
+* all other cells on the **secondary diagonal** (`i+j=N‑1`) are `3`;  
+* cells that are strictly inside the matrix (neither on the border nor on any diagonal)
+  are `1`;  
+* every remaining cell – i.e. the border cells that are not on a diagonal – is `0`.
+
+The postcondition also implies that the program prints the matrix row‑wise, each row
+as a concatenation of its `N` entries, and that a blank line follows the whole matrix
+(there is no further state to specify for the output format).
+
+---
+
+### Hoare triple for a single test case  
+
+\[
+\boxed{\;\{\,\mathbf{Pre}\,\}\; \texttt{GenerateMatrix}(N)\; \{\,\mathbf{Post}\,\}\;}
+\]
+
+---
+
+**Extension to a whole input file (multiple test cases)**  
+
+Let the input be a finite sequence \( \langle N_1,N_2,\dots ,N_k\rangle \) with each
+\(N_t\) satisfying the same numeric constraints.  
+The program processes the sequence from left to right, applying the above
+pre‑/post‑conditions to each element and printing a blank line after each generated
+matrix.
+
+Formally:
+
+\[
+\begin{aligned}
+\mathbf{Pre}_{\text{file}} &\equiv
+\bigl(k\in\mathbb{N},\;k\ge 1\bigr) \;\wedge\;
+\bigl(\forall t\in\{1,\dots ,k\}\;:\;5\le N_t\le 101\;\wedge\;N_t\equiv1\pmod2\bigr) \\[2mm]
+\mathbf{Post}_{\text{file}} &\equiv
+\bigl(\forall t\in\{1,\dots ,k\}\;:\; \{\,\mathbf{Pre}(N_t)\,\}\;\texttt{GenerateMatrix}(N_t)\;\{\,\mathbf{Post}(N_t)\,\}\bigr)
+\end{aligned}
+\]
+
+Thus the whole program satisfies the Hoare triple  
+
+\[
+\{\,\mathbf{Pre}_{\text{file}}\,\}\;\texttt{Main}\; \{\,\mathbf{Post}_{\text{file}}\,\}.
+\]
+
+These mathematical pre‑ and post‑conditions give a complete formal specification
+of the required behaviour, independent of any particular programming

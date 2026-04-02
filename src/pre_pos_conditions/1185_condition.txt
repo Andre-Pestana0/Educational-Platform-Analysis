@@ -1,0 +1,88 @@
+**Hoare‑style specification**
+
+Let  
+
+* `op` be the character read from the first line of the input,  
+  \[
+  op \in \{\,\text{'S'},\text{'M'}\,\}.
+  \]
+
+* `A` be the 12 × 12 matrix of floating‑point numbers read afterwards,  
+
+  \[
+  A = \bigl(A[i][j]\bigr)_{0\le i,j\le 11},\qquad 
+  A[i][j]\in\mathbb{R}.
+  \]
+
+* \(G\) be the set of indices that lie **strictly above** the secondary diagonal
+  (the diagonal that runs from the upper‑right corner \((0,11)\) to the lower‑left
+  corner \((11,0)\)):
+  \[
+  G \;=\;\Bigl\{(i,j)\;\Big|\;0\le i,j\le 11\;\land\; i+j < 11\Bigr\}.
+  \]
+
+  (The list given in the statement – e.g. \([0][0],[0][1],\dots,[10][0]\) – is exactly
+  this set.)
+
+* The **cardinality** of \(G\) is a constant,
+  \[
+  |G| = \sum_{i=0}^{11} (11-i) = \frac{12\cdot 13}{2}=78 .
+  \]
+
+* The **partial sum** over the green area,
+  \[
+  S \;=\;\sum_{(i,j)\in G} A[i][j].
+  \]
+
+* The **result** that the program will output, denoted `res`.
+
+--------------------------------------------------------------------
+
+### Pre‑condition  \(P\)
+
+\[
+\boxed{%
+P \;\equiv\;
+\bigl(op\in\{\text{'S'},\text{'M'}\}\bigr)
+\;\land\;
+\bigl(\forall i,j\;(0\le i,j\le 11 \;\Rightarrow\; A[i][j]\in\mathbb{R})\bigr)
+}
+\]
+
+The program starts in a state where a valid operation character has been read
+and the whole 12 × 12 matrix of real numbers is available.
+
+--------------------------------------------------------------------
+
+### Post‑condition  \(Q\)
+
+\[
+\boxed{%
+\begin{aligned}
+Q \;\equiv\;&\;
+\Bigl(op = \text{'S'} \;\Rightarrow\; res = S\Bigr) \\
+&\;\land\;
+\Bigl(op = \text{'M'} \;\Rightarrow\; res = \frac{S}{|G|}\Bigr) \\
+&\;\land\;
+\text{the value } res \text{ is printed with exactly one digit after the decimal point.}
+\end{aligned}
+}
+\]
+
+Thus, after execution the printed number equals the sum of the elements in
+\(G\) when the input character is **S**, and the arithmetic mean of those elements
+when the input character is **M**.
+
+--------------------------------------------------------------------
+
+### Hoare triple
+
+\[
+\boxed{%
+\{\,P\,\}\;\; \texttt{read op; read A; compute res; print res}\;\; \{\,Q\,\}
+}
+\]
+
+The triple states that, assuming the pre‑condition \(P\) holds before the
+program reads the input and performs the computation, the post‑condition \(Q\)
+holds after the program terminates and prints the

@@ -1,0 +1,106 @@
+Below is a **Hoare‑logic specification** (pre‑condition \(P\) and post‑condition \(Q\)) written in ordinary mathematical notation for the program described in the statement.
+
+---
+
+### 1.  Notation that will be used
+
+* \(N = 12\) – size of the square matrix.  
+* \(A : \{0,\dots ,N-1\}\times\{0,\dots ,N-1\}\rightarrow\mathbb{R}\) – the 12 × 12 array that is read from the input.  
+* \(op \in\{\,\text{‘S’},\text{‘M’}\,\}\) – the character that indicates the operation (Sum or Average).  
+*  
+
+\[
+R \;:=\;\bigl\{(i,j)\mid 0\le i,j < N\;\wedge\;j>i\;\wedge\;j> N-1-i\bigr\}
+\]
+
+  – the **green (right) area** of the matrix, i.e. the set of positions that lie strictly to the right of **both** the main diagonal \((i,i)\) and the secondary diagonal \((i,N-1-i)\).
+
+*  
+
+\[
+|R| \;=\; \sum_{i=0}^{N-1}\bigl(N-1-\max(i,N-1-i)\bigr)
+      \;=\;30 \qquad(\text{for }N=12)
+\]
+
+*  
+
+\[
+S \;:=\; \sum_{(i,j)\in R} A[i][j] \qquad\text{(sum of the elements in the green area)}
+\]
+
+*  
+
+\[
+\operatorname{round}_{1}(x) \;:=\; \text{the value of }x\text{ rounded to one decimal place}
+\]
+
+*  
+
+\(out\) – the number that the program finally prints.
+
+---
+
+### 2.  Pre‑condition \(P\)
+
+\[
+\boxed{
+P \;\equiv\;
+\Bigl(op\in\{\text{‘S’},\text{‘M’}\}\Bigr)
+\;\wedge\;
+\Bigl(\forall i,j\in\{0,\dots ,N-1\}\;:\;A[i][j]\in\mathbb{R}\Bigr)
+}
+\]
+
+The program assumes that the input consists of exactly one upper‑case character
+\(op\) equal to **‘S’** or **‘M’**, followed by the 144 real numbers that fill the
+array \(A\).
+
+---
+
+### 3.  Post‑condition \(Q\)
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\;&
+\bigl(op = \text{‘S’}\;\Longrightarrow\; out = \operatorname{round}_{1}(S)\bigr)
+\\[2mm]
+&\;\wedge\;
+\bigl(op = \text{‘M’}\;\Longrightarrow\; out = \operatorname{round}_{1}\!\bigl(S/|R|\bigr)\bigr)
+\\[2mm]
+&\;\wedge\;
+\bigl(S = \displaystyle\sum_{(i,j)\in R} A[i][j]\bigr)
+\\[2mm]
+&\;\wedge\;
+\bigl(|R| = 30\bigr)
+\end{aligned}
+}
+\]
+
+In words:
+
+* compute the sum \(S\) of all matrix entries whose indices belong to the set \(R\);
+* if the operation character is **‘S’**, the printed value must be the sum \(S\)
+  (rounded to one decimal);
+* if the operation character is **‘M’**, the printed value must be the average
+  \(S/|R|\) (rounded to one decimal);
+* for a 12 × 12 matrix the cardinality of the green area is \(|R| = 30\).
+
+---
+
+### 4.  Hoare triple for the whole program
+
+\[
+\boxed{\{P\}\; \text{program}\; \{Q\}}
+\]
+
+where “program’’ denotes the concrete implementation that
+
+1. reads \(op\) and the 144 floating‑point numbers into \(A\);
+2. evaluates the set \(R\) as defined above;
+3. computes \(S = \sum_{(i,j)\in R} A[i][j]\);
+4. either prints \(S\) (if \(op =\) ‘S’) or prints \(S/30\) (if \(op =\) ‘M’),
+   both with one digit after the decimal point.
+
+The triple \(\{P\}\; \text{program}\; \{Q\}\) is the formal specification of the
+required behaviour in Hoare logic.

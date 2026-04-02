@@ -1,0 +1,125 @@
+**Hoare‑style specification**
+
+We denote  
+
+* the input character by `O ∈ {'S','M'}` ( ‘S’ → sum, ‘M’ → average ),  
+* the 12 × 12 matrix of double values by a total function  
+
+\[
+A : \{1,\dots ,12\}\times\{1,\dots ,12\}\longrightarrow \mathbb {R},
+\qquad A(i,j)=\text{the value read for position }[i][j].
+\]
+
+--------------------------------------------------------------------
+### 1.   Set of “green’’ positions  
+
+The positions that belong to the green area (the ones that must be taken
+into account) are exactly the 30 pairs listed in the statement.  
+For compactness we introduce the set  
+
+\[
+G \;=\;
+\begin{aligned}
+&\{(11,j)\mid 1\le j\le 10\}\\
+\cup&\{(10,j)\mid 2\le j\le 9\}\\
+\cup&\{(9 ,j)\mid 3\le j\le 8\}\\
+\cup&\{(3 ,j)\mid 4\le j\le 7\}\\
+\cup&\{(4 ,j)\mid 5\le j\le 6\}.
+\end{aligned}
+\]
+
+Hence  
+
+\[
+|G| = 30 .
+\]
+
+--------------------------------------------------------------------
+### 2.   Pre‑condition  
+
+\[
+\boxed{
+P \;\equiv\;
+\bigl(O\in\{'S','M'\}\bigr)
+\;\land\;
+\bigl(\forall i,j\in\{1,\dots ,12\}\;A(i,j)\in\mathbb{R}\bigr)
+}
+\]
+
+The pre‑condition simply states that a legal operation character is
+provided and that every entry of the 12 × 12 matrix has been read as a
+real (double) number.
+
+--------------------------------------------------------------------
+### 3.   Post‑condition  
+
+Define the **partial sum** over the green area  
+
+\[
+\mathit{sum}_{G}(A) \;=\;\sum_{(i,j)\in G} A(i,j).
+\]
+
+Define the **result** that must be printed  
+
+\[
+\mathit{res}(O,A)=
+\begin{cases}
+\displaystyle\mathit{sum}_{G}(A), & \text{if } O='S',\\[6pt]
+\displaystyle\frac{\mathit{sum}_{G}(A)}{|G|}, & \text{if } O='M'.
+\end{cases}
+\]
+
+The post‑condition therefore is  
+
+\[
+\boxed{
+Q \;\equiv\;
+\text{the program prints } \mathit{res}(O,A)
+\text{ with exactly one digit after the decimal point.}
+}
+\]
+
+--------------------------------------------------------------------
+### 4.   Hoare triple  
+
+\[
+\{\,P\,\}\; \text{program}\; \{\,Q\,\}
+\]
+
+where “program’’ is the concrete algorithm that
+
+1. reads `O`,
+2. reads the 144 floating‑point numbers into `A`,
+3. computes  
+
+   \[
+   s \;:=\; \sum_{(i,j)\in G} A(i,j),
+   \]
+
+4. if `O = 'S'` prints `s`, otherwise prints `s/30`,
+5. formats the output with one digit after the decimal point.
+
+--------------------------------------------------------------------
+### 5.   Remarks  
+
+* The set `G` can also be described by the arithmetic condition  
+
+  \[
+  (i,j)\in G \iff
+  \bigl(i=11 \land 1\le j\le10\bigr)
+  \;\lor\;
+  \bigl(i=10 \land 2\le j\le 9\bigr)
+  \;\lor\;
+  \bigl(i=9  \land 3\le j\le 8\bigr)
+  \;\lor\;
+  \bigl(i=3  \land 4\le j\le 7\bigr)
+  \;\lor\;
+  \bigl(i=4  \land 5\le j\le 6\bigr).
+  \]
+
+* The cardinality \(|G|=30\) is used only for the average case; it is a
+  constant that follows directly from the definition of `G`.
+
+Thus the Hoare‑logic specification of the required program is completely
+captured by the pre‑condition `P`, the post‑condition `Q`, and the Hoare
+triple `{P} program {Q}` shown above.

@@ -1,0 +1,134 @@
+Below is a **Hoare‑logic style specification** for the problem.  
+All symbols are written in standard mathematical notation; the triple  
+
+\[
+\{\,\text{Pre}\,\}\; \mathsf{ALG}\; \{\,\text{Post}\,\}
+\]
+
+states that any execution of the algorithm **ALG** that starts in a state
+satisfying **Pre** must terminate in a state satisfying **Post**.
+
+--------------------------------------------------------------------
+### 1.  Vocabulary  
+
+* \(n,m \in \mathbb N\) – numbers read from the first input line.  
+* \(V = \{1,\dots ,n\}\) – the set of soldiers (vertices).  
+* \(E \subseteq \{ \{a,b\}\mid a,b\in V,\;a<b\}\) – the set of enemy‑pairs (edges).  
+* For a vertex \(v\in V\) let  
+
+  \[
+  \deg_E(v)=|\{\,u\in V\mid \{v,u\}\in E\,\}|
+  \]
+
+  be its degree in the undirected graph \((V,E)\).  
+
+* A **group** is a subset \(S\subseteq V\).  
+
+* A **partition** of \(V\) into \(k\) groups is a tuple  
+
+  \[
+  \Pi = (S_1,\dots ,S_k)
+  \]
+
+  such that  
+
+  \[
+  \begin{aligned}
+  &S_i\neq\varnothing\qquad &&\text{for all } i,\\
+  &S_i\cap S_j = \varnothing &&\text{for all } i\neq j,\\
+  &\bigcup_{i=1}^{k} S_i = V. &&\text{(covers all soldiers)}
+  \end{aligned}
+  \]
+
+* For a group \(S\) define  
+
+  \[
+  \operatorname{bad}_E(S)=\bigl\{\,v\in S \mid
+      |\{\,u\in S\mid\{v,u\}\in E\,\}|\ge 2 \bigr\}.
+  \]
+
+  The condition “every soldier has at most one enemy inside his group’’
+  is equivalent to \(\operatorname{bad}_E(S)=\varnothing\).
+
+--------------------------------------------------------------------
+### 2.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+\text{Pre}\; \equiv\;& 2\le n\le 10^{5}\;\land\;
+0\le m\le \Big\lfloor\frac{3n}{2}\Big\rfloor\;\land\\
+&\bigl(\forall i\in\{1,\dots ,m\}\;
+   (a_i,b_i)\in V\times V\;\land\;a_i<b_i \bigr)\;\land\\
+&\bigl(\forall v\in V\; \deg_E(v)\le 3 \bigr).
+\end{aligned}}
+\]
+
+The three conjuncts say, respectively:
+
+1. the size limits on \(n\) and \(m\);
+2. the input list really consists of \(m\) unordered pairs of distinct
+   soldiers;
+3. each soldier is incident to at most three enemy edges (the problem
+   guarantee).
+
+--------------------------------------------------------------------
+### 3.  Post‑condition  
+
+Let the algorithm output an integer \(k\) and a tuple of lists
+\(\Pi=(S_1,\dots ,S_k)\).  
+The post‑condition asserts that this output is a **minimum‑size feasible
+partition**.
+
+\[
+\boxed{
+\begin{aligned}
+\text{Post}\; \equiv\;&\exists k\in\mathbb N,\;
+   \exists \Pi=(S_1,\dots ,S_k)\; \bigl[
+      \underbrace{
+        \bigl(\forall i\;(S_i\neq\varnothing)\bigr)
+        \;\land\;
+        \bigl(\forall i\neq j\;(S_i\cap S_j=\varnothing)\bigr)
+        \;\land\;
+        \bigl(\bigcup_{i=1}^{k}S_i = V\bigr)
+      }_{\text{(P)  \(\Pi\) is a partition of }V}
+   \\
+   &\;\land\;
+      \underbrace{
+        \bigl(\forall i\in\{1,\dots ,k\}\;
+               \operatorname{bad}_E(S_i)=\varnothing
+        \bigr)
+      }_{\text{(Q)  at most one enemy per soldier inside his group}}
+   \\
+   &\;\land\;
+      \underbrace{
+        \bigl(k = \min\{\,t\in\mathbb N \mid
+                \exists \Pi' \text{ with }t\text{ groups satisfying (P) and (Q)}\,
+                \}\bigr)
+      }_{\text{(M)  minimal number of groups}}
+   \bigr].
+\end{aligned}}
+\]
+
+*Condition (P)* guarantees that the groups really form a partition of the
+whole soldier set.  
+
+*Condition (Q)* guarantees the **enemy‑restriction**: for each vertex in a
+group there is **0 or 1** other vertex of the same group that is its enemy.  
+
+*Condition (M)* expresses the optimisation requirement: the produced
+\(k\) is the **smallest possible** integer for which a partition satisfying
+(P) and (Q) exists.
+
+--------------------------------------------------------------------
+### 4.  Hoare triple  
+
+\[
+\boxed{\;\{\,\text{Pre}\,\}\;\; \mathsf{ALG}\;\; \{\,\text{Post}\,\}\;}
+\]
+
+Any algorithm that, given an input satisfying **Pre**, terminates with an
+output satisfying **Post** solves the stated problem.  
+
+The triple completely captures the specification in the language of
+Hoare logic, using only mathematical (set‑theoretic) notation

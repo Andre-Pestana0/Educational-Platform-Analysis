@@ -1,0 +1,70 @@
+**Hoare‑style specification**
+
+Let  
+
+* `C ∈ ℕ` be the column index that will be used as a *row* index in the program (the problem statement calls it a “column”, but the green area is the whole row `C`).  
+* `T ∈ {'S','M'}` be the operation selector (`'S'` = sum, `'M'` = average).  
+* `M : {0,…,11} × {0,…,11} → ℝ` be the 12 × 12 matrix of floating‑point numbers that are read from the input.  
+* `r ∈ ℝ` be the numeric value that the program finally prints.  
+
+Define the auxiliary function  
+
+\[
+\operatorname{rowSum}(C,M) \;=\; \sum_{j=0}^{11} M(C,j)
+\]
+
+and the auxiliary predicate  
+
+\[
+\operatorname{format}(x) \; \equiv\; \text{“`x` is printed with exactly one digit after the decimal point”.}
+\]
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;&
+\bigl(0 \le C \le 11\bigr) \;\land\;
+\bigl(T \in \{'S','M'\}\bigr) \;\land \\[2mm]
+&\bigl(\forall i\in\{0,\dots,11\}\;\forall j\in\{0,\dots,11\}\;:\;M(i,j)\in\mathbb{R}\bigr)
+\end{aligned}
+\]
+
+In words: the column index is a valid index of the 12‑by‑12 matrix, the operation character is one of the two allowed symbols, and every entry of the matrix is a real number (the input is well‑formed).
+
+---
+
+### Post‑condition  \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\;&
+\bigl(T = 'S' \;\Rightarrow\; r = \operatorname{rowSum}(C,M)\bigr) \;\land \\[1mm]
+&\bigl(T = 'M' \;\Rightarrow\; r = \tfrac{1}{12}\,\operatorname{rowSum}(C,M)\bigr) \;\land \\[1mm]
+&\operatorname{format}(r)
+\end{aligned}
+\]
+
+That is:
+
+* if the selector is `'S'` the program must output the **sum** of the twelve elements of row `C`;
+* if the selector is `'M'` the program must output the **average** of those twelve elements;
+* the printed value must be formatted with exactly one digit after the decimal point.
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\; \texttt{program}\; \{\,Q\,\} \;}
+\]
+
+where `program` is the concrete sequence that
+
+1. reads `C`, `T` and the 144 numbers into `M`,
+2. computes `r` according to the rule in `Q`,
+3. prints `r` using a `printf("%.1f", r)`‑style formatting (or an equivalent).
+
+The triple states that **whenever** the input satisfies the pre‑condition `P`, the execution of the program is guaranteed to terminate with a result `r` that satisfies the post‑condition `Q`.

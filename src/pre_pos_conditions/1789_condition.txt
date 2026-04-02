@@ -1,0 +1,132 @@
+Below is a **Hoare‑logic style specification** for the whole “slug‑level” program.  
+Only the **pre‑condition** (what must hold before the program starts) and the **post‑condition** (what is guaranteed after it finishes) are given; the body of the program (the actual code) is omitted – any implementation that respects the two conditions is correct.
+
+---
+
+### 1.   Notation  
+
+| Symbol | Meaning |
+|--------|---------|
+| `L` | integer – number of slugs in the current test case |
+| `V = (V₁,…,V_L)` | vector of the `L` speeds |
+| `M` | the maximum speed in the vector:  `M = max_{1≤i≤L} V_i` |
+| `ℓ` | the **level** that has to be printed |
+| `ℕ` | set of non‑negative integers (including 0) |
+| `ℕ⁺` | positive integers (`ℕ \{0\}`) |
+| `⟦a,b⟧` | the closed integer interval `{x∈ℕ | a ≤ x ≤ b}` |
+| `\forall i∈I· P(i)` | “for every `i` in the set `I` the predicate `P(i)` holds” |
+| `⌊·⌋` | floor (not needed here but allowed) |
+| `↦` | “maps to” (function definition) |
+| `→` | logical implication |
+| `∧` , `∨` , `¬` | logical conjunction, disjunction, negation |
+
+---
+
+### 2.   The **pre‑condition**  
+
+For each test case the input must satisfy  
+
+\[
+\boxed{
+P \;\; \equiv\;\;
+\bigl(L\in\mathbb N^{+}\;\wedge\;1\le L\le 500\bigr)
+\;\wedge\;
+\Bigl(\forall i\in\{1,\dots ,L\}\;\bigl(V_i\in\mathbb N\;\wedge\;1\le V_i\le 50\bigr)\Bigr)
+}
+\]
+
+In words:  
+
+* `L` is a positive integer not larger than 500;  
+* each speed `V_i` is an integer between 1 and 50 (inclusive).
+
+---
+
+### 3.   The **post‑condition**  
+
+Let  
+
+\[
+M \;:=\; \max_{1\le i\le L} V_i
+\]
+
+and define the **level function**  
+
+\[
+\mathsf{level}(m) \;:=\;
+\begin{cases}
+1 & \text{if } m < 10,\\[4pt]
+2 & \text{if } 10 \le m < 20,\\[4pt]
+3 & \text{if } m \ge 20 .
+\end{cases}
+\tag{1}
+\]
+
+The program must output exactly the value  
+
+\[
+\boxed{
+Q\;\; \equiv\;\; \text{output} = \mathsf{level}(M)
+}
+\]
+
+i.e. the level that corresponds to the **fastest** slug of the group.
+
+---
+
+### 4.   Hoare triple for a **single test case**
+
+\[
+\boxed{\{\,P\,\}\;\; \text{slug\_level\_program}\;\; \{\,Q\,\}}
+\]
+
+where `slug_level_program` is any sequence of statements that
+
+* reads `L` and the vector `V`,
+* computes `M = max_i V_i`,
+* evaluates the case distinction (1) and prints the resulting `ℓ`.
+
+---
+
+### 5.   Hoare triple for the **whole input stream**  
+
+The program repeatedly executes the above triple for every test case until EOF.  
+Let  
+
+\[
+\text{EOF} \;:=\; \text{no more input lines}
+\]
+
+and let `P_i` / `Q_i` denote the pre‑ and post‑conditions for the *i‑th* test case.  
+The overall specification can be written as
+
+\[
+\boxed{
+\bigl(\forall i\ge 1\;\bigl(P_i \rightarrow Q_i\bigr)\bigr)
+\;\wedge\;
+\text{termination on EOF}
+}
+\]
+
+which reads: *for each test case the program, assuming the input satisfies the pre‑condition `P_i`, terminates and guarantees the post‑condition `Q_i`*.
+
+---
+
+### 6.   Summary (compact form)
+
+\[
+\begin{aligned}
+\{ & L\in\mathbb N^{+}\wedge 1\le L\le 500 \\
+   & \wedge\;\forall i\in\{1,\dots ,L\}\;(V_i\in\mathbb N\wedge 1\le V_i\le 50) \;\}
+   \;\; \text{slug\_level\_program} \\
+\{ & \text{output}= 
+      \begin{cases}
+        1 & \text{if } \max_i V_i < 10,\\
+        2 & \text{if } 10\le\max_i V_i < 20,\\
+        3 & \text{if } \max_i V_i \ge 20 .
+      \end{cases}
+   \;}
+\end{aligned}
+\]
+
+Any implementation that respects the above Hoare triple is a correct solution to the “fast‑slug level” problem.

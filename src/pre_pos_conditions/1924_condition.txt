@@ -1,0 +1,65 @@
+Below is a **Hoare‑logic specification** for a program `ChooseCourse` that receives the data described in the statement and prints the course Vitória must take.
+
+---
+
+### Variables (the program’s state)
+
+| Symbol | Meaning |
+|--------|---------|
+| `n`    | integer – number of courses supplied on the input |
+| `S`    | a total function `S : {1,…,n} → Σ*` that maps each index *i* to the *i*‑th course name (a finite string over the alphabet Σ) |
+| `out`  | a string – the value that will be printed (the program’s output) |
+| `C`    | the constant string `"Ciencia da Computacao"` (the required answer) |
+
+---
+
+### Preconditions  \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;& 1 \le n \le 2000                               &&\text{(allowed number of courses)}\\[2mm]
+          &\land\; \bigl(\forall i\in\{1,\dots ,n\}\;.\; 1 \le |S(i)| \le 100 \bigr)   
+          &&\text{(each name has a legal length)}\\[2mm]
+          &\land\; \bigl(\forall i\in\{1,\dots ,n\}\;.\; S(i)\in\Sigma^{*}\bigr)   
+          &&\text{(each entry is a well‑formed string)}\\[2mm]
+          &\land\; \bigl(C\in\Sigma^{*}\bigr)               
+          &&\text{(the constant answer is a legal string)} 
+\end{aligned}
+\]
+
+In words: the input consists of a non‑empty list of at most 2000 course names, each name being a non‑empty string of length at most 100 characters.
+
+---
+
+### Postconditions  \(Q\)
+
+\[
+\begin{aligned}
+Q \;\equiv\;& out = C                                          &&\text{(the program prints the required course)}\\[2mm]
+          &\land\; out \in \Sigma^{*}                         &&\text{(the output is a string)}\\[2mm]
+          &\land\; \text{“the program terminates”}             
+\end{aligned}
+\]
+
+Thus, after execution the only observable effect is that the variable `out` (and consequently the standard output) equals the fixed string **Ciencia da Computacao**.
+
+---
+
+### Hoare‑logic triple
+
+\[
+\boxed{\; \{\,P\,\}\;\; \texttt{ChooseCourse}(n,S,out)\;\; \{\,Q\,\}\;}
+\]
+
+where the body of `ChooseCourse` can be expressed simply as the assignment
+
+\[
+\texttt{out} \;\leftarrow\; C .
+\]
+
+---
+
+#### Remarks  
+
+* The specification makes **no use of the actual list `S`** – the problem statement guarantees (by the examples) that the correct answer is always the constant `"Ciencia da Computacao"`, irrespective of the supplied courses.  
+* The precondition captures all constraints that the input must satisfy for the program to be considered *well‑formed*; the postcondition guarantees the exact output required by the problem.

@@ -1,0 +1,71 @@
+**Hoare‑logic specification**
+
+Let  
+
+* `N ∈ ℕ` be the number of test cases read from the first line of the input,  
+* `Q = (q₁,…,q_N)`,  where each `q_i ∈ Σ*` (any finite string over the input alphabet Σ), be the sequence of questions,  
+* `A = (a₁,…,a_N)` be the sequence of lines that the program writes to **stdout**.
+
+The program we want to verify is
+
+```
+read N
+for i = 1 to N do
+        read q_i          // the i‑th question
+        write "I am Toorg!"
+od
+```
+
+---
+
+### Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\ \text{program}\ \{\,Q\,\}}
+\]
+
+where  
+
+* **Pre‑condition** \(P\)
+
+\[
+P \;:=\; N \ge 0 \;\land\; Q = (q_1,\dots , q_N) \;\land\; 
+\bigl(\forall i\in\{1,\dots ,N\}\; q_i\in\Sigma^{*}\bigr)
+\]
+
+* **Post‑condition** \(Q\)
+
+\[
+Q \;:=\;
+\bigl|A\bigr| = N \;\land\;
+\bigl(\forall i\in\{1,\dots ,N\}\; a_i = \text{``I am Toorg!''}\bigr)
+\]
+
+---
+
+### Interpretation
+
+* **Pre‑condition** states that the input consists of a non‑negative integer `N` followed by exactly `N` arbitrary strings (the questions). No other constraints are imposed on the questions.
+
+* **Post‑condition** guarantees that after termination the program has produced exactly `N` output lines, and each line is the constant string **“I am Toorg!”**. Thus the output is completely independent of the actual content of the questions.
+
+---
+
+### Formal verification sketch  
+
+1. **Initialization** – after reading `N`, the invariant `i = 0` holds and the output list is empty: `A = ε`.
+
+2. **Loop invariant** (for the `for i = 1 … N` loop)  
+
+   \[
+   I(i) \;:=\; 0 \le i \le N \;\land\;
+   \bigl|A\bigr| = i \;\land\;
+   \bigl(\forall j\in\{1,\dots ,i\}\; a_j = \text{``I am Toorg!''}\bigr)
+   \]
+
+   * *Preservation*: Assuming `I(i)` before an iteration, the body reads `q_{i+1}` (which is allowed by the pre‑condition) and appends the constant answer, thereby establishing `I(i+1)`.
+   * *Termination*: When the loop finishes, `i = N`. By the invariant we have `|A| = N` and every `a_j` equals the required string.
+
+3. **Exit** – The invariant with `i = N` is exactly the post‑condition `Q`.
+
+Thus the Hoare triple `{P} program {Q}` is valid, i.e. the program meets the formal specification derived from the natural‑language description.

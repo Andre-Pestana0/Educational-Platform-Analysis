@@ -19,6 +19,7 @@ Requirements:
 - Ensure inputs strictly match the input specification.
 - Ensure outputs are 100% logically correct.
 - Stop generating cases when additional cases would be redundant.
+- Please respect all the formatting rules impose by the exercise
 
 Critical formatting rules:
 

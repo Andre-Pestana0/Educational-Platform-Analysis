@@ -1,0 +1,94 @@
+Below is a **Hoare‑logic style specification** (pre‑condition \(P\) and post‑condition \(Q\)) that captures exactly what the program has to do.
+
+---
+
+### Notation used  
+
+* \(S = \langle s_{1},s_{2},\dots ,s_{n}\rangle\) – the finite sequence of input lines (the whole file).  
+* \(n\in\mathbb N\) – the number of lines.  
+* \(|x|\) – length (in characters) of a string \(x\).  
+* \(\operatorname{ASCII}(x)\) – “\(x\) consists only of printable ASCII characters”.  
+* “blank line’’ means a line whose length is \(0\).  
+* \(\langle\rangle\) – the empty sequence.  
+* For a sequence \(A=\langle a_{1},\dots ,a_{m}\rangle\) we write  
+
+  \[
+  A[i\,..\,j] \;:=\; \langle a_{i},a_{i+1},\dots ,a_{j}\rangle\qquad (1\le i\le j\le m)
+  \]
+
+* The program prints a sequence \(O=\langle o_{1},\dots ,o_{k}\rangle\) by writing each \(o_{i}\) followed by a newline, **in the same order**.
+
+* The tags are the exact strings “\<body\>’’ and “\</body\>’’ (no surrounding spaces).
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\;\{P\}\; \text{program} \; \{Q\}\;}
+\]
+
+### Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \;:\;&
+\; n\ge 0 \\
+&\land \forall\,k\;(1\le k\le n \;\Longrightarrow\; 
+      \operatorname{ASCII}(s_{k}) \;\land\; 0<|s_{k}|\le 1000) \\
+&\land \exists\,i,j\;(1\le i<j\le n \;\land\; s_{i} = "\langle\!body\!\rangle" 
+      \;\land\; s_{j}= "\langle\!/body\!\rangle")
+\end{aligned}
+\]
+
+*The input consists of a finite, non‑empty list of printable‑ASCII lines, each at most 1000 characters, and the list contains a line “\<body\>’’ followed later by a line “\</body\>’’.*
+
+---
+
+### Post‑condition \(Q\)
+
+Let  
+
+\[
+i^{*},j^{*}\;=\;\text{the (unique) indices that satisfy the existential part of }P .
+\]
+
+Define  
+
+\[
+O \;:=\; S[i^{*}+1\,..\,j^{*}-1] .
+\]
+
+Then  
+
+\[
+\begin{aligned}
+Q \;:\;&
+\; \text{the program prints exactly the sequence } O \\
+&\land \bigl(|O| = j^{*}-i^{*}-1\bigr) \\
+&\land \forall\,k\;(1\le k\le |O| \;\Longrightarrow\; 
+      \text{the }k\text{-th printed line } = s_{i^{*}+k}) .
+\end{aligned}
+\]
+
+*In words: the output consists of **all** lines that appear strictly between the first “\<body\>’’ line and the following “\</body\>’’ line, preserving their original order and exact characters; the tags themselves are **not** printed.*
+
+---
+
+## Full specification in Hoare‑logic form
+
+\[
+\boxed{
+\begin{array}{l}
+\{\, n\ge 0 \;\land\; \forall k\,(1\le k\le n \Rightarrow 
+      \operatorname{ASCII}(s_k) \land 0<|s_k|\le 1000) \\
+\qquad\;\;\land\; \exists i,j\,(1\le i<j\le n \land 
+      s_i = "\langle\!body\!\rangle" \land s_j = "\langle\!/body\!\rangle") \,\} \\
+\qquad\text{program} \\
+\{\, O = \langle s_{i+1},\dots ,s_{j-1}\rangle \;\land\;
+      \text{print}(O) \,\}
+\end{array}
+}
+\]
+
+This triple completely characterises the required behaviour: any program that, when started in a state satisfying the pre‑condition, terminates in a state satisfying the post‑condition is a correct solution to the problem.

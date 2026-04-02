@@ -1,0 +1,93 @@
+**Hoare‑style specification (pre‑ and post‑conditions) for the “Monty Hall simulation”**
+
+---
+
+### Variables that appear in the specification  
+
+* `N` – number of games (input).  
+* `C[1],C[2],…,C[N]` – array that stores, for each game *i*, the number of the door that hides the car.  
+  \[
+  C[i]\in\{1,2,3\}\qquad\text{for }i=1,\dots ,N .
+  \]
+
+* `wins` – integer that the program writes to the output (the number of games in which the
+  player ends with the car).
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+P \; \equiv\;& 1\le N\le 10^{4}   \\
+          &\land\; \bigl(\forall i\in\{1,\dots ,N\}\;:\; C[i]\in\{1,2,3\}\bigr)
+\end{aligned}}
+\]
+
+The pre‑condition states that the input respects the limits given in the statement
+(and that each element of the input list is a legal door number).
+
+---
+
+### Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+Q \; \equiv\;&\; wins = \bigl|\{\,i\mid 1\le i\le N \;\land\; C[i]\neq 1\,\}\bigr| \\[2mm]
+          &\;\;=\;\sum_{i=1}^{N}\; \mathbf 1_{\{C[i]\neq 1\}}
+\end{aligned}}
+\]
+
+`wins` is exactly the cardinality of the set of indices whose car‑door is **different**
+from the door that the player always chooses initially (door 1).  
+Equivalently, `wins` is the sum of the indicator function  
+
+\[
+\mathbf 1_{\{C[i]\neq 1\}}=
+\begin{cases}
+1 & \text{if }C[i]\neq 1,\\[1mm]
+0 & \text{if }C[i]=1 .
+\end{cases}
+\]
+
+---
+
+### Hoare triple for the whole program  
+
+\[
+\boxed{\{P\}\; \texttt{MontyHallSimulation}\; \{Q\}}
+\]
+
+---
+
+### (Optional) Loop invariant – useful when proving the program correct  
+
+If the algorithm processes the array sequentially, a natural invariant for the
+loop that scans the `C` array is  
+
+\[
+\text{inv}(i,\;wins) \;\equiv\;
+\begin{cases}
+0\le i\le N,\\[1mm]
+wins = \displaystyle\bigl|\{\,j\mid 1\le j\le i\;\land\;C[j]\neq 1\,\}\bigr|
+\end{cases}
+\]
+
+* **Initialization** (`i = 0`): the set on the right‑hand side is empty, therefore
+  `wins = 0`, and the invariant holds.
+* **Maintenance**: when the loop body executes for index `i+1`,
+  it adds `1` to `wins` iff `C[i+1] ≠ 1`, preserving the invariant.
+* **Termination** (`i = N`): the invariant becomes exactly the post‑condition `Q`.
+
+---
+
+Thus the formal Hoare‑logic specification of the problem is the triple  
+
+\[
+\{\,1\le N\le10^{4}\ \land\ \forall i\in[1,N]\;C[i]\in\{1,2,3\}\,\}
+\;\; \texttt{MontyHallSimulation}
+\;\;
+\{\,wins = |\{i\mid C[i]\neq 1\}|\ \}.
+\]

@@ -1,0 +1,157 @@
+Below is a **Hoare‑logic style specification** of the problem.  
+Only the *pre‑condition* (what the caller must guarantee) and the *post‑condition* (what the program must guarantee on termination) are given – the body of the program is omitted, as requested.
+
+---
+
+### 1.  Vocabulary  
+
+* Let  
+
+\[
+\mathbb Y = \{2011,\dots ,2011+n-1\}
+\]
+
+be the set of years for which information is supplied.  
+
+* A **moose** is a pair  
+
+\[
+m = (e(m),s(m))\in\mathbb Y\times\mathbb N,
+\]
+
+where  
+
+* \(e(m)\)  – year of entry into the tournament (the *entry year*),  
+* \(s(m)\) – strength (a non‑negative integer, all strengths are pairwise distinct).
+
+* The whole input is a finite set  
+
+\[
+M = \{m_1,\dots ,m_{k+n-1}\}
+\]
+
+with the following distinguished element  
+
+\[
+m_K = (y,p) \in M
+\]
+
+(the *Karl‑Älgtav* moose).
+
+* For a year \(t\in\mathbb Y\) let  
+
+\[
+P_t = \bigl\{\, m\in M \mid e(m)\le t \text{ and } m\notin W_{<t}\,\bigr\}
+\]
+
+be the **pool** of contestants that are still present at the beginning of year \(t\).  
+
+* \(W_{<t}\) denotes the set of winners of all earlier years:  
+
+\[
+W_{<t}= \{\, w_{t'}\mid t'\in\mathbb Y,\;t'<t \,\}.
+\]
+
+* The **winner** of year \(t\) is the (unique) moose with maximal strength in the pool:
+
+\[
+w_t = \operatorname*{arg\,max}_{m\in P_t} s(m).
+\]
+
+Because strengths are unique, \(w_t\) is well defined.
+
+* The **output** of the program is a value  
+
+\[
+\mathit{out}\in\mathbb Y\cup\{\text{“unknown”}\}.
+\]
+
+---
+
+### 2.  Pre‑condition  
+
+\[
+\begin{aligned}
+\{\,\mathit{Pre}\,\}\; \equiv\;&
+\bigl(k\in[1,10^{5}]\bigr)\;\land\;
+\bigl(n\in[1,10^{5}]\bigr)                                            \\[2mm]
+&\land\;
+\bigl(y\in[2011,\,2011+n-1]\bigr)\;\land\;
+\bigl(p\in[0,2^{31}-1]\bigr)                                         \\[2mm]
+&\land\;
+\bigl(m_K=(y,p)\in M\bigr)                                            \\[2mm]
+&\land\;
+\bigl|\,\{\,m\in M\mid e(m)=2011\,\}\bigr| = k                         \\[2mm]
+&\land\;
+\bigl|\,\{\,m\in M\mid e(m)\neq 2011\,\}\bigr| = n-1                \\[2mm]
+&\land\;
+\bigl(\forall m,m'\in M\;(m\neq m' \;\Rightarrow\; s(m)\neq s(m'))\bigr)\\[2mm]
+&\land\;
+\bigl(\forall m,m'\in M\;(e(m)=e(m')\neq 2011 \;\Rightarrow\; \bot)\bigr)
+\qquad\text{(the non‑2011 entry years are all distinct)}.
+\end{aligned}
+\]
+
+In words:  
+
+* the numbers \(k,n\) satisfy the limits of the statement,  
+* Karl’s entry year and strength are within the allowed ranges,  
+* the input set \(M\) contains exactly \(k+n-1\) moose,  
+* exactly \(k\) of them (including possibly Karl) entered in 2011,  
+* the remaining \(n-1\) have pairwise different entry years,  
+* all strengths are distinct.
+
+---
+
+### 3.  Post‑condition  
+
+Let  
+
+\[
+T = \{\, t\in\mathbb Y \mid w_t = m_K \,\}
+\]
+
+be the set of years in which Karl would be the winner **according to the data that are known** (i.e. assuming that no further moose will ever enter after year \(2011+n-1\)).  
+
+Define  
+
+\[
+t^{*}= \min T\quad\text{if }T\neq\varnothing .
+\]
+
+The program’s result \(\mathit{out}\) must satisfy
+
+\[
+\begin{aligned}
+\{\,\mathit{Post}\,\}\; \equiv\;&
+\bigl(\mathit{out}\in\mathbb Y \;\land\; \mathit{out}=t^{*}\bigr)                           \\[2mm]
+&\;\lor\; \bigl(\mathit{out}=\text{“unknown”}\;\land\;
+      \bigl(\forall\,\tilde M\supseteq M\;(\tilde M\text{ respects the pre‑condition})\;
+            \exists\,t\in\mathbb Y\; \bigl(w_t^{\tilde M}=m_K\bigr)\; \Rightarrow\;
+            t\neq t^{*}\bigr)\bigr) .
+\end{aligned}
+\]
+
+Interpretation:
+
+* **Case 1 (a concrete year is returned).**  
+  If the algorithm outputs a year \(\mathit{out}=t\), then \(t\) is the *earliest* year in the supplied interval \(\mathbb Y\) in which Karl is the winner, and **any** possible extension of the data (adding further moose for later years) that respects the pre‑condition would **not** change this answer – Karl would still win exactly in year \(t\).
+
+* **Case 2 (“unknown” is returned).**  
+  The algorithm may output “unknown” only when the supplied information is insufficient to guarantee a unique winning year. Formally, there exists at least one admissible completion \(\tilde M\) of the input (adding any number of future moose with entry years \(>2011+n-1\) and strengths distinct from all already given) such that Karl wins in some year \(t_1\) and another admissible completion \(\tilde M'\) in which Karl wins in a *different* year \(t_2\) (or never wins). Hence the winning year cannot be uniquely determined from the given data.
+
+---
+
+### 4.  Whole Hoare Triple  
+
+\[
+\boxed{\;\{\,\mathit{Pre}\,\}\;\; \texttt{solve\_alpha\_moose}(k,n,M)\;\; \{\,\mathit{Post}\,\}\;}
+\]
+
+where `solve_alpha_moose` denotes the (unspecified) program that reads the input described by the pre‑condition and produces the output described by the post‑condition.  
+
+The specification captures **exactly** the required behaviour of the problem:  
+
+* it respects all size and uniqueness constraints,  
+* it models the yearly tournament by the maximal‑strength rule,  
+* it returns the unique year in which Karl becomes the alpha‑moose when that year is forced by the supplied information, and otherwise returns the string “unknown”.

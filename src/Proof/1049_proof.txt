@@ -1,0 +1,363 @@
+## 1.  The program written as a single command  
+
+For a Hoare‑logic proof we first turn the concrete Python code into a *structured* command that uses only the three primitive statements that Hoare logic knows how to reason about:
+
+| Python fragment | Hoare‑logic command |
+|-----------------|----------------------|
+| `filo = input()` | `s₁ := read()` |
+| `classe = input()` | `s₂ := read()` |
+| `alimentacao = input()` | `s₃ := read()` |
+| `print('aguia')`  | `a := "aguia"`; `write(a)` |
+| … (the other `print`s) | analogous  |
+
+The whole program is therefore the command **`Prog`**  
+
+```
+s₁ := read ;
+s₂ := read ;
+s₃ := read ;
+if s₁ = "vertebrado" then
+   if s₂ = "ave" then
+        if s₃ = "carnivoro" then a := "aguia"  else   (* s₃ = "onivoro" *)
+                                   a := "pomba"
+   else (* s₂ = "mamifero" *)
+        if s₃ = "onivoro"   then a := "homem" else   (* s₃ = "herbivoro" *)
+                                   a := "vaca"
+else (* s₁ = "invertebrado" *)
+   if s₂ = "inseto" then
+        if s₃ = "hematofago" then a := "pulga" else   (* s₃ = "herbivoro" *)
+                                   a := "lagarta"
+   else (* s₂ = "anelideo" *)
+        if s₃ = "sanguessugo" then a := "sanguessuga" else   (* s₃ = "onivoro" *)
+                                   a := "minhoca"
+; write(a)
+```
+
+All tests are *exact string equality* (`=`).  
+The only variable that appears on the right‑hand side of an assignment is `a`; after the last assignment we immediately output its value.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules that will be used  
+
+| Rule | Shape |
+|------|-------|
+| **(Assign)** | `{ Q[a←E] } a := E { Q }` |
+| **(Seq)** | `{P} C₁ {R} , {R} C₂ {Q}  ⇒  `{P} C₁;C₂ {Q}` |
+| **(If‑True)** | `{P ∧ B} C₁ {Q}` |
+| **(If‑False)**| `{P ∧ ¬B} C₂ {Q}` |
+| **(If)** | `{P ∧ B} C₁ {Q}` and `{P ∧ ¬B} C₂ {Q}`  ⇒  `{P} if B then C₁ else C₂ {Q}` |
+| **(Consequence)** | `P' ⇒ P , {P} C {Q} , Q ⇒ Q'  ⇒  {P'} C {Q'}` |
+
+We also use the obvious logical facts that the eight admissible triples are **pairwise disjoint** – i.e. for any two distinct rows of the table at least one of the three equality tests differs. This guarantees that, under the pre‑condition `P`, exactly one leaf of the nested `if`s is reachable.
+
+--------------------------------------------------------------------
+
+## 3.  The specification again  
+
+*Pre‑condition*  
+
+\[
+P\; \equiv\; s_{1}\in C_{1}\;\land\; s_{2}\in C_{2}\;\land\; s_{3}\in C_{3}\;
+          \land\;(s_{1},s_{2},s_{3})\in\operatorname{dom}(\mathsf{animal})
+\]
+
+*Post‑condition*  
+
+\[
+Q\; \equiv\; a = \mathsf{animal}(s_{1},s_{2},s_{3})
+\]
+
+Recall the definition of `animal` (the eight rows of the table).  
+For each row we denote by `row_i` the conjunct  
+
+```
+(s₁ = c₁ᵢ) ∧ (s₂ = c₂ᵢ) ∧ (s₃ = c₃ᵢ)
+```
+
+and by `ans_i` the animal that belongs to that row.  
+For example  
+
+```
+row₁ : (s₁ = "vertebrado") ∧ (s₂ = "ave") ∧ (s₃ = "carnivoro")
+ans₁ = "aguia"
+```
+
+The domain condition in `P` can be written as  
+
+\[
+(s_{1},s_{2},s_{3})\in\operatorname{dom}(\mathsf{animal})
+\;\equiv\;
+\bigvee_{i=1}^{8}\; row_{i}
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Proof of **partial correctness**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\; \text{Prog}\; \{Q\}
+\]
+
+by structural induction on the nested `if`s.  
+The three first assignments that read the input are trivial:
+
+```
+{P} s₁ := read ; s₂ := read ; s₃ := read { P }
+```
+
+Indeed the read‑operations only *bind* the variables `s₁,s₂,s₃` to the values that the environment supplies; they do not change the truth of the logical formula that mentions the same variables.  Hence we can concentrate on the *decision part* of the program.
+
+--------------------------------------------------------------------
+### 4.1  First level (`s₁`)
+
+We apply the **If** rule with  
+
+```
+B₁  ≡ (s₁ = "vertebrado")
+C₁  ≡ the whole “vertebrado” subtree
+C₂  ≡ the whole “invertebrado” subtree
+```
+
+We must show  
+
+```
+{ P ∧ B₁ }   C₁   { Q }          (2)
+{ P ∧ ¬B₁ }  C₂   { Q }          (3)
+```
+
+Because of (1) the disjunction of the eight rows, `P ∧ B₁` is equivalent to the disjunction of the **four rows whose first component is “vertebrado”**:
+
+\[
+P\land B_{1}\;\equiv\;
+(row_{1}\lor row_{2}\lor row_{3}\lor row_{4})
+\tag{2a}
+\]
+
+Analogously  
+
+\[
+P\land\neg B_{1}\;\equiv\;
+(row_{5}\lor row_{6}\lor row_{7}\lor row_{8})
+\tag{3a}
+\]
+
+Thus it suffices to prove the Hoare triple for each individual row; the proof for the whole disjunction follows from the **Consequence** rule.
+
+--------------------------------------------------------------------
+### 4.2  Second level (inside the “vertebrado” branch)
+
+`C₁` itself is an `if` whose guard is  
+
+```
+B₂ ≡ (s₂ = "ave")
+```
+
+Again we split:
+
+```
+{ P∧B₁ ∧ B₂ }   C₁₁   { Q }        (4)
+{ P∧B₁ ∧ ¬B₂ }  C₁₂   { Q }        (5)
+```
+
+*From (2a) we have*  
+
+```
+P ∧ B₁ ∧ B₂   ⇔   row₁ ∨ row₂
+```
+
+because rows 1 and 2 are exactly the ones with `s₁="vertebrado"` and `s₂="ave"`.
+
+*From (2a) we also have*  
+
+```
+P ∧ B₁ ∧ ¬B₂   ⇔   row₃ ∨ row₄
+```
+
+(the rows with `s₁="vertebrado"` and `s₂="mamifero"`).
+
+--------------------------------------------------------------------
+### 4.3  Third level (leaf of the “ave” branch)
+
+`C₁₁` is another `if` whose guard is  
+
+```
+B₃ ≡ (s₃ = "carnivoro")
+```
+
+The two possible commands are
+
+```
+C₁₁₁ : a := "aguia"
+C₁₁₂ : a := "pomba"
+```
+
+We must prove
+
+```
+{ P∧B₁∧B₂∧B₃ }   a := "aguia"   { Q }      (6)
+{ P∧B₁∧B₂∧¬B₃ }  a := "pomba"   { Q }      (7)
+```
+
+*Using (1) we have*  
+
+```
+P ∧ B₁ ∧ B₂ ∧ B₃   ⇔   row₁
+P ∧ B₁ ∧ B₂ ∧ ¬B₃  ⇔   row₂
+```
+
+Now apply the **Assign** rule:
+
+* For (6) we take the post‑condition  
+
+  `Q₆ ≡ a = "aguia"`  
+
+  and compute the weakest pre‑condition:  
+
+  `Q₆[a←"aguia"]` is simply `true` because after the assignment `a` is exactly `"aguia"`.  
+  Hence `{ true } a := "aguia" { a = "aguia" }` holds, and by **Consequence** we obtain (6) because `row₁ ⇒ true`.
+
+* For (7) the same reasoning with `a := "pomba"` yields (7).
+
+Thus both leaves of the “ave” branch satisfy the post‑condition.
+
+--------------------------------------------------------------------
+### 4.4  The “mamifero” branch (still under `s₁ = vertebrado`)
+
+`C₁₂` is an `if` with guard  
+
+```
+B₄ ≡ (s₃ = "onivoro")
+```
+
+Commands:
+
+```
+C₁₂₁ : a := "homem"
+C₁₂₂ : a := "vaca"
+```
+
+Exactly as in the previous step we have  
+
+```
+P ∧ B₁ ∧ ¬B₂ ∧ B₄   ⇔   row₃
+P ∧ B₁ ∧ ¬B₂ ∧ ¬B₄  ⇔   row₄
+```
+
+Applying **Assign** and **Consequence** we obtain the two Hoare triples for the two leaves, and by the **If** rule we get (5).
+
+--------------------------------------------------------------------
+### 4.5  The “invertebrado” branch (`¬B₁`)
+
+The reasoning is completely symmetric.  
+`C₂` begins with the test `s₂ = "inseto"` (guard `B₅`).  
+The four rows that survive `¬B₁` are rows 5–8, and they split as
+
+```
+¬B₁ ∧ B₅   ⇔   row₅ ∨ row₆
+¬B₁ ∧ ¬B₅  ⇔   row₇ ∨ row₈
+```
+
+*Inside the “inseto” branch* we test `s₃ = "hematofago"` (guard `B₆`) and assign
+
+```
+a := "pulga"      (row₅)
+a := "lagarta"    (row₆)
+```
+
+*Inside the “anelideo” branch* we test `s₃ = "sanguessugo"` (guard `B₇`) and assign
+
+```
+a := "sanguessuga" (row₇)
+a := "minhoca"     (row₈)
+```
+
+Each leaf is proved exactly as in Sections 4.3–4.4, using **Assign** and **Consequence**.  
+Consequently (3) holds.
+
+--------------------------------------------------------------------
+### 4.6  Gathering the pieces  
+
+We have shown:
+
+* (2) – the whole “vertebrado” subtree satisfies `Q` under `P∧B₁`;
+* (3) – the whole “invertebrado” subtree satisfies `Q` under `P∧¬B₁`.
+
+Applying the **If** rule at the top level we obtain  
+
+```
+{ P }  (first‑level if)  { Q }
+```
+
+Finally we add the three input reads at the beginning and the final `write(a)` at the end.  
+
+* The three reads do not change the truth of `P` (they only *instantiate* the variables).  
+* The final `write(a)` does not affect the logical state – it is a *skip* with respect to the variables, therefore `{ Q } write(a) { Q }` holds by the **Skip** rule.
+
+Using the **Seq** rule we obtain the desired Hoare triple for the whole program:
+
+\[
+\boxed{\; \{P\}\; \text{Prog}\; \{Q\} \;}
+\]
+
+Hence **partial correctness** is proved: whenever the pre‑condition holds, the program prints exactly the animal prescribed by the table.
+
+--------------------------------------------------------------------
+
+## 5.  Proof of **total correctness**  
+
+Total correctness requires, in addition to partial correctness, a proof that the program **terminates** for every state satisfying `P`.
+
+* The program contains only a *fixed* number of statements:
+  * three input operations,
+  * a cascade of six boolean tests (`=` on strings),
+  * a single assignment to `a`,
+  * one output operation.
+* There are **no loops**, **no recursion**, and **no unbounded computation**.
+* Each test evaluates a finite equality on a finite string, which is a primitive operation that always returns a Boolean value in finite time.
+
+Consequently the execution trace has a bounded length (exactly 3 + 6 + 1 + 1 = 11 steps) and therefore always reaches the final `write`.  
+
+Thus the program is **terminating** for every state that satisfies `P`.  
+
+Combining termination with the partial‑correctness proof we obtain the **total‑correctness** Hoare triple
+
+\[
+\boxed{\; \{P\}\; \text{Prog}\; \{Q\} \;}\qquad\text{(total correctness)}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Summary of the proof structure  
+
+| Step | Hoare rule applied | Goal obtained |
+|------|--------------------|---------------|
+| 1 | **Seq** (reads) | `{P} reads ; … ; reads {P}` |
+| 2 | **If** (first level) | need (2) and (3) |
+| 3 | **If** (second level, vertebrado) | need (4) and (5) |
+| 4 | **If** (third level, ave) | need (6) and (7) |
+| 5 | **Assign** + **Consequence** | (6) and (7) proved |
+| 6 | **If** (third level, mamifero) | analogous to 4‑5 |
+| 7 | **If** (second level, invertebrado) | analogous to 3 |
+| 8 | **If** (third level, inseto / anelideo) | analogous to 4‑5 |
+| 9 | **Seq** (final write) | `{Q} write(a) {Q}` |
+|10 | **Seq** (all pieces) | `{P} Prog {Q}` |
+
+Every leaf of the decision tree corresponds to one row of the table; the assignment performed at that leaf is exactly the value `animal(s₁,s₂,s₃)` for that row, which is why the post‑condition holds.
+
+--------------------------------------------------------------------
+
+## 7.  Concluding statement  
+
+We have exhibited a formal Hoare‑logic proof that the given Python program satisfies the specification  
+
+\[
+\{\,s_{1}\in C_{1}\land s_{2}\in C_{2}\land s_{3}\in C_{3}\land (s_{1},s_{2},s_{3})\in\operatorname{dom}(\mathsf{animal})\,\}
+\;\text{Prog}\;
+\{\,a = \mathsf{animal}(s_{1},s_{2},s_{3})\,\}
+\]
+
+The proof establishes **partial correctness** by a case‑analysis that mirrors the nested `if`s, and **total correctness** because the program contains only a finite sequence of primitive operations and therefore always terminates.  Consequently the program is *correct* with respect to the given Hoare‑logic specification.

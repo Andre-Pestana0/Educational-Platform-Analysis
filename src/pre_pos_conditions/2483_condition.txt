@@ -1,0 +1,60 @@
+Below is a **Hoare‑logic style specification** for the program described in the statement.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true after it finishes) are given; the body of the program is omitted because the request is for a formal specification, not an implementation.
+
+---
+
+### Notation used
+
+* `ℤ` – the set of all integers.  
+* `⊢` – the Hoare triple “{ P } C { Q }”.  
+* `⟦ C ⟧` – the (deterministic) effect of command `C`.  
+* `I` – the integer read from the input.  
+* `out` – the *exact* sequence of characters that the program writes to the standard output (including the final line‑break).  
+* `⧺` – string concatenation.  
+* `a^k` – the string consisting of the character `a` repeated `k` times (for `k ≥ 0`).  
+
+We also define a small auxiliary function that builds the required phrase:
+
+\[
+\operatorname{msg}(i) \;:=\; \text{``Feliz nat''} \;\;\⧺\;\; a^{\,i}\;\;\⧺\;\;\text{``l!\textbackslash n''}
+\qquad\text{for } i\in\mathbb N .
+\]
+
+---
+
+## Hoare triple
+
+\[
+\boxed{\;
+\{\, 1 < I \le 10^{4} \,\}
+\;\; \textbf{read}(I); \; \textbf{print}\bigl(\operatorname{msg}(I)\bigr) \;
+\{\, out = \operatorname{msg}(I) \;\land\; \text{program terminates} \,\}
+\;}
+\]
+
+### Explanation of the components
+
+| Component | Meaning |
+|----------|---------|
+| **Pre‑condition** `1 < I ≤ 10⁴` | The only admissible inputs are integers strictly larger than 1 and at most 10 000, exactly as required by the problem statement. |
+| **Command** `read(I)` | Reads the input integer and stores it in the logical variable `I`. |
+| **Command** `print(msg(I))` | Prints the string `msg(I)` (defined above). |
+| **Post‑condition** `out = msg(I) ∧ program terminates` | After the program finishes, the output stream contains **exactly** the phrase “Feliz nat” followed by `I` copies of the letter `a`, then the suffix “l!” and a newline character. No other characters are printed, and the program has terminated. |
+
+---
+
+### Full formalisation (optional)
+
+If one prefers to write the specification as a single Hoare triple without an explicit command sequence, it can be expressed as:
+
+\[
+\{\, 1 < I \le 10^{4} \,\}
+\;\;\;\;\; \textbf{S}
+\;\;\;\;\; \{\, out = \text{``Feliz nat''} \;\⧺\; a^{\,I} \;\⧺\; \text{``l!\textbackslash n''} \,\}
+\]
+
+where `S` denotes the (unspecified) deterministic program that reads the integer `I` and prints the required string.
+
+--- 
+
+This Hoare‑logic specification captures **exactly** what the problem asks for: a pre‑condition limiting the domain of the input integer, and a post‑condition describing the unique output that must be produced.
