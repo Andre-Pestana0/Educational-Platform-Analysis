@@ -120,7 +120,7 @@ def save_io_files_simplified(code, text_to_save):
 
             
 def save_pre_post_conditions(code, conditions):
-    output_dir = os.path.join(BASE_DIR, "pre_post_conditions")
+    output_dir = os.path.join(BASE_DIR, "pre_pos_conditions")
     os.makedirs(output_dir, exist_ok=True)
 
     condition_path = os.path.join(output_dir, f"{code}_condition.txt")
@@ -278,14 +278,12 @@ def formal_specification_validation_logic(code_list):
 def main():
     exercises_to_generate_solutions = [1188]
     
-    # missing_conditions_group = [
-    #     1000, 1001, 1181, 1182, 1183, 1185, 1187, 1188, 1190, 
-    #     1789, 1827, 1924, 2164, 2168, 2483, 2581, 2879, 3140,
-    #     3157, 3161, 3174, 3252, 3256
-    # ]
+    missing_conditions_group = [
+        1061
+    ]
     
     missing_proofs_group = [
-        2896
+        1061
     ]
     
     # iniciante_codes = [
@@ -313,7 +311,7 @@ def main():
     # ]
 
     # code_logic(exercises_to_generate_solutions)
-    # conditions_generation_logic(missing_conditions_group)
+    conditions_generation_logic(missing_conditions_group)
     formal_specification_validation_logic(missing_proofs_group)
 
     

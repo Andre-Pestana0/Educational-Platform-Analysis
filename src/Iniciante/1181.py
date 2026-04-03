@@ -3,6 +3,7 @@
 # Recebendo os valores de entrada.
 linha = int(input())
 operacao = input()
+soma=0.0
 
 # Inicialização da matriz vazia, que é uma lista que receberá linhas da matriz
 matriz = []
@@ -26,7 +27,11 @@ for i in range(12):
 # linha em questão, e se caso for a média, é feito a divisão
 # por 12, que é o tamanho da linha.
 
-resultado = sum(matriz[linha])
+# resultado = sum(matriz[linha])
+
+for i in range(linha + 1):
+    for j in range(linha + 1):
+        soma += matriz[i][j]
 
 if operacao == "M":
     resultado = resultado / 12

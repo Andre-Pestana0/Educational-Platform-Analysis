@@ -1,119 +1,122 @@
-Below is a **Hoare‑logic style specification** for the program that reads the three coefficients of a quadratic equation  
+Below is a **Hoare‑logic specification** of the program that solves the quadratic equation  
 
 \[
-a\,x^{2}+b\,x+c=0
+A\,x^{2}+B\,x+C=0
 \]
 
-and either prints the two roots given by the Bhaskara (quadratic) formula or prints the
-message *“Impossivel calcular”* when the formula cannot be evaluated.
+and prints the two roots when they exist, otherwise prints the message  
+`Impossivel calcular`.
+
+We write the specification in the usual Hoare triple  
+
+\[
+\{P\}\; \texttt{prog}\; \{Q\}
+\]
+
+where  
+
+* **\(P\)** – the *pre‑condition* (what is known before the program starts);  
+* **\(Q\)** – the *post‑condition* (what must hold after the program terminates).  
+
+All variables are understood to be **double‑precision floating‑point numbers** (i.e. real numbers for the purpose of the specification).
 
 ---
 
-### 1.  State variables  
+### 1.  Pre‑condition  
 
-| Symbol | Meaning |
-|--------|---------|
-| \(a,b,c\) | input numbers (type `double`, i.e. real numbers) |
-| \(\Delta\) | discriminant \(\Delta = b^{2}-4ac\) |
-| \(d\)      | denominator \(d = 2a\) |
-| \(\mathit{out}\) | the observable result of the program.  It can be either a **pair of real numbers** \((r_{1},r_{2})\) (the two roots) or the special value \(\bot\) that denotes the error message *“Impossivel calcular”*. |
+\[
+\boxed{
+P \;\equiv\; A,B,C \in \mathbb{R}
+}
+\]
+
+The only requirement before execution is that three real numbers have been read and stored in the variables `A`, `B` and `C`.
 
 ---
 
-### 2.  Pre‑condition  
-
-The only requirement before execution is that the three inputs are real numbers (the
-language already guarantees that they are read as `double`s).
+### 2.  Auxiliary definitions (used in the post‑condition)
 
 \[
-\boxed{P \;\equiv\; a\in\mathbb{R}\;\wedge\;b\in\mathbb{R}\;\wedge\;c\in\mathbb{R}}
+\begin{aligned}
+\Delta &\;=\; B^{2}-4AC               &&\text{(discriminant)}\\[2mm]
+\text{feasible} &\;=\;(A\neq 0)\;\land\;(\Delta \ge 0)  &&\text{(the roots can be computed)}\\[2mm]
+R_{1} &\;=\;\frac{-B+\sqrt{\Delta}}{2A}\\[2mm]
+R_{2} &\;=\;\frac{-B-\sqrt{\Delta}}{2A}
+\end{aligned}
 \]
 
-(If one wishes to be more explicit, one can write \(P\equiv\text{true}\) because the
-type system already enforces the above.)
+We also need a function that expresses the required rounding to **exactly five decimal digits** (the program prints using `printf("%.5f")`).  
+
+\[
+\operatorname{round}_{5}(x) \;=\;
+\frac{\big\lfloor 10^{5}\,x + \tfrac12\big\rfloor}{10^{5}}
+\qquad\text{(round‑to‑nearest, ties away from zero)}
+\]
 
 ---
 
 ### 3.  Post‑condition  
 
-Let  
-
-\[
-\Delta \;=\; b^{2}-4ac,\qquad
-d \;=\; 2a .
-\]
-
-Define the mathematically exact roots (when they exist)
-
-\[
-r_{1}^{\!*}= \frac{-b+\sqrt{\Delta}}{d},\qquad
-r_{2}^{\!*}= \frac{-b-\sqrt{\Delta}}{d}.
-\]
-
-The observable result after the program terminates must satisfy:
-
 \[
 \boxed{
 \begin{aligned}
-Q\;\equiv\; &\bigl(a\neq 0 \;\wedge\; \Delta \ge 0\bigr)
-               \;\Longrightarrow\; \mathit{out}= (r_{1}^{\!*},\,r_{2}^{\!*})\\[2mm]
-           &\;\wedge\;
-               \bigl(a = 0 \;\vee\; \Delta < 0\bigr)
-               \;\Longrightarrow\; \mathit{out}= \bot .
-\end{aligned}}
+Q \;\equiv\;&
+\bigl(\text{feasible} \;\rightarrow\;
+   \text{output} = 
+   \bigl(\; "R1 = " \,\|\, \operatorname{round}_{5}(R_{1})\bigr)
+   \;\wedge\;
+   \bigl(\; "R2 = " \,\|\, \operatorname{round}_{5}(R_{2})\bigr)
+   \bigr) \\[2mm]
+&\;\land\;
+\bigl(\neg\text{feasible} \;\rightarrow\;
+   \text{output} = "Impossivel calcular"\bigr)
+\end{aligned}
+}
 \]
 
-*Explanation*  
+In words:
 
-* **Case 1 – successful computation**  
-  If the denominator \(d=2a\) is non‑zero **and** the discriminant \(\Delta\) is
-  non‑negative, the program must output the two real roots
-  \((r_{1}^{\!*},r_{2}^{\!*})\).  (The required printing with five digits after the
-  decimal point is a formatting issue that does not affect the logical value of the
-  result.)
+* **If** `A ≠ 0` **and** `Δ ≥ 0` (i.e. the quadratic has real roots and the denominator is non‑zero), the program must print two lines  
 
-* **Case 2 – impossible to compute**  
-  If either \(a=0\) (division by zero) **or** \(\Delta<0\) (square‑root of a negative
-  number), the only admissible observable result is the special value \(\bot\),
-  which the implementation will render as the literal string  
-  *“Impossivel calcular”*.
+  ```
+  R1 = <R1 rounded to 5 decimals>
+  R2 = <R2 rounded to 5 decimals>
+  ```
+
+  where  
+
+  \[
+  R_{1}= \frac{-B+\sqrt{B^{2}-4AC}}{2A},
+  \qquad
+  R_{2}= \frac{-B-\sqrt{B^{2}-4AC}}{2A}.
+  \]
+
+* **Otherwise** (either `A = 0` – division by zero – or `Δ < 0` – square‑root of a negative number), the program must print exactly the string  
+
+  ```
+  Impossivel calcular
+  ```
 
 ---
 
-### 4.  Hoare triple  
-
-Putting the pieces together, the whole program \(S\) (read three numbers, compute the
-discriminant, decide which branch to follow, and print) satisfies the Hoare triple
+### 4.  Full Hoare triple  
 
 \[
-\boxed{\{\,P\,\}\; S\; \{\,Q\,\}}
+\boxed{
+\{\,A,B,C\in\mathbb{R}\,\}\;
+\texttt{prog}
+\;
+\left\{
+\begin{array}{l}
+(\,A\neq0\land B^{2}-4AC\ge0\,)\rightarrow
+   \bigl(\text{output}= "R1 = "\,\|\,\operatorname{round}_{5}(R_{1})\bigr)\\
+\qquad\qquad\qquad\qquad\;\;\wedge
+   \bigl(\text{output}= "R2 = "\,\|\,\operatorname{round}_{5}(R_{2})\bigr)\\[2mm]
+\land\; \neg(A\neq0\land B^{2}-4AC\ge0)\rightarrow
+   (\text{output}= "Impossivel calcular")
+\end{array}
+\right\}
+}
 \]
 
-where  
-
-* \(P\) is the pre‑condition defined in §2, and  
-* \(Q\) is the post‑condition defined in §3.
-
----
-
-### 5.  Remarks on rounding  
-
-The specification above treats the roots as exact real numbers.  
-The requirement *“print the result with 5 digits after the decimal point”* can be
-modelled by an additional **output‑formatting predicate**:
-
-\[
-\mathit{out\_fmt}(r_{1},r_{2}) \equiv
-   \bigl(\text{printf}("R1 = %.5f\\nR2 = %.5f",r_{1},r_{2})\bigr)
-\]
-
-and the post‑condition can be refined to  
-
-\[
-\bigl(a\neq 0\wedge\Delta\ge 0\bigr)\Longrightarrow
-   \mathit{out\_fmt}(r_{1}^{\!*},r_{2}^{\!*})\; .
-\]
-
-The logical part of the specification, however, remains the same: the program must
-produce the mathematically correct roots whenever they exist, otherwise it must
-produce the error message.
+This specification captures **exactly** what the program must do, and it can be used as the basis for a Hoare‑logic proof of correctness.

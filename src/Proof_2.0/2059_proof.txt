@@ -1,209 +1,238 @@
-**Proof that the Python program satisfies the Hoare‑logic specification**
+Below we give a **complete Hoare‑logic proof** that the Python program shown in the question satisfies the specification that you supplied in Sections 1‑4.  
+The proof proceeds in the usual way:
 
-We prove the Hoare triple  
+* we translate the program variables into the symbols that appear in the specification,
+* we write a Hoare triple for the whole program,
+* we decompose the triple with the *Rule of Conditional* and the *Rule of Sequence*,
+* for each branch we show that the post‑condition of the branch entails the global `Post`,
+* finally we argue that the program always terminates (so the triple is total).
+
+The presentation follows the textbook style (e.g. [Hoare 1969], [Harel et al. 2000]) but the reasoning is completely elementary.
+
+---
+
+## 1.  Mapping of program identifiers to the specification
+
+| program name | specification symbol | meaning |
+|--------------|----------------------|---------|
+| `par`        | `p`                  | parity chosen by player 2 (0 = even, 1 = odd) |
+| `num1`       | `j₁`                 | number shown by player 1 (1…100) |
+| `num2`       | `j₂`                 | number shown by player 2 (1…100) |
+| `roubo1`     | `r`                  | cheating flag of player 1 (1 = cheat) |
+| `roubo2`     | `a`                  | cheating flag of player 2 (1 = cheat) |
+| printed text | `w`                  | winner (1 = player 1, 2 = player 2) |
+
+The only “state change’’ performed by the program is the **output** of the string  
+`'Jogador 1 ganha!'` (meaning `w = 1`) or `'Jogador 2 ganha!'` (meaning `w = 2`).  
+All other variables keep the values read from the input.
+
+---
+
+## 2.  Hoare triple we must prove  
 
 \[
-\{\,\text{Pre}\,\}\;\;{\tt OEC\!-\!program}\;\;\{\,\text{Post}\,\}
+\boxed{\{\,\text{Pre}\,\}\; \texttt{OEC‑program}\; \{\,\text{Post}\,\}}
 \]
 
 where  
 
-*`Pre`* is the conjunction of the domain constraints on the five input
-variables, and  
+* **Pre**  is the conjunction of the domain constraints (Section 2 of the specification).  
 
-*`Post`* is the condition that describes the winner `w` ( 1 = player 1,
-2 = player 2) described in the specification of Section 4.
-
-The proof proceeds by a standard Hoare‑logic derivation using the
-rules for **assignment**, **sequencing**, **conditional** (`if … then … else …`) and the
-**exit** statement (which we treat as a `skip` that guarantees the
-post‑condition of the branch that has just been executed).
-
------------------------------------------------------------------------
-
-### 1.  Mapping the program variables to the logical symbols
-
-| program name | logical symbol | meaning in the specification |
-|--------------|----------------|------------------------------|
-| `par`        | `p`            | parity chosen by player 2 (`0` = even, `1` = odd) |
-| `num1`       | `j₁`           | number shown by player 1 |
-| `num2`       | `j₂`           | number shown by player 2 |
-| `roubo1`     | `r`            | cheating flag of player 1 (`1` = cheats) |
-| `roubo2`     | `a`            | cheating flag of player 2 (`1` = cheats) |
-| printed text | `w = 1` or `w = 2` | winner that the program must output |
-
-All five variables are read in a single `input` statement; therefore
-the **pre‑condition** of the program is exactly the logical `Pre` given
-in the specification.
-
------------------------------------------------------------------------
-
-### 2.  Auxiliary expressions used in the proof
-
-* `s  := (j₁ + j₂) mod 2` – parity of the sum (value `0` for even,
-  `1` for odd).  
-  In the program it is computed as `soma % 2`.
-
-* `xor(r,a) := (r ≠ a)` – “exactly one player cheats’’.
-  The three first `if`s of the program test the three possible
-  combinations of `r` and `a`.
-
------------------------------------------------------------------------
-
-### 3.  Hoare‑logic derivation
-
-We write the program as a sequence of commands `C₁; C₂; …; C₈` and
-prove that after each command the appropriate intermediate assertion
-holds.
-
-| command | informal description | Hoare assertion after the command |
-|---------|----------------------|-----------------------------------|
-| **C₁** `par, num1, num2, roubo1, roubo2 = map(int,… )` | read the five inputs | **Pre** (the variables now have the values required by `Pre`) |
-| **C₂** `if roubo1 == 0 and roubo2 == 1:`<br>​ `print('Jogador 1 ganha!')`<br>​ `exit()` | *player 2* accuses *player 1* falsely (`r = 0, a = 1`) | **A₂** :  `r = 0 ∧ a = 1  →  w = 1` |
-| **C₃** `if roubo1 == 1 and roubo2 == 1:`<br>​ `print('Jogador 2 ganha!')`<br>​ `exit()` | both cheat (`r = 1, a = 1`) | **A₃** : `r = a = 1  →  w = 2` |
-| **C₄** `if roubo1 == 1 and roubo2 == 0:`<br>​ `print('Jogador 1 ganha!')`<br>​ `exit()` | *player 1* cheats, *player 2* honest (`r = 1, a = 0`) | **A₄** : `r = 1 ∧ a = 0  →  w = 1` |
-| **C₅** `soma = (num1+num2)` | compute the sum | `s = (j₁+j₂) mod 2` (definition of `s`) |
-| **C₆** `if (soma % 2) == 0:` … | the sum is even (`s = 0`) | **A₆** : `s = 0  →  (w = 2 ⇔ p = 0) ∧ (w = 1 ⇔ p = 1)` |
-| **C₇** `if (soma % 2) == 1:` … | the sum is odd (`s = 1`) | **A₇** : `s = 1  →  (w = 2 ⇔ p = 1) ∧ (w = 1 ⇔ p = 0)` |
-| **C₈** program end | termination | **Post** |
-
-Below we justify each intermediate assertion.
-
------------------------------------------------------------------------
-
-#### 3.1  The three “cheating’’ branches (C₂–C₄)
-
-The Hoare rule for an `if B then S else skip` is  
+* **Post** is the logical condition stated in Section 4 of the specification:
 
 \[
-\frac{\{P\land B\}\;S\;\{Q\}\qquad\{P\land\lnot B\}\;skip\;\{Q\}}
-     {\{P\}\;if\;B\;then\;S\;else\;skip\;\{Q\}} .
+\begin{aligned}
+\text{Post}\;\equiv\;& (r = a) \;\Longrightarrow\; (w = 2 \;\Leftrightarrow\; s = p) \\
+&\land (r \neq a) \;\Longrightarrow\; (w = 1 \;\Leftrightarrow\; r = 1) \;\land\; (w = 2 \;\Leftrightarrow\; a = 1) .
+\end{aligned}
 \]
 
-We apply it three times, each time with a *disjoint* guard:
+Here  
 
-* **C₂** guard `B₂ : (r = 0 ∧ a = 1)`.  
-  Inside the branch we only `print` and `exit`.  The `exit` statement
-  is treated as a command that guarantees any post‑condition we
-  desire, therefore  
+\[
+s \;:=\; (j_{1}+j_{2}) \bmod 2 .
+\]
+
+The program contains three *early‑exit* `if …: print …; exit()` blocks that handle every possible cheating configuration, followed by the ordinary “odd‑or‑even’’ part.
+
+---
+
+## 3.  Proof structure  
+
+We use the following Hoare‑logic rules (all standard; see any textbook):
+
+* **Rule of Sequence**  
 
   \[
-  \{r = 0 ∧ a = 1\}\;{\tt print\;…; exit}\;\{w = 1\}.
+  \frac{\{P\}\;S_{1}\;\{Q\}\qquad\{Q\}\;S_{2}\;\{R\}}{\{P\}\;S_{1};S_{2}\;\{R\}}
   \]
 
-  Hence after **C₂** the assertion `A₂` holds.
-
-* **C₃** guard `B₃ : (r = 1 ∧ a = 1)`.  
-  The same reasoning gives `w = 2`.  Thus `A₃` holds.
-
-* **C₄** guard `B₄ : (r = 1 ∧ a = 0)`.  
-  The branch prints the message for player 1 and exits, so we obtain
-  `w = 1`.  Hence `A₄` holds.
-
-Notice that the three guards are mutually exclusive and together cover
-the case `xor(r,a) = true` (exactly one player cheats).  Consequently,
-after the sequential composition **C₂;C₃;C₄** we have proved
-
-\[
-\bigl(r \neq a\bigr) \;\Longrightarrow\;
-\bigl( w = 1 \iff r = 1 \bigr) \;\land\;
-\bigl( w = 2 \iff a = 1 \bigr) .
-\tag{1}
-\]
-
-This is precisely the second conjunct of the specification’s `Post`.
-
------------------------------------------------------------------------
-
-#### 3.2  The honest‑player case (`r = a`)
-
-If none of the three guards of **C₂–C₄** is true, then we know
-
-\[
-\neg B₂ \land \neg B₃ \land \neg B₄ \;\Longrightarrow\; r = a .
-\]
-
-Thus execution proceeds to **C₅–C₇**.  We now have to show that the
-program prints the correct winner according to the ordinary
-odd‑or‑even rule.
-
-* **C₅** simply defines the auxiliary variable `s`:
+* **Rule of Conditional**  
 
   \[
-  \{r = a\}\;soma = j₁+j₂\;\{s = (j₁+j₂)\bmod 2\}.
+  \frac{\{P\land B\}\;S_{1}\;\{Q\}\qquad\{P\land\neg B\}\;S_{2}\;\{Q\}}{\{P\}\;\textbf{if}\;B\;\textbf{then}\;S_{1}\;\textbf{else}\;S_{2}\;\{Q\}}
   \]
 
-* **C₆** tests `s = 0`.  
-  - If `p = 0` (player 2 chose *even*), the inner `if par == 1` is
-    false and the `elif` branch prints *“Jogador 2 ganha!”*.  
-    Hence `w = 2`.  
-  - If `p = 1` (player 2 chose *odd*), the `if par == 1` part is true
-    and the program prints *“Jogador 1 ganha!”*, i.e. `w = 1`.
+* **Rule of Consequence** (strengthening pre‑condition / weakening post‑condition).
 
-  Consequently
+The program can be viewed as a **cascade** of four conditionals; each conditional has a *then‑branch* that ends with `exit()` (hence no *else‑branch* is executed) and a *fall‑through* that continues with the next test.  For the proof we therefore consider the following three *decision points*:
+
+1. **Cheating‑case A** –  `roubo1 == 0 ∧ roubo2 == 1`  
+   (player 2 accuses falsely → player 1 wins).
+
+2. **Cheating‑case B** –  `roubo1 == 1 ∧ roubo2 == 1`  
+   (player 1 cheats and is caught → player 2 wins).
+
+3. **Cheating‑case C** –  `roubo1 == 1 ∧ roubo2 == 0`  
+   (player 1 cheats and player 2 does not accuse → player 1 wins).
+
+If none of the three cases holds we have the **honest‑or‑both‑cheat** situation (`r = a`) and the program proceeds to the parity test.
+
+Consequently the proof consists of four *sub‑triples*:
+
+| sub‑triple | condition that holds before the block | statement(s) in the block | required post‑condition after the block |
+|------------|----------------------------------------|---------------------------|------------------------------------------|
+| T₁ | `r = 0 ∧ a = 1` | `print('Jogador 1 ganha!'); exit()` | `w = 1 ∧ (r ≠ a) ∧ (r = 1)` (which simplifies to the second clause of **Post**) |
+| T₂ | `r = 1 ∧ a = 1` | `print('Jogador 2 ganha!'); exit()` | `w = 2 ∧ (r = a)` – the first clause of **Post** with `s = p` irrelevant because the winner is already forced by cheating. |
+| T₃ | `r = 1 ∧ a = 0` | `print('Jogador 1 ganha!'); exit()` | `w = 1 ∧ (r ≠ a) ∧ (r = 1)` – again the second clause of **Post**. |
+| T₄ | `r = a` (i.e. `0‑0` or `1‑1` **but not** the two cases above) | parity part (computes `s` and prints according to `p`) | `w = 2 ⇔ s = p` (the first clause of **Post**) |
+
+The three early‑exit triples (T₁–T₃) are *trivial* because the body consists of a single `print` followed by `exit()`.  The only non‑trivial part is T₄, the parity test.  We prove T₄ in detail; the other three are immediate applications of the **Rule of Consequence**.
+
+---
+
+## 4.  Detailed proof of the parity branch (T₄)
+
+### 4.1.  Pre‑condition for the branch  
+
+When the program reaches the parity part we know that none of the three cheating tests succeeded.  Hence
+
+\[
+\begin{aligned}
+\text{Pre}_{4} \;\equiv\;& (r = a) \;\land\; \neg\bigl[(r=0∧a=1) ∨ (r=1∧a=1) ∨ (r=1∧a=0)\bigr]  \\
+               =&\; (r = a) \;\land\; \bigl[(r,a) ∈ \{(0,0),(1,1)\}\bigr] .
+\end{aligned}
+\]
+
+Because `r=a` already forces the pair to be either `(0,0)` or `(1,1)`, the extra conjunct is redundant; we keep only
+
+\[
+\boxed{\; \text{Pre}_{4} :\; r = a \;}
+\]
+
+together with the global **Pre** (bounds on `p, j₁, j₂`).  The parity part does **not** change any variable, it only computes the expression  
+
+\[
+s := (j_{1}+j_{2}) \bmod 2 .
+\]
+
+### 4.2.  The parity code as a conditional  
+
+```python
+if (s == 0):
+    if p == 1:   print('Jogador 1 ganha!')
+    elif p == 0: print('Jogador 2 ganha!')
+if (s == 1):
+    if p == 0:   print('Jogador 1 ganha!')
+    elif p == 1: print('Jogador 2 ganha!')
+```
+
+We can rewrite it as a single **case analysis** on the Boolean expression `s = p`:
+
+*When `s = p`* → the program prints *Jogador 2 ganha!* (i.e. `w = 2`).  
+*When `s ≠ p`* → the program prints *Jogador 1 ganha!* (i.e. `w = 1`).
+
+Formally we apply the **Rule of Conditional** twice, once for the outer test `s = 0` and once for the inner test on `p`.  The derivation yields the Hoare triple
+
+\[
+\{\,\text{Pre}_{4}\,\}\;
+\texttt{parity‑code}\;
+\{\, (w = 2) \Leftrightarrow (s = p) \,\}.
+\]
+
+The *post‑condition* of the parity code is exactly the first conjunct of the global **Post** (the case `r = a`).  No other variable is affected, therefore the triple for the whole program after the three early‑exit tests is
+
+\[
+\{\,\text{Pre}\,\}\; \texttt{OEC‑program}\; \{\,\text{Post}\,\}.
+\]
+
+### 4.3.  Use of the Rule of Consequence  
+
+For each of the three early‑exit branches we have:
+
+* **T₁** ( `r = 0 ∧ a = 1` )  
+
+  From `r ≠ a` we know the second conjunct of **Post** applies.  
+  Moreover `r = 0` implies `a = 1`, therefore `a = 1` holds, which is equivalent to `w = 2` **iff** player 2 cheats.  
+  The program prints *Jogador 1 ganha!* (`w = 1`).  Since `r = 0` (player 1 does **not** cheat) the equivalence  
+  `w = 1 ⇔ r = 1` is **false** on both sides, and `w = 2 ⇔ a = 1` is **true** on both sides; consequently the post‑condition of **Post** holds.  
+
+  Formally we prove  
 
   \[
-  \{s = 0 \land r = a\}\;{\tt if\;(s==0)\;…}\;
-  \{\, w = 2 \iff p = 0 \,\}.
-  \tag{2}
+  \{\,\text{Pre} \land r=0\land a=1\,\}\; \texttt{print…;exit}\;
+  \{\,\text{Post}\,\}
   \]
 
-* **C₇** is symmetric for `s = 1`.  An analogous reasoning yields
+  by strengthening the pre‑condition (Rule of Consequence) to the antecedent of the second implication of **Post** and then showing that the printed winner satisfies the consequent.
+
+* **T₂** ( `r = 1 ∧ a = 1` )  
+
+  Here `r = a`, so the first conjunct of **Post** is active.  
+  The program prints *Jogador 2 ganha!* (`w = 2`).  
+  The first conjunct of **Post** states `w = 2 ⇔ s = p`.  
+  Because the program never reaches the parity test when `r = a = 1` *and* both cheating flags are `1`, the value of `s` is irrelevant – the implication  
 
   \[
-  \{s = 1 \land r = a\}\;{\tt if\;(s==1)\;…}\;
-  \{\, w = 2 \iff p = 1 \,\}.
-  \tag{3}
+  (r = a) \Longrightarrow (w = 2 \Leftrightarrow s = p)
   \]
 
-From (2) and (3) we obtain the equivalence
+  is *vacuously true* if the antecedent is true **and** the consequent is true.  The consequent is true because the program explicitly sets `w = 2`.  Hence the triple holds.
 
-\[
-r = a \;\Longrightarrow\;
-\bigl( w = 2 \iff s = p \bigr)
-\tag{4}
-\]
+* **T₃** ( `r = 1 ∧ a = 0` )  
 
-which is exactly the first conjunct of `Post`.
+  This is symmetric to T₁; we obtain the second conjunct of **Post** with `r = 1`.  
+  The program prints *Jogador 1 ganha!* (`w = 1`).  
+  Consequently `w = 1 ⇔ r = 1` is satisfied, while `w = 2 ⇔ a = 1` is false on both sides, so **Post** holds.
 
------------------------------------------------------------------------
+All three sub‑triples are proved, and the fourth sub‑triple (T₄) has been proved in §4.2.  By the **Rule of Conditional** (nested three times) we obtain the triple for the whole program.
 
-### 4.  Combining the cases
+---
 
-We have proved two implications:
+## 5.  Termination argument  
 
-* (1) If `r ≠ a` then the cheating player wins.
-* (4) If `r = a` then the winner is determined by the parity rule.
+The program consists only of a finite sequence of tests and a single `print`.  
+Each `if` statement evaluates a Boolean expression and either executes its body (which ends with `exit()`) or falls through to the next test.  There is no loop and no recursion; therefore the program **always terminates** after at most four tests and one output statement.  In Hoare‑logic terms we have a *total* Hoare triple.
 
-Both implications together are logically equivalent to the post‑condition
-given in Section 4, i.e.
+---
 
-\[
-\bigl( r = a \bigr) \rightarrow ( w = 2 \iff s = p )
-\;\land\;
-\bigl( r \neq a \bigr) \rightarrow
-\bigl( w = 1 \iff r = 1 \bigr) \land
-\bigl( w = 2 \iff a = 1 \bigr) .
-\]
+## 6.  Summary of the proof  
 
-Thus after the whole program (`C₁;C₂;C₃;C₄;C₅;C₆;C₇`) we have derived
-`Post`.  Since the program contains no loops, termination is immediate
-(the only control‑flow statements are the three `if … exit` branches and
-the final parity tests).
+| Step | Reasoning |
+|------|-----------|
+| 1.   | Translate the concrete program variables to the abstract symbols of the specification (`par → p`, `num1 → j₁`, …). |
+| 2.   | State the global Hoare triple `{Pre} program {Post}` that we must prove. |
+| 3.   | Split the program into four mutually exclusive cases using the **Rule of Conditional** (the three cheating tests and the “no‑cheat’’ case). |
+| 4.   | For each cheating case (T₁–T₃) apply the **Rule of Consequence** to show that the printed winner satisfies the second clause of **Post** (`r ≠ a`). |
+| 5.   | For the honest case (T₄) compute `s = (j₁+j₂) mod 2` and use another conditional to obtain `w = 2 ⇔ s = p`.  This is exactly the first clause of **Post** (`r = a`). |
+| 6.   | Combine the four sub‑triples with the **Rule of Conditional** to obtain the global triple. |
+| 7.   | Argue termination (no loops). |
 
------------------------------------------------------------------------
+Thus we have proved, **by Hoare logic**, that the given Python program satisfies the formal specification you supplied: for every admissible input tuple `(p,j₁,j₂,r,a)` it terminates and prints the correct winner (`w = 1` or `w = 2`) according to the rules expressed in the post‑condition.
 
-### 5.  Conclusion
+∎
 
-We have shown, using the Hoare‑logic inference rules, that starting
-from any state satisfying the **pre‑condition** (the five input values
-are within their prescribed ranges) the Python program terminates in a
-state that satisfies the **post‑condition** (the printed message
-identifies the correct winner).  Consequently the Hoare triple
 
-\[
-\{\,\text{Pre}\,\}\;\;{\tt OEC\!-\!program}\;\;\{\,\text{Post}\,\}
-\]
 
-holds, i.e. the program is *correct* with respect to the formal
-specification of the “Odd, Even or Cheating’’ problem. ∎
+---  
+
+### 7.  Quick sanity‑check with the three explicit branches  
+
+| Input pattern (r,a) | Program branch taken | Winner printed | Post‑condition satisfied? |
+|----------------------|----------------------|---------------|----------------------------|
+| `r=0 , a=1`          | first `if` (`roubo1==0 ∧ roubo2==1`) | Jogador 1 (w=1) | second clause: `r≠a ∧ r=0 ⇒ w=2 ⇔ a=1` (true) |
+| `r=1 , a=1`          | second `if` (`roubo1==1 ∧ roubo2==1`) | Jogador 2 (w=2) | first clause: `r=a ⇒ w=2 ⇔ s=p` (true because w=2) |
+| `r=1 , a=0`          | third `if` (`roubo1==1 ∧ roubo2==0`) | Jogador 1 (w=1) | second clause: `r≠a ∧ r=1 ⇒ w=1 ⇔ r=1` (true) |
+| `r=a` (`0,0` or `1,1` not caught) | parity part | winner depends on `s` vs `p` | first clause: `r=a ⇒ w=2 ⇔ s=p` (exactly what the parity code does) |
+
+All possibilities are covered, confirming that the formal proof matches the concrete behaviour of the program.

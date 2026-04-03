@@ -2,7 +2,7 @@ Description:  Odd and Even have had their share of fun times playing the good ol
 
 Input: The first line of input contains a single integer n (1 ≤ n ≤ 1000), the number of rounds they played that evening. Then follow n lines each beginning with the first character of the name of the starting player (either ’O’, ’E’ or ’I’), followed by a space and then the starting number for that round, in the range [1, 10000] Note: If the starting number is 1, all players receive 0 point for that round
 
-Output: Output a single line with the score at the end of the day for each of the three contestants, in the order âOddâ, âEvenâ, âIngmariayâ.
+Output: Output a single line with the score at the end of the day for each of the three contestants, in the order ”Odd”, ”Even”, ”Ingmariay”.
 
 Examples:
 - Example 1:

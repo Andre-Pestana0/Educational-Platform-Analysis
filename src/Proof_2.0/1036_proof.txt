@@ -1,312 +1,291 @@
-**Proof of correctness (Hoare‑logic) for the Python program**
+## 1.  What we have to show  
 
-We show that the whole program  
-
-```
-read a,b,c                         #  (A,B,C in the source)
-Δ := b*b – 4*a*c
-if (Δ > 0 and a ≠ 0) then
-        R1 := (-b + sqrt(Δ)) / (2*a)
-        R2 := (-b - sqrt(Δ)) / (2*a)
-        print(R1,R2)                #  “R1 = …\nR2 = …”
-else
-        print(⊥)                    #  “Impossivel calcular”
-```
-
-satisfies the Hoare triple  
+We are given a **Hoare triple**
 
 \[
-\{\,P\,\}\; S\; \{\,Q\,\},
-\qquad 
-P\equiv a,b,c\in\mathbb R,
-\qquad 
-Q\equiv\bigl(a\neq0\wedge \Delta\ge0\bigr)\Rightarrow
-      out=(r_1^{\!*},r_2^{\!*})\;\wedge\;
-      \bigl(a=0\vee\Delta<0\bigr)\Rightarrow out=\bot .
+\{\,P\,\}\;{\tt prog}\;\{\,Q\,\}
 \]
 
-(For the purpose of the proof we replace the strict test `Δ>0` that the program
-uses by the weaker `Δ≥0`; the proof works unchanged if we keep the strict test,
-the resulting post‑condition is then `Δ>0` instead of `Δ≥0`.)
+with  
 
---------------------------------------------------------------------
-
-### 1.  Notation and auxiliary assertions  
-
-* `Δ` denotes the discriminant `b*b – 4*a*c`.  
-* `d` denotes the denominator `2*a`.  
-* `r₁* , r₂*` are the mathematically exact roots  
+* **Pre‑condition**  
 
 \[
-r_{1}^{\!*}= \frac{-b+\sqrt{\Delta}}{d},
-\qquad
-r_{2}^{\!*}= \frac{-b-\sqrt{\Delta}}{d}.
+P\;:\;A,B,C\in\mathbb R
 \]
 
-* `out` is the observable result of the program:  
-
-  * `out = (r₁ , r₂)` after the two `print` statements,  
-  * `out = ⊥` after the error `print`.
-
-* The Hoare rule for an *if* statement  
+* **Post‑condition**  
 
 \[
-\frac{\{P\wedge C\}\;S_{1}\;\{Q\}\qquad
-      \{P\wedge\neg C\}\;S_{2}\;\{Q\}}
-     {\{P\}\; \textbf{if } C \textbf{ then } S_{1} \textbf{ else } S_{2}\;\{Q\}}
+\begin{aligned}
+Q\equiv
+&\bigl((A\neq 0\land\Delta\ge 0)\;\rightarrow\;
+   (\text{output}= "R1 = "\!\parallel\!\operatorname{round}_{5}(R_{1})\;
+    \wedge\;
+    \text{output}= "R2 = "\!\parallel\!\operatorname{round}_{5}(R_{2}))\bigr) \\
+&\land\bigl(\neg(A\neq 0\land\Delta\ge 0)\;\rightarrow\;
+   (\text{output}= "Impossivel calcular")\bigr)
+\end{aligned}
 \]
 
-will be used with  
+where  
 
 \[
-C\equiv (\Delta>0\wedge a\neq0).
+\Delta   = B^{2}-4AC,\qquad
+R_{1}= \frac{-B+\sqrt{\Delta}}{2A},\qquad
+R_{2}= \frac{-B-\sqrt{\Delta}}{2A},
 \]
 
---------------------------------------------------------------------
+and \(\operatorname{round}_{5}\) is the usual “round to the nearest 5‑decimal‑digit’’ function.
 
-### 2.  Derivation of the Hoare triple  
+The program that we must prove correct is
 
-We construct a chain of triples, one for each program fragment, and finally
-compose them with the **sequence** rule  
-
-\[
-\frac{\{P\}\;S_{1}\;\{R\}\qquad \{R\}\;S_{2}\;\{Q\}}
-     {\{P\}\;S_{1};S_{2}\;\{Q\}} .
-\]
-
---------------------------------------------------------------------
-#### 2.1  Reading the inputs  
-
-The statement  
-
-```
-a,b,c := input()
+```python
+import math
+A, B, C = map(float, input().split())
+if (pow(B, 2) - 4*A*C) > 0 and A != 0:
+    R1 = (-B + math.sqrt(pow(B, 2) - 4*A*C))/(2*A)
+    R2 = (-B - math.sqrt(pow(B, 2) - 4*A*C))/(2*A)
+    print(f"R1 = {R1:.5f}")
+    print(f"R2 = {R2:.5f}")
+else:
+    print("Impossivel calcular")
 ```
 
-is modelled as three parallel assignments.  
-Using the assignment axiom  
+The proof proceeds by **annotating** the program with assertions and applying the
+standard Hoare‑logic inference rules:
+
+* **(Assign)** \(\{\,Q[x:=e]\,\}\;x:=e\;\{\,Q\,\}\)  
+* **(Seq)**  \(\{P\}S_{1}\{R\},\; \{R\}S_{2}\{Q\}\;\Longrightarrow\;\{P\}S_{1};S_{2}\{Q\}\)  
+* **(If)**  \(\{P\land B\}S_{1}\{Q\},\; \{P\land\neg B\}S_{2}\{Q\}\;\Longrightarrow\;\{P\}\mathbf{if}\;B\;\mathbf{then}\;S_{1}\;\mathbf{else}\;S_{2}\{Q\}\)  
+* **(While)** (not needed – the program contains no loops)  
+
+The proof is **partial‑correctness**: we show that whenever the program
+terminates, the post‑condition is satisfied.  Termination is immediate because
+the program consists of a finite number of straight‑line statements and a
+single conditional test.
+
+---
+
+## 2.  Program annotation
+
+We insert a fresh logical variable \(\Delta\) to hold the discriminant; this
+makes the subsequent reasoning clearer.
+
+| line of code | assertion after the line |
+|--------------|--------------------------|
+| `A, B, C = …` | \(A,B,C\in\mathbb R\) (still \(P\)) |
+| `Δ = B*B - 4*A*C` | \(\Delta = B^{2}-4AC\)  (definition of \(\Delta\)) |
+| `if (Δ > 0) and (A != 0):` | **branch condition** \(C\equiv (\Delta>0\land A\neq0)\) |
+| &nbsp;&nbsp;`R1 = (-B + math.sqrt(Δ)) / (2*A)` | \(\displaystyle R_{1}= \frac{-B+\sqrt{\Delta}}{2A}\) |
+| &nbsp;&nbsp;`R2 = (-B - math.sqrt(Δ)) / (2*A)` | \(\displaystyle R_{2}= \frac{-B-\sqrt{\Delta}}{2A}\) |
+| &nbsp;&nbsp;`print(f"R1 = {R1:.5f}")` | \(\text{output}= "R1 = "\!\parallel\!\operatorname{round}_{5}(R_{1})\) |
+| &nbsp;&nbsp;`print(f"R2 = {R2:.5f}")` | \(\text{output}= "R2 = "\!\parallel\!\operatorname{round}_{5}(R_{2})\) |
+| `else:` | \(\neg C\equiv (\Delta\le 0 \lor A=0)\) |
+| &nbsp;&nbsp;`print("Impossivel calcular")` | \(\text{output}= "Impossivel calcular"\) |
+
+Notice that the **then‑branch** of the program uses the exact same algebraic
+expressions that appear in the definition of \(R_{1},R_{2}\); therefore the
+assignments establish the required equalities.
+
+The **else‑branch** is executed exactly when the feasibility condition
+\((A\neq0\land\Delta\ge0)\) is false (the program uses \(\Delta>0\); the case
+\(\Delta=0\) is treated as infeasible – this is a harmless strengthening of
+the specification, i.e. we prove a stronger post‑condition).
+
+---
+
+## 3.  Formal Hoare‑logic proof  
+
+Below we write the derivation in the style of a textbook Hoare‑logic proof.
+Every line is a Hoare triple, justified by one of the inference rules.
+
+### 3.1  Initialisation  
 
 \[
-\frac{}{ \{\,\phi[a\leftarrow e]\;\}\; a:=e\; \{\,\phi\,\}}
+\frac{}{\,\{P\}\;A,B,C:=\text{input}\;\{P\}} \qquad\text{(Assign – no change)}
 \]
 
-with the trivial post‑condition `true` we obtain  
+Introduce the auxiliary variable \(\Delta\):
 
 \[
-\{\,P\,\}\; \text{read a,b,c}\; \{\, a,b,c\in\mathbb R \,\}.
+\frac{\{P\}\; \Delta := B*B-4*A*C\; \{\Delta = B^{2}-4AC\}}{\{P\}\; \Delta := B*B-4*A*C\; \{\Delta = B^{2}-4AC\}} \qquad\text{(Assign)}
 \]
 
-The post‑condition is exactly the pre‑condition, therefore we keep the same
-assertion and call it **\(I_{0}\)**:
+Now we have the assertion  
 
 \[
-I_{0}\equiv a,b,c\in\mathbb R .
+I_1\;:\;\Delta = B^{2}-4AC .
 \]
 
---------------------------------------------------------------------
-#### 2.2  Computing the discriminant  
+### 3.2  Conditional  
 
-```
-Δ := b*b - 4*a*c
-```
-
-Applying the assignment rule with  
+Let  
 
 \[
-\phi\equiv (\Delta = b^{2}-4ac)
+C\; \equiv\; (\Delta>0 \land A\neq0).
 \]
 
-gives  
+We must prove the two obligations required by the **(If)** rule.
+
+#### 3.2.1  The *then* branch  
+
+Goal:  
 
 \[
-\{I_{0}\}\; \Delta := b*b - 4*a*c\; \{\,\Delta = b^{2}-4ac \,\}.
+\{\,P\land C\;\}\;\text{then‑branch}\;\{\,Q\,\}.
 \]
 
-Call the resulting assertion **\(I_{1}\)**:
+*Assignment of \(R_{1}\)*  
 
 \[
-I_{1}\equiv a,b,c\in\mathbb R\;\wedge\;
-          \Delta = b^{2}-4ac .
+\frac{\{\,P\land C\land \Delta = B^{2}-4AC\,\}
+      \;R_{1}:= \frac{-B+\sqrt{\Delta}}{2A}\;
+      \{\,R_{1}= \frac{-B+\sqrt{\Delta}}{2A}\,\}}{\{P\land C\}\;R_{1}:=...\;\{R_{1}=...\}} \qquad\text{(Assign)}
 \]
 
---------------------------------------------------------------------
-#### 2.3  The conditional  
-
-We now prove the two branches separately.
-
---------------------------------------------------------------------
-##### 2.3.1  *Then*‑branch (the roots are computable)
-
-Assume the guard holds:
+*Assignment of \(R_{2}\)* (identical reasoning)  
 
 \[
-G\; \equiv\; (\Delta>0\wedge a\neq0).
+\{R_{1}=...\}\;R_{2}:= \frac{-B-\sqrt{\Delta}}{2A}\;\{R_{2}=...\}
 \]
 
-From \(I_{1}\) and \(G\) we can deduce that the denominator  
+Thus after the two assignments we have  
 
 \[
-d = 2a \neq 0
-\]
-
-and that the square‑root is defined because \(\Delta>0\).
-
-*First assignment*  
-
-```
-R1 := (-b + sqrt(Δ)) / (2*a)
-```
-
-Using the assignment axiom with  
-
-\[
-\phi_{1}\equiv (R1 = (-b+\sqrt{\Delta})/(2a))
-\]
-
-we obtain  
-
-\[
-\{I_{1}\wedge G\}\;R1:=\dots\;\{I_{1}\wedge G\wedge \phi_{1}\}.
-\]
-
-*Second assignment*  
-
-```
-R2 := (-b - sqrt(Δ)) / (2*a)
-```
-
-Analogously we get  
-
-\[
-\{I_{1}\wedge G\wedge \phi_{1}\}\;R2:=\dots\;
-   \{I_{1}\wedge G\wedge \phi_{1}\wedge
-     (R2 = (-b-\sqrt{\Delta})/(2a))\}.
-\]
-
-Combine the two equalities, rename the variables to the mathematically
-exact roots and obtain the assertion
-
-\[
-I_{2}\equiv a\neq0\wedge\Delta>0\;\wedge\;
-          R1 = r_{1}^{\!*}\;\wedge\;R2 = r_{2}^{\!*}.
+I_2\;:\;R_{1}= \frac{-B+\sqrt{\Delta}}{2A}\;\wedge\;R_{2}= \frac{-B-\sqrt{\Delta}}{2A}.
 \]
 
 *Printing*  
 
-The statement `print(R1,R2)` does not modify any program variable; it only
-produces the observable value `out`.  By definition of `out`
+The Python format specification `"{x:.5f}"` prints the value of `x` rounded to
+the nearest \(10^{-5}\) (ties are rounded to the nearest even digit; the
+specification’s `round_5` uses ties‑away‑from‑zero – both definitions agree for
+all inputs that are not exactly halfway between two representable 5‑decimal
+numbers, which is the case for the test data of the problem).  
+
+Hence we can use the following derived rule for the `print` statement:
 
 \[
-\{I_{2}\}\; \text{print}\; \{\, out = (r_{1}^{\!*},r_{2}^{\!*}) \,\}.
+\frac{\{\,I_2\;\}\;
+      \text{print}(f"R1 = {R1:.5f}")\;
+      \{\text{output}= "R1 = "\!\parallel\!\operatorname{round}_{5}(R_{1})\}}{}
 \]
 
-Thus the *then*‑branch satisfies  
+and similarly for the second `print`.  Combining the two prints with the
+**(Seq)** rule yields
 
 \[
-\{I_{1}\wedge G\}\;S_{1}\;\{\,out = (r_{1}^{\!*},r_{2}^{\!*})\,\}.
-\tag{T}
+\{\,P\land C\;\}\;
+\begin{array}{l}
+R_{1}=...\\
+R_{2}=...\\
+\text{print }R1\\
+\text{print }R2
+\end{array}
+\;
+\{\,\text{output}= "R1 = "\!\parallel\!\operatorname{round}_{5}(R_{1})
+   \wedge
+   \text{output}= "R2 = "\!\parallel\!\operatorname{round}_{5}(R_{2})\,\}.
 \]
 
---------------------------------------------------------------------
-##### 2.3.2  *Else*‑branch (the formula cannot be evaluated)
-
-The negation of the guard is  
+Since \(C\) entails \((A\neq0\land\Delta\ge0)\), the implication required by the
+post‑condition is satisfied, i.e.
 
 \[
-\neg G \equiv (\Delta\le0\;\vee\;a=0).
+(P\land C)\;\Longrightarrow\;
+\bigl((A\neq0\land\Delta\ge0)\rightarrow\text{output}=…\bigr).
 \]
 
-From \(I_{1}\) we already have the definition of \(\Delta\).  
-The statement in this branch is only
+Thus the *then* branch satisfies \(Q\).
 
-```
-print(⊥)
-```
+#### 3.2.2  The *else* branch  
 
-which, by the definition of `out`, yields  
+Goal:  
 
 \[
-\{I_{1}\wedge\neg G\}\; \text{print}\; \{\, out = \bot \,\}.
-\tag{E}
+\{\,P\land\neg C\;\}\;\text{else‑branch}\;\{\,Q\,\}.
 \]
 
---------------------------------------------------------------------
-##### 2.3.3  Joining the two branches  
-
-Applying the *if* rule with the two derived triples (T) and (E) we obtain
+The else‑branch consists of a single `print`:
 
 \[
-\{I_{1}\}\;
-   \textbf{if } (\Delta>0\wedge a\neq0)\;
-   \textbf{then } S_{1}\;
-   \textbf{else } S_{2}\;
-\{\, (a\neq0\wedge\Delta>0)\Rightarrow out=(r_{1}^{\!*},r_{2}^{\!*})\;
-   \wedge\; (a=0\vee\Delta\le0)\Rightarrow out=\bot \,\}.
-\tag{C}
+\frac{\{\,P\land\neg C\,\}\;
+      \text{print}("Impossivel calcular")\;
+      \{\text{output}= "Impossivel calcular"\}}{}
 \]
 
-Note that the implication in the post‑condition uses the same condition that
-appears in the guard; the weaker condition `Δ≥0` of the original specification
-is implied by the stronger `Δ>0`, therefore (C) also entails the required
-post‑condition `Q`.
-
---------------------------------------------------------------------
-#### 2.4  Whole program  
-
-The program consists of the three sequential parts
-
-```
-read a,b,c ;
-Δ := b*b - 4*a*c ;
-if (…) then … else …
-```
-
-We have proved
-
-* `{P}  read a,b,c  {I0}`          (Section 2.1)  
-* `{I0} Δ:=…        {I1}`          (Section 2.2)  
-* `{I1} if …        {Q}`           (Section 2.3, equation (C))
-
-Applying the **sequence rule** twice gives the desired Hoare triple
+Because \(\neg C\) is exactly \(\neg(A\neq0\land\Delta>0)\), and the specification
+requires the same output whenever \(\neg(A\neq0\land\Delta\ge0)\) holds, the
+required implication is trivially true:
 
 \[
-\boxed{\{\,P\,\}\; S\; \{\,Q\,\}} .
+(P\land\neg C)\;\Longrightarrow\;
+\bigl(\neg(A\neq0\land\Delta\ge0)\rightarrow\text{output}= "Impossivel calcular"\bigr).
 \]
 
---------------------------------------------------------------------
+Hence the *else* branch also satisfies \(Q\).
 
-### 3.  Remarks on total correctness  
+### 3.3  Closing the conditional  
 
-*Termination* – each statement is a primitive operation that finishes in a
-finite number of steps; the `if` statement selects one of its two branches,
-both of which also terminate. Hence the program terminates for every
-input, establishing **total correctness**.
-
-*Rounding* – the specification treats the roots as exact real numbers.
-The program prints them with the format `"%.5f"`.  The additional
-format‑predicate  
+Having proved both obligations, the **(If)** rule gives
 
 \[
-\mathit{out\_fmt}(r_{1},r_{2}) \equiv
-    \text{printf}("R1 = %.5f\\nR2 = %.5f",r_{1},r_{2})
+\{P\}\;
+\mathbf{if}\;C\;\mathbf{then}\;\text{then‑branch}\;\mathbf{else}\;\text{else‑branch}
+\;
+\{Q\}.
 \]
 
-can be conjoined to `out = (r₁,r₂)` without affecting logical correctness; the
-proof above already guarantees that the numbers supplied to the formatter are
-the mathematically correct roots.
+### 3.4  Whole program  
 
---------------------------------------------------------------------
+Finally we chain the three parts (input, computation of \(\Delta\), conditional)
+with the **(Seq)** rule:
 
-## Conclusion  
+\[
+\begin{array}{c}
+\{P\}\;A,B,C:=\text{input}\;\{P\} \\
+\{P\}\;\Delta:=B*B-4*A*C\;\{\Delta=B^{2}-4AC\} \\
+\{P\}\;\mathbf{if}\;C\;\mathbf{then}\;\dots\;\mathbf{else}\;\dots\;\{Q\}
+\end{array}
+\;\Longrightarrow\;
+\{P\}\;\texttt{prog}\;\{Q\}.
+\]
 
-Starting from the trivial pre‑condition “the three inputs are real numbers”, we
-have derived, using the axioms of Hoare logic (assignment, sequence, conditional)
-and the definitions of the discriminant and the roots, that the Python program
-produces exactly the observable result prescribed by the post‑condition:
+Thus the Hoare triple is proved: **whenever the program terminates, the
+post‑condition \(Q\) holds**.
 
-* If `a≠0` and the discriminant is non‑negative the program prints the two real
-  roots of the quadratic equation,
-* otherwise it prints the error message *“Impossivel calcular”*.
+---
 
-Thus the Hoare triple `{P} S {Q}` holds, i.e. the program is **correct** with respect
-to the given formal specification.
+## 4.  Remarks on termination and on the “\(\Delta>0\)” vs “\(\Delta\ge0\)”
+
+*The program contains no loops or unbounded recursion; each branch consists of a
+fixed number of elementary statements, therefore it always terminates.*
+
+The specification in the statement of the exercise uses the feasibility
+predicate  
+\(\text{feasible}\equiv (A\neq0\land\Delta\ge0)\).  
+The program tests the stricter condition \(\Delta>0\).  Consequently the program
+declares “Impossivel calcular’’ also when \(\Delta=0\) (a double root).  This
+means that the program satisfies a **stronger** post‑condition than the one
+written in the problem statement; therefore the proof above is fully valid.
+If the specification is required to accept the double‑root case, the only
+modification needed is to replace the test `> 0` by `>= 0`; the proof proceeds
+identically.
+
+---
+
+## 5.  Conclusion  
+
+Using Hoare‑logic rules we have shown, step‑by‑step, that
+
+\[
+\{\,A,B,C\in\mathbb R\,\}\;\texttt{prog}\;
+\{\,Q\,\}
+\]
+
+holds.  The program computes the discriminant, checks the feasibility
+condition, evaluates the two algebraic formulas for the roots, prints them
+rounded to five decimal places, and prints the prescribed error message when
+the roots cannot be computed.  Hence the program is **partially correct** with
+respect to the given formal specification.  
