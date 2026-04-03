@@ -1,0 +1,191 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**
+
+---------------------------------------------------------------------
+
+### 1.  Notation
+
+* The four integers that are read from the input are denoted  
+
+  \[
+  T_1,T_2,T_3,T_4\in\mathbb Z .
+  \]
+
+* The list that the program stores them in is  
+
+  \[
+  \texttt{tomadas}= (T_1,T_2,T_3,T_4).
+  \]
+
+* The integer that is printed is called  
+
+  \[
+  R .
+  \]
+
+* The program consists of three statements, written in a pseudo‑Python
+  syntax that is convenient for Hoare‑logic:
+
+  ```text
+  S1 :  tomadas ← read()                -- read the four numbers
+  S2 :  R ← sum(tomadas) – 3
+  S3 :  print(R)
+  ```
+
+  (The last statement only produces an observable effect; it does not
+  change the logical state, therefore it can be omitted from the
+  logical reasoning.)
+
+* **Pre‑condition**  
+
+  \[
+  P \equiv \bigl(\forall i\in\{1,2,3,4\}\; :\; 2\le T_i\le 6\bigr)
+  \]
+
+* **Post‑condition**  
+
+  \[
+  Q \equiv \bigl(R = \sum_{i=1}^{4} T_i - 3\bigr)
+  \]
+
+* The Hoare triple we have to prove is  
+
+  \[
+  \{P\}\; S_1;S_2;S_3\; \{Q\}.
+  \]
+
+---------------------------------------------------------------------
+
+### 2.  Proof outline
+
+We prove the triple by the **rule of consequence** and the **assignment
+rule** of Hoare logic.
+
+```
+{P}   S1   {P}               (reading respects the pre‑condition)
+{P}   S2   {Q}               (assignment of R)
+----------------------------------------------------
+{P}   S1;S2   {Q}
+```
+
+The statement `S3` only prints the already‑computed value of `R`; it does
+not affect the logical state, so the same post‑condition still holds after
+`S3`.  Consequently the whole program satisfies `{P} solve() {Q}`.
+
+---------------------------------------------------------------------
+
+### 3.  Detailed derivation
+
+#### 3.1  The input statement `S1`
+
+*Rule used*: **assumption of a correct input** (a standard rule for
+input in Hoare logic).  
+We assume that the environment supplies the four numbers that satisfy
+`P`.  Therefore after the execution of `S1` the state still satisfies `P`.
+
+\[
+\frac{\text{input satisfies }P}{\{P\}\;S_1\;\{P\}} \qquad(\text{Input rule})
+\]
+
+Thus the Hoare triple for `S1` is proved.
+
+---------------------------------------------------------------------
+
+#### 3.2  The assignment statement `S2`
+
+`S2` is the ordinary assignment  
+
+\[
+R := \bigl(\texttt{sum(tomadas)}\bigr) - 3 .
+\]
+
+The **assignment axiom** of Hoare logic says
+
+\[
+\frac{}{ \{\, Q[R \leftarrow e] \,\}\; R:=e\; \{\, Q \,\}} .
+\]
+
+Here  
+
+* \(e = \texttt{sum(tomadas)}-3 = \displaystyle\sum_{i=1}^{4}T_i - 3\),
+* \(Q\) is \(R = \displaystyle\sum_{i=1}^{4}T_i - 3\).
+
+Hence we must compute the *pre‑condition* \(Q[R \leftarrow e]\), i.e. the
+formula obtained from \(Q\) by substituting the expression for \(R\):
+
+\[
+\begin{aligned}
+Q[R \leftarrow e] &\equiv
+\bigl(e = \sum_{i=1}^{4} T_i - 3\bigr)\\
+&\equiv
+\bigl(\sum_{i=1}^{4} T_i - 3 = \sum_{i=1}^{4} T_i - 3\bigr) .
+\end{aligned}
+\]
+
+The latter is a *tautology*; it holds in every program state, in
+particular it holds under the pre‑condition `P`.  Consequently we may
+strengthen the pre‑condition to `P` by the **rule of consequence**:
+
+\[
+\frac{\{ \text{true} \}\; S_2\; \{ Q \}\qquad P\Rightarrow\text{true}}
+     {\{P\}\; S_2\; \{ Q \}} .
+\]
+
+Thus we have proved the Hoare triple for `S2`.
+
+---------------------------------------------------------------------
+
+#### 3.3  The print statement `S3`
+
+`S3` does not modify any program variable; it only has a side‑effect on
+the outside world.  In Hoare logic the rule for a *skip‑like* statement
+is
+
+\[
+\{ Q \}\; \texttt{print}(R)\; \{ Q \}.
+\]
+
+Therefore the post‑condition `Q` is preserved after `S3`.
+
+---------------------------------------------------------------------
+
+#### 3.4  Composition of the three statements
+
+The **sequencing rule** of Hoare logic:
+
+\[
+\frac{\{P\}\;S_1\;\{R\}\qquad\{R\}\;S_2\;\{Q\}}
+     {\{P\}\;S_1;S_2\;\{Q\}} .
+\]
+
+Applying it twice, first to `S1;S2` (with intermediate assertion `P`) and
+then to `(S1;S2);S3` (with intermediate assertion `Q`), yields
+
+\[
+\{P\}\; S_1;S_2;S_3\; \{Q\}.
+\]
+
+---------------------------------------------------------------------
+
+### 4.  Termination
+
+The program contains **no loops** and **no recursion**.  
+Each statement is a primitive operation that terminates in a finite
+number of elementary steps (reading four numbers, a single arithmetic
+evaluation, and one output).  Hence the whole program terminates for all
+states that satisfy the pre‑condition `P`.
+
+---------------------------------------------------------------------
+
+### 5.  Conclusion
+
+We have shown, using the axioms and inference rules of Hoare logic, that
+
+\[
+\boxed{\;\{P\}\; \texttt{solve()}\; \{Q\}\;}
+\]
+
+holds, i.e. **if the four input numbers satisfy \(2\le T_i\le 6\) then the
+program terminates and prints exactly \(\displaystyle\sum_{i=1}^{4}
+T_i-3\)** – the required maximum number of devices that can be powered
+by the four strips.  The proof is completely formal and respects the
+given Hoare‑style specification. ∎

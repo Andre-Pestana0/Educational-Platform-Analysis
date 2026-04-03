@@ -1,0 +1,490 @@
+## 1.  What we have to show  
+
+We are given a **Hoare‑style specification**  
+
+\[
+\{P\}\;{\sf Program}\;\{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\;:\; (2\le T\le 50)\;\land\;(\operatorname{len}(N)=1000)
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:\;&\bigl(\forall i\in\{0,\dots ,999\}\;.\; N[i]=i\bmod T\bigr) \\[1mm]
+   &\land\;\bigl(\forall i\in\{0,\dots ,999\}\;.\;
+          \text{out}_{i}=``N[i] = N[i]''\bigr)
+\end{aligned}
+\]
+
+The **program** (in Python) is
+
+```python
+# 1. Input
+t = int(input())
+
+# 2. Computation
+n = [i % t for i in range(1000)]
+
+# 3. Output
+for i, j in enumerate(n):
+    print(f'N[{i}] = {j}')
+```
+
+We shall prove **partial correctness**: *if the program terminates, then `Q` holds*.  
+Termination is easy (both loops iterate over a finite range) and will be mentioned at the end.
+
+The proof proceeds by the usual Hoare‑logic rules:
+
+* **Assignment rule**  
+* **Sequence rule**  
+* **While/for‑loop rule** (we treat a Python `for` as a `while` with an explicit invariant).  
+
+The only non‑trivial part is to exhibit suitable **loop invariants** for the two loops.
+
+---
+
+## 2.  Formal model of the program
+
+* `t` is a program variable that will hold the integer read from the input.  
+* `n` is a program variable that denotes the array (list) of length 1000.  
+* `out` is the (finite) sequence of strings that the program has printed so far.  
+
+We model the three statements as commands:
+
+| step | command (in pseudo‑Hoare syntax) | informal meaning |
+|------|----------------------------------|-------------------|
+| 1    | `t := read()`                    | read an integer from stdin |
+| 2    | `n := [ i % t  \;|\;  i = 0 … 999 ]` | fill the whole array |
+| 3    | `for i = 0 to 999 do  out := out ⧺ ["N["‖i‖"] = "‖n[i]‖]` | print each element |
+
+The list‑comprehension in step 2 can be rewritten as the following imperative loop, which is easier to reason about:
+
+```
+i := 0;
+while i < 1000 do
+    n[i] := i % t;
+    i := i + 1
+od
+```
+
+The `enumerate` loop of step 3 is similarly transformed into
+
+```
+i := 0;
+while i < 1000 do
+    out := out ⧺ ["N["‖i‖"] = "‖n[i]‖];
+    i := i + 1
+od
+```
+
+Now the whole program is a **sequence** of three commands:
+
+```
+C ≡  (t := read()) ;
+     (i := 0 ; while i < 1000 do { n[i] := i % t ; i := i+1 } od) ;
+     (i := 0 ; while i < 1000 do { out := out ⧺ ["N["‖i‖"] = "‖n[i]‖] ; i := i+1 } od)
+```
+
+---
+
+## 3.  Proof structure
+
+We will prove the Hoare triple  
+
+\[
+\{P\}\;C\;\{Q\}
+\]
+
+by applying the **sequence rule** and, inside it, the **while‑rule** for the two loops.  
+The proof consists of three lemmas:
+
+1. **Lemma 1 (input)** – after `t := read()` the variable `t` satisfies the numeric bound.
+2. **Lemma 2 (computation loop)** – after the first `while` the array `n` satisfies the modulo invariant.
+3. **Lemma 3 (output loop)** – after the second `while` the sequence `out` contains exactly the required 1000 strings.
+
+Finally we combine the lemmas using the sequence rule.
+
+---
+
+## 4.  Lemma 1 – Input  
+
+**Command** `c₁ ≡ t := read()`.  
+
+**Goal**  
+
+\[
+\{\,2\le T\le 50\land \operatorname{len}(N)=1000\,\}\;c₁\;
+\{\,2\le t\le 50\land \operatorname{len}(N)=1000\,\}
+\]
+
+*The assignment rule* states that  
+
+\[
+\{\,P[t:=E]\,\}\;t:=E\;\{\,P\,\}
+\]
+
+where `P[t:=E]` is the pre‑condition obtained by syntactically substituting `E` for `t` in `P`.  
+
+Take  
+
+\[
+P \;\equiv\; (2\le t\le 50)\land(\operatorname{len}(N)=1000)
+\]
+
+and substitute `read()` for `t`.  The pre‑condition becomes  
+
+\[
+(2\le\text{read()} \le 50)\land(\operatorname{len}(N)=1000)
+\]
+
+which is exactly the original pre‑condition `P` because the problem statement guarantees that the input value `T` satisfies `2 ≤ T ≤ 50`.  Hence the assignment rule yields the desired post‑condition.  
+
+Thus **Lemma 1 holds**.
+
+---
+
+## 5.  Lemma 2 – Computation loop  
+
+### 5.1  Loop rewrite  
+
+```
+i := 0;
+while i < 1000 do
+    n[i] := i % t;
+    i := i + 1
+od
+```
+
+We denote this command by `c₂`.
+
+### 5.2  Loop invariant  
+
+We choose the invariant  
+
+\[
+I \;\equiv\;
+\bigl(0\le i\le 1000\bigr)\;\land\;
+\bigl(\forall k\in\{0,\dots ,i-1\}\;.\; n[k] = k \bmod t\bigr)
+\tag{Inv}
+\]
+
+Intuitively: *all positions that have already been processed (`0 … i‑1`) contain the correct remainder*.
+
+### 5.3  Proof obligations for the `while` rule  
+
+The Hoare rule for `while B do S od` with invariant `I` requires us to prove three obligations:
+
+1. **Initialization**  
+   \[
+   \{P_{2}\}\; i:=0\; \{I\}
+   \]
+   where `P₂` is the pre‑condition that holds just before the loop starts.
+
+2. **Preservation**  
+   \[
+   \{I \land i<1000\}\; S\; \{I\}
+   \]
+   where `S` is the loop body.
+
+3. **Termination condition** (for partial correctness we only need the implication `I ∧ ¬B ⇒ Q₂`, where `Q₂` is the post‑condition of the loop).  
+
+We will treat each point.
+
+#### 5.3.1  Initialization  
+
+Pre‑condition before the assignment `i := 0` is the post‑condition of the previous command (`c₁`).  
+From Lemma 1 we have  
+
+\[
+P_{2} \equiv (2\le t\le 50)\land (\operatorname{len}(N)=1000)
+\]
+
+`i := 0` does not affect any variable appearing in `P₂`.  Applying the assignment rule we obtain
+
+\[
+\{P_{2}\}\; i:=0\; \{P_{2}\land i=0\}
+\]
+
+Since `i=0` satisfies the two conjuncts of `I` (the universal quantifier is vacuous when `i=0`), we have  
+
+\[
+P_{2}\land i=0 \;\Rightarrow\; I .
+\]
+
+Thus the initialization obligation holds.
+
+#### 5.3.2  Preservation  
+
+Assume `I ∧ i<1000`.  Hence
+
+* `0 ≤ i ≤ 999`,
+* for all `k < i` we already have `n[k] = k % t`.
+
+The body `S` consists of the two assignments
+
+```
+n[i] := i % t;
+i := i + 1
+```
+
+*First assignment*  
+
+Using the assignment rule again, after `n[i] := i % t` we obtain the assertion
+
+\[
+I' \equiv
+\bigl(0\le i\le 1000\bigr)\;\land\;
+\bigl(\forall k\in\{0,\dots ,i-1\}\;.\; n[k] = k \bmod t\bigr)
+\;\land\;
+n[i] = i \bmod t .
+\]
+
+*Second assignment* (`i := i+1`) substitutes `i+1` for `i` in `I'`.  
+The resulting assertion is exactly `I` with `i` increased by one:
+
+\[
+\begin{aligned}
+I'' \equiv\;&
+\bigl(0\le i+1\le 1000\bigr)\;\land\;
+\bigl(\forall k\in\{0,\dots ,i\}\;.\; n[k] = k \bmod t\bigr)\\
+=&\; I \quad\text{(renaming the loop counter back to }i\text{)} .
+\end{aligned}
+\]
+
+Thus `I ∧ i<1000` is preserved by the body, i.e. the preservation obligation is satisfied.
+
+#### 5.3.3  Post‑condition of the loop  
+
+When the loop finishes we have `¬(i<1000)`, i.e. `i = 1000`.  
+Together with the invariant `I` we obtain
+
+\[
+\forall k\in\{0,\dots ,999\}\;.\; n[k] = k \bmod t .
+\]
+
+That is precisely the **array part** of the required post‑condition `Q`.  
+
+Hence the `while` rule yields
+
+\[
+\{P_{2}\}\;c_{2}\;\{ \forall k\in\{0,\dots ,999\}\;.\; n[k]=k\bmod t\}
+\]
+
+which we call `Q₂`.
+
+---
+
+## 6.  Lemma 3 – Output loop  
+
+### 6.1  Loop rewrite  
+
+```
+i := 0;
+while i < 1000 do
+    out := out ⧺ ["N["‖i‖"] = "‖n[i]‖];
+    i := i + 1
+od
+```
+
+Denote this command by `c₃`.
+
+### 6.2  Loop invariant  
+
+We need an invariant that captures **both** the already printed lines and the fact that the array entries are already correct (the latter will be used to justify the printed value).  
+
+\[
+J \;\equiv\;
+\bigl(0\le i\le 1000\bigr)\;\land\;
+\bigl(\forall k\in\{0,\dots ,i-1\}\;.\;
+        \text{out}_{k}=``N[k] = " \,\|\, n[k] \,\|\, "''\bigr)
+\tag{InvOut}
+\]
+
+(Here `‖·‖` denotes string concatenation; the expression inside the quotes is exactly what the Python `print` statement produces.)
+
+Because `Q₂` already guarantees `n[k]=k\bmod t` for every `k`, the invariant also implicitly guarantees that the printed value equals `k\bmod t`.
+
+### 6.3  Proof obligations  
+
+Again we apply the `while` rule.
+
+#### 6.3.1  Initialization  
+
+Before the first `i := 0` we have the post‑condition `Q₂` of the previous command, i.e.
+
+\[
+Q_{2} \equiv
+\bigl(\forall k\in\{0,\dots ,999\}\;.\; n[k]=k\bmod t\bigr)
+\]
+
+`i := 0` does not affect `n` nor `out`.  After the assignment we have  
+
+\[
+Q_{2}\land i=0 .
+\]
+
+Since `i=0` makes the universal quantifier in `J` vacuous, we have  
+
+\[
+Q_{2}\land i=0 \;\Rightarrow\; J .
+\]
+
+Thus the initialization obligation holds.
+
+#### 6.3.2  Preservation  
+
+Assume `J ∧ i<1000`.  Hence
+
+* `0 ≤ i ≤ 999`,
+* for each `k < i` the correct line is already stored in `out`.
+
+The body of the loop is
+
+```
+out := out ⧺ ["N["‖i‖"] = "‖n[i]‖];
+i := i + 1
+```
+
+*First assignment* (concatenation) adds exactly the string  
+
+```
+"N[" + str(i) + "] = " + str(n[i])
+```
+
+to the end of `out`.  By `Q₂` we know `n[i] = i % t`, therefore the new element of `out` satisfies the required format.  After this statement we have
+
+\[
+\begin{aligned}
+J' \equiv\;&
+\bigl(0\le i\le 1000\bigr)\;\land\;
+\bigl(\forall k\in\{0,\dots ,i-1\}\;.\;
+        \text{out}_{k}=``N[k] = " \,\|\, n[k] \,\|\, "''\bigr)\\
+&\land\;
+\text{out}_{i}=``N[i] = " \,\|\, n[i] \,\|\, "'' .
+\end{aligned}
+\]
+
+*Second assignment* `i := i+1` substitutes `i+1` for `i` in `J'`.  The resulting assertion is exactly `J` with the loop counter increased by one:
+
+\[
+J'' \equiv
+\bigl(0\le i+1\le 1000\bigr)\;\land\;
+\bigl(\forall k\in\{0,\dots ,i\}\;.\;
+        \text{out}_{k}=``N[k] = " \,\|\, n[k] \,\|\, "''\bigr) .
+\]
+
+Renaming `i+1` back to `i` gives `J`.  Hence preservation holds.
+
+#### 6.3.3  Post‑condition of the loop  
+
+When the loop terminates we have `i = 1000`.  Together with `J` we obtain
+
+\[
+\forall k\in\{0,\dots ,999\}\;.\;
+\text{out}_{k}=``N[k] = " \,\|\, n[k] \,\|\, "'' .
+\]
+
+Using `Q₂` we can replace `n[k]` by `k\bmod t`, yielding exactly the **output part** of `Q`.  
+
+Thus the `while` rule gives
+
+\[
+\{Q_{2}\}\;c_{3}\;
+\Bigl(\forall k\in\{0,\dots ,999\}\;.\;
+        \text{out}_{k}=``N[k] = " \,\|\, n[k] \,\|\, "''\Bigr)
+\]
+
+which we denote `Q₃`.
+
+---
+
+## 7.  Putting the three lemmas together  
+
+We have proved the following Hoare triples:
+
+1. **Input**  
+
+   \[
+   \{\,2\le T\le 50\land\operatorname{len}(N)=1000\,\}\;
+   (t:=\text{read()})\;
+   \{\,2\le t\le 50\land\operatorname{len}(N)=1000\,\}
+   \tag{L1}
+   \]
+
+2. **Computation**  
+
+   \[
+   \{\,2\le t\le 50\land\operatorname{len}(N)=1000\,\}\;
+   c_{2}\;
+   \Bigl(\forall i\in\{0,\dots ,999\}\;.\; n[i]=i\bmod t\Bigr)
+   \tag{L2}
+   \]
+
+3. **Output**  
+
+   \[
+   \Bigl(\forall i\in\{0,\dots ,999\}\;.\; n[i]=i\bmod t\Bigr)\;
+   c_{3}\;
+   \Bigl(\forall i\in\{0,\dots ,999\}\;.\;
+           \text{out}_{i}=``N[i] = " \,\|\, n[i] \,\|\, "''\Bigr)
+   \tag{L3}
+   \]
+
+Applying the **sequence rule**  
+
+\[
+\frac{\{P\}C_{1}\{R\}\qquad \{R\}C_{2}\{S\}}{\{P\}C_{1};C_{2}\{S\}}
+\]
+
+twice (first to combine L1 and L2, then to combine the result with L3) yields
+
+\[
+\boxed{
+\{\,2\le T\le 50\land\operatorname{len}(N)=1000\,\}\; C\;
+\bigl(
+\forall i\in\{0,\dots ,999\}\!.\; n[i]=i\bmod T
+\;\land\;
+\forall i\in\{0,\dots ,999\}\!.\;
+\text{out}_{i}=``N[i] = " \,\|\, n[i] \,\|\, "''\bigr)
+}
+\]
+
+which is exactly the required post‑condition `Q`.  
+
+Thus the Hoare triple `{P} C {Q}` is proved.
+
+---
+
+## 8.  Termination (partial vs. total correctness)
+
+Both loops are **bounded**:
+
+* The first loop iterates while `i < 1000`; `i` is increased by 1 each iteration, so after at most 1000 steps the condition becomes false.
+* The second loop has the same bound.
+
+Because the loop counters are integers and the bound is a constant, each loop is guaranteed to terminate. Consequently the whole program terminates, and the proved partial correctness upgrades to **total correctness**.
+
+---
+
+## 9.  Conclusion  
+
+We have exhibited, for each part of the Python program, a Hoare‑logic invariant that is preserved by the corresponding command and that, together with the loop exit condition, yields exactly the specification’s post‑condition.  By chaining the three parts with the sequence rule we have derived the Hoare triple  
+
+\[
+\{P\}\;{\sf Program}\;\{Q\}
+\]
+
+where  
+
+* `P` is the given pre‑condition (`2 ≤ T ≤ 50` and a 1000‑cell array), and  
+* `Q` states that every cell `N[i]` contains `i mod T` and that the program prints the line `N[i] = N[i]` for each index.
+
+Hence the program is **correct** with respect to the formal specification.  

@@ -1,0 +1,262 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**  
+
+Below we use the standard Hoare‑logic inference rules  
+
+| rule | description |
+|------|-------------|
+| **(Assign)**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+\[
+\frac{}{\{\,Q[E/x]\,\}\;x:=E\;\{\,Q\,\}}\qquad\text{(Assignment axiom)}
+\]
+
+where \(Q[E/x]\) denotes the formula obtained from \(Q\) by syntactically replacing every free occurrence of the variable \(x\) with the expression \(E\).
+
+| rule | description |
+|------|-------------|
+| **(Seq)**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ——
+
+The user asks: "Given the formal specification of the pre and post conditions (as used in Hoare Logic) below, can you prove the correctness according to the specification of the following Python program ... With the conditions: ..."
+
+So we need to provide a Hoare logic proof that the program meets the spec. Provide steps: precondition P, postcondition Q, show that {P} C:=M-A-B; O:=max(A,B,C) {Q} holds.
+
+Need to discuss that max is a deterministic function satisfying property: O = max(A,B,C) iff O≥A ∧ O≥B ∧ O≥C ∧ (O=A ∨ O=B ∨ O=C). Use that.
+
+We also have to verify that precondition ensures C positive and distinct etc. Show that after computing C, the invariant M = A+B+C holds, and that C>0, C≠A, C≠B.
+
+Then after max, O is greatest.
+
+Also need to use rule of consequence to tighten pre/post.
+
+Write proof in natural deduction style:
+
+1. Assume P holds.
+2. Show that after C := M - A - B, we have P1: M = A + B + C ∧ C>0 ∧ C≠A ∧ C≠B ∧ etc.
+3. Then define Q' = O = max(A,B,C). Show that {P1} O := max(A,B,C) {Q} using assignment axiom and property of max.
+4. Conclude by composition.
+
+Provide details of substitution for assignment axiom.
+
+Also need to discuss termination: each statement is finite, so program terminates.
+
+Thus final answer: yes, the program is correct.
+
+Let's craft final answer with clear sections: specification, auxiliary lemmas (properties of max), proof steps, conclusion.
+
+## 1.  What we have to show  
+
+We must prove the Hoare‑triple  
+
+\[
+\{\,P\,\}\; \texttt{C := M‑A‑B;  O := max(A,B,C)}\; \{\,Q\,\}
+\]
+
+where  
+
+* **P** (pre‑condition)  
+
+\[
+\begin{aligned}
+P \equiv\;& M\in\mathbb N\land A\in\mathbb N\land B\in\mathbb N               \\[1mm]
+        &\land M>A\land M>B                                            \\[1mm]
+        &\land A\neq B                                                  \\[1mm]
+        &\land \exists C\in\mathbb N\;.\;C=M-A-B\land C>0\land C\neq A\land C\neq B\\[1mm]
+        &\land M=A+B+C                                                 
+\end{aligned}
+\]
+
+* **Q** (post‑condition)  
+
+\[
+Q\equiv O\in\mathbb N\;\land\;O=\max\{A,B,C\}\;\land\; O\text{ is the age of the oldest child}
+\]
+
+The program consists of the two assignments  
+
+```
+C := M - A - B
+O := max(A, B, C)
+```
+
+We shall prove that, **provided P holds before the first assignment, Q holds after the second one**.  
+The proof uses the ordinary Hoare‑logic inference rules:
+
+* **(Assign)** \(\displaystyle\frac{}{ \{\,Q[E/x]\,\}\;x:=E\;\{\,Q\,\}}\)  
+* **(Seq)**    \(\displaystyle\frac{\{P\}\;S_1\;\{R\}\qquad\{R\}\;S_2\;\{Q\}}{\{P\}\;S_1;S_2\;\{Q\}}\)  
+* **(Conseq)** \(\displaystyle\frac{P'\Rightarrow P\qquad\{P\}\;S\;\{Q\}\qquad Q\Rightarrow Q'}{\{P'\}\;S\;\{Q'\}}\)
+
+We also need a small logical lemma about the built‑in function `max`.
+
+---
+
+## 2.  Lemma about `max`
+
+For every three natural numbers \(x,y,z\) the following equivalence holds  
+
+\[
+\boxed{\,\max(x,y,z)=w\;\Longleftrightarrow\; w\ge x\land w\ge y\land w\ge z\land
+      (w=x\lor w=y\lor w=z)\,}
+\tag{L}
+\]
+
+The language of the program treats `max` as a deterministic total function, so we may use (L) as a *definition* of the predicate “\(w\) is the maximum of \(x,y,z\)”.
+
+---
+
+## 3.  Proof structure  
+
+We split the program into two statements  
+
+* \(S_1\) : `C := M - A - B`  
+* \(S_2\) : `O := max(A,B,C)`
+
+The proof proceeds as follows  
+
+1. **Show a stronger intermediate assertion \(R\) after \(S_1\).**  
+2. **Show that \(S_2\) transforms \(R\) into the required post‑condition \(Q\).**  
+3. **Apply the (Seq) rule to obtain the whole triple.**  
+4. **Apply (Conseq) to replace the intermediate assertion by the original pre‑condition \(P\).**
+
+---
+
+## 4.  Step 1 – the first assignment  
+
+Take as intermediate assertion  
+
+\[
+R\;\equiv\; M=A+B+C\;\land\;C>0\;\land\;C\neq A\;\land\;C\neq B
+\tag{R}
+\]
+
+Observe that \(R\) is exactly the part of \(P\) that mentions the variable \(C\).  
+Because the assignment to \(C\) is the *only* place where the program introduces the value of \(C\), we can obtain \(R\) directly from \(P\) by the **assignment axiom**.
+
+*Compute the weakest pre‑condition for the assignment*  
+
+\[
+\begin{aligned}
+\text{wp}(C:=M-A-B,\;R) 
+   &= R\;\bigl[C\; \mapsto\; M-A-B\bigr] \\[1mm]
+   &= \bigl(M=A+B+(M-A-B)\bigr)\;\land\;(M-A-B)>0\;
+      \land\;(M-A-B)\neq A\;\land\;(M-A-B)\neq B .
+\end{aligned}
+\]
+
+Simplifying the first conjunct:
+
+\[
+M = A + B + (M-A-B) \;\Longleftrightarrow\; M = M,
+\]
+
+which is a tautology.  
+Thus
+
+\[
+\text{wp}(C:=M-A-B,\;R)\; \equiv\; (M-A-B)>0\;\land\;(M-A-B)\neq A\;\land\;(M-A-B)\neq B .
+\]
+
+But the original pre‑condition \(P\) already contains exactly these three facts (they appear inside the existential quantifier that guarantees the existence of a suitable \(C\)). Consequently  
+
+\[
+P\;\Rightarrow\;\text{wp}(C:=M-A-B,\;R)
+\]
+
+and by the **assignment axiom** we have  
+
+\[
+\{\,P\,\}\;C:=M-A-B\;\{\,R\,\}.
+\tag{1}
+\]
+
+---
+
+## 5.  Step 2 – the second assignment  
+
+Now we must prove  
+
+\[
+\{\,R\,\}\;O:=\max(A,B,C)\;\{\,Q\,\}.
+\tag{2}
+\]
+
+Apply the assignment axiom again.  
+The post‑condition we want after the assignment is \(Q\); therefore we must compute the weakest pre‑condition for the assignment:
+
+\[
+\text{wp}\bigl(O:=\max(A,B,C),\;Q\bigr)= Q\;\bigl[O\;\mapsto\;\max(A,B,C)\bigr].
+\]
+
+Replace the occurrence of \(O\) in \(Q\) by \(\max(A,B,C)\):
+
+\[
+\begin{aligned}
+\text{wp} &= \Bigl(\max(A,B,C)\in\mathbb N\Bigr) 
+          \;\land\; \Bigl(\max(A,B,C)=\max\{A,B,C\}\Bigr)
+          \;\land\; \Bigl(\max(A,B,C)\text{ is the age of the oldest child}\Bigr).
+\end{aligned}
+\]
+
+All three conjuncts are true by definition of the built‑in `max`.  
+More formally, using Lemma (L) we can rewrite  
+
+\[
+\max(A,B,C)=w \;\Longleftrightarrow\;
+\bigl(w\ge A\land w\ge B\land w\ge C\land (w=A\lor w=B\lor w=C)\bigr)
+\]
+
+and instantiate \(w\) with \(\max(A,B,C)\). The left‑hand side is a tautology, so the whole weakest‑pre‑condition reduces to **true**. In other words, **no extra condition on the variables is required** for the second assignment to guarantee \(Q\).
+
+Consequently, from the assignment axiom we obtain directly  
+
+\[
+\{\,\text{true}\,\}\;O:=\max(A,B,C)\;\{\,Q\,\}.
+\]
+
+Since \(R\) entails `true`, the **rule of consequence** gives  
+
+\[
+\{\,R\,\}\;O:=\max(A,B,C)\;\{\,Q\,\}.
+\tag{2}
+\]
+
+---
+
+## 6.  Step 3 – composition  
+
+From (1) and (2) and the **(Seq)** rule we get
+
+\[
+\{\,P\,\}\;
+   C:=M-A-B;\;O:=\max(A,B,C)
+\;
+\{\,Q\,\}.
+\tag{3}
+\]
+
+---
+
+## 7.  Step 4 – termination  
+
+Both statements are simple deterministic assignments; each executes a bounded number of elementary operations (one subtraction, one call to a library routine that scans three values). Hence the program always terminates. In Hoare logic termination is usually taken for granted when the statements are known to be total; no additional proof is needed.
+
+---
+
+## 8.  Conclusion  
+
+We have shown, using the standard Hoare‑logic inference rules, that the program
+
+```python
+C = M - A - B          # compute the third child’s age
+O = max(A, B, C)       # oldest child’s age
+print(O)
+```
+
+satisfies the specification  
+
+\[
+\{\,P\,\}\;\text{program}\;\{\,Q\,\},
+\]
+
+i.e. **if the inputs respect the pre‑condition \(P\) (the mother is older than each known child, the two known children have different ages, and there exists a third positive age distinct from the two known ones such that the three ages sum to the mother’s age), the program always terminates and outputs a non‑negative integer \(O\) that is exactly the greatest of the three children’s ages**.
+
+Thus the program is *correct* with respect to the given Hoare‑logic specification. ∎

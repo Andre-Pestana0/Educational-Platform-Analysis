@@ -1,0 +1,223 @@
+**Answer – a Hoare‑logic proof that the program prints exactly the sequence  
+
+\[
+O=\langle L(A_{1},B_{1},C_{1}),\dots ,L(A_{n},B_{n},C_{n})\rangle ,
+\qquad 
+L(A,B,C)=\Bigl\lfloor\sqrt{\frac{A\cdot B\cdot 100}{C}}\Bigr\rfloor .
+\]**
+
+--------------------------------------------------------------------
+
+## 1.  The program (re‑named for the proof)
+
+```text
+1  while True:
+2      caso_teste = input()                # read a line
+3      if caso_teste == "0":               # sentinel
+4          break
+5      A, B, C = [int(x) for x in caso_teste.split(" ")]
+6      percentual_do_terreno = C / 100
+7      area_da_casa = A * B
+8      area_do_terreno = area_da_casa / percentual_do_terreno
+9      lado_terreno = pow(area_do_terreno, 0.5)   # √
+10     print(int(lado_terreno))
+```
+
+*Lines 2‑4 implement the **read‑until‑0** loop,  
+lines 5‑10 compute the answer for one test case and print it.*
+
+--------------------------------------------------------------------
+
+## 2.  Formal Hoare‑logic specification
+
+* **Pre‑condition** \(P\) (see the statement of the question)
+
+\[
+\begin{aligned}
+P \equiv &\; \text{The input consists of a finite sequence } 
+S=\langle (A_{1},B_{1},C_{1}),\dots ,(A_{n},B_{n},C_{n})\rangle ,\\
+        &\; n\ge 0,\qquad
+        0<A_{i}\le 1000,\;0<B_{i}\le 1000,\;0<C_{i}\le 1000
+        \;(1\le i\le n).
+\end{aligned}
+\]
+
+* **Post‑condition** \(Q\)
+
+\[
+\begin{aligned}
+Q \equiv &\; \text{The program terminates having printed the sequence }\\
+        &\; O=\langle L(A_{1},B_{1},C_{1}),\dots ,L(A_{n},B_{n},C_{n})\rangle ,
+\end{aligned}
+\]
+where  
+
+\[
+L(A,B,C)=\Bigl\lfloor\sqrt{\dfrac{A\cdot B\cdot 100}{C}}\Bigr\rfloor .
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant
+
+The only loop that manipulates the input is the **while‑True** loop (lines 1‑4).  
+We introduce the following invariant, indexed by the number of already processed test cases.
+
+\[
+\boxed{
+\begin{aligned}
+I(k) \equiv\; &0\le k\le n\;\wedge\\
+&\text{After the execution of the body for the first }k\text{ triples }\\
+&\qquad (A_{1},B_{1},C_{1}),\dots ,(A_{k},B_{k},C_{k})\\
+&\text{the program has printed } 
+\bigl\langle L(A_{1},B_{1},C_{1}),\dots ,L(A_{k},B_{k},C_{k})\bigr\rangle .
+\end{aligned}}
+\]
+
+The invariant says precisely what the program has done so far: *the first* \(k\) answers are already on the output stream in the correct order.
+
+--------------------------------------------------------------------
+
+## 4.  Proof structure
+
+We prove the Hoare triple \(\{P\}\; \texttt{program}\; \{Q\}\) by the usual three steps:
+
+1. **Initialization** – show that the invariant holds before the first iteration (\(k=0\)).
+2. **Maintenance** – assume \(I(k)\) holds at the beginning of an iteration, prove that after the body finishes it holds for \(k+1\).
+3. **Termination** – when the loop exits we have \(k=n\); together with \(I(n)\) we obtain \(Q\).
+
+All the arithmetic reasoning required in step 2 is carried out by a *local* Hoare triple for the statements that compute one answer (lines 5‑10).  
+
+--------------------------------------------------------------------
+
+### 4.1  Initialization
+
+Before the first test case is read the loop has not executed any body, thus \(k=0\).  
+
+*The output is empty*, which is exactly the sequence  
+
+\[
+\langle L(A_{1},B_{1},C_{1}),\dots ,L(A_{0},B_{0},C_{0})\rangle
+\]
+
+(the empty list). Hence \(I(0)\) holds.
+
+--------------------------------------------------------------------
+
+### 4.2  Maintenance – one iteration
+
+Assume that at the start of an iteration we have processed the first \(k\) triples, i.e.
+
+\[
+I(k)\;:\;\text{output } =\langle L(A_{1},B_{1},C_{1}),\dots ,L(A_{k},B_{k},C_{k})\rangle .
+\]
+
+We must show that after executing the body once more the output becomes  
+
+\[
+\langle L(A_{1},B_{1},C_{1}),\dots ,L(A_{k},B_{k},C_{k}),L(A_{k+1},B_{k+1},C_{k+1})\rangle .
+\]
+
+The body consists of the following statements, for which we give a small Hoare triple.
+
+| line | command | Hoare triple (local) |
+|------|---------|----------------------|
+|5|`A, B, C = …`|`{true} … {A=A_{k+1} ∧ B=B_{k+1} ∧ C=C_{k+1}}`|
+|6|`percentual_do_terreno = C / 100`|`{C=C_{k+1}} … {percentual_do_terreno = C_{k+1}/100}`|
+|7|`area_da_casa = A * B`|`{A=A_{k+1} ∧ B=B_{k+1}} … {area_da_casa = A_{k+1}·B_{k+1}}`|
+|8|`area_do_terreno = area_da_casa / percentual_do_terreno`|`{area_da_casa = A_{k+1}·B_{k+1} ∧ percentual_do_terreno = C_{k+1}/100}` … `area_do_terreno = (A_{k+1}·B_{k+1}) / (C_{k+1}/100) = (A_{k+1}·B_{k+1}·100)/C_{k+1}`|
+|9|`lado_terreno = pow(area_do_terreno, 0.5)`|`{area_do_terreno = (A_{k+1}·B_{k+1}·100)/C_{k+1}} … {lado_terreno = √((A_{k+1}·B_{k+1}·100)/C_{k+1})}`|
+|10|`print(int(lado_terreno))`|`{lado_terreno = √((A_{k+1}·B_{k+1}·100)/C_{k+1})}` … `output := output ⧺ ⟨⌊√((A_{k+1}·B_{k+1}·100)/C_{k+1})⌋⟩`|
+
+*Explanation of the last line.*  
+`int(x)` in Python truncates toward 0 for non‑negative `x`; because all inputs are positive we have  
+
+\[
+\texttt{int(lado\_terreno)} = \Bigl\lfloor\sqrt{\frac{A_{k+1}\,B_{k+1}\,100}{C_{k+1}}}\Bigr\rfloor
+= L(A_{k+1},B_{k+1},C_{k+1}).
+\]
+
+Thus after line 10 the output list has been extended with exactly the required value.
+
+Putting the six triples together (sequencing rule of Hoare logic) we obtain the **big** triple for the whole body:
+
+\[
+\{ I(k) \}\;
+\texttt{body}
+\;
+\{ I(k+1) \}.
+\]
+
+Hence the invariant is preserved.
+
+--------------------------------------------------------------------
+
+### 4.3  Termination – why we stop at \(k=n\)
+
+The loop condition is examined at line 3:
+
+```
+if caso_teste == "0": break
+```
+
+The sentinel `0` is **not** a triple \((A,B,C)\); it appears *after* the last triple of the input sequence. Consequently the loop executes exactly once for each element of \(S\) and then terminates. Formally:
+
+*When the loop guard is false* we have read the line `"0"`, therefore the number of iterations performed is precisely the length of the sequence \(S\), i.e. \(k=n\).
+
+At that moment the invariant tells us
+
+\[
+I(n)\;:\;\text{output } =\langle L(A_{1},B_{1},C_{1}),\dots ,L(A_{n},B_{n},C_{n})\rangle .
+\]
+
+This is exactly the post‑condition \(Q\).
+
+--------------------------------------------------------------------
+
+## 5.  Full Hoare triple
+
+Collecting the three parts we have proved
+
+\[
+\{P\}\;
+\underbrace{\texttt{while True: …}}_{\text{loop with invariant }I}
+\;
+\{Q\}.
+\]
+
+Because the invariant holds initially, is preserved by every iteration and together with the termination condition yields the desired output, the Hoare triple is valid.  
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on the arithmetic side conditions
+
+* All divisions are safe: `C` is a natural number with \(1\le C\le 1000\); therefore `percentual_do_terreno = C/100` is a positive real number, never zero.
+* `area_do_terreno` computed in line 8 is exactly  
+
+  \[
+  \frac{A\cdot B}{C/100} = \frac{A\cdot B\cdot 100}{C},
+  \]
+
+  a positive real number.
+* `pow(x,0.5)` is mathematically the square‑root function; for a positive argument it returns a non‑negative real number, so `int()` truncates to the floor.
+* The constraints in \(P\) guarantee that the intermediate values fit easily in Python’s arbitrary‑precision integers/floats, so no overflow or loss of precision can affect the correctness of the integer part.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion
+
+We have exhibited a **loop invariant** that captures precisely what has been printed so far, proved that the invariant holds before the first iteration, that it is maintained by the body of the loop, and that when the sentinel `0` is read the loop has processed every test case.  Consequently, after termination the program’s output coincides with the mathematically defined sequence  
+
+\[
+\bigl\langle\;\Bigl\lfloor\sqrt{\frac{A_iB_i\cdot100}{C_i}}\Bigr\rfloor\; \bigr\rangle_{i=1}^{n},
+\]
+
+which is exactly the post‑condition \(Q\).  
+
+Hence the Hoare triple  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}
+\]
+
+is proved correct. ∎

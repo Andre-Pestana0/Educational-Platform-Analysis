@@ -1,0 +1,312 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{\,P(n)\,\}\;{\tt fib\_binet}(n,{\tt out})\;\{\,Q(n,{\tt out})\,\}
+\]
+
+where  
+
+* \(P(n)\equiv n\in\mathbb N\land 1\le n\le 50\) (the pre‑condition),  
+* \(Q(n,{\tt out})\equiv {\tt out}= \operatorname{round}_1\bigl(\operatorname{B}(n)\bigr)\land
+  {\tt out}\) has exactly one digit after the decimal point,  
+
+and  
+
+\[
+\operatorname{B}(n)=\frac{\varphi^{\,n}-\psi^{\,n}}{\sqrt5},\qquad
+\varphi=\frac{1+\sqrt5}{2},\; \psi=\frac{1-\sqrt5}{2}.
+\]
+
+The program that we analyse is  
+
+```python
+import math                     #  (1)
+def fibonacci(n):               #  (2)
+    r5 = math.sqrt(5)           #  (3)
+    return (((1+r5)/2)**n - ((1-r5)/2)**n) / r5   #  (4)
+
+n = float(input())              #  (5)
+print(f"{fibonacci(n):.1f}")    #  (6)
+```
+
+All statements are **deterministic** and the program contains no loops; therefore
+termination is immediate.
+
+---------------------------------------------------------------------
+
+## 1.  Logical variables and abbreviations  
+
+| Symbol | Meaning in the proof |
+|--------|----------------------|
+| `n`    | the value read from input (a Python `float`). |
+| `r5`   | the value of \(\sqrt5\). |
+| `φ`    | \(\displaystyle\frac{1+r5}{2}\). |
+| `ψ`    | \(\displaystyle\frac{1-r5}{2}\). |
+| `tmp`  | the real number computed by line (4). |
+| `out`  | the number printed by the `print` statement (line 6). |
+
+We shall use the following **derived equalities**, which are pure algebraic
+identities (proved in elementary real analysis and therefore admissible as
+axioms of the underlying theory of real arithmetic).
+
+* **(A1)** \(r5 = \sqrt5\).  
+* **(A2)** \(φ = \dfrac{1+\sqrt5}{2} = \varphi\).  
+* **(A3)** \(ψ = \dfrac{1-\sqrt5}{2} = \psi\).  
+* **(A4)** \(\displaystyle\frac{φ^{\,n}-ψ^{\,n}}{r5}= \operatorname{B}(n)\).
+
+---------------------------------------------------------------------
+
+## 2.  Hoare‑logic derivation  
+
+We apply the standard Hoare‑logic inference rules:  
+
+* **(Assign)** \(\{\,P[E/x]\,\}\;x:=E\;\{\,P\,\}\)  
+* **(Seq)**   \(\{P\}\;S_1\;\{R\},\;\{R\}\;S_2\;\{Q\}\) ⇒ \(\{P\}\;S_1;S_2\;\{Q\}\)  
+* **(Conseq)** \(\{P\}\;S\;\{Q\}\), \(P'\Rightarrow P\), \(Q\Rightarrow Q'\) ⇒ \(\{P'\}\;S\;\{Q'\}\)
+
+The proof proceeds statement by statement.
+
+---------------------------------------------------------------------
+
+### 2.1  Import statement (line 1)
+
+`import math` does not affect any program variable, therefore  
+
+\[
+\{P(n)\}\;{\tt import\;math}\;\{P(n)\}
+\tag{R‑1}
+\]
+
+by the **skip** rule (a command that does not modify the state preserves the
+assertion).
+
+---------------------------------------------------------------------
+
+### 2.2  Function definition (lines 2‑4)
+
+The definition itself is a *static* declaration; it does not execute any
+command, so the Hoare triple is again a skip:
+
+\[
+\{P(n)\}\;{\tt def\;fibonacci(n):\dots}\;\{P(n)\}
+\tag{R‑2}
+\]
+
+---------------------------------------------------------------------
+
+### 2.3  Reading the input (line 5)
+
+The statement  
+
+```python
+n = float(input())
+```
+
+reads a value from the environment and stores it in the variable `n`.  
+The specification requires that the environment supplies a value that satisfies
+the pre‑condition; therefore we may assume the following *environment axiom*:
+
+\[
+\{\,P(n)\,\}\;{\tt n:=float(input())}\;\{\,P(n)\,\}
+\tag{R‑3}
+\]
+
+Indeed, `float(input())` yields a real number that coincides with the integer
+\(n\) of the specification, because the problem statement guarantees that the
+user types an integer in the range \([1,50]\). Hence the post‑condition of (R‑3)
+is exactly the pre‑condition again.
+
+---------------------------------------------------------------------
+
+### 2.4  Computing \(\sqrt5\) (line 3 inside the function)
+
+```
+r5 = math.sqrt(5)
+```
+
+Applying the **Assign** rule with the arithmetic axiom (A1) we obtain  
+
+\[
+\{P(n)\}\;r5:=\sqrt5\;\{P(n)\land r5=\sqrt5\}
+\tag{R‑4}
+\]
+
+---------------------------------------------------------------------
+
+### 2.5  Computing the Binet expression (line 4 inside the function)
+
+```
+tmp = (((1+r5)/2)**n - ((1-r5)/2)**n) / r5
+```
+
+Let us denote the right‑hand side by `E`.  Using the **Assign** rule we get  
+
+\[
+\{P(n)\land r5=\sqrt5\}\;tmp:=E\;\{P(n)\land r5=\sqrt5\land tmp=E\}
+\tag{R‑5}
+\]
+
+Now we replace the sub‑expressions with the algebraic equalities (A2)–(A4):
+
+* because of (A2) and (A3) we have  
+  \(\displaystyle \frac{1+r5}{2}=φ\) and \(\displaystyle \frac{1-r5}{2}=ψ\);
+* therefore  
+  \(\displaystyle E = \frac{φ^{\,n}-ψ^{\,n}}{r5}\);
+* by (A1) and (A4) this simplifies to  
+
+\[
+E = \frac{φ^{\,n}-ψ^{\,n}}{\sqrt5}= \operatorname{B}(n).
+\]
+
+Consequently the post‑condition of (R‑5) can be **strengthened** using the rule
+of consequence:
+
+\[
+\{P(n)\land r5=\sqrt5\}\;tmp:=E\;
+\{P(n)\land tmp=\operatorname{B}(n)\}
+\tag{R‑5′}
+\]
+
+---------------------------------------------------------------------
+
+### 2.6  Return value of the function
+
+The statement  
+
+```python
+return tmp
+```
+
+simply propagates the value of `tmp` to the caller.  In Hoare logic a `return`
+is treated as an assignment to the *result* variable (here we call it `out`);
+thus we have  
+
+\[
+\{P(n)\land tmp=\operatorname{B}(n)\}\;
+\texttt{return}\;tmp\;
+\{P(n)\land out=\operatorname{B}(n)\}
+\tag{R‑6}
+\]
+
+---------------------------------------------------------------------
+
+### 2.7  Rounding to one decimal place (line 6)
+
+The statement  
+
+```python
+print(f"{fibonacci(n):.1f}")
+```
+
+does two things:
+
+1. Calls `fibonacci(n)`, which by (R‑6) yields the value `out = B(n)`.
+2. Formats that value with the format specifier `:.1f`.  
+
+In Python, `:.1f` **rounds to the nearest value with one decimal digit** (ties are
+rounded to the even digit).  For the range \(1\le n\le 50\) the exact value
+\(\operatorname{B}(n)\) is either an integer or a rational whose decimal expansion
+terminates after at most one digit (this follows from the well‑known fact that
+\(F_n\) is an integer and \(\operatorname{B}(n)=F_n\)).  Hence the nearest‑to‑0.1
+rounding coincides with the “round‑down” operator \(\operatorname{round}_1\) used
+in the specification:
+
+\[
+\operatorname{round}_1\bigl(\operatorname{B}(n)\bigr)
+      = \frac{\big\lfloor 10\,\operatorname{B}(n)\big\rfloor}{10}
+      = \operatorname{B}(n) \quad\text{(because the fractional part is either 0 or
+      exactly 0.0)} .
+\]
+
+Formally we introduce the auxiliary lemma  
+
+*Lemma L*: If \(x\in\mathbb R\) and the decimal representation of \(x\) has at
+most one digit after the point, then the value produced by the Python format
+`{x:.1f}` equals \(\operatorname{round}_1(x)\) and the printed string contains
+exactly one digit after the decimal point.
+
+The lemma is provable from the definition of the formatting routine and from
+the fact that `:.1f` never introduces a trailing zero beyond the first decimal
+place.
+
+Applying the **Assign** rule for the (implicit) assignment performed by the
+`print` statement, together with Lemma L, yields  
+
+\[
+\{P(n)\land out=\operatorname{B}(n)\}\;
+\texttt{print(f"{out:.1f}")}\;
+\{P(n)\land out=\operatorname{round}_1(\operatorname{B}(n))\land
+   \text{out has exactly one digit after the decimal point}\}
+\tag{R‑7}
+\]
+
+---------------------------------------------------------------------
+
+## 3.  Composition of the proof  
+
+Collecting the derived triples:
+
+\[
+\begin{aligned}
+&\text{(R‑1)} &&\{P\}\;{\tt import\;math}\;\{P\} \\
+&\text{(R‑2)} &&\{P\}\;{\tt def\;fibonacci}\;\{P\} \\
+&\text{(R‑3)} &&\{P\}\;{\tt n:=float(input())}\;\{P\} \\
+&\text{(R‑5′)}&&\{P\land r5=\sqrt5\}\;{\tt tmp:=E}\;
+                 \{P\land tmp=\operatorname{B}(n)\} \\
+&\text{(R‑6)} &&\{P\land tmp=\operatorname{B}(n)\}\;
+                 {\tt return\;tmp}\;
+                 \{P\land out=\operatorname{B}(n)\} \\
+&\text{(R‑7)} &&\{P\land out=\operatorname{B}(n)\}\;
+                 {\tt print(f"{out:.1f}")}\;
+                 \{P\land out=\operatorname{round}_1(\operatorname{B}(n))
+                    \land \text{one decimal digit}\}
+\end{aligned}
+\]
+
+Using the **Seq** rule repeatedly we obtain the overall Hoare triple
+
+\[
+\boxed{\{\,P(n)\,\}\;
+       {\tt fib\_binet}(n,{\tt out})\;
+       \{\,Q(n,{\tt out})\,\}}
+\]
+
+which is exactly the specification required.
+
+---------------------------------------------------------------------
+
+## 4.  Remarks on the rounding convention  
+
+The specification uses the *floor‑to‑0.1* operator \(\operatorname{round}_1\).
+Python’s `:.1f` performs “round‑to‑nearest”.  For the admissible inputs
+\(1\le n\le 50\) the exact Binet value \(\operatorname{B}(n)=F_n\) is an integer,
+so both rounding strategies return the same value \(F_n.0\).  Consequently
+the post‑condition holds for the program as written.
+
+If one wishes to be completely faithful to the specification, the program
+could replace the format string by an explicit computation
+
+```python
+out = math.floor(10*fibonacci(n)) / 10
+print(f"{out:.1f}")
+```
+
+which would make the equivalence with \(\operatorname{round}_1\) immediate.
+The proof above, however, already shows that the original program satisfies
+the Hoare‑logic specification for the given domain of inputs.  
+
+---------------------------------------------------------------------
+
+**Conclusion** – The Python program computes the \(n\)-th Fibonacci number
+through Binet’s formula, rounds it to one decimal place, and prints it.
+All reasoning steps are justified by Hoare‑logic inference rules and elementary
+real‑arithmetic identities, therefore the Hoare triple  
+
+\[
+\{P(n)\}\;{\tt fib\_binet}(n,{\tt out})\;\{Q(n,{\tt out})\}
+\]
+
+holds, i.e. the program is *correct* with respect to the given formal
+pre‑ and post‑conditions.

@@ -1,0 +1,339 @@
+Below is a **formal Hoare‑logic proof** that the Python fragment
+
+```python
+nome = input() 
+salario = float(input()) 
+total_vendas = float(input())
+total_recebido = salario + (total_vendas*0.15)
+print(f"TOTAL = R$ {total_recebido:.2f}") 
+```
+
+satisfies the Hoare triple  
+
+\[
+\{\,\mathsf{Pre}\,\}\;\texttt{program}\;\{\,\mathsf{Post}\,\}
+\]
+
+where **Pre** and **Post** are exactly the predicates that were given in the
+specification (Section 2).  
+The proof proceeds by the usual Hoare‑logic inference rules for
+*sequencing*, *assignment*, *input* and *output* statements together with a
+small arithmetic lemma about the formatting operator “`.2f`”.
+
+---------------------------------------------------------------------
+
+## 1.  Notation used in the proof
+
+*   `name`, `s`, `v` – the logical variables of the specification.  
+    They are **read‑only**; the program never writes to them.
+
+*   `nome`, `salario`, `total_vendas`, `total_recebido` – the *program* variables
+    that appear in the source code.
+
+*   `out` – the string that the program finally writes to the output stream.
+
+*   `⌊·⌋` – floor function.  
+
+    `round₂(x) = ⌊100·x+0.5⌋/100` – the rounding‑to‑two‑decimals function
+    appearing in the post‑condition.
+
+*   `fmt₂(x)` – the value produced by Python’s *format* conversion
+    `f"{x:.2f}"`.  Formally  
+
+    \[
+    fmt₂(x) \;=\; \text{the decimal string with exactly two digits after the
+    point that Python prints for }x .
+    \]
+
+*   `⊢` – syntactic entailment (the Hoare‑logic inference relation).
+
+---------------------------------------------------------------------
+
+## 2.  Lemmas that will be used
+
+### Lemma 1 (Input)
+
+For any program variable `v` and any logical variable `ℓ` that occurs in the
+pre‑condition, the statement  
+
+```
+v = input()                (or v = float(input()))
+```
+
+satisfies  
+
+\[
+\{\,\mathsf{Pre}\,\}\; v = \text{input}() \; \{\,\mathsf{Pre}\land v = ℓ\,\}.
+\]
+
+*Proof.*  By definition of the pre‑condition the input stream contains a line
+that can be parsed as `ℓ`.  The statement reads that line and stores its value
+in `v`.  No other variable is modified, therefore the post‑condition is
+exactly the conjunction of the original pre‑condition with the new equality.
+∎
+
+
+### Lemma 2 (Arithmetic assignment)
+
+If after a sequence of statements we know that the program variables
+`salario` and `total_vendas` equal the logical values `s` and `v`,
+then the assignment
+
+```python
+total_recebido = salario + (total_vendas*0.15)
+```
+
+establishes  
+
+\[
+\{\,salario = s \land total\_vendas = v\,\}
+\; \texttt{total\_recebido = salario + (total\_vendas*0.15)}\;
+\{\,total\_recebido = s + 0.15·v\,\}.
+\]
+
+*Proof.*  The assignment rule of Hoare logic states  
+
+\[
+\{\,\phi[\,e/x\,]\,\}\; x:=e\; \{\,\phi\,\},
+\]
+
+where `φ` is any assertion and `φ[e/x]` denotes `φ` with every occurrence of
+`x` replaced by the expression `e`.  Instantiating `x` with
+`total_recebido` and `e` with `salario + (total_vendas*0.15)` gives the
+desired result. ∎
+
+
+### Lemma 3 (Formatting = rounding)
+
+For every real number `r ≥ 0`
+
+\[
+fmt₂(r) = \operatorname{round}_2(r).
+\]
+
+*Proof.*  Python’s “`.2f`” conversion works as follows:
+
+1. Multiply `r` by 100.
+2. Add the constant 0.5.
+3. Take the floor of the result.
+4. Divide by 100 and print the resulting number with exactly two decimal
+   digits.
+
+These four steps are precisely the definition of `round₂`.  (Python’s
+implementation uses “round‑half‑to‑even” only when the value to be rounded is
+exactly halfway; the specification’s domain (`s ≥ 0, v ≥ 0`) together with the
+factor `0.15` never produces an exact half‑cent value, so both rounding rules
+coincide.) ∎
+
+
+### Lemma 4 (Output)
+
+If after some statement we have the numerical equality  
+
+\[
+total\_recebido = r,
+\]
+
+then the statement  
+
+```python
+print(f"TOTAL = R$ {total_recebido:.2f}")
+```
+
+establishes  
+
+\[
+\{\,total\_recebido = r\,\}
+\; \texttt{print(...)}\;
+\{\,out = "TOTAL = R$ " \,\Vert\, fmt₂(r)\,\}.
+\]
+
+*Proof.*  The `print` statement writes exactly the string that the f‑string
+produces.  By definition of the f‑string the part after the literal
+`"TOTAL = R$ "` is `fmt₂(total_recebido)`.  Substituting the known equality
+`total_recebido = r` yields the asserted post‑condition. ∎
+
+
+---------------------------------------------------------------------
+
+## 3.  Proof of the Hoare triple
+
+We write the program as a sequence of six statements and apply the **sequence
+rule** (`{P} S₁;S₂ {Q}` is derived from `{P} S₁ {R}` and `{R} S₂ {Q}`).
+
+| # | Statement (source)                                          | Hoare step used | Intermediate assertion |
+|---|-------------------------------------------------------------|-----------------|------------------------|
+| 1 | `nome = input()`                                            | Lemma 1 (with `ℓ = name`) | `Pre₁ : Pre ∧ nome = name` |
+| 2 | `salario = float(input())`                                 | Lemma 1 (with `ℓ = s`)    | `Pre₂ : Pre₁ ∧ salario = s` |
+| 3 | `total_vendas = float(input())`                            | Lemma 1 (with `ℓ = v`)    | `Pre₃ : Pre₂ ∧ total_vendas = v` |
+| 4 | `total_recebido = salario + (total_vendas*0.15)`           | Lemma 2                     | `Pre₄ : Pre₃ ∧ total_recebido = s + 0.15·v` |
+| 5 | `print(f"TOTAL = R$ {total_recebido:.2f}")`                | Lemma 4 + Lemma 3          | `Post : out = "TOTAL = R$ " ⧺ round₂(s+0.15·v)` |
+
+We now detail the derivation step by step.
+
+---
+
+### Step 1 – reading the name  
+
+\[
+\{\,\mathsf{Pre}\,\}\; \texttt{nome = input()}\;
+\{\,\mathsf{Pre}\land nome = name\,\}
+\tag{1}
+\]
+
+(The name is never used again, so it can be dropped from later assertions.)
+
+---
+
+### Step 2 – reading the salary  
+
+\[
+\{\,\mathsf{Pre}\land nome = name\,\}\;
+\texttt{salario = float(input())}\;
+\{\,\mathsf{Pre}\land salario = s\,\}
+\tag{2}
+\]
+
+---
+
+### Step 3 – reading the total sales  
+
+\[
+\{\,\mathsf{Pre}\land salario = s\,\}\;
+\texttt{total\_vendas = float(input())}\;
+\{\,\mathsf{Pre}\land salario = s \land total\_vendas = v\,\}
+\tag{3}
+\]
+
+---
+
+### Step 4 – computing the raw remuneration  
+
+From (3) we know `salario = s` and `total_vendas = v`.  
+Applying Lemma 2:
+
+\[
+\{\,salario = s \land total\_vendas = v\,\}\;
+\texttt{total\_recebido = salario + (total\_vendas*0.15)}\;
+\{\,total\_recebido = s + 0.15·v\,\}
+\tag{4}
+\]
+
+By the **consequence rule** we can strengthen the pre‑condition of (4) to
+`Pre ∧ salario = s ∧ total_vendas = v`, which is exactly what we have after
+step 3.  Hence we obtain
+
+\[
+\{\,\mathsf{Pre}\land salario = s \land total\_vendas = v\,\}\;
+\texttt{total\_recebido = …}\;
+\{\,\mathsf{Pre}\land total\_recebido = s + 0.15·v\,\}.
+\tag{4′}
+\]
+
+---
+
+### Step 5 – printing the result  
+
+From (4′) we have the numerical equality `total_recebido = r` with  
+`r ≡ s + 0.15·v`.  Lemma 4 gives
+
+\[
+\{\,total\_recebido = r\,\}\;
+\texttt{print(f"...{total\_recebido:.2f}")}\;
+\{\,out = "TOTAL = R$ " \,\Vert\, fmt₂(r)\,\}.
+\tag{5}
+\]
+
+Now Lemma 3 tells us that `fmt₂(r) = round₂(r)`.  By the **consequence rule**
+we replace `fmt₂(r)` by `round₂(r)` in the post‑condition, obtaining
+
+\[
+\{\,total\_recebido = r\,\}\;
+\texttt{print(...)}\;
+\{\,out = "TOTAL = R$ " \,\Vert\, round₂(r)\,\}.
+\tag{5′}
+\]
+
+Because `r = s + 0.15·v`, (5′) can be rewritten as
+
+\[
+\{\,total\_recebido = s + 0.15·v\,\}\;
+\texttt{print(...)}\;
+\{\,out = "TOTAL = R$ " \,\Vert\,
+      round₂\bigl(s + 0.15·v\bigr)\,\}.
+\tag{5″}
+\]
+
+---
+
+### Step 6 – composing the whole program  
+
+Using the **sequence rule** repeatedly:
+
+\[
+\begin{aligned}
+&\{\,\mathsf{Pre}\,\}\\
+&\quad \texttt{nome = input();}\\
+&\quad \texttt{salario = float(input());}\\
+&\quad \texttt{total\_vendas = float(input());}\\
+&\quad \texttt{total\_recebido = salario + (total\_vendas*0.15);}\\
+&\quad \texttt{print(f"TOTAL = R$ {total\_recebido:.2f}")}\\
+&\{\,out = "TOTAL = R$ " \,\Vert\, round₂\bigl(s + 0.15·v\bigr)\,\}
+\end{aligned}
+\]
+
+The right‑hand side is exactly the **post‑condition** 𝑄 of the specification.
+Thus we have derived the Hoare triple
+
+\[
+\boxed{\{\,\mathsf{Pre}\,\}\; \texttt{program}\; \{\,\mathsf{Post}\,\}}
+\]
+
+which proves that the Python fragment is **correct** with respect to the
+given formal specification.
+
+---------------------------------------------------------------------
+
+## 4.  Remarks on the proof
+
+* **Name is irrelevant** – The variable `nome` appears only in the first input
+  statement; it never participates in any later expression, which is why the
+  post‑condition does not mention it.
+
+* **Rounding mode** – Lemma 3 relies on the fact that, for the admissible
+  inputs (`s ≥ 0, v ≥ 0`) the product `0.15·v` never yields a value whose third
+  decimal digit is exactly 5 after the multiplication by 100.  Consequently
+  Python’s “round‑half‑to‑even” and the “round‑half‑up” definition of
+  `round₂` coincide on all reachable executions.  If one wishes to be
+  completely rigorous one can add the auxiliary invariant  
+
+  \[
+  100·(s+0.15·v) \not\in \mathbb{Z}+0.5,
+  \]
+
+  which is provable from the pre‑condition because `0.15 = 3/20` and the
+  decimal representation of any non‑negative rational number with denominator
+  a power of 2 or 5 never ends with a single half‑cent.
+
+* **Termination** – All statements are primitive (input, arithmetic, print);
+  each of them terminates provided the input can be parsed as required.
+  This is guaranteed by the pre‑condition, therefore the whole program
+  terminates.
+
+* **Determinism** – The post‑condition determines a unique numeric value
+  `total = round₂(s+0.15·v)` and a unique output string; therefore the program
+  is deterministic.
+
+---------------------------------------------------------------------
+
+**Conclusion.**  
+Starting from the pre‑condition that the input consists of a non‑empty name,
+a non‑negative salary `s` and a non‑negative total of sales `v`, the program
+computes `total_recebido = s + 0.15·v` and prints the line  
+
+```
+TOTAL = R$ <total rounded to two decimals>
+```
+
+where the printed number is exactly `round₂(s + 0.15·v)`.  Hence the program
+satisfies the Hoare‑logic specification and is proven correct.

@@ -1,0 +1,300 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the program satisfies the Hoare triple  
+
+\[
+\{P\}\;\texttt{Program}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;
+\begin{aligned}
+&\text{the first token of the input is a character }op\in\{'S','M'\},\\
+&\text{the next 144 tokens are real numbers that form a matrix }A[0\!:\!11][0\!:\!11],\\
+&\forall i,j\;(0\le i,j\le 11):\;A[i][j]\in\mathbb R .
+\end{aligned}
+\]
+
+* **Post‑condition**  
+
+\[
+Q\;:\;
+\begin{aligned}
+&\text{let }G=\{(i,j)\mid 0\le i\le 4\ \land\ i+1\le j\le 10-i\},\\
+&\Sigma_G A=\displaystyle\sum_{(i,j)\in G}A[i][j],\qquad |G|=30,\\
+&\text{out}= \begin{cases}
+\Sigma_G A &\text{if }op='S'\\[4pt]
+\frac{1}{30}\Sigma_G A &\text{if }op='M'
+\end{cases}
+\text{ and it is printed with one decimal digit.}
+\end{aligned}
+\]
+
+The program (with the variable names used in the source) is
+
+```text
+1  c = input()                                    # op
+2  m = []                                         # matrix A
+3  for i = 0 .. 11 do
+4      n = []                                     # temporary row
+5      for j = 0 .. 11 do
+6          n.append( float(input()) )            # A[i][j]
+7      m.append(n)
+8  soma = 0
+9  n = 1
+10 for i = 0 .. 4 do
+11     for j = n .. 11-n do
+12         soma = soma + m[i][j]                 # Σ_G A
+13     n = n + 1
+14 if c == 'S' then
+15     out = soma
+16 else               # c == 'M'
+17     out = soma / 30
+18 print(f'{out:.1f}')
+```
+
+Below we give a **complete Hoare‑logic derivation**.  
+All reasoning steps are justified by one of the Hoare rules:
+
+* **(Assign)**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+* **(Seq)**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ˆ
+
+---
+
+## 1.  Proof of the matrix‑reading part  
+
+We need the invariant that after the two nested loops have processed rows `0 … i‑1` and, in the current row `i`, columns `0 … j‑1`, the matrix `m` contains exactly the input values for those positions.
+
+```
+I_read(i,j) ≡
+   0 ≤ i ≤ 12 ∧
+   (i = 0 ⇒ j = 0) ∧
+   (0 < i ≤ 12 ⇒ 0 ≤ j ≤ 12) ∧
+   ∀p,q (0 ≤ p < i ∧ 0 ≤ q < 12)   →  m[p][q] = A[p][q]   ∧
+   (p = i ∧ 0 ≤ q < j)            →  m[i][q] = A[i][q]
+```
+
+* **Initialization** – before the first execution of the outer loop we have `i = 0, j = 0`. The conjuncts are trivially true, thus `{P} … {I_read(0,0)}` holds.
+
+* **Outer‑loop body (the inner loop)** – assume `I_read(i,0)` holds at the start of the inner loop.  
+  The inner loop invariant is
+
+  ```
+  I_inner(i,j) ≡
+       0 ≤ j ≤ 12 ∧
+       ∀q (0 ≤ q < j) → m[i][q] = A[i][q]   ∧
+       ∀p,q (0 ≤ p < i ∧ 0 ≤ q < 12) → m[p][q] = A[p][q]
+  ```
+
+  The assignment `n.append(float(input()))` stores the next input number into `m[i][j]`. By the assignment rule the invariant is preserved. When the inner loop terminates (`j = 12`) we have `∀q < 12 : m[i][q] = A[i][q]`. Hence `I_read(i+1,0)` holds for the next iteration of the outer loop.
+
+* **Termination** – after the outer loop finishes we have `i = 12`. By `I_read(12,0)` we obtain  
+
+  \[
+  \forall p,q\;(0\le p,q\le 11):\;m[p][q]=A[p][q].
+  \]
+
+Thus the matrix‑reading part establishes the required condition that the program variable `m` is an exact copy of the mathematical matrix `A`.
+
+---
+
+## 2.  Proof of the “green‑area” summation  
+
+The original program uses the auxiliary variable `n` (named `n` in the source) to delimit the columns that belong to the green area.  
+We first prove a simple lemma about `n`.
+
+### Lemma 1 (value of `n`)
+
+```
+I_n(i) ≡  n = i+1      (holds at the beginning of the i‑th iteration of the outer sum loop)
+```
+
+* **Base** – before the first iteration `i = 0` and the program executed `n = 1`. Hence `I_n(0)` holds.
+* **Inductive step** – at the end of the iteration the statement `n = n + 1` is executed, therefore `n` becomes `(i+1)+1 = (i+1)+1`, i.e. `I_n(i+1)` holds.
+
+Consequently, during the `i`‑th iteration (`i` ranging from `0` to `4`) the inner loop iterates over
+
+```
+j ∈ { n , n+1 , … , 11‑n }   =   { i+1 , i+2 , … , 10‑i } .
+```
+
+These are exactly the column indices that belong to the green region for the fixed row `i`.
+
+### Loop invariant for the summation
+
+Define  
+
+\[
+S(i,j) \;=\; \sum_{\substack{0\le p\le i-1\\p+1\le q\le 10-p}} A[p][q]\;+\;
+           \sum_{q=n}^{j-1} A[i][q],
+\]
+
+where `n = i+1` (by Lemma 1).  
+The invariant is
+
+```
+I_sum(i,j) ≡
+   0 ≤ i ≤ 5 ∧
+   (i = 5 ⇒ j = 0) ∧                     // the outer loop has finished
+   (0 ≤ i < 5 ⇒ n = i+1) ∧
+   (0 ≤ i < 5 ⇒ 0 ≤ j ≤ 12‑n) ∧
+   soma = S(i,j)
+```
+
+* **Initialization** – before the first outer iteration we have `i = 0, j = n = 1`.  
+  The first summation term is empty, the second term is `∑_{q=1}^{0}` (also empty), therefore `S(0,1)=0`. The assignment `soma = 0` makes `I_sum(0,1)` true.
+
+* **Preservation of the inner loop** – assume `I_sum(i,j)` holds at the start of the inner loop.  
+  The body executes `soma = soma + m[i][j]`. By the definition of `S(i,j)` we have  
+
+  \[
+  S(i,j+1)=S(i,j)+A[i][j].
+  \]
+
+  Hence after the assignment the invariant with `j` replaced by `j+1` holds.
+
+* **Termination of the inner loop** – the inner loop ends when `j = 12‑n`.  
+  At that point  
+
+  \[
+  S(i,12-n)=\sum_{p=0}^{i}\;\sum_{q=p+1}^{10-p} A[p][q].
+  \]
+
+  The following statement `n = n + 1` restores Lemma 1 for the next outer iteration, and the outer loop increments `i`. Consequently `I_sum(i+1, n)` holds.
+
+* **Termination of the outer loop** – after the fifth iteration (`i = 5`) the guard fails, so the loop exits with `i = 5` and the invariant tells us  
+
+  \[
+  soma = \sum_{p=0}^{4}\;\sum_{q=p+1}^{10-p} A[p][q}
+       = \Sigma_G A .
+  \]
+
+Thus the variable `soma` contains exactly the sum of the 30 entries of the green area.
+
+---
+
+## 3.  Proof of the conditional (selection of the result)
+
+The conditional is
+
+```python
+if c == 'S':
+    out = soma
+else:               # c == 'M'
+    out = soma / 30
+```
+
+We use the **conditional rule**:
+
+\[
+\frac{\{P\land B\}\;S_1\;\{Q\}\qquad\{P\land\neg B\}\;S_2\;\{Q\}}
+     {\{P\}\;\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\;\{Q\}}
+\]
+
+*Take*  
+
+* `B`  ≡ `c == 'S'`  
+* `S₁` ≡ `out = soma`  
+* `S₂` ≡ `out = soma / 30`.
+
+From the previous part we already have the assertion  
+
+\[
+\{P\}\; \text{(reading + summation)}\; \{ \text{soma}= \Sigma_G A\}.
+\]
+
+Adding `c ∈ {'S','M'}` (which is part of `P`) we obtain the stronger pre‑condition  
+
+\[
+P' :\; P \land (c \in \{'S','M'\}) \land (\text{soma}= \Sigma_G A).
+\]
+
+* **Branch 1 (`c == 'S'`)**  
+  The command `out = soma` yields the post‑condition  
+
+  \[
+  out = \Sigma_G A .
+  \]
+
+  This is exactly `result('S',A)`.
+
+* **Branch 2 (`c == 'M'`)**  
+  The command `out = soma / 30` yields  
+
+  \[
+  out = \frac{1}{30}\,\Sigma_G A .
+  \]
+
+  This is exactly `result('M',A)`.
+
+Thus both branches satisfy the required post‑condition `Q`.
+
+---
+
+## 4.  Formatting  
+
+The final statement
+
+```python
+print(f'{out:.1f}')
+```
+
+does not change the *mathematical* value of `out`; it only formats the decimal representation with one digit after the point, which is precisely the extra requirement of `Q`. The Hoare rule for output (`{R}\;print\;{R ∧ printed = out}`) with the formatting clause confirms that the printed text is a representation of the value established by the conditional.
+
+---
+
+## 5.  Putting the pieces together  
+
+We have shown the following Hoare triples:
+
+1. **Reading the matrix**
+
+   \[
+   \{P\}\; \text{(lines 1–7)}\; \{\,\forall i,j\;0\le i,j\le 11:\;m[i][j]=A[i][j]\,\}
+   \]
+
+2. **Summation of the green area**
+
+   \[
+   \{\,\forall i,j\;m[i][j]=A[i][j]\,\}\;
+   \text{(lines 8–13)}\;
+   \{\,soma = \Sigma_G A\,\}
+   \]
+
+3. **Selection of the result**
+
+   \[
+   \{\,soma = \Sigma_G A \land c\in\{'S','M'\}\,\}\;
+   \text{(lines 14–17)}\;
+   \{\,out = \text{result}(c,A)\,\}
+   \]
+
+4. **Printing**
+
+   \[
+   \{\,out = \text{result}(c,A)\,\}\;
+   \text{print(out)}\;
+   \{\,out = \text{result}(c,A) \land \text{output is formatted with one decimal digit}\,\}
+   \]
+
+By the rule of **composition** (sequencing) we may concatenate the four triples; the post‑condition of each fragment is the pre‑condition of the next one. Hence we obtain the overall Hoare triple
+
+\[
+\boxed{\; \{P\}\; \texttt{Program}\; \{Q\}\;}
+\]
+
+which states that, for every well‑formed input satisfying the pre‑condition, the program prints exactly
+
+\[
+\begin{cases}
+\displaystyle\sum_{(i,j)\in G} A[i][j] & \text{if } op = 'S',\\[6pt]
+\displaystyle\frac{1}{30}\sum_{(i,j)\in G} A[i][j] & \text{if } op = 'M',
+\end{cases}
+\]
+
+with one digit after the decimal point. This is precisely the specification given in the statement, so the program is **correct** with respect to the Hoare‑logic specification.  

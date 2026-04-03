@@ -1,0 +1,287 @@
+**Proof of the Hoare‑logic triple**  
+
+\[
+\{\,P\,\}\; \textbf{program}\; \{\,Q\,\}
+\]
+
+where  
+
+* `program` is the Python fragment  
+
+```python
+N  = read()                         # 1
+for x in range(N):                  # 2 … 4
+    print(x+1, (x+1)**2,   (x+1)**3)        # 3
+    print(x+1, (x+1)**2+1, (x+1)**3+1)      # 4
+```
+
+*  
+
+\[
+P\equiv \bigl(N\in\mathbb Z\;\wedge\;1<N<1000\bigr)
+\]
+
+*  
+
+\[
+\begin{aligned}
+Q \equiv &\; O=\mathsf{Exp}(N) \\
+         &\;\wedge\;
+           \bigl(\forall(a,b,c)\in O\;.\;
+           a,b,c\text{ are printed in ordinary decimal notation}\bigr)
+\end{aligned}
+\]
+
+The proof proceeds in the classical Hoare‑logic style:
+
+1. **Introduce a “while‑style” form of the `for` loop**  
+2. **State a loop invariant** that captures exactly the part of the output already produced.  
+3. **Show that the invariant holds initially** (base case).  
+4. **Show that one loop iteration preserves the invariant** (maintenance).  
+5. **Show that the invariant together with the negated loop guard yields the post‑condition** (termination).  
+6. **Show that the side‑condition about decimal notation holds** (trivial for Python’s `print`).  
+
+Throughout the proof we use the following abbreviations:
+
+* `read()` returns the integer that the environment supplies; we denote that value by `N`.  
+* `print(a,b,c)` appends the triple \((a,b,c)\) to the (finite) output sequence `O`.  
+* `x` is the loop‑control variable of the Python `for` loop; its values are exactly  
+  \(\;0,1,\dots ,N-1\).  
+* For brevity we write  
+
+\[
+\begin{aligned}
+a_i &:= i,\\
+b_i^{(0)} &:= i^{2},            &\qquad b_i^{(1)} &:= i^{2}+1,\\
+c_i^{(0)} &:= i^{3},            &\qquad c_i^{(1)} &:= i^{3}+1 .
+\end{aligned}
+\]
+
+* \(\mathsf{Exp}(k)=\langle (a_i,b_i^{(\delta)},c_i^{(\delta)})\mid
+                     1\le i\le k,\;\delta\in\{0,1\}\rangle\) – the expected output for the first *k* values.  
+
+---------------------------------------------------------------------
+
+## 1.  From `for` to `while`
+
+The Python statement  
+
+```python
+for x in range(N):
+    BODY
+```
+
+is equivalent (semantically) to the following `while` program, where `x` is introduced as a fresh integer variable:
+
+```text
+x := 0;                           // (F1)
+while x < N do                   // (F2)
+    BODY                         // (F3)
+    x := x + 1;                  // (F4)
+od
+```
+
+The Hoare‑logic rule for a `for` loop is therefore the `while` rule applied to the above program.  Consequently we will prove the Hoare triple for the `while` version; the same triple then holds for the original `for`.
+
+---------------------------------------------------------------------
+
+## 2.  Loop invariant
+
+Define the invariant **I** as the conjunction of three facts:
+
+\[
+\begin{aligned}
+I \; \equiv \; &
+\bigl(0\le x\le N\bigr)                                        \tag{I1}\\
+\wedge\;&
+\bigl(O = \mathsf{Exp}(x)\bigr)                               \tag{I2}\\
+\wedge\;&
+\bigl(\forall (a,b,c)\in O.\; a,b,c\text{ are decimal strings}\bigr) \tag{I3}
+\end{aligned}
+\]
+
+* (I1) states that the loop variable never leaves the interval \([0,N]\).  
+* (I2) says that after having executed the body *x* times, the output sequence is exactly the expected one for the first *x* integers.  
+* (I3) records the “no scientific notation” property for all triples already printed – this property is preserved because each `print` call writes the three arguments using Python’s built‑in decimal conversion, which never produces an exponent for ordinary integers.
+
+---------------------------------------------------------------------
+
+## 3.  Initialization (`x := 0`)
+
+We must show  
+
+\[
+\{P\}\; x:=0\; \{I\}.
+\]
+
+* From the pre‑condition we have \(1<N<1000\); therefore \(0\le 0\le N\) – (I1) holds.  
+* `O` is still the empty sequence, which equals \(\mathsf{Exp}(0)\); hence (I2) holds.  
+* The universal quantification in (I3) is vacuous for the empty sequence, so (I3) holds.  
+
+Thus the assignment establishes the invariant.
+
+---------------------------------------------------------------------
+
+## 4.  Maintenance (body + increment)
+
+Assume the invariant holds at the beginning of a loop iteration, i.e.
+
+\[
+\{I\}\;\;\text{BODY;}\;x:=x+1\;\;\{I\}.
+\]
+
+The body consists of the two `print` statements:
+
+```text
+print(x+1, (x+1)**2,   (x+1)**3)        // line δ = 0
+print(x+1, (x+1)**2+1, (x+1)**3+1)    // line δ = 1
+```
+
+Let us denote \(i:=x+1\).  Because the invariant guarantees \(0\le x<N\), we have \(1\le i\le N\).  
+
+### 4.1  Effect of the first `print`
+
+* The three arguments are the integer expressions \(i,\;i^{2},\;i^{3}\).  
+* By the semantics of `print`, the triple \((i,i^{2},i^{3})\) is appended to `O`.  
+* Consequently the new value of `O` is  
+
+\[
+O' = O\;\|\;(i,i^{2},i^{3}) .
+\]
+
+* By definition of \(\mathsf{Exp}\),
+
+\[
+\mathsf{Exp}(x)\;\|\;(i,i^{2},i^{3}) = \mathsf{Exp}(x+1)\big|_{\delta=0}
+\]
+
+i.e. the prefix of \(\mathsf{Exp}(x+1)\) that ends with the line of \(\delta=0\).
+
+* The printed integers are ordinary Python `int`s, therefore they are rendered in decimal notation; the property (I3) is preserved for the newly added triple.
+
+### 4.2  Effect of the second `print`
+
+The second statement appends \((i,i^{2}+1,i^{3}+1)\).  By the same reasoning
+
+\[
+O'' = O'\;\|\;(i,i^{2}+1,i^{3}+1) = \mathsf{Exp}(x+1)
+\]
+
+because the two lines for the same `i` appear consecutively in \(\mathsf{Exp}\) with \(\delta=0\) followed by \(\delta=1\).
+
+Thus, after the two prints we have
+
+\[
+\bigl(O = \mathsf{Exp}(x)\bigr) \;\Longrightarrow\;
+\bigl(O'' = \mathsf{Exp}(x+1)\bigr).
+\]
+
+### 4.3  Increment `x := x+1`
+
+Now we execute `x := x+1`.  Since before the increment we had \(0\le x<N\), after the increment we have \(0\le x+1\le N\) – property (I1) is restored.  The equality from the previous step gives (I2) with the updated value of `x`.  The decimal‑notation property (I3) still holds because we have only added triples that satisfy it.
+
+Hence the invariant **I** is preserved by one whole loop iteration.
+
+Formally we have shown the Hoare triple
+
+\[
+\{I\}\;\bigl(\text{print‑pair};\;x:=x+1\bigr)\;\{I\}.
+\]
+
+---------------------------------------------------------------------
+
+## 5.  Termination (exit condition)
+
+The `while` guard is `x < N`.  When the loop terminates we have the *negated* guard:
+
+\[
+\neg(x<N) \;\equiv\; x\ge N .
+\]
+
+Together with invariant (I1) we obtain \(x=N\).  Substituting \(x=N\) into (I2) yields
+
+\[
+O = \mathsf{Exp}(N) .
+\]
+
+Invariant (I3) tells us that every triple in `O` has been printed in ordinary decimal notation.  Consequently the post‑condition \(Q\) holds:
+
+\[
+\bigl(O = \mathsf{Exp}(N)\bigr) \;\wedge\;
+\bigl(\forall(a,b,c)\in O.\;a,b,c\text{ are decimal strings}\bigr).
+\]
+
+Thus we have proved
+
+\[
+\{I\wedge x<N\}\;\text{BODY; }x:=x+1\;\{I\}
+\]
+and, by the **while** rule,
+
+\[
+\{I\}\;\textbf{while }x<N\textbf{ do BODY; }x:=x+1\;\{I\wedge x\ge N\}.
+\]
+
+Combined with the initialization step we obtain
+
+\[
+\{P\}\;x:=0;\;\textbf{while }x<N\textbf{ do BODY; }x:=x+1\;\{Q\}.
+\]
+
+Because the `while` program is semantically equivalent to the original `for` loop, the same Hoare triple holds for the Python program as written.
+
+---------------------------------------------------------------------
+
+## 6.  Concluding the Hoare triple for the original program
+
+Putting the three parts together (reading, loop, termination) we have the following derivation in Hoare logic:
+
+1. **Read**  
+
+   \[
+   \{\,\top\,\}\; N:=\text{read()}\; \{\,P\,\}
+   \]
+
+   (The pre‑condition of the whole program is exactly the post‑condition of the input statement.)
+
+2. **Loop** – proved above:  
+
+   \[
+   \{\,P\,\}\;\textbf{for }x\textbf{ in range}(N)\; \{\,Q\,\}
+   \]
+
+3. **Sequence rule**  
+
+   From 1 and 2 we obtain  
+
+   \[
+   \{\,\top\,\}\;N:=\text{read()};\;\textbf{for }x\textbf{ in range}(N)\; \{\,Q\,\}.
+   \]
+
+   Since the global pre‑condition of the task is precisely \(P\) (the program may be started only when the input satisfies \(1<N<1000\)), we can strengthen the antecedent from \(\top\) to \(P\) without affecting validity.
+
+Hence the Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\;\textbf{program}\;\{\,Q\,\}\;}
+\]
+
+holds.  The program prints exactly the sequence \(\mathsf{Exp}(N)\) – two lines for each integer \(i=1,\dots ,N\) – and every integer appears in its ordinary decimal representation, as required.
+
+---------------------------------------------------------------------
+
+### Remarks on the proof
+
+* **Arithmetic correctness** – the equalities  
+
+  \[
+  (x+1)^{2}=i^{2},\qquad (x+1)^{3}=i^{3}
+  \]
+
+  are pure algebraic identities; they are used implicitly when we reason about the values supplied to `print`.  Because the pre‑condition guarantees \(N<1000\), the intermediate results \(i^{2}\) and \(i^{3}\) are well within the range of Python’s arbitrary‑precision integers, so no overflow can invalidate the identities.
+
+* **Decimal‑notation clause** – Python’s `print` of an `int` calls `str(int)`.  The `str` conversion for an integer is defined to produce the shortest decimal string that represents the number, never switching to scientific notation.  Consequently the universal property (I3) is an immediate consequence of the language semantics; it does not need an extra inductive argument.
+
+* **Complexity** – the loop executes exactly \(N\) iterations, each performing a constant amount of arithmetic and two output operations, i.e. \(O(N)\) time and \(O(1)\) auxiliary space (the output itself is not counted as internal memory).
+
+The proof above follows the standard Hoare‑logic methodology: an invariant that captures the *partial* output, a base case establishing the invariant before the first iteration, a preservation step that shows one iteration adds precisely the next two expected triples, and a termination step that turns the invariant into the required post‑condition.  Therefore the program is **correct** with respect to the given formal specification.

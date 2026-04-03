@@ -1,0 +1,328 @@
+## 1.  What we have to show  
+
+We are given the Hoare triple  
+
+\[
+\{\,\mathit{Input}\in\mathbb Z^{2}\,\}\;\;S\;\;
+\bigl(\text{out}= “Sao Multiplos”\;\leftrightarrow\;\mathit{Mult}(a,b)\bigr)
+\tag{1}
+\]
+
+where  
+
+* `Input = (a,b)` are the two integers read from the console,  
+
+*  
+
+\[
+\mathit{Mult}(a,b)\;:=\;(a\neq 0\land b\bmod a =0)\;\lor\;(b\neq 0\land a\bmod b =0)
+\]
+
+*  
+
+```
+S ≡  read a,b ;
+     if (a% b == 0) or (b% a == 0) then
+            print "Sao Multiplos"
+        else
+            print "Nao sao Multiplos"
+```
+
+The goal is to prove that, **starting from any pair of integers**, the program
+terminates and the string that is printed is exactly the one demanded by the
+predicate `Mult`.  
+
+In Hoare‑logic we will use the usual rules for
+
+* assignment (`read` is treated as an assignment from the input environment),  
+* the conditional, and  
+* the primitive command `print`.
+
+The only non‑trivial part is to show that the Boolean expression that appears in
+the `if` statement is **logically equivalent** to the specification predicate
+`Mult`.  Once that equivalence is established the proof is a straightforward
+application of the conditional rule.
+
+
+
+--------------------------------------------------------------------
+
+## 2.  Logical equivalence between the program test and `Mult`
+
+Recall the definition of the remainder (modulo) operation for integers:
+
+\[
+x\bmod y = r \;\Longleftrightarrow\;
+\exists q\;(x = q\cdot y + r \;\land\; 0\le r < |y|).
+\]
+
+From this definition we obtain the well‑known property  
+
+\[
+x\bmod y = 0 \;\Longleftrightarrow\; (y\neq 0 \;\land\; y \mid x) .
+\tag{2}
+\]
+
+Using (2) we can rewrite each conjunct of the program’s guard:
+
+```
+a % b == 0      ⇔   (b ≠ 0 ∧ b | a)
+b % a == 0      ⇔   (a ≠ 0 ∧ a | b)
+```
+
+Hence the whole Boolean expression that controls the `if` statement is
+
+\[
+\begin{aligned}
+C &\equiv (a\%b==0)\;\lor\;(b\%a==0)\\[1mm]
+  &\equiv\bigl(b\neq 0\land b\mid a\bigr)\;\lor\;\bigl(a\neq 0\land a\mid b\bigr) .
+\end{aligned}
+\tag{3}
+\]
+
+Now compare (3) with the specification predicate `Mult`:
+
+\[
+\mathit{Mult}(a,b)\;=\;(a\neq 0\land b\bmod a =0)\;\lor\;(b\neq 0\land a\bmod b =0).
+\]
+
+Applying (2) **in the opposite direction** to each occurrence of “\(x\bmod y =0\)”
+in `Mult` we obtain exactly the right‑hand side of (3).  Consequently
+
+\[
+\boxed{C \;\Longleftrightarrow\; \mathit{Mult}(a,b)} .
+\tag{4}
+\]
+
+Thus the guard of the `if` statement is *precisely* the specification
+predicate.
+
+--------------------------------------------------------------------
+
+## 3.  Hoare‑logic derivation
+
+We now prove (1) by a **structural** Hoare derivation.  
+The program \(S\) is split into three sub‑statements:
+
+```
+S1 : a , b := read()          (the input command)
+S2 : if C then S3 else S4      (the conditional)
+S3 : print "Sao Multiplos"
+S4 : print "Nao sao Multiplos"
+```
+
+Below we write the Hoare triples that we need to establish, together with the
+rules that justify each step.
+
+--------------------------------------------------------------------
+### 3.1  The input command
+
+In Hoare logic the command “read a,b” is treated as a *nondeterministic*
+assignment that receives a value from the environment.  The rule is
+
+\[
+\frac{\displaystyle
+   \{\,P[a,b/x,y]\;\}\;x,y := \text{input}\; \{\,P\,\}}
+   {\displaystyle\{\,\exists x,y.\,P\;\}\;x,y := \text{input}\; \{\,P\,\}}
+\]
+
+where `P` is any predicate that mentions the variables `x` and `y`.  
+Choosing  
+
+\[
+P\;\equiv\; \mathit{Input}(a,b) \;=\; (a,b)\in\mathbb Z^{2},
+\]
+
+the rule yields directly  
+
+\[
+\boxed{\{\,\mathit{Input}(a,b)\,\}\;S1\;\{\,\mathit{Input}(a,b)\,\}} .
+\tag{5}
+\]
+
+In words: after the read, the pre‑condition that the two variables are
+integers still holds.
+
+--------------------------------------------------------------------
+### 3.2  The two branches of the conditional
+
+The Hoare rule for a conditional statement is  
+
+\[
+\frac{
+   \{P\land C\}\;S_{t}\;Q \qquad
+   \{P\land\neg C\}\;S_{e}\;Q}
+   {\{P\}\;\mathbf{if}\;C\;\mathbf{then}\;S_{t}\;\mathbf{else}\;S_{e}\; \{Q\}} .
+\tag{6}
+\]
+
+We will use the **post‑condition**  
+
+\[
+Q \;\equiv\;
+\bigl(\text{out}= “Sao Multiplos”\;\land\;\mathit{Mult}(a,b)\bigr)
+\;\lor\;
+\bigl(\text{out}= “Nao sao Multiplos”\;\land\;\neg\mathit{Mult}(a,b)\bigr).
+\tag{7}
+\]
+
+Because of the equivalence (4) we may replace the guard `C` by `\mathit{Mult}(a,b)`
+inside the sub‑goals; this makes the reasoning clearer.
+
+--------------------------------------------------------------------
+#### 3.2.1  The *then* branch  
+
+We must prove  
+
+\[
+\{\,\mathit{Input}(a,b) \land \mathit{Mult}(a,b)\,\}\;S_{t}\;Q .
+\tag{8}
+\]
+
+`S_t` is the single command `print "Sao Multiplos"`.  
+The Hoare rule for `print` (a deterministic output command) is
+
+\[
+\frac{}{ \{\,P\,\}\; \text{print } s\; \{\,\text{out}=s \land P\,\}} .
+\tag{9}
+\]
+
+Applying (9) with \(s =\) “Sao Multiplos” and \(P\equiv
+\mathit{Input}(a,b)\land\mathit{Mult}(a,b)\) we obtain
+
+\[
+\{\,\mathit{Input}(a,b)\land\mathit{Mult}(a,b)\,\}\;S_{t}\;
+\bigl(\text{out}= “Sao Multiplos”\;\land\;\mathit{Input}(a,b)\land\mathit{Mult}(a,b)\bigr).
+\tag{10}
+\]
+
+Since the conjunct `\mathit{Input}(a,b)` does not appear in the final
+post‑condition (7) we can **strengthen** the post‑condition by dropping it
+(weakening rule).  The resulting post‑condition is exactly the left disjunct of
+\(Q\).  Hence (8) holds.
+
+--------------------------------------------------------------------
+#### 3.2.2  The *else* branch  
+
+Symmetrically we have to prove  
+
+\[
+\{\,\mathit{Input}(a,b) \land \neg\mathit{Mult}(a,b)\,\}\;S_{e}\;Q .
+\tag{11}
+\]
+
+`S_e` is `print "Nao sao Multiplos"`.  Using rule (9) with
+\(s =\) “Nao sao Multiplos” we get  
+
+\[
+\{\,\mathit{Input}(a,b)\land\neg\mathit{Mult}(a,b)\,\}\;S_{e}\;
+\bigl(\text{out}= “Nao sao Multiplos”\;\land\;\mathit{Input}(a,b)\land\neg\mathit{Mult}(a,b)\bigr).
+\tag{12}
+\]
+
+Again we drop the harmless conjunct `\mathit{Input}(a,b)` and obtain exactly
+the right disjunct of \(Q\).  Therefore (11) is proved.
+
+--------------------------------------------------------------------
+#### 3.2.3  Assemble the conditional
+
+Having established (8) and (11), the conditional rule (6) yields  
+
+\[
+\boxed{
+\{\,\mathit{Input}(a,b)\,\}\;S_{2}\;Q
+}
+\tag{13}
+\]
+
+where \(S_{2}\) is the whole `if … then … else …` statement.
+
+--------------------------------------------------------------------
+### 3.3  Whole program
+
+Finally we compose the three parts using the **sequencing rule**
+
+\[
+\frac{\{P\}\;S_{1}\;R \qquad \{R\}\;S_{2}\;Q}{\{P\}\;S_{1};S_{2}\;Q}.
+\tag{14}
+\]
+
+Take  
+
+* \(P = \mathit{Input}(a,b)\),  
+* \(R = \mathit{Input}(a,b)\) (the intermediate assertion after the read),  
+* \(S_{1}= \) the input command,  
+* \(S_{2}= \) the conditional (13),  
+* \(Q\) the post‑condition (7).
+
+From (5) we have \(\{P\}\;S_{1}\;R\) and from (13) we have \(\{R\}\;S_{2}\;Q\); applying
+(14) gives
+
+\[
+\boxed{\{\,\mathit{Input}(a,b)\,\}\;S\;
+\bigl(\text{out}= “Sao Multiplos”\;\leftrightarrow\;\mathit{Mult}(a,b)\bigr)} .
+\tag{15}
+\]
+
+Equation (15) is exactly the Hoare triple (1) that we were asked to prove.
+
+--------------------------------------------------------------------
+
+## 4.  Remarks on division‑by‑zero
+
+The specification `Mult` is defined in a way that makes the case
+\(a=0\) or \(b=0\) meaningful (the predicate is true when the other number is
+also zero).  In the concrete Python program the expression `a % b` is **undefined**
+when `b == 0` (Python raises a `ZeroDivisionError`).  Therefore the formal proof
+above implicitly assumes the *runtime pre‑condition*
+
+\[
+b\neq 0 \;\lor\; a\neq 0 .
+\]
+
+If we want the program to be total (i.e. never raise an exception) we can
+rewrite it as
+
+```python
+if b == 0 or a == 0:
+        # both zero → they are multiples, otherwise they are not
+        if a == 0 and b == 0:
+                print("Sao Multiplos")
+        else:
+                print("Nao sao Multiplos")
+else:
+        if a % b == 0 or b % a == 0:
+                print("Sao Multiplos")
+        else:
+                print("Nao sao Multiplos")
+```
+
+The additional `if b==0 or a==0` branch is a pure *guard* that guarantees the
+modulo operation is executed only with a non‑zero divisor, and the same Hoare
+derivation goes through unchanged (the extra guard is logically equivalent to
+the part of `Mult` that talks about the zero divisor).
+
+--------------------------------------------------------------------
+
+## 5.  Conclusion  
+
+We have shown, step by step, that:
+
+* the Boolean condition tested by the program is logically equivalent to the
+  specification predicate `Mult`;
+* each branch of the conditional prints the exact string required by the
+  truth‑value of `Mult`;
+* the Hoare triple  
+
+\[
+\{\,\mathit{Input}\in\mathbb Z^{2}\,\}\;S\;
+\bigl(\text{out}= “Sao Multiplos”\;\leftrightarrow\;\mathit{Mult}(a,b)\bigr)
+\]
+
+holds, i.e. the program is **partially correct** with respect to the given
+specification.  
+
+If we also add the simple guard that prevents a modulo‑by‑zero, the program
+terminates for *all* integer inputs, giving us **total correctness**.  Hence the
+Python program satisfies exactly the Hoare‑style specification that was
+presented.  

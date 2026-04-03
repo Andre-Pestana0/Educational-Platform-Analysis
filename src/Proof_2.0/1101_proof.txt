@@ -1,0 +1,201 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the concrete Python program
+
+```python
+m, n = map(int, input().split(" "))
+while m > 0 and n > 0:
+    if n < m:               # 1. put the smaller value in m
+        aux = n
+        n   = m
+        m   = aux
+    resultado = []
+    strResultado = ""
+    for i in range(m, n + 1, 1):
+        resultado.append(i)
+        strResultado += str(i) + " "
+    print(f"{strResultado}Sum={sum(resultado)}")
+    m, n = map(int, input().split(" "))
+```
+
+satisfies the Hoare triple  
+
+\[
+\{P\}\;\texttt{program}\;\{Q\}
+\]
+
+where `P` and `Q` are the pre‑ and post‑conditions given in the statement
+(Section 2).  
+The proof consists of three parts:
+
+1. **Definition of the loop invariant** `𝓘`.  
+2. **Verification that `𝓘` holds initially, is preserved by the loop body,
+   and together with the negated guard yields `Q`.**  
+3. **Termination argument** (the loop cannot run forever).
+
+All reasoning is carried out in the standard Hoare‑logic rules
+(assignment, composition, conditional, while).
+
+---------------------------------------------------------------------
+
+## 1.  The invariant `𝓘`
+
+Recall the abstract notions (Section 1)
+
+* `low(p) = min(m,n)`, `high(p) = max(m,n)`.
+* `seq(p) = [low(p), low(p)+1,…,high(p)]`.
+* `sum(p) = Σ_{x∈seq(p)} x`.
+
+For a concrete execution let  
+
+```
+processed = ⟨p1,…,p_{i‑1}⟩      # pairs already printed
+remaining = ⟨p_i,…,p_k⟩         # pairs still to be read
+output    = ⟨ line(p1),…,line(p_{i‑1}) ⟩ .
+```
+
+The invariant that must hold **at the beginning of every iteration** is
+
+\[
+\boxed{
+\begin{aligned}
+\mathcal I \equiv\;&
+\text{output}= \langle line(p_1),\dots ,line(p_{i-1})\rangle\\
+&\land\;(\forall j\in\{1,\dots,i-1\}\;.\;
+          line(p_j)=\bigl(seq(p_j),\; sum(p_j)\bigr))\\
+&\land\;(\text{remaining}= \langle\rangle \;\lor\;
+        (m_i>0\land n_i>0)) .
+\end{aligned}}
+\]
+
+The three conjuncts say exactly what is required in the specification
+(“the lines already printed are correct”, “the next pair to be examined,
+if any, is still *good*”).
+
+---------------------------------------------------------------------
+
+## 2.  Verification of the invariant
+
+### 2.1  Initialization (`𝓘` holds before the first test)
+
+The program starts with
+
+```
+m, n = map(int, input().split())
+```
+
+which reads the *first* pair `p₁ = (m₁,n₁)`.  
+Consequently
+
+* `processed = ⟨⟩`, `remaining = ⟨p₁,…,p_k⟩`.
+* `output = ⟨⟩`.
+
+Because the pre‑condition `P` guarantees that either the file is empty
+(`k = 0`) or `m₁>0∧n₁>0` holds, the third conjunct of `𝓘` is true.
+The first two conjuncts are vacuously true (there is no `j`).
+Hence `{P}  m,n := first pair  {𝓘}`.
+
+### 2.2  Preservation (`𝓘` ⇒ after body ⇒ `𝓘`)
+
+Assume the invariant holds at the top of an iteration and the guard
+`m>0 ∧ n>0` is true, i.e. the current pair `p_i = (m_i,n_i)` is *good*.
+We must show that after executing the body the invariant holds for the
+next iteration with `i` replaced by `i+1`.
+
+The body consists of the following steps (we annotate them with the
+corresponding Hoare rule).
+
+| Step | Reasoning |
+|------|-----------|
+| **(a)  `if n < m: …`** | This conditional swaps the two variables when necessary. After it finishes we have `m = low(p_i)` and `n = high(p_i)`. The swap is a classical assignment proof: `aux := n; n := m; m := aux` preserves the set `{m,n}` and guarantees `m ≤ n`. |
+| **(b)  `resultado = [] ; strResultado = ""`** | Both assignments initialise fresh variables; they do not affect `output` or the already processed pairs. |
+| **(c)  `for i in range(m, n+1, 1): …`** | The loop iterates exactly over the integer interval `[m … n]`. By construction (a) we have `m = low(p_i)` and `n = high(p_i)`. Each iteration appends the current `i` to `resultado` and concatenates its textual representation to `strResultado`. After the loop terminates: <br> • `resultado = seq(p_i)` (by definition of `range`). <br> • `strResultado = " ".join(str(x) for x in seq(p_i)) + " "` (the trailing space is exactly what the program prints). |
+| **(d)  `print(f"{strResultado}Sum={sum(resultado)}")`** | The printed line is `strResultado` followed by `Sum=` and the value of Python’s `sum`. Because `resultado = seq(p_i)`, we have `sum(resultado) = Σ_{x∈seq(p_i)} x = sum(p_i)` (the arithmetic formula of Section 1). Hence the line printed is precisely `line(p_i)`. |
+| **(e)  `m, n = map(int, input().split())`** | This reads the next pair `p_{i+1}` (or, if the file ends, leaves the input empty). The assignment updates the *loop variables* to the new values, while `output` already contains `line(p_i)`. |
+
+Collecting the effects:
+
+* After (d) the variable `output` (the sequence of lines that have been printed)
+  has been extended with `line(p_i)`. Formally  
+
+  \[
+  output' = output \;\mathbin{+\;} \langle line(p_i) \rangle .
+  \]
+
+* After (e) the new values of `m,n` are exactly the components of `p_{i+1}`
+  (if such a pair exists).  
+
+Thus the state at the top of the next iteration satisfies
+
+* `processed' = ⟨p_1,…,p_i⟩`,
+* `output'` contains the correct lines for all those processed pairs,
+* the remaining input is either empty or begins with a *good* pair
+  (the guard of the next loop test guarantees `m>0∧n>0`).
+
+Consequently the invariant `𝓘` holds with `i` replaced by `i+1`.  
+Formally we have shown  
+
+\[
+\{\,\mathcal I \land (m>0\land n>0)\,\}\;\texttt{body}\;
+\{\,\mathcal I\,\}.
+\]
+
+### 2.3  Termination of the loop and derivation of the post‑condition
+
+When the loop guard becomes false we have `¬(m>0∧n>0)`, i.e. `m≤0 ∨ n≤0`.
+At that moment the invariant still holds, so we know
+
+* `output = ⟨ line(p_1),…, line(p_{i-1}) ⟩`,
+* each printed line is correct (`line(p_j) = (seq(p_j),sum(p_j))`),
+* the *remaining* input is either empty or starts with a *bad* pair
+  `p_i` that satisfies `m_i≤0 ∨ n_i≤0`.
+
+But `i` is exactly `k`, the index of the first bad pair defined in the
+specification (or `k=0` when the file is empty).  
+Therefore the state after the loop satisfies precisely the post‑condition `Q`:
+
+\[
+\begin{aligned}
+&\text{output}= \langle line(p_1),\dots ,line(p_{k-1})\rangle\\
+&\land\; (\forall j<k.\; line(p_j)= (seq(p_j),sum(p_j)))\\
+&\land\; (k=0\;\lor\; m_k\le0\;\lor\; n_k\le0).
+\end{aligned}
+\]
+
+Thus `{𝓘 ∧ ¬(m>0∧n>0)}  ⇒  Q`.
+
+---------------------------------------------------------------------
+
+## 3.  Termination of the whole program
+
+The input file is **finite** by the definition of `input` in the specification.
+Each iteration of the `while` loop consumes exactly one pair from that file.
+Consequently after at most `k` iterations the file is exhausted or the next
+pair is the first bad one (`m≤0 ∨ n≤0`). In either case the guard becomes
+false and the loop stops. Hence the program always terminates.
+
+---------------------------------------------------------------------
+
+## 4.  Summary
+
+We have exhibited a loop invariant `𝓘` that captures the intended relation
+between the already‑processed pairs, the current values of `m,n`, and the
+produced output.  
+
+* The invariant holds initially (by the pre‑condition).  
+* It is preserved by the body of the loop (the swap, the construction of
+  `resultado`, the printing of `line(p_i)`, and the reading of the next pair).  
+* When the loop exits, the invariant together with the negated guard yields
+  exactly the post‑condition `Q`.  
+
+Together with the obvious termination argument, the Hoare triple  
+
+\[
+\{P\}\;\texttt{program}\;\{Q\}
+\]
+
+is proved.  Consequently the concrete Python program is a correct
+implementation of the specification: it prints, for every *good* input
+pair, the inclusive integer sequence from the smaller to the larger value
+and the arithmetic sum of that sequence, and stops as soon as a pair with a
+non‑positive component is encountered. ∎

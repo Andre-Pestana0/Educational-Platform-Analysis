@@ -1,0 +1,236 @@
+**Proof of correctness of the program**  
+
+```
+# read the divisor
+N = int(input())               #  (1)
+
+# print every integer 1 ≤ x ≤ 10 000 whose remainder modulo N is 2
+for i in range(2,10001,N):     #  (2)
+    print(i)                   #  (3)
+```
+
+We prove the Hoare triple  
+
+\[
+\{\,P\,\}\; \text{Program}\; \{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; N\in\mathbb Z \;\wedge\; 1\le N<10\,000
+\]
+
+* **Post‑condition**  
+
+\[
+Q\; \equiv\; \text{out}= \operatorname{sort}\Bigl(\{x\mid 1\le x\le10\,000\wedge x\bmod N =2\}\Bigr)
+\]
+
+---
+
+## 1.  Outline of the proof  
+
+The program consists of three parts:
+
+1. **(1) Assignment** – reading the input value `N`.  
+2. **(2)‑(3) While‑loop** – the `for` loop is syntactic sugar for  
+
+   \[
+   i:=2;\qquad
+   \textbf{while } i\le 10\,000\ \textbf{do}\; \bigl(\; \text{print }i;\; i:=i+N\;\bigr)
+   \]
+
+   We will prove the loop correct by exhibiting a **loop invariant** `I`.  
+
+3. **Termination** – when the guard `i ≤ 10 000` becomes false the loop stops, and we will show that the value of `out` at that moment satisfies `Q`.
+
+The proof uses the usual Hoare‑logic rules for **assignment**, **composition**, **while**, and **consequence**.
+
+---
+
+## 2.  The loop invariant  
+
+Let  
+
+\[
+k \;=\; \frac{i-2}{N}\qquad(\text{integer division, }N>0)
+\]
+
+(so that `i = 2 + k·N`).  
+Define the predicate  
+
+\[
+I(i) \equiv
+\begin{cases}
+i = 2 + kN & \text{for some }k\in\mathbb N,\\[2mm]
+\text{out}= \operatorname{sort}\bigl(\{\,2 + jN\mid 0\le j<k\,\}\bigr).
+\end{cases}
+\tag{Inv}
+\]
+
+`I` says:
+
+* the current loop variable `i` is of the form `2 + k·N`;
+* the sequence already printed (`out`) is exactly the increasing list of all numbers of the form `2 + j·N` with `j < k`.
+
+`I` is strong enough to guarantee the three properties required by `Q` once the loop terminates.
+
+---
+
+## 3.  Proof that the invariant holds  
+
+### 3.1  Initialization  
+
+Before the loop we execute `i := 2`.  
+Thus `k = 0` and `out` is still empty.  
+
+\[
+\{\,P\,\}\; i:=2\; \{\,I(i)\,\}
+\]
+
+holds because after the assignment we have `i = 2 = 2 + 0·N` and `out = [] = sort(\{\,2 + jN\mid 0\le j<0\,\})`.
+
+### 3.2  Maintenance  
+
+Assume `I(i)` holds at the beginning of an iteration, i.e.
+
+```
+i = 2 + k·N                (k ≥ 0)
+out = sort({ 2 + j·N | 0 ≤ j < k })
+```
+
+The loop body consists of two statements:
+
+```
+print(i)          -- (3)
+i := i + N        -- (2')
+```
+
+*After `print(i)`* the sequence `out` becomes  
+
+```
+out' = out ⧺ [i]   (concatenation)
+```
+
+Because `i = 2 + k·N`, we obtain  
+
+\[
+\text{out}' = \operatorname{sort}\bigl(\{\,2 + jN\mid 0\le j\le k\,\}\bigr).
+\]
+
+*After `i := i + N`* we have  
+
+\[
+i' = i + N = 2 + (k+1)N .
+\]
+
+Consequently  
+
+\[
+\text{out}' = \operatorname{sort}\bigl(\{\,2 + jN\mid 0\le j<k+1\,\}\bigr).
+\]
+
+Thus the invariant `I(i')` holds for the next iteration.  
+
+Formally, using the Hoare rule for sequencing we have  
+
+\[
+\{I(i)\}\; (\text{print }i;\; i:=i+N)\; \{I(i')\}.
+\]
+
+### 3.3  Preservation  
+
+Therefore, by the **while‑rule** we obtain  
+
+\[
+\{I(i)\}\;\textbf{while } i\le 10\,000\ \textbf{do }(\text{print }i;\; i:=i+N)\;
+\{\,i>10\,000\ \wedge\ I(i)\,\}.
+\tag{W}
+\]
+
+---
+
+## 4.  Termination condition ⇒ post‑condition  
+
+When the loop stops we have `i > 10 000` and the invariant still true.  
+Let `k = (i-2)/N`. Because `i > 10 000` and `i = 2 + kN`, we have  
+
+\[
+2 + (k-1)N \le 10\,000 < 2 + kN .
+\tag{*}
+\]
+
+From the invariant we know  
+
+\[
+\text{out}= \operatorname{sort}\bigl(\{\,2 + jN\mid 0\le j<k\,\}\bigr).
+\tag{1}
+\]
+
+For any integer `x` such that  
+
+\[
+1\le x\le 10\,000 \quad\text{and}\quad x\bmod N = 2,
+\]
+
+the Euclidean division of `x−2` by `N` yields a non‑negative integer `j` with  
+
+\[
+x = 2 + jN .
+\]
+
+Because of `x ≤ 10 000` and (*) we obtain `j ≤ k‑1`. Hence `j < k` and `x` belongs to the set on the right‑hand side of (1). Conversely, every element of that set satisfies `1 ≤ … ≤ 10 000` (by (*)) and has remainder `2` modulo `N`.  
+
+Thus the set described in (1) is **exactly**  
+
+\[
+S(N)=\{\,x\mid 1\le x\le 10\,000\wedge x\bmod N =2\,\}.
+\]
+
+Therefore  
+
+\[
+\text{out}= \operatorname{sort}\bigl(S(N)\bigr),
+\]
+
+which is precisely the post‑condition `Q`.
+
+---
+
+## 5.  Whole program  
+
+The program consists of the composition  
+
+```
+(1)   N := input()
+(2‑3) while‑loop
+```
+
+* The assignment `N := input()` does not change the truth of `P`; it simply introduces the variable `N` that already satisfies `P` by hypothesis.
+* By the reasoning above, the while‑loop transforms the state satisfying `P` into a state satisfying `Q`.
+
+Hence, using the **rule of composition** we obtain  
+
+\[
+\{P\}\; \text{Program}\; \{Q\}.
+\]
+
+---
+
+## 6.  Concluding statement  
+
+We have exhibited a loop invariant, proved its initialization, maintenance and termination, and shown that the final value of the output sequence `out` is the sorted enumeration of all integers between 1 and 10 000 whose remainder modulo the input divisor `N` equals 2.  
+
+Consequently the Hoare triple  
+
+\[
+\boxed{\{\,N\in\mathbb Z \wedge 1\le N<10\,000\,\}\;
+      \text{read }N;\;
+      \text{print each }x\text{ with }1\le x\le10\,000\wedge x\bmod N =2\;
+      \{\,\text{out}= \operatorname{sort}(\{x\mid 1\le x\le10\,000\wedge x\bmod N=2\})\,\}}
+\]
+
+holds. The Python program therefore **correctly implements** the specification given in the problem statement.

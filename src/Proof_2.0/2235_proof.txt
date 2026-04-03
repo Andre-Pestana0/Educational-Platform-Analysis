@@ -1,0 +1,339 @@
+## 1.  The program written as a Hoare‑logic command  
+
+```
+read a,b,c                     (*  a,b,c are the three input numbers   *)
+if (a = b ∨ a = c ∨ b = c) then
+        out := 'S'
+else
+        if (a+b = c ∨ a+c = b ∨ b+c = a) then
+                out := 'S'
+        else    out := 'N'
+        fi
+fi
+```
+
+The command is denoted by **P**.  
+The variables that appear in the specification are  
+
+* `a , b , c` – the three integers that are read,  
+* `out`      – the character that is finally written.
+
+The Hoare‑logic rules that we shall use are the usual ones:
+
+* **(Assign)**                                                                    
+  \(\displaystyle \{Q[x:=E]\}\;x:=E\;\{Q\}\)
+
+* **(Seq)**                                                                       
+  \(\displaystyle \frac{\{P\}\;C_1\;\{R\}\qquad \{R\}\;C_2\;\{Q\}}{\{P\}\;C_1;C_2\;\{Q\}}\)
+
+* **(If)**                                                                              
+  \(\displaystyle \frac{\{P\land B\}\;C_1\;\{Q\}\qquad\{P\land\neg B\}\;C_2\;\{Q\}}
+        {\{P\}\;\textbf{if}\;B\;\textbf{then}\;C_1\;\textbf{else}\;C_2\;\textbf{fi}\;\{Q\}}\)
+
+The goal is to prove the Hoare triple  
+
+\[
+\boxed{\;\{\,\textsf{Pre}\,\}\;P\;\{\,\textsf{Post}\,\}\;}
+\]
+
+where  
+
+\[
+\begin{aligned}
+\textsf{Pre}&\;:\;A,B,C\in\mathbb N\;\wedge\;1\le A,B,C\le 1000,\\[1mm]
+\textsf{Post}&\;:\;out\in\{‘S’,‘N’\}\;\wedge\;
+\bigl(out='S'\;\Leftrightarrow\;
+\exists\varepsilon_A,\varepsilon_B,\varepsilon_C\in\{-1,0,+1\}\,
+\bigl[(\varepsilon_A\neq0\lor\varepsilon_B\neq0\lor\varepsilon_C\neq0)\,
+\land(\varepsilon_A A+\varepsilon_B B+\varepsilon_C C=0)\bigr]\bigr).
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+
+## 2.  From the pre‑condition to the state after the input  
+
+The first statement of **P** is the *input* command  
+
+```
+read a,b,c
+```
+
+In Hoare logic we treat it as an *assignment* that binds the program
+variables to the values supplied by the environment.  
+Because the specification tells us that the environment supplies the
+three numbers `A , B , C` that satisfy the pre‑condition, we obtain the
+following assignment rule (the rule is applied three times, one for each
+variable).
+
+\[
+\frac{\displaystyle\{\,\textsf{Pre}\,\}}
+     {\displaystyle\{\,\textsf{Pre}\,\}\;
+      a:=A;\;b:=B;\;c:=C\;
+      \{\,a=A\land b=B\land c=C\;\land\;\textsf{Pre}\,\}}
+\tag{1}
+\]
+
+Thus after the read we know  
+
+\[
+a,b,c\in[1,1000]\quad\text{and}\quad (a,b,c)=(A,B,C).
+\]
+
+--------------------------------------------------------------------
+
+## 3.  The outer `if` – case analysis  
+
+The command after the input is an *if‑then‑else* with guard  
+
+\[
+G_1\;:\;a=b\;\lor\;a=c\;\lor\;b=c .
+\]
+
+We prove the Hoare triple for the whole conditional by proving the two
+sub‑triples required by the **(If)** rule.
+
+--------------------------------------------------------------------
+### 3.1  Branch 1 – the guard `G₁` holds  
+
+*Goal*:  
+
+\[
+\{\,\textsf{Pre}\land G_1\,\}\; \textbf{out}:='S' \;\{\,\textsf{Post}\,\}.
+\]
+
+The command `out:='S'` is a simple assignment, therefore by **(Assign)**
+
+\[
+\{\,\textsf{Post}[out:=‘S’]\,\}\; \textbf{out}:='S' \;\{\,\textsf{Post}\,\}.
+\tag{2}
+\]
+
+Consequently we have to show that  
+
+\[
+\textsf{Pre}\land G_1\;\Longrightarrow\;
+\textsf{Post}[out:=‘S’].
+\]
+
+`out` does not occur in the antecedent, so we only have to prove the
+*semantic* part of the post‑condition when `out` is forced to be `‘S’` :
+
+> **Lemma 1**  
+> If two of the three numbers are equal, then a feasible travel plan
+> exists.
+
+*Proof of Lemma 1*  
+Assume, without loss of generality, that `a = b`.  
+Choose  
+
+\[
+\varepsilon_A = +1,\qquad \varepsilon_B = -1,\qquad \varepsilon_C = 0 .
+\]
+
+Then  
+
+\[
+\varepsilon_A a + \varepsilon_B b + \varepsilon_C c
+      = (+1)a + (-1)b + 0\cdot c = a-b = 0,
+\]
+and at least one ε‑value is non‑zero, hence the pair
+\((\varepsilon_A,\varepsilon_B,\varepsilon_C)\) satisfies the definition of a
+valid travel plan. ∎
+
+Because `G₁` is exactly the statement *“some two numbers are equal”*,
+Lemma 1 gives the required existential quantifier, and therefore  
+
+\[
+\textsf{Pre}\land G_1 \;\Rightarrow\; \bigl(out='S'\;\Leftrightarrow\;
+\exists\varepsilon_A,\varepsilon_B,\varepsilon_C\;(\dots)\bigr).
+\]
+
+Thus (2) holds, and the first sub‑triple is proved.
+
+--------------------------------------------------------------------
+### 3.2  Branch 2 – the guard `¬G₁` holds  
+
+Now we have to prove the triple for the *else* part:
+
+\[
+\{\,\textsf{Pre}\land\neg G_1\,\}\;
+\bigl(\textbf{if}\;G_2\;\textbf{then}\;out:='S'\;\textbf{else}\;out:='N'\;\textbf{fi}\bigr)
+\;\{\,\textsf{Post}\,\},
+\]
+
+where  
+
+\[
+G_2\;:\;a+b=c\;\lor\;a+c=b\;\lor\;b+c=a .
+\]
+
+Again we apply the **(If)** rule, i.e. we must prove two sub‑triples,
+one for the case `G₂` true and one for the case `¬G₂` true.
+
+--------------------------------------------------------------------
+#### 3.2.1  Sub‑branch 2‑a – `G₂` holds  
+
+The command executed is again the simple assignment `out:='S'`.  
+Exactly the same reasoning as in § 3.1 applies, except that we need a
+different lemma.
+
+> **Lemma 2**  
+> If one of the numbers equals the sum of the other two, then a feasible
+> travel plan exists.
+
+*Proof of Lemma 2*  
+Assume, for instance, `c = a + b`.  
+Choose  
+
+\[
+\varepsilon_A = -1,\qquad \varepsilon_B = -1,\qquad \varepsilon_C = +1 .
+\]
+
+Then  
+
+\[
+\varepsilon_A a + \varepsilon_B b + \varepsilon_C c
+      = -a -b + c = -a-b+(a+b)=0,
+\]
+and again at least one ε‑value is non‑zero. ∎
+
+Because `G₂` is precisely the disjunction of the three equalities
+`c = a+b , b = a+c , a = b+c`, Lemma 2 guarantees the existential part
+required by the post‑condition. Consequently the triple for this
+sub‑branch is valid.
+
+--------------------------------------------------------------------
+#### 3.2.2  Sub‑branch 2‑b – `¬G₂` holds  
+
+Now the command executed is `out:='N'`.  
+We must show  
+
+\[
+\{\,\textsf{Pre}\land\neg G_1\land\neg G_2\,\}\;
+\textbf{out}:='N'\;
+\{\,\textsf{Post}\,\}.
+\tag{3}
+\]
+
+By the **(Assign)** rule this reduces to proving
+
+\[
+\textsf{Pre}\land\neg G_1\land\neg G_2\;\Longrightarrow\;
+\bigl(out='N'\;\Leftrightarrow\;
+\neg\exists\varepsilon_A,\varepsilon_B,\varepsilon_C\,
+[(\varepsilon_A\neq0\lor\varepsilon_B\neq0\lor\varepsilon_C\neq0)
+\land(\varepsilon_A a+\varepsilon_B b+\varepsilon_C c=0)]\bigr).
+\tag{4}
+\]
+
+Thus we have to show **no** assignment of ε‑values in \(\{-1,0,+1\}\)
+different from the all‑zero vector can make the signed sum vanish,
+provided that neither two numbers are equal nor one equals the sum of the
+other two.
+
+--------------------------------------------------------------------
+### 3.3  Exhaustive analysis of the ε‑patterns  
+
+Because each \(\varepsilon_i\) can only be \(-1,0,+1\) and at least one of
+them must be non‑zero, there are only a few *essential* patterns that can
+yield a zero sum.  We list them, prove that each pattern forces either
+`a=b`, `a=c`, `b=c` **or** `a+b=c`, `a+c=b`, `b+c=a`, and finally argue
+that the negation of all those six equalities eliminates every pattern.
+
+| pattern (up to permutation) | equation obtained from  
+\(\varepsilon_A a+\varepsilon_B b+\varepsilon_C c =0\) |
+|------------------------------|----------------------------------------------------|
+| (+1, –1, 0)                  | \(a=b\)                                            |
+| (+1, 0, –1)                  | \(a=c\)                                            |
+| (0, +1, –1)                  | \(b=c\)                                            |
+| (+1, –1, –1)                 | \(a = b + c\)                                      |
+| (–1, +1, –1)                 | \(b = a + c\)                                      |
+| (–1, –1, +1)                 | \(c = a + b\)                                      |
+
+*Explanation.*  
+Take the first line: \(\varepsilon_A=+1,\;\varepsilon_B=-1,\;\varepsilon_C=0\).  
+The equation becomes  
+
+\[
+(+1)a + (-1)b + 0\cdot c = a-b = 0\;\Longrightarrow\; a=b .
+\]
+
+The other rows are obtained by the same elementary algebra.
+
+Consequently **any** non‑zero ε‑vector that satisfies the linear
+equation must belong to one of the six rows of the table, and each row
+implies one of the six elementary equalities that appear in the program
+guards \(G_1\) or \(G_2\).
+
+--------------------------------------------------------------------
+### 3.4  Deriving the contradiction  
+
+Assume, for contradiction, that there exists a non‑zero ε‑vector with
+\(\varepsilon_A a+\varepsilon_B b+\varepsilon_C c =0\) while both
+\(G_1\) and \(G_2\) are false.  
+By the table the ε‑vector must be one of the six patterns above; each
+pattern forces one of the six equalities that constitute \(G_1\) or
+\(G_2\).  This contradicts the hypothesis \(\neg G_1\land\neg G_2\).
+
+Therefore under the antecedent \(\textsf{Pre}\land\neg G_1\land\neg
+G_2\) **no** suitable ε‑vector exists, i.e. the right‑hand side of (4)
+holds with `out='N'`.  Hence (3) is proved.
+
+--------------------------------------------------------------------
+
+## 4.  Putting the pieces together  
+
+We have proved the three required sub‑triples:
+
+* (i)  \(\{\,\textsf{Pre}\land G_1\,\}\;out:='S'\;\{\,\textsf{Post}\,\}\)  (Lemma 1)
+* (ii) \(\{\,\textsf{Pre}\land\neg G_1\land G_2\,\}\;out:='S'\;\{\,\textsf{Post}\,\}\) (Lemma 2)
+* (iii)\(\{\,\textsf{Pre}\land\neg G_1\land\neg G_2\,\}\;out:='N'\;\{\,\textsf{Post}\,\}\) (Section 3.4)
+
+By the **(If)** rule we obtain
+
+\[
+\{\,\textsf{Pre}\land\neg G_1\,\}\;
+\bigl(\textbf{if}\;G_2\;\textbf{then}\;out:='S'\;\textbf{else}\;out:='N'\;\textbf{fi}\bigr)
+\;\{\,\textsf{Post}\,\}.
+\]
+
+Applying the outer **(If)** rule (with guard \(G_1\)) yields
+
+\[
+\{\,\textsf{Pre}\,\}\;
+\bigl(\textbf{if}\;G_1\;\textbf{then}\;out:='S'\;
+      \textbf{else}\;
+      (\textbf{if}\;G_2\;\textbf{then}\;out:='S'\;
+       \textbf{else}\;out:='N'\;\textbf{fi})\;
+ \textbf{fi}\bigr)
+\;\{\,\textsf{Post}\,\}.
+\]
+
+Finally, composing this with the initial input assignment (1) via the
+**(Seq)** rule gives the desired Hoare triple for the whole program **P**:
+
+\[
+\boxed{\;\{\,\textsf{Pre}\,\}\;P\;\{\,\textsf{Post}\,\}\;}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Intuitive interpretation of the proof  
+
+* The program looks for **either** a pair of equal credits **or** a credit
+that equals the sum of the other two.  
+* If it finds a pair of equal credits, we can travel forward with the
+first credit and backward with the second (or vice‑versa), obtaining a net
+time displacement of zero – exactly the ε‑vector \((+1,-1,0)\) (or a
+permutation).  
+* If it finds a “sum” relation, we travel forward with the larger credit
+and backward with the two smaller ones, which corresponds to the ε‑vector
+\((+1,-1,-1)\) (or a permutation).  
+* The exhaustive table of ε‑vectors shows that **no other** combination of
+the three credits can give a zero signed sum. Consequently, when the
+program prints ‘N’ there really is no feasible plan.
+
+Thus the program satisfies the specification: it prints **‘S’** iff a
+valid travel plan (as defined by the ε‑variables) exists, and **‘N’**
+otherwise. ∎

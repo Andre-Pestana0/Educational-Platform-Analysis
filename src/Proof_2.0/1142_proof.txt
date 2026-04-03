@@ -1,0 +1,279 @@
+## 1.  What we have to show  
+
+We are asked to prove (or refute) the Hoare triple  
+
+\[
+\{\,P\,\}\;\;{\tt program}\;\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;N\in\mathbb N\;\land\;\text{input}=⟦N⟧ .
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:\;&\text{output}= \Bigl(\,\underset{i=1}{\overset{N}{\bigoplus}}\; \operatorname{line}(i)\Bigr)\;\oplus\;
+\bigl(\underbrace{\n}_{\text{if }N>0}\bigr)\\[2mm]
+&\land\;\forall i\in\{1,\dots ,N\}\;.\;
+\operatorname{line}(i)=⟦3i-2⟧\;{\tt “ ”}\;⟦3i-1⟧\;{\tt “ ”}\;⟦3i⟧\;{\tt “ ”}\;{\tt “PUM”}.
+\end{aligned}
+\]
+
+The program that we have to analyse is  
+
+```python
+aux = 1                     # (1)
+num_linhas = int(input())   # (2)
+
+for i in range(num_linhas):   # (3)
+    print(f"{aux} {aux+1} {aux+2} PUM")
+    aux += 4                   # (4)
+```
+
+The question is therefore: **does the program satisfy the specification \(Q\) when started in a state that satisfies \(P\)?**  
+
+Below we give a complete Hoare‑logic proof.  
+The proof will show that the program **does not** satisfy the given specification; a concrete counter‑example will be exhibited.  
+Nevertheless we will also exhibit the loop invariant that *does* hold, and we will use it to derive the exact post‑condition that the program really guarantees.  
+
+---
+
+## 2.  Notation that will be used in the proof  
+
+* `i` – the loop counter of the `for`‑statement (in Python it runs from `0` to `num_linhas‑1`).  
+* `N` – the value read from the input (`num_linhas` after line (2)).  
+* `aux` – the auxiliary variable used by the program.  
+* `out` – the string that has been printed so far (the concatenation of all lines that have already been emitted, each line **including** its terminating newline character).  
+* `⟦x⟧` – decimal string representation of the integer `x`.  
+* `⊕` – string concatenation.  
+
+We also define, for a *natural* index `k ≥ 1`, the **program’s own line**  
+
+\[
+\operatorname{prog\_line}(k)\;:=\;⟦4k-3⟧\;{\tt “ ”}\;⟦4k-2⟧\;{\tt “ ”}\;⟦4k-1⟧\;{\tt “ ”}\;{\tt “PUM”}\;{\tt “\n”}.
+\]
+
+(The first line printed is `1 2 3 PUM\n`, the second line is `5 6 7 PUM\n`, etc.)
+
+---
+
+## 3.  The loop invariant  
+
+The only non‑trivial part of the program is the `for`‑loop.  
+A suitable invariant \(I(i,aux,out)\) that captures exactly what the loop has done after `i` iterations (i.e. after the body has been executed for the values `0,…,i‑1`) is
+
+\[
+\boxed{
+\begin{aligned}
+I(i,aux,out) \;\equiv\;& 0\le i\le N                                      \\[1mm]
+&\land\; aux = 4i+1                                                   \\[1mm]
+&\land\; out = \bigoplus_{k=1}^{i}\operatorname{prog\_line}(k) .
+\end{aligned}}
+\tag{Inv}
+\]
+
+Intuitively:
+
+* after `i` iterations we have printed exactly the first `i` **program lines**,
+* the variable `aux` has been increased `i` times by `4`, therefore it holds the value `1+4i = 4i+1`.
+
+We shall prove that `Inv` is indeed a loop invariant by the usual three steps of Hoare‑logic:
+
+1. **Initialization** – it holds before the first iteration (`i = 0`);
+2. **Maintenance** – assuming it holds at the beginning of an iteration, it also holds after the body finishes;
+3. **Termination** – when the loop finishes (`i = N`) the invariant together with the loop‑exit condition yields the desired post‑condition.
+
+---
+
+### 3.1  Initialization  
+
+Before the loop we have executed statements (1) and (2).  
+Consequently
+
+* `aux = 1`  (by (1));
+* `i = 0`    (the loop counter has not been started yet);
+* `out = ε`  (the empty string, because nothing has been printed).
+
+Plugging `i = 0` into `Inv` we obtain
+
+\[
+\begin{aligned}
+0&\le 0\le N &&\text{true because }N\in\mathbb N ,\\
+aux &= 4\cdot 0+1 = 1 &&\text{true by the assignment (1)},\\
+out &= \bigoplus_{k=1}^{0}\operatorname{prog\_line}(k)=ε &&\text{true because the empty product is the empty string}.
+\end{aligned}
+\]
+
+Hence `Inv` holds before the first iteration.
+
+---
+
+### 3.2  Maintenance  
+
+Assume that at the start of an arbitrary iteration we have `i = t` (`0 ≤ t < N`) and that `Inv` holds, i.e.
+
+\[
+aux = 4t+1,\qquad out = \bigoplus_{k=1}^{t}\operatorname{prog\_line}(k).
+\tag{IH}
+\]
+
+The body of the loop consists of the two statements
+
+```python
+print(f"{aux} {aux+1} {aux+2} PUM")
+aux += 4
+```
+
+*The `print` statement* appends the line
+
+\[
+⟦aux⟧\;{\tt “ ”}\;⟦aux+1⟧\;{\tt “ ”}\;⟦aux+2⟧\;{\tt “ ”}\;{\tt “PUM”}\;{\tt “\n”}
+\]
+
+to `out`. By the induction hypothesis `aux = 4t+1`, therefore this line is precisely  
+
+\[
+⟦4t+1⟧\;{\tt “ ”}\;⟦4t+2⟧\;{\tt “ ”}\;⟦4t+3⟧\;{\tt “ ”}\;{\tt “PUM”}\;{\tt “\n”}
+= \operatorname{prog\_line}(t+1).
+\]
+
+Consequently after the `print`
+
+\[
+out' = out \;⊕\; \operatorname{prog\_line}(t+1)
+      = \Bigl(\bigoplus_{k=1}^{t}\operatorname{prog\_line}(k)\Bigr) ⊕ \operatorname{prog\_line}(t+1)
+      = \bigoplus_{k=1}^{t+1}\operatorname{prog\_line}(k).
+\]
+
+*The assignment `aux += 4`* changes `aux` to  
+
+\[
+aux' = (4t+1)+4 = 4(t+1)+1 .
+\]
+
+Finally the loop counter `i` is automatically increased by the `for`‑construction, so after the iteration we have `i = t+1`.  
+Putting everything together we obtain
+
+\[
+\begin{aligned}
+0 &\le t+1 \le N,\\
+aux' &= 4(t+1)+1,\\
+out' &= \bigoplus_{k=1}^{t+1}\operatorname{prog\_line}(k),
+\end{aligned}
+\]
+
+which is exactly `Inv` with `i` replaced by `t+1`.  
+Thus `Inv` is preserved by the loop body.
+
+---
+
+### 3.3  Termination  
+
+When the loop finishes we know that the loop guard `i < N` is false, i.e. `i = N`.  
+By the invariant we therefore have
+
+\[
+aux = 4N+1,\qquad
+out = \bigoplus_{k=1}^{N}\operatorname{prog\_line}(k).
+\tag{*}
+\]
+
+The variable `aux` is not used any more, so the only observable effect of the program is the value of `out`.  
+Consequently the *actual* post‑condition that the program guarantees is
+
+\[
+\boxed{
+\text{output}= \bigoplus_{k=1}^{N}
+\bigl(⟦4k-3⟧\;{\tt “ ”}\;⟦4k-2⟧\;{\tt “ ”}\;⟦4k-1⟧\;{\tt “ ”}\;{\tt “PUM”}\bigr)\;⊕\; \n .
+}
+\tag{R}
+\]
+
+---
+
+## 4.  Comparison with the given specification  
+
+The specification’s post‑condition \(Q\) demands the **3‑step** pattern  
+
+\[
+⟦3i-2⟧\;{\tt “ ”}\;⟦3i-1⟧\;{\tt “ ”}\;⟦3i⟧\;{\tt “ ”}\;{\tt “PUM”}
+\qquad (i=1,\dots,N)
+\]
+
+whereas the program actually produces the **4‑step** pattern  
+
+\[
+⟦4i-3⟧\;{\tt “ ”}\;⟦4i-2⟧\;{\tt “ ”}\;⟦4i-1⟧\;{\tt “ ”}\;{\tt “PUM”}
+\qquad (i=1,\dots,N).
+\]
+
+These two families coincide only for `i = 1`.  
+For `i = 2` we have  
+
+* required by \(Q\): `4 5 6 PUM`  
+* produced by the program: `5 6 7 PUM`.
+
+Hence the program **does not satisfy** the post‑condition \(Q\) for any input `N ≥ 2`.
+
+---
+
+## 5.  Formal refutation of the Hoare triple  
+
+To refute the Hoare triple it suffices to exhibit a state that satisfies the pre‑condition but leads, after termination, to a state that violates the post‑condition.
+
+Take `N = 2`.  
+The input file therefore contains the string `"2"`; clearly `P` holds because `2 ∈ ℕ` and `input = ⟦2⟧`.
+
+Running the program we obtain the output
+
+```
+1 2 3 PUM
+5 6 7 PUM
+```
+
+i.e.
+
+\[
+\text{output}=⟦1⟧\;{\tt “ ”}\;⟦2⟧\;{\tt “ ”}\;⟦3⟧\;{\tt “ ”}\;{\tt “PUM”}\;{\tt “\n”}\;
+            ⟦5⟧\;{\tt “ ”}\;⟦6⟧\;{\tt “ ”}\;⟦7⟧\;{\tt “ ”}\;{\tt “PUM”}\;{\tt “\n”}.
+\]
+
+The specification \(Q\) requires the second line to be `4 5 6 PUM`.  
+Since `5 6 7 PUM` ≠ `4 5 6 PUM`, the post‑condition \(Q\) is false.  
+
+Thus we have a concrete counter‑example that shows  
+
+\[
+\{P\}\;\texttt{program}\;\{Q\}
+\]
+
+is **invalid**.
+
+---
+
+## 6.  Summary  
+
+| Step | What we proved |
+|------|----------------|
+| **Invariant** `Inv` | `0 ≤ i ≤ N ∧ aux = 4i+1 ∧ out = ⊕_{k=1}^{i} prog_line(k)` |
+| **Init** | `Inv` holds for `i = 0` before the first iteration. |
+| **Maintenance** | Assuming `Inv` for some `i = t` (`t < N`), after the body we have `Inv` for `i = t+1`. |
+| **Termination** | When the loop ends (`i = N`) we obtain the concrete post‑condition (R) that the program really guarantees. |
+| **Comparison** | (R) ≠ the specification‑post‑condition \(Q\); they differ already for `i = 2`. |
+| **Counter‑example** | Input `2` yields output `1 2 3 PUM\n5 6 7 PUM\n`, violating \(Q\). |
+
+Consequently the Hoare triple `{ P } program { Q }` **does not hold**.  
+The correct Hoare triple for this program is  
+
+\[
+\{\,P\,\}\;\;\texttt{program}\;\;\Bigl\{\,\text{output}= \bigoplus_{i=1}^{N}
+\bigl(⟦4i-3⟧\;{\tt “ ”}\;⟦4i-2⟧\;{\tt “ ”}\;⟦4i-1⟧\;{\tt “ ”}\;{\tt “PUM”}\bigr)\;⊕\;\n\Bigr\}.
+\]
+
+The proof above demonstrates, in full Hoare‑logic style, why the given program meets this *actual* specification and why it fails to meet the *intended* specification that uses the `3i‑2 … 3i` pattern.

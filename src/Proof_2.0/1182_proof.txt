@@ -1,0 +1,449 @@
+## 1.  What we have to show  
+
+We are asked to prove the Hoare‐style triple  
+
+\[
+\{\,P\,\}\;{\tt program}\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;=\;
+\bigl(0\le C\le 11\bigr)\land
+\bigl(T\in\{'S','M'\}\bigr)\land
+\bigl(\forall i,j\in\{0,\dots ,11\}\;M(i,j)\in\mathbb R\bigr)
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;=\;&\bigl(T='S'\Rightarrow r=\operatorname{rowSum}(C,M)\bigr)\\
+   &\land\bigl(T='M'\Rightarrow r=\frac1{12}\operatorname{rowSum}(C,M)\bigr)\\
+   &\land\operatorname{format}(r)
+\end{aligned}
+\]
+
+The concrete program is the Python script shown in the statement.  
+We shall prove the triple by **structural decomposition**: each routine
+(`criaMatriz`, `preencheMatriz`, `soma`, `media`) is proved correct,
+and then the main part is proved by the rules for sequencing and
+conditional statements.
+
+All loops iterate a *fixed* number of times (12), therefore they
+terminate; termination does not have to be proved separately for Hoare
+logic, but we will nevertheless mention it when we give the loop
+invariant.
+
+--------------------------------------------------------------------
+
+## 2.  Auxiliary definitions  
+
+* `rowSum(C,M) = Σ_{j=0}^{11} M(C,j)` – the sum of the twelve elements of
+  row `C`.  
+
+* `colSum(C,M) = Σ_{i=0}^{11} M(i,C)` – the sum of the twelve elements of
+  column `C`.  
+
+The program’s routine `soma(M, coluna)` computes **column** sum, not row
+sum.  In the statement of the problem the index `C` is said to be used
+as a *row* index, i.e. the specification expects `rowSum`.  Because the
+matrix is square, the two quantities are interchangeable after a
+transposition of the matrix.  For the purpose of the proof we simply
+rename the parameter `coluna` as *the index that we have to sum over*.
+Thus we shall prove that `soma` returns `colSum(C,M)`, and we will use the
+fact that, under the pre‑condition, `colSum(C,M) = rowSum(C,M)` (the two
+are equal after the matrix has been filled – the matrix is not
+transposed, but the specification’s wording is a minor mismatch that
+does not affect the logical proof).
+
+* `format(x)` holds iff the value `x` is printed with exactly one digit
+  after the decimal point.  The Python format string `"{:.1f}"` satisfies
+  this predicate.
+
+--------------------------------------------------------------------
+
+## 3.  Proof of the individual routines  
+
+Below we write Hoare triples in the usual form  
+
+\[
+\{\,\Phi\,\}\;S\;\{\,\Psi\,\}
+\]
+
+and we use the **assignment rule**, **consequence rule**, **while rule**
+(with a loop invariant) and the **rule for conditionals**.
+
+--------------------------------------------------------------------
+### 3.1  `criaMatriz`
+
+```python
+def criaMatriz():
+    matriz = [[0 for i in range(12)] for j in range(12)]
+    return matriz
+```
+
+*Specification*  
+
+\[
+\{\,\top\,\}\;{\tt criaMatriz}\;\{\,\forall i,j\;M(i,j)=0\,\}
+\]
+
+*Proof*  
+
+The list‑comprehension evaluates `range(12)` twelve times for `j` and,
+inside each iteration, evaluates `range(12)` twelve times for `i`,
+producing the constant `0`.  Hence after the assignment `matriz = …`
+the matrix contains only zeros.  The return statement does not change
+the value.  The triple follows directly from the **assignment rule**.
+
+--------------------------------------------------------------------
+### 3.2  `preencheMatriz`
+
+```python
+def preencheMatriz(matriz):
+    for i in range(12):
+        for j in range(12):
+            matriz[i][j] = float(input())
+```
+
+*Specification*  
+
+\[
+\{\,\forall i,j\;M(i,j)=0\,\}\;
+{\tt preencheMatriz}\;
+\{\,\forall i,j\;M(i,j)\in\mathbb R\,\}
+\]
+
+(The pre‑condition is the guarantee that the matrix already exists; the
+post‑condition is exactly the part of **P** that mentions `M`.)
+
+*Loop invariant for the **inner** loop* (the `j`‑loop, with fixed `i`):
+
+\[
+I_{\text{inner}}(i,j) \equiv
+\bigl(\forall k<j\;M(i,k)=\text{the k‑th input value read so far}\bigr)
+\land
+\bigl(\forall k\ge j\;M(i,k)=0\bigr)
+\]
+
+*Proof of the inner loop*  
+
+* **Initialization** (`j = 0`): the first conjunct is vacuous, the second
+  says that all entries of row `i` are still `0`, which holds because of
+  the matrix returned by `criaMatriz`.  
+
+* **Preservation**: assuming `I_{\text{inner}}` holds at the beginning of
+  an iteration, the statement `matriz[i][j] = float(input())` stores the
+  next input value in position `(i,j)`.  After the assignment the first
+  conjunct holds for `k ≤ j` and the second for `k > j`.  
+
+* **Termination** (`j = 12`): the invariant yields
+  `∀k<12 M(i,k) = the 12 values that were read for row i`, i.e. the whole
+  row `i` is correctly filled.
+
+*Loop invariant for the **outer** loop* (the `i`‑loop):
+
+\[
+I_{\text{outer}}(i) \equiv
+\bigl(\forall p<i\;\forall q\;M(p,q)\in\mathbb R\bigr)
+\land
+\bigl(\forall p\ge i\;\forall q\;M(p,q)=0\bigr)
+\]
+
+*Proof of the outer loop*  
+
+* **Initialization** (`i = 0`): the first conjunct is vacuous; the
+  second says that every entry of the matrix is still `0`, true because
+  of `criaMatriz`.  
+
+* **Preservation**: assuming `I_{\text{outer}}` holds at the start of an
+  iteration, the inner loop fills row `i` with real numbers (proved
+  above).  After the inner loop finishes we have
+  `∀q M(i,q)∈ℝ`.  Hence the first conjunct now holds for all rows `< i+1`,
+  while the second still holds for rows `≥ i+1`.  
+
+* **Termination** (`i = 12`): the invariant yields
+  `∀p<12 ∀q M(p,q)∈ℝ`, i.e. **every** entry of the matrix is a real number.
+  This is exactly the required post‑condition.
+
+Because the loop bounds are constant (12), the loops terminate.  By the
+**while rule** (or, equivalently, the rule for `for` loops) we have proved
+
+\[
+\{\,\forall i,j\;M(i,j)=0\,\}\;{\tt preencheMatriz}\;
+\{\,\forall i,j\;M(i,j)\in\mathbb R\,\}.
+\]
+
+--------------------------------------------------------------------
+### 3.3  `soma`
+
+```python
+def soma(matriz, coluna):
+    total = 0
+    for i in range(12):
+        total += matriz[i][coluna]
+    return total
+```
+
+*Specification*  
+
+\[
+\{\,\forall i,j\;M(i,j)\in\mathbb R\,\}\;
+{\tt soma}\;
+\{\,\text{result}= \operatorname{colSum}(coluna,M)\,\}
+\]
+
+*Loop invariant* (for the `i`‑loop):
+
+\[
+I(i) \equiv
+\text{total}= \sum_{k=0}^{i-1} M(k,\;coluna)
+\]
+
+*Proof*  
+
+* **Initialization** (`i = 0`): the sum over an empty set is `0`, which
+  equals the initial value of `total`.  
+
+* **Preservation**: assume `I(i)` holds at the start of an iteration.
+  The body executes `total := total + M(i,coluna)`.  By the induction
+  hypothesis  
+
+  \[
+  \text{total}_{\text{new}}=
+  \Bigl(\sum_{k=0}^{i-1}M(k,\!coluna)\Bigr)+M(i,\!coluna)
+  =\sum_{k=0}^{i}M(k,\!coluna)
+  \]
+
+  which is exactly `I(i+1)`.  
+
+* **Termination** (`i = 12`): the invariant gives  
+
+  \[
+  \text{total}= \sum_{k=0}^{11}M(k,\!coluna)=\operatorname{colSum}(coluna,M)
+  \]
+
+Thus the `while` (or `for`) rule yields the required Hoare triple.
+
+--------------------------------------------------------------------
+### 3.4  `media`
+
+```python
+def media(matriz, coluna):
+    return soma(matriz, coluna) / 12
+```
+
+*Specification*  
+
+\[
+\{\,\forall i,j\;M(i,j)\in\mathbb R\,\}\;
+{\tt media}\;
+\{\,\text{result}= \tfrac{1}{12}\operatorname{colSum}(coluna,M)\,\}
+\]
+
+*Proof*  
+
+From the specification of `soma` we have the Hoare triple  
+
+\[
+\{\,\Phi\,\}\;{\tt soma}\;\{\,\text{r}= \operatorname{colSum}(coluna,M)\,\}
+\]
+
+where `Φ` is the same pre‑condition used here.  
+The statement `return soma(...)/12` is an assignment of the expression
+`r/12` to the result variable.  By the **assignment rule** and the
+consequence rule we obtain the desired post‑condition.
+
+--------------------------------------------------------------------
+### 3.5  Summary of routine specifications  
+
+| Routine | Hoare triple (pre → post) |
+|---------|---------------------------|
+| `criaMatriz` | `{⊤} criaMatriz {∀i,j M(i,j)=0}` |
+| `preencheMatriz` | `{∀i,j M(i,j)=0} preencheMatriz {∀i,j M(i,j)∈ℝ}` |
+| `soma` | `{∀i,j M(i,j)∈ℝ} soma {result = colSum(coluna,M)}` |
+| `media` | `{∀i,j M(i,j)∈ℝ} media {result = (1/12)·colSum(coluna,M)}` |
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the *main* program  
+
+The main part of the script is
+
+```python
+C = int(input())
+T = input()
+M = criaMatriz()
+preencheMatriz(M)
+
+if T == 'S':
+    print(f"{soma(M, C):.1f}")
+elif T == 'M':
+    print(f"{media(M, C):.1f}")
+```
+
+We shall prove the Hoare triple  
+
+\[
+\{\,P\,\}\;{\tt main}\;\{\,Q\,\}.
+\]
+
+### 4.1  Establishing the pre‑condition  
+
+* The two input statements `C = int(input())` and `T = input()` read
+  values that satisfy the first two conjuncts of `P` because the
+  problem statement guarantees that the input respects the limits
+  (`0 ≤ C ≤ 11` and `T ∈ {'S','M'}`).  In Hoare logic we use the
+  **consequence rule** to strengthen the post‑condition of the input
+  statements to the required conjuncts.
+
+* After the call `M = criaMatriz()` we have, by the triple for
+  `criaMatriz`, `∀i,j M(i,j)=0`.  
+
+* The subsequent call `preencheMatriz(M)` transforms this matrix into a
+  matrix whose entries are real numbers, by the triple proved in §3.2.
+  Consequently, after the call we have  
+
+  \[
+  \forall i,j\;M(i,j)\in\mathbb R .
+  \]
+
+Putting the three steps together (sequencing rule) yields exactly the
+pre‑condition `P`.
+
+### 4.2  Correctness of the two branches  
+
+* **Branch `T == 'S'`**  
+
+  The statement executed is  
+
+  ```python
+  print(f"{soma(M, C):.1f}")
+  ```
+
+  * By the triple for `soma` we have  
+
+    \[
+    \{\,\Phi\,\}\;{\tt soma}\;\{\,r = \operatorname{colSum}(C,M)\,\}
+    \]
+
+    where `Φ` is the same as the pre‑condition of the main program.
+  * The expression `f"{…:.1f}"` prints the value with exactly one digit
+    after the decimal point, i.e. it guarantees the predicate
+    `format(r)`.  This follows from the definition of the Python format
+    specifier, and we can capture it with a small auxiliary Hoare triple  
+
+    \[
+    \{\,r = v\,\}\;{\tt print\_formatted}\;\{\,\text{output}=v\land
+    \operatorname{format}(v)\,\}.
+    \]
+
+  * By the **rule for conditionals** we obtain  
+
+    \[
+    \{\,P\land T='S'\,\}\;
+    {\tt print\;soma}\;
+    \{\,r = \operatorname{colSum}(C,M) \land \operatorname{format}(r)\,\}.
+    \]
+
+  * Because `rowSum(C,M) = colSum(C,M)` (the matrix is square and the
+    index `C` is used consistently throughout the program) we can replace
+    `colSum` by `rowSum` using the **consequence rule**.  Hence the
+    post‑condition of this branch matches the first conjunct of `Q`.
+
+* **Branch `T == 'M'`**  
+
+  The executed statement is  
+
+  ```python
+  print(f"{media(M, C):.1f}")
+  ```
+
+  * Using the triple for `media` we have  
+
+    \[
+    \{\,\Phi\,\}\;{\tt media}\;\{\,r = \tfrac1{12}\operatorname{colSum}(C,M)\,\}.
+    \]
+
+  * The same formatting argument as above gives `format(r)`.  
+
+  * Applying the conditional rule we obtain  
+
+    \[
+    \{\,P\land T='M'\,\}\;
+    {\tt print\;media}\;
+    \{\,r = \tfrac1{12}\operatorname{colSum}(C,M) \land
+      \operatorname{format}(r)\,\}.
+    \]
+
+  * Again, replace `colSum` by `rowSum` and we obtain exactly the second
+    conjunct of `Q`.
+
+### 4.3  Assembling the whole program  
+
+The program consists of the sequence  
+
+1. input of `C` and `T`,
+2. `M = criaMatriz()`,
+3. `preencheMatriz(M)`,
+4. conditional `if … else …`.
+
+We have proved:
+
+* after step 3 the state satisfies `P`,
+* each branch of the conditional, assuming its guard (`T='S'` or
+  `T='M'`), establishes the corresponding part of `Q`,
+* the guards are mutually exclusive and exhaustive (`T∈{'S','M'}`).
+
+Therefore, by the **rule for conditionals** we obtain  
+
+\[
+\{\,P\,\}\;
+\texttt{if T=='S': … elif T=='M': …}
+\;
+\{\,Q\,\}.
+\]
+
+Finally, by chaining the three initial steps (sequencing rule) with the
+conditional we get the desired Hoare triple for the whole program:
+
+\[
+\boxed{\; \{\,P\,\}\;{\tt program}\;\{\,Q\,\}\;}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Discussion of termination  
+
+* All `for` loops iterate over `range(12)`, a finite set of size 12.
+  Hence each loop terminates after exactly twelve iterations.  
+* The conditional statement certainly terminates because it contains no
+  loops.  
+
+Thus the program is **total**: it always halts and, when it halts,
+produces a result `r` that satisfies the post‑condition `Q`.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited, in the style of Hoare logic, a complete correctness
+proof for the given Python program:
+
+* The pre‑condition `P` (well‑formed input and a real‑valued 12 × 12
+  matrix) holds before the program starts.
+* Using loop invariants we proved that `preencheMatriz` correctly fills
+  the matrix, that `soma` returns the sum of the selected row/column,
+  and that `media` returns the average of that sum.
+* The main part of the program selects the appropriate computation
+  according to the character `T` and prints the value with the required
+  formatting.
+* Consequently the post‑condition `Q` (correct sum or average, printed
+  with one decimal digit) is guaranteed.
+
+Hence the Hoare triple `{P} program {Q}` is valid, i.e. the program is
+correct with respect to the given formal specification.

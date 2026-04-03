@@ -1,0 +1,325 @@
+## 1.  What we have to show  
+
+We want to prove the Hoare triple  
+
+\[
+\{\,P\,\}\;{\tt program}\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\; N\in\mathbb N               \qquad\text{(the input is a non‑negative integer)}
+\]
+
+* **Program** (the Python fragment from the statement)  
+
+```text
+segundos = int(input())          # 1
+horas    = segundos // 3600     # 2
+segundos = segundos % 3600       # 3
+minutos  = segundos // 60       # 4
+segundos = segundos % 60         # 5
+print(f'{horas}:{minutos}:{segundos}')   # 6
+```
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:\;&\;{\tt out}= \langle h\rangle\!:\!\langle m\rangle\!:\!\langle s\rangle,  \\
+    &\;h = N\;{\rm div}\;3600,\\
+    &\;m = (N\;{\rm mod}\;3600)\;{\rm div}\;60,\\
+    &\;s = N\;{\rm mod}\;60 .
+\end{aligned}
+\]
+
+In the program the variables are renamed  
+
+\[
+h\;:=\;{\tt horas},\qquad
+m\;:=\;{\tt minutos},\qquad
+s\;:=\;{\tt segundos}.
+\]
+
+Thus we must show that after line 6 the three variables contain exactly the
+quotients and remainders described above and that the printed string is
+their decimal representations separated by ‘:’.
+
+--------------------------------------------------------------------
+
+## 2.  Logical tools we will use  
+
+| Rule | Statement |
+|------|-----------|
+| **Assignment** | \(\displaystyle\frac{\; \{\,Q[x:=e]\,\}\;x:=e\; \{\,Q\,\}}{\;}\) |
+| **Sequence** | \(\displaystyle\frac{\{P\}\;S_1\;\{R\}\qquad\{R\}\;S_2\;\{Q\}}{\{P\}\;S_1;S_2\;\{Q\}}\) |
+| **Consequence** | \(\displaystyle\frac{P\Rightarrow P'\qquad\{P'\}\;S\;\{Q'\}\qquad Q'\Rightarrow Q}{\{P\}\;S\;\{Q\}}\) |
+| **Division algorithm** (Euclidean division) | For every \(a,b\in\mathbb N,\;b>0\) there exist unique \(q,r\) such that  
+
+\[
+a = q\;b + r,\qquad 0\le r < b,
+\]
+
+and we write  
+
+\[
+q = a\;{\rm div}\;b,\qquad r = a\;{\rm mod}\;b .
+\] |
+| **Mod‑composition** (when the divisor of the inner remainder divides the outer divisor) | If \(c\mid b\) then  
+
+\[
+(a\;{\rm mod}\;b)\;{\rm mod}\;c = a\;{\rm mod}\;c .
+\] |
+| **String conversion** | \(\langle x\rangle\) denotes the decimal string of a natural number \(x\) (no leading zeroes, `0` → `"0"`). Concatenation is written \(\oplus\). |
+
+--------------------------------------------------------------------
+
+## 3.  Proof – step by step  
+
+We annotate each program line with a *local* assertion that will be proved
+by the assignment rule.  The assertions are written as logical formulas
+over the program variables and the original input \(N\).
+
+### 3.1  Line 1 – reading the input  
+
+```
+segundos = int(input())
+```
+
+*Interpretation*: the statement is an assignment that stores the value of the
+input (the integer \(N\)) into the variable `segundos`.
+
+\[
+\frac{\displaystyle\{\,P\land {\tt segundos}=N\,\}}{\displaystyle\{{\tt segundos}=N\}\;{\tt segundos}= {\tt int(input())}\;\{\,P\,\}}
+\]
+
+Thus after line 1 we have  
+
+\[
+A_1:\qquad {\tt segundos}=N .
+\]
+
+### 3.2  Line 2 – compute the whole hours  
+
+```
+horas = segundos // 3600
+```
+
+Using the division algorithm with \(a={\tt segundos}\) and \(b=3600\),
+
+\[
+{\tt segundos}= ({\tt segundos}\;{\rm div}\;3600)\cdot 3600
+               + ({\tt segundos}\;{\rm mod}\;3600) .
+\]
+
+The assignment stores the quotient in `horas`.  
+Apply the **assignment rule** to the post‑condition  
+
+\[
+A_2:\qquad {\tt horas}= {\tt segundos}\;{\rm div}\;3600
+        \;\land\; {\tt segundos}=N .
+\]
+
+Because of \(A_1\) we can replace `segundos` by \(N\) in the first conjunct:
+
+\[
+{\tt horas}= N\;{\rm div}\;3600 .
+\]
+
+Hence after line 2 we have  
+
+\[
+A_2:\qquad {\tt horas}= N\;{\rm div}\;3600\;\land\;{\tt segundos}=N .
+\]
+
+### 3.3  Line 3 – keep the remainder after removing the hours  
+
+```
+segundos = segundos % 3600
+```
+
+The assignment stores the remainder of the division by 3600.  Using the
+division algorithm again, the post‑condition becomes  
+
+\[
+A_3:\qquad {\tt segundos}= {\tt segundos}\;{\rm mod}\;3600
+        \;\land\; {\tt horas}= N\;{\rm div}\;3600 .
+\]
+
+Now we can substitute the **old** value of `segundos` (which, by \(A_2\), is
+\(N\)):
+
+\[
+{\tt segundos}= N\;{\rm mod}\;3600 .
+\]
+
+Thus after line 3  
+
+\[
+A_3:\qquad {\tt horas}= N\;{\rm div}\;3600
+        \;\land\;{\tt segundos}= N\;{\rm mod}\;3600 .
+\]
+
+### 3.4  Line 4 – minutes inside the remaining part  
+
+```
+minutos = segundos // 60
+```
+
+Again apply the assignment rule, now with the *current* value of
+`segundos` (the remainder after the hours).  
+
+\[
+A_4:\qquad {\tt minutos}= ({\tt segundos}\;{\rm div}\;60)
+        \;\land\; {\tt horas}= N\;{\rm div}\;3600
+        \;\land\; {\tt segundos}= N\;{\rm mod}\;3600 .
+\]
+
+Replace `segundos` by its known value:
+
+\[
+{\tt minutos}= (N\;{\rm mod}\;3600)\;{\rm div}\;60 .
+\]
+
+So after line 4  
+
+\[
+A_4:\qquad 
+\begin{cases}
+{\tt horas}=   N\;{\rm div}\;3600,\\[1mm]
+{\tt minutos}= (N\;{\rm mod}\;3600)\;{\rm div}\;60,\\[1mm]
+{\tt segundos}= N\;{\rm mod}\;3600 .
+\end{cases}
+\]
+
+### 3.5  Line 5 – seconds left after removing the minutes  
+
+```
+segundos = segundos % 60
+```
+
+The assignment stores the remainder of the current `segundos` when divided
+by 60.  The post‑condition is  
+
+\[
+A_5:\qquad {\tt segundos}= ({\tt segundos}\;{\rm mod}\;60)
+        \;\land\;{\tt horas}= N\;{\rm div}\;3600
+        \;\land\;{\tt minutos}= (N\;{\rm mod}\;3600)\;{\rm div}\;60 .
+\]
+
+Now we use the **mod‑composition property**.  
+Because \(60\mid 3600\) (indeed \(3600 = 60\cdot 60\)), we have  
+
+\[
+(N\;{\rm mod}\;3600)\;{\rm mod}\;60 = N\;{\rm mod}\;60 .
+\]
+
+Consequently  
+
+\[
+{\tt segundos}= N\;{\rm mod}\;60 .
+\]
+
+Thus after line 5 we obtain the exact values required by the post‑condition:
+
+\[
+A_5:\qquad 
+\begin{cases}
+{\tt horas}=   N\;{\rm div}\;3600,\\[1mm]
+{\tt minutos}= (N\;{\rm mod}\;3600)\;{\rm div}\;60,\\[1mm]
+{\tt segundos}= N\;{\rm mod}\;60 .
+\end{cases}
+\]
+
+### 3.6  Line 6 – printing  
+
+```
+print(f'{horas}:{minutos}:{segundos}')
+```
+
+The statement does not modify any variable; it only produces the output
+string  
+
+\[
+{\tt out}= \langle{\tt horas}\rangle\;\oplus\;":"\;\oplus\;
+           \langle{\tt minutos}\rangle\;\oplus\;":"\;\oplus\;
+           \langle{\tt segundos}\rangle .
+\]
+
+Because of \(A_5\) we may replace the three variables by the expressions
+containing the original input \(N\).  Hence after line 6 we have exactly
+
+\[
+\begin{aligned}
+{\tt out}&=
+\bigl\langle N\;{\rm div}\;3600 \bigr\rangle\;:\;
+\bigl\langle (N\;{\rm mod}\;3600)\;{\rm div}\;60 \bigr\rangle\;:\;
+\bigl\langle N\;{\rm mod}\;60 \bigr\rangle,\\
+&\qquad\text{and the three numeric equalities of }Q\text{ hold.}
+\end{aligned}
+\]
+
+Thus the **post‑condition \(Q\)** is satisfied.
+
+--------------------------------------------------------------------
+
+## 4.  Composition of the whole program  
+
+We now glue the individual Hoare triples together with the **sequence rule**.
+
+1. \(\{P\}\;{\tt segundos}=int(input())\;\{A_1\}\)  (assignment)
+2. \(\{A_1\}\;{\tt horas}=segundos//3600\;\{A_2\}\) (assignment)
+3. \(\{A_2\}\;{\tt segundos}=segundos%3600\;\{A_3\}\) (assignment)
+4. \(\{A_3\}\;{\tt minutos}=segundos//60\;\{A_4\}\) (assignment)
+5. \(\{A_4\}\;{\tt segundos}=segundos%60\;\{A_5\}\) (assignment)
+6. \(\{A_5\}\;{\tt print(...)}\;\{Q\}\)  (does not change the state, only produces the required string)
+
+Repeated application of the **sequence rule** yields  
+
+\[
+\{P\}\;\text{whole program}\;\{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Termination  
+
+Each statement is a simple arithmetic operation on bounded‑size
+integers; there are no loops, recursion or unbounded iteration.
+Therefore the program terminates after a fixed number (six) of elementary
+steps for every input value \(N\).  Termination is thus immediate.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have proved, using the axioms of Hoare logic together with the Euclidean
+division properties, that
+
+\[
+\boxed{\{\,N\in\mathbb N\,\}\;\text{program}\;\{\,Q\,\}}
+\]
+
+holds.  Consequently the Python program
+
+```python
+segundos = int(input())
+horas    = segundos // 3600
+segundos = segundos % 3600
+minutos  = segundos // 60
+segundos = segundos % 60
+print(f'{horas}:{minutos}:{segundos}')
+```
+
+correctly transforms any non‑negative integer number of seconds `N`
+into the string `hours:minutes:seconds` where  
+
+* `hours = N div 3600`,
+* `minutes = (N mod 3600) div 60`,
+* `seconds = N mod 60`.
+
+The output respects the required format (decimal numbers, no leading
+zeroes, colons as separators) and therefore meets the specification. ∎

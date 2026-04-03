@@ -1,0 +1,254 @@
+## 1.  What has to be proved  
+
+We have to show the Hoare triple  
+
+\[
+\{P\}\; \mathtt{PasswordProgram}\; \{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\equiv
+\Bigl(k\ge 0\;\wedge\;
+\forall i\in\{1,\dots ,k\}\;.\;
+N_i\in\mathbb Z\;\wedge\;1001\le N_i\le 9999\Bigr)
+\]
+
+* **Post‑condition**  
+
+\[
+Q\equiv
+\Bigl(\forall i\in\{1,\dots ,k\}\;.\;
+M_i=N_i-1\;\wedge\;1000\le M_i\le 9998\Bigr)
+\]
+
+The program is the Python fragment
+
+```python
+while True:
+    try:
+        n = int(input())      # read next N_i
+        print(n-1)            # write M_i
+    except EOFError:
+        break
+```
+
+The `while‑True/try‑except` idiom is exactly “repeat the body while the input is not at EOF”.  
+Hence we can rewrite the program in a more “Hoare‑logic friendly” form
+
+```
+i := 1
+while i ≤ k do                (* the loop guard is the existence of another integer in the file *)
+    N := N_i                  (* read the i‑th integer *)
+    M := N-1                  (* write its predecessor *)
+    i := i+1
+od
+```
+
+All that remains is to exhibit a **loop invariant** that is true before the first
+iteration, is preserved by the body, and together with the negated guard yields
+the required post‑condition.  Afterwards we argue that the loop certainly
+terminates (the file contains only the finite sequence  \<N₁,…,N_k\>).
+
+--------------------------------------------------------------------
+
+## 2.  Loop invariant  
+
+\[
+\boxed{I(i)\; \equiv\;
+\begin{aligned}
+&\bigl(1\le i\le k+1\bigr)                              \\[2pt]
+&\wedge\;\bigl(\forall j\in\{1,\dots ,i-1\}\;.\;
+      M_j = N_j-1\;\wedge\;1000\le M_j\le 9998\bigr)   \\[2pt]
+&\wedge\;\bigl(\forall j\in\{i,\dots ,k\}\;.\;
+      1001\le N_j\le 9999\bigr)
+\end{aligned}}
+\]
+
+*Interpretation.*  
+When the loop variable has the value `i`
+
+* the first `i‑1` input numbers have already been read,
+* the first `i‑1` output numbers have already been printed and each of them
+  equals the predecessor of the corresponding input,
+* the still‑unread part of the input (indices `i … k`) still satisfies the
+  bound required by the pre‑condition.
+
+--------------------------------------------------------------------
+
+## 3.  Proof that the invariant holds  
+
+We use the ordinary Hoare‑logic rules (assignment, sequencing, while, consequence).
+
+### 3.1  Initialization  
+
+The program starts with `i := 1`.  
+From the pre‑condition we have
+
+* `k ≥ 0` and for every `j∈{1,…,k}`   `1001 ≤ N_j ≤ 9999`.
+
+Hence, after the assignment `i := 1` we have
+
+* `1 ≤ i ≤ k+1`  (because `k ≥ 0`);
+* the set `{1,…,i‑1}` is empty, therefore the first conjunct of `I(i)` is
+  vacuously true;
+* the second conjunct is exactly the bound that we already have for every
+  still‑unread input number.
+
+Thus  
+
+\[
+P\;\Longrightarrow\; I(1)
+\]
+
+and the **initialisation** step of the while‑rule is satisfied.
+
+--------------------------------------------------------------------
+
+### 3.2  Preservation (body of the loop)  
+
+Assume that the invariant holds at the beginning of an iteration, i.e.
+
+\[
+I(i)\;\wedge\;i\le k               \tag{H1}
+\]
+
+The body of the loop (in the abstract form) is
+
+```
+N := N_i          (* read the i‑th integer *)
+M := N-1          (* print its predecessor *)
+i := i+1
+```
+
+We treat the three statements one after another.
+
+* **Read** (`N := N_i`).  
+  From the second conjunct of `I(i)` we know that for every `j∈{i,…,k}`
+  `1001 ≤ N_j ≤ 9999`. In particular `1001 ≤ N_i ≤ 9999`.  
+  Hence after the assignment we have the same inequality for the local
+  variable `N`.
+
+* **Write** (`M := N-1`).  
+  From `1001 ≤ N ≤ 9999` we obtain  
+
+  \[
+  1000\le N-1\le 9998 .
+  \]
+
+  The assignment stores `N-1` into the output position `M_i`.  
+  Consequently  
+
+  \[
+  M_i = N_i-1 \qquad\text{and}\qquad 1000\le M_i\le 9998 .
+  \]
+
+* **Increment** (`i := i+1`).  
+  After the increment the new value of `i` is `i' = i+1`.  
+  We must show that `I(i')` holds.
+
+  * The guard `1 ≤ i' ≤ k+1` follows from `1 ≤ i ≤ k` (the loop condition) and
+    the increment.
+  * For every `j ∈ {1,…,i'-1}` we have two cases:
+    * if `j ≤ i-1` the equality `M_j = N_j-1` is already part of the invariant;
+    * if `j = i` we have just proved `M_i = N_i-1`.  
+    Hence the first conjunct of `I(i')` is true.
+  * The set of still‑unread inputs is now `{i',…,k}` = `{i+1,…,k}`.
+    By the second conjunct of `I(i)` we already know that each of those
+    inputs satisfies `1001 ≤ N_j ≤ 9999`.  
+
+Thus we have shown  
+
+\[
+I(i)\wedge i\le k\;\Longrightarrow\; I(i+1)
+\]
+
+which is exactly the **preservation** condition required by the while‑rule.
+
+--------------------------------------------------------------------
+
+### 3.3  Termination  
+
+The loop guard is `i ≤ k`.  
+The variable `i` starts at `1` and is increased by `1` in each iteration.
+Because `k` is a fixed non‑negative integer (the length of the input file),
+after at most `k` increments we obtain `i = k+1`, making the guard false.
+Hence the loop certainly terminates after reading the whole finite input
+sequence.  (In the concrete Python program the termination is caused by the
+`EOFError` that is raised after the last integer has been consumed.)
+
+--------------------------------------------------------------------
+
+### 3.4  Post‑condition  
+
+When the loop finishes we have the negated guard `i > k`.  
+Together with the invariant we obtain
+
+* `i = k+1` (the only possible value larger than `k`);
+* the first conjunct of `I(i)` tells us that for **all** `j ∈ {1,…,k}`  
+
+  \[
+  M_j = N_j-1 \;\wedge\; 1000\le M_j\le 9998 .
+  \]
+
+That statement is precisely the post‑condition `Q`.  Hence
+
+\[
+I(i)\wedge \neg(i\le k)\;\Longrightarrow\; Q .
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Hoare‑logic derivation of the whole program  
+
+Putting the three steps together, the standard Hoare‑logic rule for a while‑loop
+
+\[
+\frac{\{I\wedge B\}\;C\;\{I\}}{\{I\}\;\textbf{while}\;B\;\textbf{do}\;C\;\textbf{od}\;\{\;I\wedge\neg B\;\}}
+\]
+
+gives the triple
+
+\[
+\{I(1)\}\;\textbf{while}\;i\le k\;\textbf{do}\;C\;\textbf{od}\;
+\{I(k+1)\wedge\neg(i\le k)\}.
+\]
+
+By the **initialisation** we have `P ⇒ I(1)`.  
+By **consequence** we may replace the pre‑condition `I(1)` by the stronger
+`P`.  
+By the **termination** argument the loop indeed reaches a state with
+`i = k+1`.  
+Finally `I(k+1)∧¬(i≤k) ⇒ Q`.  
+
+Thus we have derived the required Hoare triple
+
+\[
+\boxed{\; \{P\}\;\texttt{PasswordProgram}\;\{Q\}\;}
+\]
+
+which proves that the program satisfies the specification.
+
+--------------------------------------------------------------------
+
+## 5.  What the proof tells us about the concrete Python code  
+
+* The `try … except EOFError` construct exactly corresponds to the loop guard
+  “`i ≤ k`”.  When the file is exhausted an `EOFError` is raised, the `except`
+  clause executes `break`, and the loop terminates.
+* The statement `n = int(input())` reads the next integer `N_i`.  
+  The pre‑condition guarantees that this integer lies in `[1001,9999]`.
+* The statement `print(n-1)` outputs `M_i = N_i-1`.  From the bounds on `N_i`
+  we obtain `1000 ≤ M_i ≤ 9998`, i.e. the required range for the output.
+* The loop processes each integer exactly once, therefore the output sequence
+  has the same length `k` as the input sequence and satisfies  
+
+  \[
+  \forall i\in\{1,\dots ,k\}\;.\;M_i = N_i-1 .
+  \]
+
+Consequently the Python program **conforms** to the formal Hoare‑logic
+specification given in the statement of the problem.  ∎

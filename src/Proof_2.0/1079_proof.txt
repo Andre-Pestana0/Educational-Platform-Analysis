@@ -1,0 +1,239 @@
+Below we give a **Hoare‑logic proof** that the Python program satisfies the specification  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}
+\]
+
+with  
+
+* **pre‑condition**  
+
+\[
+P\;:\; N\in \mathbb N\land N\ge 0\;\land\;
+\forall i\in\{1,\dots ,N\}\;(a_i,b_i,c_i\in\mathbb R_{10}),
+\]
+
+* **post‑condition**  
+
+\[
+Q\;:\;
+\bigl|\mathbf{out}\bigr|=N\;\land\;
+\forall i\in\{1,\dots ,N\}\;
+o_i =\operatorname{rnd}_{0.1}\!\Bigl(\frac{2a_i+3b_i+5c_i}{10}\Bigr).
+\]
+
+The program is
+
+```python
+n = int(input())                     # line (1)
+for i in range(n):                   # line (2) … (5) is the loop body
+    a, b, c = map(float, input().split(' '))
+    media_ponderada = (a*2 + b*3 + c*5)/10
+    print(f'{media_ponderada:.1f}')
+```
+
+---------------------------------------------------------------------
+
+## 1.   State variables
+
+* `n` – the integer read at line (1).  
+* `i` – the loop‑counter of the `for`‑statement (Python iterates over
+  `0,1,…,n‑1`).  
+* `a,b,c` – the three numbers read in the current iteration.  
+* `out` – the (still growing) list of values already printed; after the
+  `k`‑th iteration we write `out = (o_1,…,o_k)`.
+
+All other variables are unchanged.
+
+---------------------------------------------------------------------
+
+## 2.   Loop invariant
+
+For the `for`‑loop we use the invariant that is suggested in the
+specification (written with the Python index `i` that runs from `0` to
+`n`):
+
+\[
+\boxed{
+I(i)\; \equiv\;
+\bigl(0\le i\le n\bigr)\;\land\;
+\bigl|\mathbf{out}\bigr| = i\;\land\;
+\forall j\in\{1,\dots ,i\}\;
+o_j = \operatorname{rnd}_{0.1}\!\Bigl(\frac{2a_j+3b_j+5c_j}{10}\Bigr)
+}
+\tag{Inv}
+\]
+
+Intuitively, after the loop has executed `i` times we have already
+produced exactly `i` correct output lines.
+
+---------------------------------------------------------------------
+
+## 3.   Proof outline
+
+A Hoare‑logic proof for a `for`‑loop proceeds by showing three things:
+
+1. **Initialization** – the invariant holds before the first
+   iteration (`i = 0`);
+2. **Maintenance** – assuming the invariant holds at the beginning of an
+   iteration, the body of the loop re‑establishes it for the next value
+   of `i`;
+3. **Termination** – when the loop finishes (`i = n`) the invariant
+   together with the loop‑exit condition implies the post‑condition `Q`.
+
+We also have to argue that the loop terminates, which is immediate for a
+`for i in range(n)` because `n` is a non‑negative integer.
+
+---------------------------------------------------------------------
+
+### 3.1   Initialization  
+
+Before the loop starts we have executed only line (1).  
+From the pre‑condition we know `n = N` and `N ≥ 0`.  
+No output has been printed yet, therefore `out` is the empty sequence,
+hence `|out| = 0`.  
+
+Thus  
+
+\[
+0\le 0\le n \;\land\; |out| = 0 \;\land\; (\forall j\in\emptyset\; \dots )
+\]
+
+holds, i.e. `I(0)` is true.
+
+---------------------------------------------------------------------
+
+### 3.2   Maintenance  
+
+Assume `I(i)` holds at the beginning of an iteration, where `0 ≤ i < n`.  
+The body of the loop consists of the four statements (a)–(d) below.
+
+| step | statement | informal effect |
+|------|-----------|-----------------|
+| (a) | `a, b, c = map(float, input().split(' '))` | reads the *i+1*‑st triple `(a_{i+1},b_{i+1},c_{i+1})`. By `P` each of these numbers belongs to `ℝ₁₀`. |
+| (b) | `media_ponderada = (a*2 + b*3 + c*5)/10` | computes the exact weighted average  
+
+\[
+\mu_{i+1}= \frac{2a_{i+1}+3b_{i+1}+5c_{i+1}}{10}.
+\] |
+| (c) | `print(f'{media_ponderada:.1f}')` | writes a line whose textual representation contains exactly one digit after the decimal point. In Python the format specifier `:.1f` rounds *half‑up* (the same rule used in the definition of `rnd₀.₁`). Consequently the printed value is  
+
+\[
+o_{i+1}= \operatorname{rnd}_{0.1}(\mu_{i+1}).
+\] |
+| (d) | (implicit) the value printed is appended to `out` | after the statement we have `out = (o_1,…,o_i,o_{i+1})`, i.e. `|out| = i+1`. |
+
+Now we verify that the invariant holds for `i+1`.
+
+* **Range condition** – because the loop variable is increased by one,
+  `0 ≤ i+1 ≤ n` (the upper bound follows from the loop guard `i < n`).
+
+* **Length of `out`** – after step (d) we have `|out| = i+1`.
+
+* **Correctness of the produced lines** – for every `j ≤ i` the invariant
+  already guarantees  
+
+  \[
+  o_j = \operatorname{rnd}_{0.1}\!\Bigl(\frac{2a_j+3b_j+5c_j}{10}\Bigr).
+  \]
+
+  Step (c) gives exactly the same property for `j = i+1`.  Hence  
+
+  \[
+  \forall j\in\{1,\dots ,i+1\}\;
+  o_j = \operatorname{rnd}_{0.1}\!\Bigl(\frac{2a_j+3b_j+5c_j}{10}\Bigr).
+  \]
+
+Thus `I(i+1)` holds.  This proves the **maintenance** condition
+
+\[
+\{I(i)\;\land\; i<n\}\; \text{loop‑body}\; \{I(i+1)\}.
+\]
+
+---------------------------------------------------------------------
+
+### 3.3   Termination  
+
+The `for`‑loop iterates over the finite set `range(n)`; therefore it
+terminates after exactly `n` iterations.  When the loop terminates we
+have `i = n`.  Instantiating the invariant with `i = n` yields
+
+\[
+I(n)\;:\;
+|out| = n\;\land\;
+\forall j\in\{1,\dots ,n\}\;
+o_j = \operatorname{rnd}_{0.1}\!\Bigl(\frac{2a_j+3b_j+5c_j}{10}\Bigr).
+\]
+
+Since `n = N` (the value read at the very beginning) this is precisely
+the post‑condition `Q`.
+
+---------------------------------------------------------------------
+
+## 4.   Full Hoare‑logic derivation
+
+Putting the three parts together we obtain the following Hoare‑logic
+derivation (the rules *skip*, *assignment*, *sequence*, *while* are the
+standard ones; for a `for`‑loop we use the equivalent `while` formulation
+with the invariant `I`).
+
+\[
+\begin{array}{ll}
+1.& \{P\}\; n = \text{int}(input())\; \{ n = N \land N\in\mathbb N\} \\
+2.& \{ n = N\}\; i = 0\; \{I(0)\} \quad\text{(initialisation of the invariant)}\\[4pt]
+3.& \{ I(i) \land i < n\}\;
+   \begin{array}{l}
+     a,b,c = map(float, input().split())\\
+     media\_ponderada = (a*2+b*3+c*5)/10\\
+     print(f'{media\_ponderada:.1f}')
+   \end{array}
+   \{ I(i+1) \} \quad\text{(maintenance – proved above)}\\[4pt]
+4.& \{ I(i) \}\; \text{while } i < n \text{ do body}\; \{ I(n) \}\quad\text{(while‑rule)}\\[4pt]
+5.& I(n) \;\Longrightarrow\; Q \quad\text{(termination condition)}\\[4pt]
+6.& \{P\}\; \text{program}\; \{Q\}\qquad\text{(by composition of 1–5).}
+\end{array}
+\]
+
+Thus the Hoare triple  
+
+\[
+\boxed{\{P\}\;\texttt{program}\;\{Q\}}
+\]
+
+is proved.
+
+---------------------------------------------------------------------
+
+## 5.   Remarks on the rounding rule
+
+The specification uses  
+
+\[
+\operatorname{rnd}_{0.1}(x)=\frac{\big\lfloor10x+\tfrac12\big\rfloor}{10},
+\]
+
+i.e. “round‑half‑up”.  
+Python’s format conversion `'{:.1f}'.format(x)` (or the equivalent f‑string
+`f'{x:.1f}'`) implements exactly this rule for decimal numbers that are
+representable with a finite binary expansion – which is the case for all
+inputs `a_i,b_i,c_i ∈ ℝ₁₀` because each of them is a multiple of `0.1`.
+Consequently the value printed by the program is precisely
+`rnd₀.₁(μ_i)` as required.
+
+---------------------------------------------------------------------
+
+## 6.   Conclusion
+
+* The **pre‑condition** guarantees that the input is a non‑negative
+  integer `N` followed by `N` triples of one‑decimal numbers.
+* The loop invariant `I(i)` captures the fact that after processing the
+  first `i` test cases the program has already produced `i` correct
+  output lines.
+* Initialization, maintenance, and termination of the invariant have
+  been shown formally.
+* At loop exit the invariant yields exactly the **post‑condition**:
+  the program outputs `N` lines, each line being the weighted average
+  `(2a+3b+5c)/10` rounded to the nearest tenth.
+
+Hence, according to Hoare logic, the given Python program satisfies the
+specification \(\{P\}\; \texttt{program}\; \{Q\}\).  ∎

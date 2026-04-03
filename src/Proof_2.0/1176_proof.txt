@@ -1,0 +1,161 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**  
+
+Below we prove  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in § 2,  
+* \(Q\) is the post‑condition given in § 4, and  
+* the program is the concrete Python code that reads the integer \(T\) and then, for each test case, reads an integer \(n\) and prints  
+
+```
+Fib(n) = fibonacci(n)
+```
+
+The proof proceeds in two layers  
+
+1. **Correctness of the helper routine `fibonacci`** – we show that it returns the mathematical value `fib(x)` for every admissible argument `x` (and that the result fits into a 64‑bit unsigned word).  
+2. **Correctness of the outer loop that processes the `T` test cases** – we use the invariant `Inv(k)` defined in § 3 to relate the already‑produced output lines to the input sequence.
+
+All reasoning is expressed with the standard Hoare‑logic inference rules (Assignment, Sequence, While, Consequence, etc.).  
+The proof is completely formal; the informal commentary that follows each step explains the intuition.
+
+---------------------------------------------------------------------
+
+## 1.  The routine `fibonacci`
+
+### 1.1  Specification of `fibonacci`
+
+```
+def fibonacci(x):
+    fibos = [0, 1]
+    for i in range(2, x+1):
+        fibos.append(fibos[i-1] + fibos[i-2])
+    return fibos[x]
+```
+
+*Pre‑condition*  
+
+\[
+P_{\text{fib}} \; \equiv\; 0\le x\le 60 .
+\]
+
+*Post‑condition*  
+
+\[
+Q_{\text{fib}} \; \equiv\; \text{result} = \operatorname{fib}(x)
+          \;\land\; \operatorname{fib}(x) < U_{64}.
+\]
+
+(The bound \(x\le 60\) guarantees the second conjunct, because \(\operatorname{fib}(60)=1548008755920 < 2^{64}\).)
+
+### 1.2  Loop invariant for the `for`‑loop
+
+The loop variable is `i`.  For a given value `i` (with `2 ≤ i ≤ x+1`) we define  
+
+\[
+\mathit{Inv}_{\text{fib}}(i) \;\equiv\;
+\bigl(\forall j\in\{0,\dots,i-1\}\;.\;
+       fibos[j] = \operatorname{fib}(j)\bigr).
+\]
+
+In words: after the body has been executed for all indices `< i`, the list `fibos` contains the exact Fibonacci numbers up to index `i‑1`.
+
+### 1.3  Proof that the invariant holds
+
+| Step | Hoare triple | Reason |
+|------|--------------|--------|
+| **Initialization** | \(\{P_{\text{fib}}\}\; \texttt{fibos = [0,1]}\; \{\mathit{Inv}_{\text{fib}}(2)\}\) | `fibos[0]=0 = fib(0)` and `fibos[1]=1 = fib(1)`; therefore the invariant is true for `i=2`. |
+| **Preservation** | \(\{\mathit{Inv}_{\text{fib}}(i)\}\; \texttt{fibos.append(fibos[i-1]+fibos[i-2])}\; \{\mathit{Inv}_{\text{fib}}(i+1)\}\) | By the induction hypothesis `fibos[i-1]=fib(i‑1)` and `fibos[i-2]=fib(i‑2)`. The appended value is `fib(i‑1)+fib(i‑2)=fib(i)` (definition of `fib`). Hence after the append we have `fibos[i]=fib(i)`, i.e. the invariant holds for `i+1`. |
+| **Termination** | The loop runs for `i = 2,3,…,x+1`.  When it finishes we have `i = x+2` and therefore \(\mathit{Inv}_{\text{fib}}(x+2)\) holds, i.e. \(\forall j\le x\;.\;fibos[j]=\operatorname{fib}(j)\). | The loop bound is a constant expression (`x+1`) and `x` is a natural number, thus termination is guaranteed. |
+| **Result** | \(\{\mathit{Inv}_{\text{fib}}(x+2)\}\; \texttt{return fibos[x]}\; \{Q_{\text{fib}}\}\) | From the invariant we know `fibos[x]=fib(x)`.  The inequality `fib(x) < U64` follows from the premise `x ≤ 60`. |
+
+By the **Rule of Consequence** we obtain  
+
+\[
+\{P_{\text{fib}}\}\; \texttt{fibonacci(x)}\; \{Q_{\text{fib}}\}.
+\]
+
+Hence the helper routine is correct.
+
+---------------------------------------------------------------------
+
+## 2.  The outer program (reading `T` test cases)
+
+### 2.1  Formalisation of the concrete Python program
+
+```
+T = int(input())                # line 1
+k = 1                           # line 2   (loop index)
+while k <= T:                   # line 3
+    n = int(input())            # line 4
+    print(f"Fib({n}) = {fibonacci(n)}")   # line 5
+    k = k + 1                   # line 6
+```
+
+The variable `k` plays the role of the loop counter used in the invariant `Inv(k)` from § 3.
+
+### 2.2  The invariant for the outer loop
+
+Recall  
+
+\[
+\mathit{Inv}(k) \equiv
+\begin{cases}
+k=1 &\text{(no case processed yet)}\\[2pt]
+\exists \mathbf O^{\,k-1} = (O_1,\dots ,O_{k-1})\;
+   \bigl(\forall i\in\{1,\dots ,k-1\}\;
+          O_i = \operatorname{fmt}(N_i)\bigr) &\text{otherwise.}
+\end{cases}
+\]
+
+Thus after the execution of the loop body for the first `k‑1` inputs, the program has already printed the correctly formatted strings for those inputs.
+
+### 2.3  Proof that the invariant holds
+
+| Step | Hoare triple | Reason |
+|------|--------------|--------|
+| **Initialisation** | \(\{P\}\; \texttt{k:=1}\; \{\mathit{Inv}(1)\}\) | By definition of `Inv`, the case `k=1` holds when no case has been processed. |
+| **Preservation** | Assume \(\mathit{Inv}(k)\) holds with \(1\le k\le T\). Show \(\mathit{Inv}(k+1)\) after one iteration. |
+| – Read `n` | \(\{\mathit{Inv}(k)\}\; \texttt{n = int(input())}\; \{ \mathit{Inv}(k) \land n = N_k\}\) | The input sequence \(\mathbf N\) is fixed by the pre‑condition; the read obtains the \(k\)-th element. |
+| – Call `fibonacci` | \(\{ n = N_k \}\; \texttt{f = fibonacci(n)}\; \{ f = \operatorname{fib}(N_k) \}\) | By the result proved in Section 1 (the routine satisfies its specification). |
+| – Print | \(\{ f = \operatorname{fib}(N_k) \}\; \texttt{print(fmt(N_k))}\; \{ \mathit{Inv}(k+1) \}\) | The printed line is exactly `fmt(N_k) = "Fib(N_k) = fib(N_k)"`.  Adding it to the previously printed lines yields a sequence \((O_1,\dots ,O_k)\) that satisfies the definition of `Inv(k+1)`. |
+| – Increment | \(\{\mathit{Inv}(k+1)\}\; \texttt{k = k+1}\; \{\mathit{Inv}(k+1)\}\) | The invariant does not depend on the exact value of `k` beyond the fact that it equals the number of already processed cases; incrementing preserves it. |
+| **Termination** | The loop guard is `k ≤ T`.  Because `k` starts at 1 and is increased by 1 each iteration, the loop terminates after exactly `T` iterations, i.e. when `k = T+1`. | `T` is a natural number (pre‑condition). |
+| **Post‑condition** | From `k = T+1` and `Inv(T+1)` we obtain the existence of a sequence \(\mathbf O = (O_1,\dots ,O_T)\) such that \(\forall i\; O_i = \operatorname{fmt}(N_i)\).  Moreover, each `fib(N_i)` is < \(U_{64}\) by the result of Section 1 and the bound `N_i ≤ 60`. | This is exactly the condition \(Q\). |
+
+Applying the **While‑rule** (which requires an invariant and a proof that the invariant is preserved and that the loop terminates) we get  
+
+\[
+\{P\}\; \texttt{while\;k ≤ T\;do\;…\;od}\; \{Q\}.
+\]
+
+The initial read of `T` is a simple assignment that does not affect the invariant, so by the **Sequence rule** the whole program satisfies the Hoare triple stated in § 5.
+
+---------------------------------------------------------------------
+
+## 3.  Summary of the proof
+
+1. **`fibonacci`**  
+   *Pre‑condition* \(0\le x\le 60\) ⇒ *post‑condition* `result = fib(x)` and `fib(x) < 2^64`.  
+   The proof uses the loop invariant `Inv_fib(i)` that the list `fibos` contains the correct Fibonacci numbers up to index `i‑1`.  The invariant is established initially, preserved by the loop body, and yields the required result after the loop terminates.
+
+2. **Outer loop**  
+   The invariant `Inv(k)` expresses that after processing the first `k‑1` test cases the program has already printed the correctly formatted lines for those inputs.  
+   - **Initialization** (`k = 1`) satisfies `Inv(1)`.  
+   - **Preservation** follows from (a) reading the next input `N_k`, (b) the correctness of `fibonacci(N_k)`, and (c) printing `fmt(N_k)`.  
+   - **Termination** is guaranteed because `k` is increased by one each iteration and the loop guard `k ≤ T` becomes false after `T` iterations.
+
+3. When the loop ends (`k = T+1`) the invariant gives exactly the sequence of output strings required by the post‑condition `Q`, and the bound `fib(N_i) < U_{64}` follows from the auxiliary fact that `fib(60) < 2^64`.
+
+Consequently the Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{program}\; \{Q\}}
+\]
+
+holds, i.e. the Python program is *correct* with respect to the given formal specification. ∎

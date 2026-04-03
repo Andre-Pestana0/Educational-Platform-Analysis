@@ -1,0 +1,249 @@
+## 1.  What we have to prove  
+
+We are asked to show  
+
+\[
+\{P\}\;{\tt Prog}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\;
+\begin{aligned}
+&s_{1}\in C_{1}\land s_{2}\in C_{2}\land s_{3}\in C_{3}\\
+&\land (s_{1},s_{2},s_{3})\in\operatorname{dom}(\mathsf{animal})
+\end{aligned}
+\tag{1}
+\]
+
+* **Program**  
+
+```
+read s1               # filo
+read s2               # classe
+read s3               # alimentacao
+if s1 == 'vertebrado':
+    if s2 == 'ave':
+        if s3 == 'carnivoro':   print('aguia')
+        elif s3 == 'onivoro':   print('pomba')
+    elif s2 == 'mamifero':
+        if s3 == 'onivoro':     print('homem')
+        elif s3 == 'herbivoro': print('vaca')
+elif s1 == 'invertebrado':
+    if s2 == 'inseto':
+        if s3 == 'hematofago':  print('pulga')
+        elif s3 == 'herbivoro': print('lagarta')
+    elif s2 == 'anelideo':
+        if s3 == 'sanguessugo': print('sanguessuga')
+        elif s3 == 'onivoro':   print('minhoca')
+```
+
+* **Post‑condition**  
+
+\[
+Q\; \equiv\; a = \mathsf{animal}(s_{1},s_{2},s_{3})            \tag{2}
+\]
+
+The variable `a` denotes the string that is printed (the only observable effect of the program).
+
+The proof proceeds **by structural induction on the nested `if` statements** using the standard Hoare‑logic inference rules.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules that we shall use  
+
+| Rule | Meaning |
+|------|----------|
+| **(Assign)**  \(\displaystyle \{\,Q[x:=E]\,\}\;x:=E\;\{\,Q\,\}\) | substitution of the right‑hand side in the post‑condition |
+| **(Output)**  \(\displaystyle \{\,Q[a:=E]\,\}\;\texttt{print}(E)\;\{\,Q\,\}\) | the printed value becomes the value of the logical variable `a` |
+| **(Seq)** \(\displaystyle\frac{\{P\}\;S_{1}\;\{R\}\qquad\{R\}\;S_{2}\;\{Q\}}{\{P\}\;S_{1};S_{2}\;\{Q\}}\) |
+| **(If)** \(\displaystyle\frac{\{P\land B\}\;S_{1}\;\{Q\}\qquad\{P\land\neg B\}\;S_{2}\;\{Q\}}{\{P\}\;\texttt{if }B\texttt{ then }S_{1}\texttt{ else }S_{2}\;\{Q\}}\) |
+| **(Consequence)** \(\displaystyle\frac{P'\Rightarrow P\qquad\{P\}\;S\;\{Q\}\qquad Q\Rightarrow Q'}{\{P'\}\;S\;\{Q'\}}\) |
+
+--------------------------------------------------------------------
+
+## 3.  Encoding the program as a command  
+
+We split the program into elementary commands:
+
+```
+c0 :  s1 := input()            # read first line
+c1 :  s2 := input()            # read second line
+c2 :  s3 := input()            # read third line
+c3 :  IF (s1 = 'vertebrado')   THEN  C_V    ELSE  C_IV
+```
+
+where `C_V` and `C_IV` are the two big branches (vertebrado / invertebrado).  
+Inside each branch we again have `if … then … else …`.  
+All the leaf commands are of the form `print('xxx')`.
+
+--------------------------------------------------------------------
+
+## 4.  Proof for the *leaf* commands  
+
+The eight possible leaves correspond exactly to the eight rows of the table that defines `animal`.  
+For a generic leaf we have a guard that forces the three input strings to a concrete triple, e.g.
+
+```
+c_leaf1 :  print('aguia')
+guard   : (s1 = 'vertebrado' ∧ s2 = 'ave' ∧ s3 = 'carnivoro')
+```
+
+Using **(Output)** with the substitution rule we obtain the Hoare triple
+
+\[
+\boxed{
+\begin{aligned}
+\{&\; a = \mathsf{animal}(s_{1},s_{2},s_{3})\;
+      \land\; s_{1}=\text{vertebrado}\land s_{2}=\text{ave}\land s_{3}=\text{carnivoro}\;\}\\
+&\;\texttt{print}('aguia')\;\\
+\{&\; a = \mathsf{animal}(s_{1},s_{2},s_{3})\;}
+\end{aligned}}
+\tag{3}
+\]
+
+The substitution works because, by the definition of `animal`,
+
+\[
+\mathsf{animal}(\text{vertebrado},\text{ave},\text{carnivoro}) = \text{'aguia'} .
+\]
+
+The same reasoning holds for the other seven leaves, using the corresponding definition of `animal`.  Hence each leaf **satisfies** the post‑condition `Q`.
+
+--------------------------------------------------------------------
+
+## 5.  Proof for the inner `if`s  
+
+Consider the first inner `if` (the one that distinguishes `ave` from `mamifero` when `s1 = 'vertebrado'`).
+
+```
+C_V ≡
+    if s2 == 'ave' then
+         C_VA
+    elif s2 == 'mamifero' then
+         C_VM
+```
+
+*Guard* for the whole command `C_V` is `s1 = 'vertebrado'`.  
+
+We must show  
+
+\[
+\{P\land s_{1}=\text{vertebrado}\}\;C_V\;\{Q\}.
+\]
+
+Using the **(If)** rule we need two sub‑derivations.
+
+### 5.1  Branch `s2 = 'ave'`
+
+The pre‑condition for this branch is  
+
+\[
+P\land s_{1}=\text{vertebrado}\land s_{2}=\text{ave}.
+\]
+
+Inside this branch we have the third‑level `if` that distinguishes `carnivoro` and `onivoro`.  
+Again by the **(If)** rule we need the two leaf derivations already proved in §4:
+
+* guard `s3 = 'carnivoro'` → leaf `print('aguia')`
+* guard `s3 = 'onivoro'`   → leaf `print('pomba')`
+
+Both leaves guarantee `Q`, therefore the whole `if s3 …` guarantees `Q`.  By the **(Consequence)** rule we can weaken the pre‑condition to the one we actually have (`P ∧ s1='vertebrado' ∧ s2='ave'`).  Consequently the branch `s2='ave'` satisfies `Q`.
+
+### 5.2  Branch `s2 = 'mamifero'`
+
+Exactly the same reasoning, using the leaves `print('homem')` and `print('vaca')`.  Both satisfy `Q`, therefore the branch `s2='mamifero'` satisfies `Q`.
+
+Having established the two sub‑derivations, the **(If)** rule yields  
+
+\[
+\{P\land s_{1}=\text{vertebrado}\}\;C_V\;\{Q\}. \tag{4}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Proof for the outermost `if`
+
+The other major branch (`invertebrado`) is proved in the same way, using the leaves  
+
+```
+print('pulga') , print('lagarta') , print('sanguessuga') , print('minhoca')
+```
+
+and the corresponding guards (`s2='inseto'`/`s2='anelideo'` together with the appropriate `s3`).  
+We obtain  
+
+\[
+\{P\land s_{1}=\text{invertebrado}\}\;C_{IV}\;\{Q\}. \tag{5}
+\]
+
+Now apply the **(If)** rule to the outermost conditional (`if s1 … else …`) with the two premises (4) and (5).  We get
+
+\[
+\{P\}\;c_{3}\; \{Q\}. \tag{6}
+\]
+
+--------------------------------------------------------------------
+
+## 7.  Adding the three input statements  
+
+The three read commands do not change the logical state; they only bind the program variables `s1,s2,s3` to the values that are already assumed to exist in the environment.  
+Formally we can use the **(Consequence)** rule with the tautology  
+
+\[
+P \;\Rightarrow\; (s_{1}\in C_{1}\land s_{2}\in C_{2}\land s_{3}\in C_{3}).
+\]
+
+Thus we have  
+
+\[
+\{P\}\;c_{0};c_{1};c_{2}\; \{\,s_{1}\in C_{1}\land s_{2}\in C_{2}\land s_{3}\in C_{3}\,\}.
+\]
+
+Compose this with (6) by the **(Seq)** rule:
+
+\[
+\boxed{
+\{P\}\;c_{0};c_{1};c_{2};c_{3}\; \{Q\}
+}
+\tag{7}
+\]
+
+which is exactly the Hoare triple for `Prog`.
+
+--------------------------------------------------------------------
+
+## 8.  Termination (total correctness)
+
+* The program contains **no loops** and **no recursion**; it consists of a fixed finite sequence of input, tests and a single output.
+* Each test evaluates a Boolean expression that is *decidable* (string equality).
+* Consequently the control flow reaches one of the eight leaf commands after a bounded number of steps (at most three nested `if`s).
+
+Therefore the program **always terminates** for any input satisfying the pre‑condition, giving total correctness.
+
+--------------------------------------------------------------------
+
+## 9.  Conclusion  
+
+We have exhibited a formal Hoare‑logic derivation that starts from the pre‑condition  
+
+\[
+P:\; s_{1}\in C_{1}\land s_{2}\in C_{2}\land s_{3}\in C_{3}\land (s_{1},s_{2},s_{3})\in\operatorname{dom}(\mathsf{animal}),
+\]
+
+and, by a systematic application of the rules for assignment, output, sequencing and conditional statements, arrives at the post‑condition  
+
+\[
+Q:\; a = \mathsf{animal}(s_{1},s_{2},s_{3}).
+\]
+
+All eight possible leaves of the program have been shown to satisfy `Q` because they coincide with the definition of the total function `animal`.  The outer and inner `if` statements preserve `Q` by the Hoare **(If)** rule, and the three input statements preserve the pre‑condition.  Finally, the program terminates for every admissible triple, establishing **total correctness**.
+
+Hence the Python program that reads the three words, classifies them with nested `if`s and prints the animal name **correctly implements** the specification  
+
+\[
+\{P\}\;\text{Prog}\;\{Q\}.
+\]

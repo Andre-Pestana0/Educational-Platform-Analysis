@@ -1,0 +1,213 @@
+## 1.  What we have to prove  
+
+We want to show that the program that reads three integers  
+
+```
+Distancia, Diametro1, Diametro2 = map(int, input().split())
+```
+
+computes  
+
+```
+ICM = Distancia/(Diametro1+Diametro2)
+```
+
+and prints it rounded to the hundredth, i.e.  
+
+```
+print("{:.2f}".format(ICM))
+```
+
+satisfies the Hoare triple  
+
+\[
+\{P\}\; \texttt{ICM\_program}\; \{Q\}
+\]
+
+with  
+
+\[
+\begin{aligned}
+P &\equiv (N,X,Y\in\mathbb Z)\;\land\;0<N<10^4\;\land\;0<X<100\;\land\;0<Y<100\;\land\;(X+Y>0) \\[1mm]
+Q &\equiv \bigl(ICM\in\mathbb R\bigr)\;\land\;ICM = N/(X+Y)
+        \;\land\;\text{output}= \operatorname{round}_{2}(ICM) .
+\end{aligned}
+\]
+
+In the concrete program we use the following correspondence  
+
+\[
+N\; \leftrightarrow\; \texttt{Distancia},\qquad
+X\; \leftrightarrow\; \texttt{Diametro1},\qquad
+Y\; \leftrightarrow\; \texttt{Diametro2},\qquad
+ICM\; \leftrightarrow\; \texttt{Distancia/(Diametro1+Diametro2)} .
+\]
+
+The proof proceeds with the usual Hoare‑logic inference rules:
+
+* **(Input)** `read a,b,c` does not change any logical variable, it only binds the program variables to the values supplied by the environment.
+* **(Assignment)** \(\{\,Q[e/a]\,\}\; a:=e\; \{\,Q\,\}\) where \(Q[e/a]\) is the post‑condition with every free occurrence of \(a\) replaced by the expression \(e\).
+* **(Sequence)** \(\{P\} S_1\{R\},\; \{R\} S_2\{Q\}\)  ⇒  \(\{P\} S_1;S_2\{Q\}\).
+* **(Output)** \(\{\,\text{output}=v\land R\,\}\; \texttt{print₂}(v)\; \{\,\text{output}=v\land R\,\}\).
+
+Below we give a detailed derivation that starts from the pre‑condition \(P\) and ends with the post‑condition \(Q\).
+
+--------------------------------------------------------------------
+
+## 2.  Step‑by‑step Hoare derivation  
+
+For readability we write the program in three labelled statements that correspond exactly to the Python source.
+
+| label | statement (in the abstract language) | concrete Python |
+|------|---------------------------------------|-----------------|
+| **S₁** | `read N,X,Y`                         | `Distancia, Diametro1, Diametro2 = map(int, input().split())` |
+| **S₂** | `ICM := N/(X+Y)`                     | `ICM = Distancia/(Diametro1+Diametro2)` (implicit, we keep the expression) |
+| **S₃** | `print₂(round₂(ICM))`                | `print("{:.2f}".format(Distancia/(Diametro1+Diametro2)))` |
+
+The whole program is the sequential composition  
+
+\[
+S = S_{1};S_{2};S_{3}.
+\]
+
+--------------------------------------------------------------------
+### 2.1  From the pre‑condition to after the input (S₁)
+
+The **input rule** tells us that after a `read` the only thing we know is that the
+variables have been bound to the values supplied by the environment.  
+Because the environment is assumed to respect the pre‑condition, we obtain
+
+\[
+\{P\}\; S_{1}\; \{P\}.
+\tag{1}
+\]
+
+(There is no change of logical state, only a *synchronisation* between the
+environment and the program variables.)
+
+--------------------------------------------------------------------
+### 2.2  From after the input to after the assignment (S₂)
+
+We want a post‑condition that captures the meaning of the assignment
+`ICM := N/(X+Y)`.  Let  
+
+\[
+R \;\equiv\; ICM = \frac{N}{X+Y}\;\land\;\frac{N}{X+Y}\in\mathbb R .
+\]
+
+Because division of two integers with a strictly positive denominator
+produces a rational number, the second conjunct is always true under \(P\).
+Now apply the **assignment axiom**:
+
+\[
+\{\,R[\,N/(X+Y)\,/\,ICM\,]\,\}\;ICM:=N/(X+Y)\;\{\,R\,\}.
+\]
+
+The substitution \(R[\,N/(X+Y)\,/\,ICM\,]\) replaces every occurrence of
+`ICM` in \(R\) by the right‑hand side `N/(X+Y)`.  This yields exactly the
+pre‑condition of the assignment:
+
+\[
+R[\,N/(X+Y)\,/\,ICM\,] \equiv
+\Bigl(\frac{N}{X+Y} = \frac{N}{X+Y}\Bigr)\;\land\;
+\Bigl(\frac{N}{X+Y}\in\mathbb R\Bigr),
+\]
+
+which is a tautology and therefore follows from \(P\).  Consequently
+
+\[
+\{P\}\; S_{2}\; \{R\}.
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+### 2.3  From after the assignment to after the output (S₃)
+
+The required final condition is  
+
+\[
+Q \equiv R\;\land\;\text{output}= \operatorname{round}_{2}(ICM).
+\]
+
+Let us denote  
+
+\[
+O \;\equiv\; \text{output}= \operatorname{round}_{2}(ICM).
+\]
+
+The **output rule** (a specialised version of the rule for the command
+`print₂(e)`) states
+
+\[
+\{\,R\land O\,\}\; \texttt{print₂}(\operatorname{round}_{2}(ICM))\;
+\{\,R\land O\,\}.
+\tag{3}
+\]
+
+Thus we only have to show that the pre‑condition of the output command,
+\(R\land O\), holds *before* we execute it.  Since we have already proved
+\(\{P\}S_{2}\{R\}\) and we know from the definition of \(O\) that it does **not**
+depend on any program state (it only describes the value that will be printed),
+we can strengthen the post‑condition of the assignment to \(R\land O\) :
+
+\[
+\{P\}\; S_{2}\; \{\,R\land O\,\}.
+\tag{4}
+\]
+
+(Strengthening is admissible because \(R\land O\) logically implies \(R\).)
+
+Now combine (4) with the output rule (3) by the **sequence rule**:
+
+\[
+\{P\}\; S_{2};S_{3}\; \{\,R\land O\,\}.
+\tag{5}
+\]
+
+--------------------------------------------------------------------
+### 2.4  Adding the input statement
+
+Finally we prepend the input statement \(S_{1}\) to the sequence that we have
+just proved correct.  Using the sequence rule once more, with (1) and (5),
+
+\[
+\{P\}\; S_{1};S_{2};S_{3}\; \{\,R\land O\,\}.
+\]
+
+Recall that \(R\land O\) is precisely the post‑condition \(Q\) defined in the
+specification, therefore we have derived
+
+\[
+\boxed{\{P\}\; \texttt{ICM\_program}\; \{Q\}} .
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Mapping the abstract proof to the concrete Python code  
+
+| abstract command | concrete Python line | justification |
+|------------------|----------------------|---------------|
+| `read N,X,Y`     | `Distancia, Diametro1, Diametro2 = map(int, input().split())` | `input()` returns a string; `split()` separates the three tokens; `map(int, …)` converts each token to an `int`. The three integers are bound to the program variables, satisfying the input rule. |
+| `ICM := N/(X+Y)` | `ICM = Distancia/(Diametro1+Diametro2)` (implicit) | Python’s `/` operator on two `int`s yields a floating‑point number (`float`), i.e. a real value. The denominator is positive by the pre‑condition, so the division is defined. |
+| `print₂(round₂(ICM))` | `print("{:.2f}".format(Distancia/(Diametro1+Diametro2)))` | The format specification `:.2f` rounds the value to the nearest hundredth using the “round‑half‑up” rule (exactly the definition of `round₂`). The resulting string is printed, which is the observable effect `output = round₂(ICM)`. |
+
+Thus each abstract statement is implemented by the corresponding Python line,
+and the Hoare‑logic proof above guarantees that the concrete program fulfills the
+specification.
+
+--------------------------------------------------------------------
+
+## 4.  Concluding remarks  
+
+* The pre‑condition guarantees that the denominator `X+Y` is **strictly positive**,
+  so the division in `ICM` is total and the value belongs to ℝ.
+* The assignment rule shows that after the computation `ICM` equals the mathematically
+  defined quotient `N/(X+Y)`.
+* The formatting operation `"{:.2f}".format(v)` implements exactly the rounding
+  function `round₂(v)`.  Consequently the observable output is
+  `round₂(N/(X+Y))`, which is what the post‑condition demands.
+* By chaining the three Hoare triples with the sequence rule we obtain the
+  overall Hoare triple \(\{P\}\; \texttt{ICM\_program}\; \{Q\}\).
+
+Hence the Python program **correctly** solves the “ICM” problem according to the
+given Hoare‑logic specification. ∎

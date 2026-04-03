@@ -1,0 +1,305 @@
+## 1.  What has to be shown  
+
+We have to prove the **Hoare triple**
+
+\[
+\{P\}\;\;{\tt Program}\;\;\{Q\}
+\]
+
+where  
+
+* `P` (the pre‑condition) states that  
+
+  * the first input line contains an integer `N` with `1 ≤ N ≤ 1000`;  
+  * the second line contains exactly `N` integers `a[1] … a[N]`.
+
+* `Q` (the post‑condition) states that after the program terminates  
+
+  * the four counters `c₂ ,c₃ ,c₄ ,c₅` equal the cardinalities of the sets of
+    multiples of `2,3,4,5` in the input list, i.e.  
+
+    \[
+    \begin{aligned}
+    c_2 &=\sum_{i=1}^{N}\delta\bigl(a[i]\equiv 0\pmod{2}\bigr)\\
+    c_3 &=\sum_{i=1}^{N}\delta\bigl(a[i]\equiv 0\pmod{3}\bigr)\\
+    c_4 &=\sum_{i=1}^{N}\delta\bigl(a[i]\equiv 0\pmod{4}\bigr)\\
+    c_5 &=\sum_{i=1}^{N}\delta\bigl(a[i]\equiv 0\pmod{5}\bigr)
+    \end{aligned}
+    \]
+
+  * the program prints exactly the four lines  
+
+    ```
+    c2 Multiplo(s) de 2
+    c3 Multiplo(s) de 3
+    c4 Multiplo(s) de 4
+    c5 Multiplo(s) de 5
+    ```
+
+    each terminated by a newline character.
+
+The proof proceeds by **structural decomposition** of the program into
+three parts:
+
+1. **Input reading** – establishing that after the first two statements the
+   variables `N` and `a[1…N]` satisfy the pre‑condition.
+2. **The counting loop** – a Hoare‑logic proof that the loop computes the
+   four counters correctly.
+3. **Printing** – showing that the final `print` statement produces exactly the
+   required textual output.
+
+---
+
+## 2.  Notation that will be used in the proof  
+
+| Symbol | Meaning (in the proof) |
+|--------|------------------------|
+| `N`    | the integer read from the first line (`qtd_numeros`). |
+| `a[i]` | the integer value of the *i*‑th element of the input list (`lista_nums[i-1]`). |
+| `i`    | loop index (Python `for i in range(N)`). |
+| `c₂, c₃, c₄, c₅` | the four counters (`mlt_2 … mlt_5`). |
+| `δ(P)` | characteristic function defined in the specification. |
+| `I(i)` | **loop invariant** (defined below). |
+| `⊢`   | “provable” in Hoare logic (i.e. the judgment holds). |
+
+All arithmetic is performed over the integers; the modulus operator `x % k`
+is defined for every integer `x` and `k>0`.
+
+---
+
+## 3.  Proof of the first part – input reading  
+
+The first two statements of the program are
+
+```python
+qtd_numeros = int(input())          # line 1
+lista_nums = input().split(" ")      # line 2
+```
+
+* **Semantics of `int(input())`.**  
+  The call `input()` returns a line of the form `"n"` where `n` is a decimal
+  representation of an integer. The conversion `int` yields exactly that
+  integer. Hence after the first line we have a variable `N` such that
+
+  \[
+  N\in\mathbb{N}\;\land\;1\le N\le 1000 .
+  \]
+
+* **Semantics of `input().split(" ")`.**  
+  The second call reads a line containing `N` space‑separated decimal strings.
+  The method `split(" ")` returns a list `lista_nums` of length `N`.  
+  Converting each element to `int` (which will be done later) gives the
+  sequence `a[1],…,a[N]` of integers. Therefore after the second statement we
+  have
+
+  \[
+  \forall i\in\{1,\dots ,N\}\;:\;a[i]\in\mathbb Z .
+  \]
+
+Consequently the state after the two input statements satisfies the pre‑condition
+`P`. Formally
+
+\[
+\{\,\text{true}\,\}\; \text{input‑reading}\; \{P\}
+\tag{1}
+\]
+
+---
+
+## 4.  The counting loop  
+
+### 4.1  Loop invariant  
+
+For a given loop index `i` (the number of already processed elements) we define
+
+\[
+\boxed{
+\begin{aligned}
+I(i) \; \equiv\; &
+c_2 = \sum_{j=1}^{i}\delta\bigl(a[j]\equiv 0\pmod{2}\bigr) \;\land\\
+c_3 = \sum_{j=1}^{i}\delta\bigl(a[j]\equiv 0\pmod{3}\bigr) \;\land\\
+c_4 = \sum_{j=1}^{i}\delta\bigl(a[j]\equiv 0\pmod{4}\bigr) \;\land\\
+c_5 = \sum_{j=1}^{i}\delta\bigl(a[j]\equiv 0\pmod{5}\bigr)
+\end{aligned}}
+\tag{2}
+\]
+
+Intuitively, after processing the first `i` elements the counters contain
+exactly the numbers of multiples of `2,3,4,5` among those `i` elements.
+
+### 4.2  Initialization  
+
+Before the loop starts we have `i = 0` (the loop variable has not been bound yet)
+and the counters are initialised to zero:
+
+```python
+mlt_2 = 0; mlt_3 = 0; mlt_4 = 0; mlt_5 = 0
+```
+
+Because an empty sum is defined to be `0`, we obtain
+
+\[
+c_2 = c_3 = c_4 = c_5 = 0
+     = \sum_{j=1}^{0}\delta(\dots) .
+\]
+
+Thus `I(0)` holds. Formally
+
+\[
+\{P\}\; \text{initialisation}\; \{I(0)\}
+\tag{3}
+\]
+
+### 4.3  Preservation  
+
+Assume that at the beginning of an iteration the invariant `I(i)` holds for some
+`i` with `0 ≤ i < N`. The body of the loop (the four `if` statements) is
+
+```python
+if int(lista_nums[i]) % 2 == 0:  mlt_2 += 1
+if int(lista_nums[i]) % 3 == 0:  mlt_3 += 1
+if int(lista_nums[i]) % 4 == 0:  mlt_4 += 1
+if int(lista_nums[i]) % 5 == 0:  mlt_5 += 1
+```
+
+Let `x = int(lista_nums[i]) = a[i+1]` (Python indices start at `0`).  
+For each divisor `k∈{2,3,4,5}` we have the following equivalence:
+
+\[
+\bigl(x\%k == 0\bigr) \;\Longleftrightarrow\;
+\delta\bigl(x\equiv 0\pmod{k}\bigr)=1 .
+\]
+
+Consequently the statements perform exactly the update
+
+\[
+c_k \;:=\; c_k + \delta\bigl(a[i+1]\equiv 0\pmod{k}\bigr)
+\qquad(k\in\{2,3,4,5\}).
+\]
+
+Hence after the four updates we obtain
+
+\[
+\begin{aligned}
+c_k &= \Bigl(\sum_{j=1}^{i}\delta(a[j]\equiv 0\pmod{k})\Bigr) +
+      \delta(a[i+1]\equiv 0\pmod{k})\\
+    &= \sum_{j=1}^{i+1}\delta(a[j]\equiv 0\pmod{k}) .
+\end{aligned}
+\]
+
+Therefore the invariant holds for `i+1`:
+
+\[
+\{I(i)\}\;\text{loop‑body}\;\{I(i+1)\}.
+\tag{4}
+\]
+
+### 4.4  Termination  
+
+The loop is `for i in range(N)`. The control variable `i` runs through the
+finite set `{0,1,…,N‑1}`; consequently after `N` iterations the loop exits.
+By the **loop rule** of Hoare logic, from (3)–(4) we obtain
+
+\[
+\{P\}\;\text{whole‑loop}\;\{I(N)\}.
+\tag{5}
+\]
+
+But `I(N)` is exactly the collection of equalities that appear in the
+post‑condition `Q` (the four sums with upper bound `N`). Hence after the loop
+
+\[
+c_2 =\sum_{j=1}^{N}\delta(a[j]\equiv 0\pmod{2}),\;
+c_3 =\sum_{j=1}^{N}\delta(a[j]\equiv 0\pmod{3}),\;
+c_4 =\sum_{j=1}^{N}\delta(a[j]\equiv 0\pmod{4}),\;
+c_5 =\sum_{j=1}^{N}\delta(a[j]\equiv 0\pmod{5}).
+\tag{6}
+\]
+
+Thus the numeric part of `Q` is satisfied.
+
+---
+
+## 5.  Proof of the printing statement  
+
+The final line of the program is
+
+```python
+print(f"{mlt_2} Multiplo(s) de 2\n{mlt_3} Multiplo(s) de 3\n"
+      f"{mlt_4} Multiplo(s) de 4\n{mlt_5} Multiplo(s) de 5")
+```
+
+*The semantics of `print`* in Python is: evaluate the f‑string, concatenate the
+sub‑strings, write the resulting text to standard output followed by a newline
+character. The f‑string inserts the current values of `mlt_2 … mlt_5` exactly
+as decimal numbers. Consequently the text that appears on `stdout` is
+
+```
+c2 Multiplo(s) de 2\n
+c3 Multiplo(s) de 3\n
+c4 Multiplo(s) de 4\n
+c5 Multiplo(s) de 5\n
+```
+
+where `c_k` denotes the value stored in the corresponding counter at the moment
+the `print` statement is executed. Because (6) guarantees that those values are
+the desired sums, the produced sequence of four lines coincides **exactly**
+with the textual part of the post‑condition `Q`.
+
+Formally we have
+
+\[
+\{\,c_2,c_3,c_4,c_5\text{ satisfy (6)}\,\}\;
+\text{print}\;
+\{\,Q\,\}.
+\tag{7}
+\]
+
+---
+
+## 6.  Composition of the three proof obligations  
+
+We now combine the three pieces using the **rule of sequential composition**:
+
+1. From (1) we know that after the two input statements the state satisfies `P`.
+2. From (5) we know that executing the loop, starting from `P`, ends in a state
+   that satisfies the numeric equalities (6), i.e. the *numeric part* of `Q`.
+3. From (7) we know that the final `print` statement, starting from a state
+   where (6) holds, yields exactly the *output part* required by `Q`.
+
+Thus we obtain the overall Hoare triple
+
+\[
+\boxed{\{P\}\;\text{Program}\;\{Q\}}
+\]
+
+which is precisely the statement that the given Python program is **correct
+with respect to the specification**.
+
+---
+
+## 7.  Remarks on termination and total correctness  
+
+* **Termination** – the loop iterates a bounded number `N ≤ 1000` of times,
+  each iteration performs a constant amount of work; therefore the program
+  always terminates.  
+* **Total correctness** – because we have shown both *partial correctness*
+  (the Hoare triple) and termination, the program is totally correct.
+
+---
+
+### Summary  
+
+* The loop invariant `I(i)` captures the exact meaning of “the counters contain
+  the numbers of multiples among the first `i` elements”.  
+* Initialization establishes `I(0)`.  
+* The body of the loop increments each counter **iff** the current element is a
+  multiple of the respective divisor, which is precisely the definition of the
+  indicator function `δ`. Hence `I(i) → I(i+1)`.  
+* After `N` iterations we obtain `I(N)`, which is the numeric component of the
+  post‑condition.  
+* The final `print` statement formats the four counter values exactly as required,
+  thus delivering the textual component of `Q`.
+
+Consequently the program satisfies the Hoare‑logic specification and solves the
+task correctly.

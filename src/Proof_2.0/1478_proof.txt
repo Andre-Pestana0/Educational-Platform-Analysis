@@ -1,0 +1,407 @@
+## 1.  What has to be shown  
+
+We are given three Hoare‑style specifications  
+
+* **Global** – the whole program must turn the input stream  
+
+  \[
+  I=\langle n_{1},\dots ,n_{k},0\rangle ,\qquad 
+  1\le n_{r}\le {\rm MAX}=100
+  \]
+
+  into the output  
+
+  \[
+  out=\big\|_{r=1}^{k}{\rm PrintMatrix}(A^{(r)},n_{r})\big\|
+  \]
+
+  where  
+
+  \[
+  A^{(r)}[i,j]=|i-j|+1\;(1\le i,j\le n_{r}).
+  \]
+
+* **Build(N,A)** – fills an *uninitialised* \(N\times N\) array with the
+  distance‑plus‑one rule.
+
+* **PrintMatrix(A,N)** – appends to the global output the textual
+  representation required by the statement (width 3, one blank between
+  entries, newline after each row and a blank line after the last row).
+
+The task is to prove, **using Hoare logic**, that the concrete Python
+program satisfies the global triple  
+
+\[
+\{P_{\text{global}}\}\;{\tt program}\;\{Q_{\text{global}}\}.
+\]
+
+The proof proceeds in three layers:
+
+1. **Correctness of the routine that builds the matrix** (`Build`);
+2. **Correctness of the routine that prints the matrix** (`PrintMatrix`);
+3. **Correctness of the main loop** that reads the sizes, calls the two
+   routines and terminates.
+
+All reasoning is purely logical – we never appeal to the concrete
+implementation of `input()` or `print()`, only to the facts that they
+read an integer from `stdin` and append characters to `stdout`.
+
+---------------------------------------------------------------------
+
+## 2.  The *Build* routine  
+
+In the source program the construction of a matrix for a given
+`ordem = N` is performed by the two nested `for`‑loops
+
+```python
+matriz = []
+for i in range(N):                # i = 0 … N‑1   (our formal i = i+1)
+    linha = []
+    for j in range(N):            # j = 0 … N‑1
+        if i == j:      linha.append(1)
+        if i >  j:      linha.append(i - j + 1)
+        if i <  j:      linha.append(j - i + 1)
+    matriz.append(linha)
+```
+
+We shall prove the Hoare triple  
+
+\[
+\{P_{\text{build}}\}\;{\tt Build}(N, A)\;\{Q_{\text{build}}\}.
+\]
+
+### 2.1  Loop invariants  
+
+*Outer loop* (`for i …`):  
+
+\[
+\boxed{I_{out}\; \equiv\;
+\begin{array}{l}
+0\le i\le N\ \land\\[2pt]
+(\forall p,q\;(1\le p\le i\;\land\;1\le q\le N\Rightarrow
+    A[p,q]=|p-q|+1))
+\end{array}}
+\]
+
+The invariant says that rows `1 … i` are already correct.
+
+*Inner loop* (`for j …`): while the inner loop is executing for a fixed
+`i` we use  
+
+\[
+\boxed{I_{in}\; \equiv\;
+\begin{array}{l}
+0\le j\le N\ \land\\[2pt]
+(\forall q\;(1\le q\le j\Rightarrow
+    A[i,q]=|i-q|+1))
+\end{array}}
+\]
+
+It states that in the current row the first `j` entries are already the
+desired values.
+
+### 2.2  Verification of the inner loop  
+
+*Initialization* (`j = 0`): `I_{in}` holds because the universal
+quantifier is vacuous.
+
+*Preservation*: Assume `I_{in}` holds for some `j<N`.  
+The body of the inner loop executes exactly one of the three `if`s:
+
+* `i == j`  → `A[i,i]` receives `1 = |i-i|+1`;
+* `i >  j`  → `A[i,j+1]` receives `i-(j+1)+1 = |i-(j+1)|+1`;
+* `i <  j`  → `A[i,j+1]` receives `(j+1)-i+1 = |i-(j+1)|+1`.
+
+In every case the value appended to `linha` (the Python list that
+represents the current row) equals `|i-(j+1)|+1`.  Hence after the
+`append` we have  
+
+\[
+\forall q\;(1\le q\le j+1\Rightarrow A[i,q]=|i-q|+1),
+\]
+
+i.e. `I_{in}` holds with `j` replaced by `j+1`.
+
+*Termination*: when `j = N` the inner loop ends and `I_{in}` gives exactly
+
+\[
+\forall q\;(1\le q\le N\Rightarrow A[i,q]=|i-q|+1),
+\]
+
+i.e. row `i` is completely correct.
+
+### 2.3  Verification of the outer loop  
+
+*Initialization* (`i = 0`): `I_{out}` holds because there are no rows
+yet (`i=0`).
+
+*Preservation*: Assume `I_{out}` holds for some `i<N`.  
+The inner loop, by the previous paragraph, finishes with a correct row
+`i+1`.  The statement `matriz.append(linha)` stores that row at position
+`i+1`.  Consequently
+
+\[
+\forall p,q\;(1\le p\le i+1\;\land\;1\le q\le N\Rightarrow
+    A[p,q]=|p-q|+1),
+\]
+
+which is `I_{out}` with `i` replaced by `i+1`.
+
+*Termination*: when `i = N` we obtain
+
+\[
+\forall p,q\;(1\le p,q\le N\Rightarrow A[p,q]=|p-q|+1),
+\]
+
+exactly the post‑condition `Q_{\text{build}}`.
+
+Thus the two nested loops implement **Build** correctly.
+
+---------------------------------------------------------------------
+
+## 3.  The *PrintMatrix* routine  
+
+In the program the printing part is
+
+```python
+for i in range(N):
+    for j in range(N):
+        if j == 0:
+            print(f"{matriz[i][j]:3d}", end = "")
+        else:
+            print(f" {matriz[i][j]:3d}", end = "")
+    print()          # newline after a row
+print()              # blank line after the whole matrix
+```
+
+We prove  
+
+\[
+\{P_{\text{print}}\}\;{\tt PrintMatrix}(A,N)\;\{Q_{\text{print}}\}.
+\]
+
+### 3.1  Loop invariants  
+
+*Row‑loop* (`for i …`):
+
+\[
+\boxed{I_{row}\equiv
+\begin{array}{l}
+0\le i\le N\ \land\\[2pt]
+\text{out}= \big\|_{p=1}^{i}{\rm row}_p\big\|\;\land\\[2pt]
+\text{each }{\rm row}_p\text{ satisfies the format definition}
+\end{array}}
+\]
+
+*Column‑loop* (`for j …`) – for a fixed row `i` we use  
+
+\[
+\boxed{I_{col}\equiv
+\begin{array}{l}
+0\le j\le N\ \land\\[2pt]
+\text{out}= \big\|_{p=1}^{i-1}{\rm row}_p\big\|\,
+          \big\|\,\operatorname{pref}_{j}\big\|
+\end{array}}
+\]
+
+where  
+
+\[
+\operatorname{pref}_{j}= 
+\begin{cases}
+\langle\operatorname{fmt}(A[i,1])\rangle & (j=1)\\[2pt]
+\langle\operatorname{fmt}(A[i,1]),\,
+       \text{` `' },\,
+       \operatorname{fmt}(A[i,2]),\dots,
+       \text{` `' },\,
+       \operatorname{fmt}(A[i,j])\rangle & (j>1)
+\end{cases}
+\]
+
+i.e. the characters already printed for the current row are exactly the
+formatted first `j` entries, separated by a single blank and **without**
+a trailing blank.
+
+### 3.2  Inner‑loop verification  
+
+*Initialization* (`j=0`): the prefix is empty, therefore `I_{col}` holds.
+
+*Preservation*: assume `I_{col}` holds for some `j<N`.  
+
+* If `j=0` the program executes the *first* `print` (no leading blank)
+  and writes `fmt(A[i,1])`.  The new prefix becomes exactly the case
+  `j=1` of the definition, so `I_{col}` holds with `j←j+1`.
+
+* If `j>0` the `else` branch prints a blank followed by
+  `fmt(A[i,j+1])`.  By concatenating a blank and the formatted value to
+  the previous prefix we obtain precisely the definition of the prefix
+  for `j+1`.  Hence `I_{col}` is preserved.
+
+*Termination*: when `j=N` the inner loop ends and `I_{col}` tells us that
+the whole row `i` has been printed **without** a trailing blank.  The
+subsequent `print()` (with no arguments) writes the newline that ends
+the row.
+
+Thus after the inner loop and the newline we have produced a correct
+`row_i` and the global output equals
+
+\[
+\big\|_{p=1}^{i}{\rm row}_p\big\|.
+\]
+
+### 3.3  Outer‑loop verification  
+
+*Initialization* (`i=0`): `out` is empty; `I_{row}` holds.
+
+*Preservation*: assuming `I_{row}` holds for a given `i<N`, the inner loop
+produces a correctly formatted `row_{i+1}` (as shown above) and the
+following `print()` adds the newline after that row.  Consequently the
+output after the iteration is  
+
+\[
+\big\|_{p=1}^{i+1}{\rm row}_p\big\|,
+\]
+
+which is `I_{row}` with `i←i+1`.
+
+*Termination*: after `i=N` the outer loop finishes.  The final
+`print()` (the one placed **after** the outer loop) writes the extra
+blank line required by the specification.  Hence the total output is
+
+\[
+\big\langle {\rm row}_1,\dots ,{\rm row}_N,\text{blank\_line}\big\rangle,
+\]
+
+exactly the fragment described by `Q_{\text{print}}`.
+
+Therefore the printing part satisfies its Hoare triple.
+
+---------------------------------------------------------------------
+
+## 4.  The main program  
+
+The original program first stores all input numbers in the list
+`ordens` and then iterates over that list.  This is observationally
+equivalent to the abstract `while`‑program given in the specification:
+
+```
+while true do
+    N := read()
+    if N = 0 then break
+    Build(N,A); PrintMatrix(A,N)
+od
+```
+
+We prove the global Hoare triple
+
+\[
+\{P_{\text{global}}\}\;{\tt program}\;\{Q_{\text{global}}\}
+\]
+
+by exhibiting a loop invariant that matches the one announced in the
+statement.
+
+### 4.1  Loop invariant  
+
+\[
+\boxed{
+I_{\text{inv}}\equiv
+\exists r\;(0\le r\le k)\;
+\Bigl(
+   out=
+   \big\|_{t=1}^{r}{\rm PrintMatrix}(A^{(t)},n_t)\big\|
+\Bigr)
+}
+\]
+
+Intuitively: after having processed the first `r` numbers of the input
+the global output consists of exactly the textual representations of
+the first `r` matrices.
+
+* **Base case** (`r=0`).  
+  Before the first iteration `out` is the empty string, hence
+  `I_{\text{inv}}` holds with `r=0`.
+
+* **Preservation**.  
+  Assume `I_{\text{inv}}` holds with some `r<k`.  
+  The loop reads the next integer `N = n_{r+1}` (which is non‑zero by the
+  premise of the loop).  
+
+  1. By the proved Hoare triple for `Build` we obtain a matrix
+     `A` such that  
+
+     \[
+     (\forall i,j\;1\le i,j\le N\Rightarrow A[i,j]=|i-j|+1)
+     = A^{(r+1)} .
+     \]
+
+  2. By the proved Hoare triple for `PrintMatrix` we know that the
+     execution of `PrintMatrix(A,N)` appends exactly
+     `PrintMatrix(A^{(r+1)},n_{r+1})` to the current output.
+
+  Consequently after both calls we have  
+
+  \[
+  out=
+  \big\|_{t=1}^{r}{\rm PrintMatrix}(A^{(t)},n_t)\big\|
+  \;\|\,{\rm PrintMatrix}(A^{(r+1)},n_{r+1})\big\|
+  =\big\|_{t=1}^{r+1}{\rm PrintMatrix}(A^{(t)},n_t)\big\|,
+  \]
+
+  i.e. `I_{\text{inv}}` holds with `r←r+1`.
+
+* **Termination**.  
+  The input stream is finite and ends with a `0`.  Hence after reading
+  `n_k` the next call to `read()` returns `0`, the guard `N!=0` fails,
+  and the loop exits.  At that moment `r = k`, so the invariant gives
+
+  \[
+  out=
+  \big\|_{t=1}^{k}{\rm PrintMatrix}(A^{(t)},n_t)\big\|,
+  \]
+
+  which is precisely `Q_{\text{global}}`.
+
+* **Partial correctness** follows from the invariant and the
+  preservation argument; **total correctness** follows because each
+  loop is bounded (`k` is finite, `N≤100`, the two `for`‑loops iterate a
+  fixed number of times) and therefore terminates.
+
+---------------------------------------------------------------------
+
+## 5.  Putting the pieces together  
+
+We have proved three Hoare triples:
+
+1. \(\{P_{\text{build}}\}\;{\tt Build}(N,A)\;\{Q_{\text{build}}\}\)
+2. \(\{P_{\text{print}}\}\;{\tt PrintMatrix}(A,N)\;\{Q_{\text{print}}\}\)
+3. \(\{P_{\text{global}}\}\;\textbf{while}(N\neq0)\;\textbf{do}\;
+   (N:=\text{read()};
+    \textbf{if }N\neq0\;\textbf{then }{\tt Build}(N,A);
+    {\tt PrintMatrix}(A,N)\;\textbf{fi})\;
+   \textbf{od}\;\{Q_{\text{global}}\}\)
+
+The third triple uses the invariant \(I_{\text{inv}}\) which is
+established by the first two triples.  Therefore the whole Python
+program, which is a concrete syntactic realisation of the abstract
+while‑program, satisfies the global specification.
+
+---------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+* Under the pre‑condition that the input consists of a finite non‑empty
+  list of integers \(1\le n_{r}\le 100\) terminated by a zero,
+* the program reads each integer, builds the matrix whose entry
+  \((i,j)\) equals \(|i-j|+1\), prints it with the required formatting,
+  inserts a blank line, and proceeds to the next integer,
+* and finally terminates after the terminating zero.
+
+Consequently the post‑condition  
+
+\[
+out=\big\|_{r=1}^{k}{\rm PrintMatrix}(A^{(r)},n_{r})\big\|
+\]
+
+holds, i.e. the program is **correct** with respect to the given
+Hoare‑logic specification. ∎

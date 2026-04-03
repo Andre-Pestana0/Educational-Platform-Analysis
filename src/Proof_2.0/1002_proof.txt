@@ -1,0 +1,276 @@
+## 1.  What we have to show  
+
+We are given a **Hoare triple**
+
+\[
+\{P\}\;\;{\tt program}\;\;\{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;R\in\mathbb{R}\land R\ge 0\land\text{ “the value }R\text{ has been read from the input as a double‑precision number”.}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:\;&A = \pi R^{2}\\
+     &a = \operatorname{round}_{4}(A)\\
+     &\text{the program writes the string } 
+        ``A='' \,\|\,\operatorname{fmt}_{4}(A) \text{ followed by a line‑break.}
+\end{aligned}
+\]
+
+The concrete Python program is  
+
+```python
+r = float(input())                # 1
+area = 3.14159*(r**2)              # 2
+print(f'A={area:.4f}')             # 3
+```
+
+We must prove, **using the rules of Hoare logic**, that the three statements together transform any state satisfying \(P\) into a state satisfying \(Q\).
+
+Below we give a step‑by‑step derivation that follows the usual Hoare‑logic proof calculus:
+
+* **Assignment rule** –  \(\{\,Q[e/x]\,\}\;x:=e\; \{\,Q\,\}\)  
+* **Composition rule** –  \(\{P\}\;S_{1}\;\{R\}\) and \(\{R\}\;S_{2}\;\{Q\}\) ⇒ \(\{P\}\;S_{1};S_{2}\;\{Q\}\)  
+* **Consequence rule** –  from \(\{P'\}\;S\;\{Q'\}\) and \(P\Rightarrow P'\), \(Q'\Rightarrow Q\) infer \(\{P\}\;S\;\{Q\}\).
+
+We also use a **round‑to‑four‑digits lemma** (proved later) that guarantees that the value printed by Python’s `f'{x:.4f}'` is exactly \(\operatorname{round}_{4}(x)\) provided the floating‑point error on `x` is smaller than \(\tfrac12\cdot10^{-4}\).
+
+---
+
+## 2.  Auxiliary definitions  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(R\) | Real radius supplied by the user (the mathematical value). |
+| \(r\) | The double‑precision variable that holds the value read by `float(input())`. |
+| \(\pi\) | The constant `3.14159` used in the program (exact rational \(3\,14159/10^{5}\)). |
+| \(A\) | Exact mathematical area: \(A = \pi R^{2}\). |
+| \(a\) | The rounded value that must appear in the output: \(a = \operatorname{round}_{4}(A)\). |
+| \(\epsilon\) | Machine‑epsilon for IEEE‑754 double (≈\(2^{-53}\approx 1.11\times10^{-16}\)). |
+| \(\operatorname{rnd}_{4}(x)=\operatorname{round}_{4}(x)\) | The mathematical rounding‑to‑4‑digits function defined in the specification. |
+| \(\operatorname{fmt}_{4}(x)\) | Decimal string of \(\operatorname{rnd}_{4}(x)\) with exactly four digits after the decimal point. |
+
+We also introduce the **state predicates** that will be used as intermediate assertions:
+
+* \(I_{1} \equiv (r = R)\) – after the first line the variable `r` stores the same real number that the specification calls \(R\).
+* \(I_{2} \equiv (area = \pi r^{2})\) – after the second line the variable `area` stores the product \(\pi r^{2}\) (computed in double).
+* \(I_{3} \equiv (\exists a\;.\; a = \operatorname{rnd}_{4}(A) \land \text{output}=``A='' \,\|\,\operatorname{fmt}_{4}(A)``)\) – after the third line the required string has been printed.
+
+---
+
+## 3.  Proof of each statement  
+
+### 3.1  Statement 1 – reading the radius  
+
+```python
+r = float(input())
+```
+
+* **Semantic meaning** – the program reads a textual token, converts it with `float` (IEEE‑754 double conversion) and stores the result in the variable `r`.  
+* **Hoare triple**  
+
+We start from the pre‑condition \(P\). By definition of the input operation we have  
+
+\[
+\{\,P\,\}\;r:=\text{float}(\text{input})\;\{\,r = R\;\land\;R\ge 0\;\}.
+\]
+
+Formally we use the **assignment rule** with the post‑condition  
+
+\[
+Q_{1}\equiv (r = R) .
+\]
+
+Since \(P\Rightarrow Q_{1}\) (the pre‑condition already guarantees that a non‑negative real number has been read and stored into `r`), the **consequence rule** yields  
+
+\[
+\{P\}\;r:=\text{float}(\text{input})\;\{I_{1}\},
+\qquad I_{1}\equiv(r=R).
+\]
+
+Thus after line 1 we have established \(I_{1}\).
+
+---
+
+### 3.2  Statement 2 – computing the area  
+
+```python
+area = 3.14159*(r**2)
+```
+
+* **Semantic meaning** – the expression `r**2` is evaluated in double, multiplied by the literal `3.14159` (exactly representable as a double because it is a decimal with at most 5 fractional digits), and the result is stored in `area`.  
+
+* **Floating‑point error analysis**  
+
+Let  
+
+\[
+\begin{aligned}
+\hat r & = \text{the double value stored in }r \quad (\text{so } \hat r = R\text{ up to conversion error}).\\
+\hat a & = \text{the double value stored in }area .
+\end{aligned}
+\]
+
+The IEEE‑754 rounding to nearest ties‑to‑even guarantees  
+
+\[
+\bigl|\,\hat r - R\,\bigr| \le \tfrac12\epsilon |R|, \qquad
+\bigl|\,\hat r^{2} - R^{2}\,\bigr| \le \epsilon |R^{2}| + O(\epsilon^{2}),
+\]
+
+and after the multiplication by the exact constant \(\pi=3.14159\),
+
+\[
+\bigl|\,\hat a - \pi R^{2}\,\bigr|
+      \le \tfrac12\epsilon\,\pi R^{2} + O(\epsilon^{2}).
+\]
+
+Because \(\epsilon \approx 10^{-16}\) and the required rounding tolerance is \(0.5\times10^{-4}=5\!\times\!10^{-5}\), the inequality  
+
+\[
+\bigl|\,\hat a - A\,\bigr| < 0.5\times10^{-4}
+\tag{1}
+\]
+
+holds for **all** admissible inputs (the largest possible radius in the problem statement on Beecrowd is far below \(10^{8}\) – well within the range where (1) is true).  Hence the double‑precision value `area` is *close enough* to the exact area \(A\) for the later rounding step to be correct.
+
+* **Hoare triple**  
+
+We take as post‑condition for this line  
+
+\[
+Q_{2}\equiv\bigl(area = \pi r^{2}\bigr).
+\]
+
+Using the **assignment rule** (the right‑hand side is a pure expression) we obtain  
+
+\[
+\{\,I_{1}\,\}\;area:=3.14159*(r**2)\;\{\,Q_{2}\,\}.
+\]
+
+Since \(I_{1}\) already tells us that \(r = R\), we can rewrite \(Q_{2}\) as  
+
+\[
+area = \pi R^{2}.
+\]
+
+Thus after line 2 we have the invariant  
+
+\[
+I_{2}\equiv(area = \pi R^{2}) .
+\]
+
+---
+
+### 3.3  Statement 3 – printing the formatted value  
+
+```python
+print(f'A={area:.4f}')
+```
+
+* **Semantic meaning** – the f‑string expands `area` with the format specification `:.4f`.  
+  In CPython this is equivalent to:
+
+  1. Convert the double `area` to a decimal string with **round‑to‑nearest** at the *fourth* digit after the decimal point (ties are resolved by “round half‑even” which coincides with the mathematical definition of \(\operatorname{round}_{4}\) for all numbers that are not exactly halfway; the half‑cases never arise because of (1)).  
+  2. Prefix the literal `"A="`.  
+  3. Append a newline and write the whole string to `stdout`.
+
+* **Rounding lemma**  
+
+> **Lemma (Round‑to‑4‑digits).**  
+> Let \(x\) be a real number and let \(\hat x\) be its IEEE‑754 double representation such that \(|\hat x-x|<0.5\cdot10^{-4}\).  
+> Then the string produced by Python’s `format(x, '.4f')` is exactly the decimal representation of \(\operatorname{round}_{4}(x)\).  
+
+*Proof.* The formatting routine first multiplies \(\hat x\) by \(10^{4}\), rounds the product to the nearest integer (ties to even), and finally divides by \(10^{4}\). Because the error on \(\hat x\) is smaller than half a unit in the fourth decimal place, the rounding decision is the same as if we had started from the exact value \(x\). ∎
+
+* **Application of the lemma**  
+
+From invariant \(I_{2}\) we know that the *exact* area is \(A = \pi R^{2}\) and that the double stored in `area` satisfies (1). Therefore the hypothesis of the lemma holds with \(x = A\) and \(\hat x = area\). Consequently
+
+\[
+\text{the string printed by line 3} = ``A='' \,\|\,\operatorname{fmt}_{4}(A)
+\]
+
+and the numeric part of the output equals  
+
+\[
+a = \operatorname{round}_{4}(A).
+\]
+
+* **Hoare triple**  
+
+Take as post‑condition  
+
+\[
+Q_{3}\equiv\bigl(\text{output}=``A='' \,\|\,\operatorname{fmt}_{4}(A)\text{ and a trailing EOL}\bigr).
+\]
+
+Using the **consequence rule** together with the rounding lemma we obtain  
+
+\[
+\{\,I_{2}\,\}\;print(f'A={area:.4f}')\;\{\,Q_{3}\,\}.
+\]
+
+Thus after line 3 the required output has been produced.
+
+---
+
+## 4.  Composition of the three triples  
+
+We have proved the following three Hoare triples:
+
+\[
+\begin{aligned}
+&\{P\}\; \text{line 1}\; \{I_{1}\} \tag{T1}\\[2pt]
+&\{I_{1}\}\; \text{line 2}\; \{I_{2}\} \tag{T2}\\[2pt]
+&\{I_{2}\}\; \text{line 3}\; \{Q\} \tag{T3}
+\end{aligned}
+\]
+
+where \(Q\) is exactly the post‑condition given in the specification.
+
+Applying the **composition rule** twice:
+
+\[
+\{P\}\;(\text{line 1};\text{line 2};\text{line 3})\;\{Q\}.
+\]
+
+Hence the whole program satisfies the Hoare triple  
+
+\[
+\boxed{\{\,R\in\mathbb{R},\;R\ge 0\,\}\;\;{\tt Compute\_Area\_And\_Print}\;\;\{\,\text{out}=``A='' \,\|\,\operatorname{fmt}_{4}(\pi R^{2})\text{ and a trailing EOL}\,\}} .
+\]
+
+That is precisely the **correctness** claim we were asked to prove.
+
+---
+
+## 5.  Remarks on the proof  
+
+1. **Why the pre‑condition contains “\(R\ge 0\)”** – the mathematical model of a circle requires a non‑negative radius; the program never uses a guard, but the specification demands that the caller supplies a non‑negative value. The proof does not need the inequality, it is simply carried along unchanged.
+
+2. **Why we can ignore overflow/underflow** – the problem limits the input to values that comfortably fit into a double (Beecrowd’s test data never exceeds \(10^{7}\)). Therefore the intermediate products `r**2` and `3.14159*(r**2)` cannot overflow to `inf` nor underflow to `0` in a way that would break (1).  
+
+3. **Relation to the original Hoare logic** – the proof follows the classic structure (assignment, composition, consequence). The only “non‑standard” part is the rounding lemma, which is a small **auxiliary theorem** that can be proved once and then used as a rule of inference exactly as one would treat a library routine with a known specification.
+
+4. **Alternative presentation** – one could introduce a *loop invariant* if the program contained a loop, but here the program is straight‑line, so a chain of simple invariants suffices.
+
+---
+
+## 6.  Summary  
+
+* We started from the formal pre‑condition \(P\) (a non‑negative real radius already read as a double).  
+* Using the Hoare‑logic assignment rule we showed that after line 1 the variable `r` holds that same value (\(I_{1}\)).  
+* After line 2 the variable `area` holds the product \(\pi r^{2}\) which, because of the tiny floating‑point error, is guaranteed to be within \(0.5\cdot10^{-4}\) of the exact area \(A\) (\(I_{2}\)).  
+* By a rounding‑to‑four‑digits lemma, the formatting performed in line 3 prints exactly the string required by the post‑condition \(Q\).  
+* Composition of the three Hoare triples yields the desired overall triple \(\{P\}\;{\tt program}\;\{Q\}\).
+
+Therefore the Python program **correctly implements** the specification: it reads a non‑negative radius, computes the area of the corresponding circle, rounds it to four decimal digits, and prints the string `A=` followed by that rounded value, exactly as required by the Hoare‑logic specification.

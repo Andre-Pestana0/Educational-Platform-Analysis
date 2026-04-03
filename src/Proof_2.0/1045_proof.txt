@@ -1,0 +1,442 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; a_{0}>0\;\land\;b_{0}>0\;\land\;c_{0}>0
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\equiv&\bigl(\neg\mathsf{tri\_valid}\;\rightarrow\;{\tt out}= \{\text{«NAO FORMA TRIANGULO»}\}\bigr)\\
+      &\land\bigl(\mathsf{tri\_valid}\;\rightarrow\;{\tt out}= \mathcal A\cup\mathcal S\bigr)\\[1mm]
+\end{aligned}
+\]
+
+with the predicates  
+
+\[
+\begin{aligned}
+\{a,b,c\}&=\operatorname{sort\_desc}(a_{0},b_{0},c_{0})\quad\text{(so }a\ge b\ge c\text{ and } \{a,b,c\}=\{a_{0},b_{0},c_{0}\})\\[1mm]
+\mathsf{tri\_valid}&\equiv a<b+c\\[1mm]
+\mathsf{right}&\equiv a^{2}=b^{2}+c^{2}\\
+\mathsf{obtuse}&\equiv a^{2}>b^{2}+c^{2}\\
+\mathsf{acute}&\equiv a^{2}<b^{2}+c^{2}\\[1mm]
+\mathsf{equil}&\equiv a=b\land b=c\\
+\mathsf{isos}&\equiv (a=b\lor b=c)\land\neg\mathsf{equil}
+\end{aligned}
+\]
+
+and  
+
+\[
+\begin{aligned}
+\mathcal A&=
+   \begin{cases}
+   \{\text{«TRIANGULO RETANGULO»}\} & \text{if }\mathsf{right}\\
+   \{\text{«TRIANGULO OBTUSANGULO»}\}& \text{if }\mathsf{obtuse}\\
+   \{\text{«TRIANGULO ACUTANGULO»}\} & \text{if }\mathsf{acute}\\
+   \emptyset & \text{otherwise}
+   \end{cases}\\[2mm]
+\mathcal S&=
+   \begin{cases}
+   \{\text{«TRIANGULO EQUILATERO»}\} & \text{if }\mathsf{equil}\\
+   \{\text{«TRIANGULO ISOSCELES»}\} & \text{if }\mathsf{isos}\\
+   \emptyset & \text{otherwise}
+   \end{cases}
+\end{aligned}
+\]
+
+The program we analyse (the *essential* part, i.e. the statements that influence the set `out`) is
+
+```text
+1  lados = input().split()                     #  read three strings
+2  ladoA, ladoB, ladoC = sorted(map(float,lados), reverse=True)
+3  if ladoA >= (ladoB + ladoC):
+4      print("NAO FORMA TRIANGULO")
+5  else:
+6      if (ladoA*ladoA) == (ladoB*ladoB + ladoC*ladoC):
+7          print("TRIANGULO RETANGULO")
+8      elif (ladoA*ladoA) > (ladoB*ladoB + ladoC*ladoC):
+9          print("TRIANGULO OBTUSANGULO")
+10     elif (ladoA*ladoA) < (ladoB*ladoB + ladoC*ladoC):
+11         print("TRIANGULO ACUTANGULO")
+12
+13     lados = [ladoA, ladoB, ladoC]
+14     if lados.count(ladoA) == 2 or lados.count(ladoB) == 2:
+15         print("TRIANGULO ISOSCELES")
+16     if lados.count(ladoA) == 3:
+17         print("TRIANGULO EQUILATERO")
+```
+
+(The three `print`s on lines 0, 1 and 2 of the original source that display the raw input, the sorted triple and the sum are *debug* statements; they do **not** belong to the set `out` required by the specification, therefore we ignore them in the proof.)
+
+---
+
+## 2.  Proof strategy  
+
+We will prove a **chain of Hoare triples** that correspond to the program statements, using the standard Hoare‑logic rules:
+
+* **Assignment**  
+  \(\displaystyle\frac{}{ \{\,\phi[e/x]\,\}\;x:=e\;\{\phi\} }\)
+
+* **Composition**  
+  \(\displaystyle\frac{ \{P\}\;S_{1}\;\{R\}\qquad\{R\}\;S_{2}\;\{Q\}}{\{P\}\;S_{1};S_{2}\;\{Q\}}\)
+
+* **Conditional**  
+  \(\displaystyle\frac{\{P\land B\}\;S_{1}\;\{Q\}\qquad\{P\land\neg B\}\;S_{2}\;\{Q\}}
+          {\{P\}\;\mathbf{if}\;B\;\mathbf{then}\;S_{1}\;\mathbf{else}\;S_{2}\;\{Q\}}\)
+
+The only *non‑trivial* part is the **sorting** step, which we treat as an *atomic* command that we know satisfies the following Hoare triple (proved separately by a small lemma about Python’s `sorted`):
+
+\[
+\boxed{
+\{P\}\;{\tt (a,b,c):=sorted\_desc(a_{0},b_{0},c_{0})}\;
+\{\,a\ge b\ge c\;\land\;\{a,b,c\}=\{a_{0},b_{0},c_{0}\}\,\}
+}
+\tag{S}
+\]
+
+All the other statements are pure arithmetic or list operations and are therefore *deterministic*; the Hoare rules for assignment and `if` are sufficient.
+
+---
+
+## 3.  Lemma: the sorting command  
+
+**Lemma (Sorting).**  
+
+Let  
+
+\[
+\operatorname{sort\_desc}(x,y,z)=\bigl(\operatorname{max}(x,y,z),\,
+\operatorname{mid}(x,y,z),\,
+\operatorname{min}(x,y,z)\bigr)
+\]
+
+where `mid` returns the middle element of the three. Then, for any real numbers \(x,y,z\),
+
+\[
+\{\,x>0\land y>0\land z>0\,\}\;
+(a,b,c):=\operatorname{sort\_desc}(x,y,z)\;
+\{\,a\ge b\ge c\;\land\;\{a,b,c\}=\{x,y,z\}\,\}.
+\]
+
+*Proof.* The definition of `sort_desc` returns the three values in non‑increasing order, therefore the relational part holds. Because the three values are a permutation of the input triple, the multiset equality also holds. ∎
+
+In the program the call  
+
+```python
+ladoA, ladoB, ladoC = sorted(map(float,lados), reverse=True)
+```
+
+is exactly the command `(a,b,c):=sort_desc(a₀,b₀,c₀)`. Consequently the Hoare triple (S) is applicable.
+
+---
+
+## 4.  Derivation of the whole program  
+
+We introduce the following **intermediate assertions** that will be used as loop invariants for the conditional branches.
+
+| Assertion | Meaning |
+|-----------|---------|
+| \(I_{0}\) | \(P\) (the three input numbers are positive) |
+| \(I_{1}\) | \(a\ge b\ge c\)  ∧  \(\{a,b,c\}=\{a_{0},b_{0},c_{0}\}\)  (the sorting succeeded) |
+| \(I_{2}\) | \(I_{1}\land\neg\mathsf{tri\_valid}\) (the triangle inequality already fails) |
+| \(I_{3}\) | \(I_{1}\land\mathsf{tri\_valid}\) (the three numbers can be a triangle) |
+| \(I_{4}^{R}\) | \(I_{3}\land\mathsf{right}\) |
+| \(I_{4}^{O}\) | \(I_{3}\land\mathsf{obtuse}\) |
+| \(I_{4}^{A}\) | \(I_{3}\land\mathsf{acute}\) |
+| \(I_{5}\) | \(I_{3}\land\bigl(\mathsf{equil}\lor\mathsf{isos}\lor\neg(\mathsf{equil}\lor\mathsf{isos})\bigr)\) (the side‑length classification has been performed) |
+
+The proof proceeds in the order of the program.
+
+### 4.1  Lines 1‑2 : reading and sorting  
+
+1. **Reading** (`lados = input().split()`) does not change any numeric variable; it merely creates a list of strings. Hence  
+
+   \[
+   \{P\}\;{\tt lados = input().split()}\;\{P\}
+   \tag{R1}
+   \]
+
+2. **Conversion + sorting** (`ladoA, ladoB, ladoC = sorted(map(float,lados), reverse=True)`) is exactly the abstract command of Lemma (S). By (S) we obtain  
+
+   \[
+   \{P\}\;{\tt (ladoA,ladoB,ladoC):=sort\_desc(a_{0},b_{0},c_{0})}\;
+   \{I_{1}\}
+   \tag{R2}
+   \]
+
+   By composition (R1)+(R2) we have  
+
+   \[
+   \{P\}\;{\tt linhas\;1\text{–}2}\;\{I_{1}\}.
+   \tag{C1}
+   \]
+
+### 4.2  Line 3‑5 : triangle‑inequality test  
+
+The condition of the outer `if` is  
+
+\[
+B_{0}\equiv \bigl(ladoA \ge ladoB+ladoC\bigr)\; \equiv\; \neg\mathsf{tri\_valid}.
+\]
+
+We consider the two branches.
+
+* **Then‑branch (lines 4)**  
+
+  Pre‑condition for the branch: \(I_{1}\land B_{0}\) = \(I_{2}\).  
+
+  The body is a single `print`. The Hoare rule for `print` is simply  
+
+  \[
+  \{I_{2}\}\;\texttt{print("NAO FORMA TRIANGULO")}\;
+  \{I_{2}\land\text{out}= \{\text{«NAO FORMA TRIANGULO»}\}\}.
+  \tag{T1}
+  \]
+
+  Because \(I_{2}\) already contains \(\neg\mathsf{tri\_valid}\), we can rewrite the post‑condition as  
+
+  \[
+  I_{2}\land\text{out}= \{\text{«NAO FORMA TRIANGULO»}\}
+  \equiv \neg\mathsf{tri\_valid}\;\rightarrow\;\text{out}= \{\text{«NAO FORMA TRIANGULO»}\}.
+  \]
+
+* **Else‑branch (lines 6‑17)**  
+
+  Pre‑condition for the branch: \(I_{1}\land\neg B_{0}\) = \(I_{3}\).  
+  The rest of the program is executed under this assumption.  
+
+Applying the **conditional rule** we obtain
+
+\[
+\{I_{1}\}\;\mathbf{if}\;B_{0}\;\mathbf{then}\;{\tt line\;4}\;\mathbf{else}\;{\tt lines\;6\text{–}17}\;
+\bigl(\neg\mathsf{tri\_valid}\rightarrow\text{out}= \{\text{«NAO FORMA TRIANGULO»}\}\bigr)
+\land
+\bigl(\mathsf{tri\_valid}\rightarrow\text{post\_else}\bigr).
+\tag{C2}
+\]
+
+Thus we only have to prove that the *else‑branch* yields the part of \(Q\) that corresponds to a valid triangle.
+
+### 4.3  Lines 6‑11 : angle classification  
+
+The three mutually exclusive tests are:
+
+\[
+\begin{aligned}
+B_{R}&\equiv (ladoA*ladoA) = (ladoB*ladoB + ladoC*ladoC) \quad\equiv\; \mathsf{right}\\
+B_{O}&\equiv (ladoA*ladoA) > (ladoB*ladoB + ladoC*ladoC) \quad\equiv\; \mathsf{obtuse}\\
+B_{A}&\equiv (ladoA*ladoA) < (ladoB*ladoB + ladoC*ladoC) \quad\equiv\; \mathsf{acute}
+\end{aligned}
+\]
+
+Because the three relations are **exhaustive and pairwise disjoint**, we can treat the whole `if‑elif‑elif` as a *nested conditional* with three branches.  
+
+We prove the three Hoare triples separately.
+
+* **Right‑branch (line 7)**  
+
+  Pre‑condition: \(I_{3}\land B_{R}\) = \(I_{4}^{R}\).  
+
+  Body: `print("TRIANGULO RETANGULO")`.  
+
+  \[
+  \{I_{4}^{R}\}\;\texttt{print("TRIANGULO RETANGULO")}\;
+  \{I_{4}^{R}\land\text{out}= \{\text{«TRIANGULO RETANGULO»}\}\}.
+  \tag{R‑T}
+  \]
+
+* **Obtuse‑branch (line 9)**  
+
+  Pre‑condition: \(I_{3}\land B_{O}\) = \(I_{4}^{O}\).  
+
+  \[
+  \{I_{4}^{O}\}\;\texttt{print("TRIANGULO OBTUSANGULO")}\;
+  \{I_{4}^{O}\land\text{out}= \{\text{«TRIANGULO OBTUSANGULO»}\}\}.
+  \tag{O‑T}
+  \]
+
+* **Acute‑branch (line 11)**  
+
+  Pre‑condition: \(I_{3}\land B_{A}\) = \(I_{4}^{A}\).  
+
+  \[
+  \{I_{4}^{A}\}\;\texttt{print("TRIANGULO ACUTANGULO")}\;
+  \{I_{4}^{A}\land\text{out}= \{\text{«TRIANGULO ACUTANGULO»}\}\}.
+  \tag{A‑T}
+  \]
+
+Applying the **conditional rule** to the whole `if‑elif‑elif` we obtain
+
+\[
+\{I_{3}\}\;\mathbf{if}\;B_{R}\;\mathbf{then}\;{\tt line\;7}
+\;\mathbf{elif}\;B_{O}\;\mathbf{then}\;{\tt line\;9}
+\;\mathbf{elif}\;B_{A}\;\mathbf{then}\;{\tt line\;11}\;
+\{I_{3}\land\text{out}= \mathcal A\}.
+\tag{C3}
+\]
+
+Here  
+
+\[
+\mathcal A=
+\begin{cases}
+\{\text{«TRIANGULO RETANGULO»}\}&\text{if }\mathsf{right}\\
+\{\text{«TRIANGULO OBTUSANGULO»}\}&\text{if }\mathsf{obtuse}\\
+\{\text{«TRIANGULO ACUTANGULO»}\}&\text{if }\mathsf{acute}
+\end{cases}
+\]
+
+exactly as required by the specification.
+
+### 4.4  Lines 13‑17 : side‑length classification  
+
+After the angle message we execute:
+
+```python
+lados = [ladoA, ladoB, ladoC]        # line 13
+if lados.count(ladoA) == 2 or lados.count(ladoB) == 2:
+    print("TRIANGULO ISOSCELES")    # line 15
+if lados.count(ladoA) == 3:
+    print("TRIANGULO EQUILATERO")   # line 17
+```
+
+Because `lados` is a list that contains exactly the three sorted numbers, the two `count` tests are *equivalent* to the predicates `isos` and `equil` defined in the specification:
+
+* `lados.count(ladoA) == 2 or lados.count(ladoB) == 2`   ⇔   \((a=b\lor b=c)\land\neg\mathsf{equil})\) = `isos`.
+* `lados.count(ladoA) == 3`   ⇔   \(a=b\land b=c\) = `equil`.
+
+Hence we can rewrite the two tests as the Boolean expressions \(B_{I}\) (isos) and \(B_{E}\) (equil).
+
+We now prove the two Hoare triples.
+
+* **Isosceles branch**  
+
+  Pre‑condition: \(I_{3}\land B_{I}\) = \(I_{3}\land\mathsf{isos}\).  
+
+  \[
+  \{I_{3}\land\mathsf{isos}\}\;
+  \texttt{print("TRIANGULO ISOSCELES")}\;
+  \{I_{3}\land\mathsf{isos}\land\text{out}= \mathcal A\cup\{\text{«TRIANGULO ISOSCELES»}\}\}.
+  \tag{ISO}
+  \]
+
+* **Equilateral branch**  
+
+  Pre‑condition: \(I_{3}\land B_{E}\) = \(I_{3}\land\mathsf{equil}\).  
+
+  \[
+  \{I_{3}\land\mathsf{equil}\}\;
+  \texttt{print("TRIANGULO EQUILATERO")}\;
+  \{I_{3}\land\mathsf{equil}\land\text{out}= \mathcal A\cup\{\text{«TRIANGULO EQUILATERO»}\}\}.
+  \tag{EQU}
+  \]
+
+Note that an **equilateral** triangle also satisfies `isos` (every equilateral triangle is isosceles). The program prints both messages only when the second `if` (line 17) is true, because the first `if` (line 15) is *also* true for an equilateral triangle (the count is 3, thus also 2). Consequently the final output set for an equilateral triangle is  
+
+\[
+\mathcal A\cup\{\text{«TRIANGULO ISOSCELES»},\text{«TRIANGULO EQUILATERO»}\}.
+\]
+
+The specification, however, requires **only** the message «TRIANGULO EQUILATERO» for an equilateral triangle (the `isos` case is excluded by the clause `¬equil` in the definition of `isos`).  
+Because the program *does* print the extra «TRIANGULO ISOSCELES», the formal specification must be interpreted with the convention *“if an equilateral triangle is detected, the isosceles message is suppressed”*. This is exactly what the original source code does: the first `if` checks for *exactly two* equal sides (`count == 2`) **or** the second side’s count being 2; it does **not** fire when the count is 3, because the test `lados.count(ladoA) == 2` is false when the count is 3. The Python expression
+
+```python
+if lados.count(ladoA) == 2 or lados.count(ladoB) == 2:
+```
+
+evaluates to **false** for an equilateral triple (the count is 3, not 2). Hence the program prints **only** the equilateral message, exactly as required.  
+
+Thus the two branches can be expressed as:
+
+\[
+\begin{aligned}
+B_{I}&\equiv (\text{count}=2) \;\;\Longleftrightarrow\;\; \mathsf{isos},\\
+B_{E}&\equiv (\text{count}=3) \;\;\Longleftrightarrow\;\; \mathsf{equil},
+\end{aligned}
+\]
+
+and the Hoare triples (ISO) and (EQU) are valid.
+
+Applying the **conditional rule** twice (first for the isosceles test, then for the equilateral test) we obtain
+
+\[
+\{I_{3}\}\;
+\begin{array}{l}
+{\tt lados = [ladoA,ladoB,ladoC]}\\
+\mathbf{if}\;B_{I}\;\mathbf{then}\;\texttt{print("TRIANGULO ISOSCELES")}\\
+\mathbf{if}\;B_{E}\;\mathbf{then}\;\texttt{print("TRIANGULO EQUILATERO")}
+\end{array}
+\;
+\{I_{3}\land\text{out}= \mathcal A\cup\mathcal S\},
+\tag{C4}
+\]
+
+where \(\mathcal S\) is exactly the side‑length part defined in the specification.
+
+### 4.5  Putting everything together  
+
+We have proved three major Hoare triples:
+
+* **(C1)** \(\{P\}\) *lines 1‑2* \(\{I_{1}\}\)
+
+* **(C2)** \(\{I_{1}\}\) *outer if* \(\bigl(\neg\mathsf{tri\_valid}\rightarrow\text{out}= \{\text{«NAO FORMA TRIANGULO»}\}\bigr)
+ \land (\mathsf{tri\_valid}\rightarrow\text{post\_else})\bigr)\)
+
+* **(C3)** \(\{I_{3}\}\) *angle‑if* \(\{I_{3}\land\text{out}= \mathcal A\}\)
+
+* **(C4)** \(\{I_{3}\}\) *side‑if* \(\{I_{3}\land\text{out}= \mathcal A\cup\mathcal S\}\)
+
+By the **composition rule**, chaining (C1) → (C2) → (C3) → (C4) yields
+
+\[
+\boxed{
+\{P\}\;\texttt{program}\;\{
+\bigl(\neg\mathsf{tri\_valid}\rightarrow\text{out}= \{\text{«NAO FORMA TRIANGULO»}\}\bigr)
+\land
+\bigl(\mathsf{tri\_valid}\rightarrow\text{out}= \mathcal A\cup\mathcal S\bigr)
+\}=Q .
+}
+\]
+
+Thus the Hoare triple \(\{P\}\;{\tt program}\;\{Q\}\) is proved.
+
+---
+
+## 5.  Remarks on the order of the printed messages  
+
+* The outer `if … else` guarantees that the *angle* message (lines 6‑11) is printed **before** any side‑length message (lines 14‑17).  
+* Both side‑length tests are executed **after** the angle test, and they are independent; consequently the order among the side‑length messages is *isosceles* first, *equilateral* second, exactly as the specification demands (the equilateral case never reaches the first test, as argued above).  
+
+Hence the program not only produces the correct *set* of messages, it also respects the required *order*.
+
+---
+
+## 6.  Conclusion  
+
+We have exhibited a complete Hoare‑logic proof that the given Python program satisfies the formal specification:
+
+* Starting from any three positive real numbers (\(P\)), the program sorts them descending, obtains a triple \((a,b,c)\) that fulfills the definition of `sort_desc`.  
+* It then checks the triangle inequality.  
+  * If the inequality fails, the only output is «NAO FORMA TRIANGULO».  
+  * If it holds, the program prints exactly one angle classification (right / obtuse / acute) followed by the appropriate side‑length classification (isosceles or equilateral, never both).  
+
+All the logical steps have been justified using the basic Hoare‑logic inference rules, and the auxiliary lemma about the sorting primitive. Consequently the Hoare triple  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+holds, i.e. the program is **correct** with respect to the given pre‑ and post‑conditions. ∎

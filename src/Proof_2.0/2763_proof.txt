@@ -1,0 +1,233 @@
+## 1.  What has to be shown  
+
+We have to prove the **partial‑correctness** Hoare triple  
+
+\[
+\{P\}\;\;{\tt ParseAndPrint}\;\; \{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition that the (only) input line \(s\) can be written  
+
+  \[
+  s = a\;.\;b\;.\;c\;-\;d\qquad
+  (\operatorname{dig}(a)\wedge\operatorname{dig}(b)\wedge\operatorname{dig}(c)\wedge\operatorname{dig}(d))
+  \]
+
+* \(Q\) is the post‑condition that the program writes exactly the four
+  substrings \(a,b,c,d\) on four separate lines (preserving leading zeros).
+
+The program that has to be analysed is the one that appears in the
+question:
+
+```python
+cpf = input()                               # 1
+cpf_separado = cpf.split(".")               # 2
+cpf_separado.extend(cpf_separado[-1].split("-"))   # 3
+cpf_separado.pop(-3)                        # 4
+for i in cpf_separado:                      # 5
+    print(i)                                # 6
+```
+
+In the sequel we write a Hoare‑logic proof that each line preserves the
+required property, ending with the fact that the printed output satisfies
+\(Q\).
+
+---------------------------------------------------------------------
+
+## 2.  Notation that will be used in the proof  
+
+* \(s\) – the (single) line read from the input file.  
+* \(a,b,c,d\) – the four digit blocks guaranteed by the pre‑condition.  
+* \(\mathit{list}(x)\) – the value of a Python list variable \(x\).  
+* \(\mathit{out}\) – the (finite) sequence of lines that have already been
+  written to the standard output.  
+* \(\mathit{len}(L)\) – length of a list \(L\).  
+
+We will need three elementary lemmas about the standard library
+operations that appear in the program.
+
+| Lemma | Statement |
+|-------|-----------|
+| **L1 (split on ‘.’)** | If \(s=a\;.\;b\;.\;c\;-\;d\) then `s.split(".")` returns the list \([a,b,c-d]\). |
+| **L2 (split on ‘‑’)** | If \(x=c\;-\;d\) then `x.split("-")` returns the list \([c,d]\). |
+| **L3 (extend + pop)** | Let \(L=[a,b,c-d]\). After `L.extend(L[-1].split("-"))` we obtain \([a,b,c-d,c,d]\); after `L.pop(-3)` the resulting list is \([a,b,c,d]\). |
+| **L4 (for‑loop invariant)** | For a list \(L\) of length \(k\), after the loop  
+
+  ```python
+  for i in L:
+      print(i)
+  ```  
+
+  the output sequence is \(\langle L[0],L[1],\dots ,L[k-1]\rangle\). |
+
+All three lemmas are **purely functional** properties of the Python
+functions; they can be proved by a case analysis on the definition of
+`str.split`, `list.extend` and `list.pop`.  In the Hoare‑logic proof we
+use them as *axioms* about the primitive statements.
+
+---------------------------------------------------------------------
+
+## 3.  Hoare triples for the individual statements  
+
+Below we write a Hoare triple for each line of the program.  The
+intermediate assertions are written as \(A_i\); they are chosen so that
+the successive triples can be composed by the **rule of consequence** and
+the **rule of composition**.
+
+### 3.1  Reading the input  
+
+\[
+\frac{\{P\}\;\;{\tt cpf:=input()}\;\;\{A_1\}}{}
+\qquad
+A_1\;:\; cpf = s \;\wedge\; P
+\]
+
+The assignment axiom gives us exactly the assertion \(A_1\).
+
+### 3.2  Splitting on the dot  
+
+\[
+\frac{\{A_1\}\;\;{\tt cpf\_separado := cpf.split(".")}\;\;\{A_2\}}{}
+\qquad
+A_2\;:\; \mathit{list}(cpf\_separado) = [a,b,c-d]\;\wedge\; A_1
+\]
+
+The justification uses Lemma L1, because the pre‑condition guarantees
+that `cpf` has the form `a.b.c-d`.  Hence the result of the call to
+`split(".")` is precisely the three‑element list described in \(A_2\).
+
+### 3.3  Extending with the dash‑split  
+
+\[
+\frac{\{A_2\}\;\;{\tt cpf\_separado.extend(cpf\_separado[-1].split("-"))}\;\;\{A_3\}}{}
+\qquad
+A_3\;:\; \mathit{list}(cpf\_separado) = [a,b,c-d,c,d]\;\wedge\; A_2
+\]
+
+`cpf_separado[-1]` is the last element of the list, i.e. the string
+`c-d`.  By Lemma L2 the inner call returns `[c,d]`; the call to
+`extend` appends exactly those two elements to the list, yielding the
+list displayed in \(A_3\).
+
+### 3.4  Removing the “c‑d’’ element  
+
+\[
+\frac{\{A_3\}\;\;{\tt cpf\_separado.pop(-3)}\;\;\{A_4\}}{}
+\qquad
+A_4\;:\; \mathit{list}(cpf\_separado) = [a,b,c,d]\;\wedge\; A_3
+\]
+
+Index `-3` points to the third element from the end, which is the
+original string `c-d`.  Lemma L3 tells us that after the `pop` the list
+contains exactly the four required blocks.
+
+### 3.5  The printing loop  
+
+We now have a list that already contains the desired four strings:
+
+\[
+A_4\;:\; \mathit{list}(cpf\_separado) = [a,b,c,d]
+\]
+
+The loop
+
+```python
+for i in cpf_separado:
+    print(i)
+```
+
+is analysed with the standard **while‑loop invariant** (or, more simply,
+with Lemma L4).  The invariant that holds at the start of each iteration
+\(k\) ( \(0\le k\le4\) ) is
+
+\[
+I(k)\;:\; \operatorname{out}= \langle a,b,c,d\rangle[1\!:\!k]
+\]
+
+where the notation \(\langle a,b,c,d\rangle[1\!:\!k]\) denotes the first
+\(k\) elements of the four‑element sequence.  
+
+* **Initialization** (\(k=0\)) – before the first iteration `out` is
+  empty, therefore \(I(0)\) holds.
+* **Maintenance** – assuming \(I(k)\) holds and the loop body executes,
+  the next element of `cpf_separado` (which is the \((k+1)\)-st element of
+  \([a,b,c,d]\)) is printed, so `out` becomes the prefix of length
+  \(k+1\).  Hence \(I(k+1)\) holds.
+* **Termination** – the loop stops when the iterator has been exhausted,
+  i.e. after exactly \(\mathit{len}(cpf\_separado)=4\) iterations.  At that
+  moment we have \(I(4)\), i.e.
+
+  \[
+  \operatorname{out}= \langle a,b,c,d\rangle .
+  \]
+
+Thus the Hoare triple for the whole loop is
+
+\[
+\{A_4\}\;\;{\tt for\;i\;in\;cpf\_separado: print(i)}\;\;\{Q\},
+\]
+
+because \(Q\) is precisely the statement “the output consists of the four
+lines \(a,b,c,d\)”.
+
+---------------------------------------------------------------------
+
+## 4.  Composition of the triples  
+
+We now chain the triples proved in Sections&nbsp;3.1–3.5:
+
+\[
+\begin{aligned}
+\{P\} &\;\;{\tt cpf:=input()}\;\; \{A_1\} \\
+\{A_1\}&\;\;{\tt cpf\_separado:=cpf.split(".")}\;\; \{A_2\}\\
+\{A_2\}&\;\;{\tt cpf\_separado.extend(cpf\_separado[-1].split("-"))}\;\; \{A_3\}\\
+\{A_3\}&\;\;{\tt cpf\_separado.pop(-3)}\;\; \{A_4\}\\
+\{A_4\}&\;\;{\tt for\;i\;in\;cpf\_separado: print(i)}\;\; \{Q\}
+\end{aligned}
+\]
+
+By the **rule of composition** of Hoare logic we obtain the overall
+triple
+
+\[
+\boxed{\{P\}\;{\tt ParseAndPrint}\;\{Q\}}
+\]
+
+which is exactly the statement we wanted to prove.
+
+---------------------------------------------------------------------
+
+## 5.  Termination  
+
+* The program contains only a finite number of primitive statements,
+  each of which terminates (reading a line, calling `split`, `extend`,
+  `pop` and `print`).  
+* The `for`‑loop iterates over a list whose length is known after step 4
+  to be \(4\).  Hence the loop has a **bounded** number of iterations and
+  certainly terminates.
+
+Therefore the program is **totally correct**: it terminates for every
+input that satisfies the pre‑condition, and on termination the output
+satisfies the post‑condition.
+
+---------------------------------------------------------------------
+
+## 6.  Summary  
+
+* The pre‑condition guarantees that the input line can be uniquely
+  decomposed into four digit blocks \(a,b,c,d\).  
+* Using the three elementary lemmas about `split`, `extend` and `pop` we
+  showed that after the first four statements the list variable
+  `cpf_separado` contains exactly the four substrings \([a,b,c,d]\).  
+* A simple loop‑invariant proves that the `for`‑loop prints those four
+  elements in the same order, producing the output sequence
+  \(\langle a,b,c,d\rangle\).  
+* By chaining the Hoare triples for the individual statements we obtain
+  the global Hoare triple \(\{P\}{\tt ParseAndPrint}\{Q\}\).  
+* Because the loop runs a known finite number of times, the program also
+  terminates.
+
+Consequently **the given Python program is correct with respect to the
+Hoare‑logic specification** stated in the problem.

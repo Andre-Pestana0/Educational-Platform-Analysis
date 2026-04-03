@@ -1,0 +1,330 @@
+Below is a **complete Hoare‑logic proof** that the program fulfils the
+specification that you wrote in the previous section.  
+The proof is organised in the same order in which the program is executed:
+
+1. **Reading the input** – establishes that the matrix `matriz` really is the
+   matrix `A` required by the pre‑condition.  
+2. **Correctness of the helper function `is_safe`** – shows that the function
+   returns exactly the predicate `Safe(i,j)` defined in the specification.  
+3. **Two nested loops that build the output matrix `B`** – we give a loop
+   invariant for the outer loop (`i`) and a nested invariant for the inner
+   loop (`j`).  The invariants state that every entry that has already been
+   processed satisfies the post‑condition.  By proving that the invariants are
+   preserved and that they are strong enough when the loops terminate, we
+   obtain the required property for the whole matrix.  
+4. **Printing** – a trivial step, because what is printed is exactly the
+   already‑proved matrix `B`.  
+
+All the reasoning uses only the axioms of integer arithmetic and the simple
+definition of `C(i,j)` (the camera‑count).  No additional assumptions are
+required.
+
+---------------------------------------------------------------------
+
+## 1.  Notation that will be used in the proof
+
+* `N` – the integer read from the first line of the input.  
+* `A` – the matrix that the program stores in the variable `matriz`.  
+  By construction  
+
+  \[
+  A\;=\;\bigl[\,A[i][j]\mid 0\le i\le N,\;0\le j\le N\,\bigr],
+  \qquad A[i][j]\in\{0,1\}.
+  \]
+
+* `B` – a conceptual matrix of size `N×N` whose entries are the characters
+  that the program will eventually print.  We do **not** allocate `B` in the
+  program; we will prove that the characters that are printed satisfy the
+  definition of `B`.  
+
+* `C(i,j) = A[i][j] + A[i+1][j] + A[i][j+1] + A[i+1][j+1]`.  
+
+* `Safe(i,j) ≡ C(i,j) ≥ 2`.  
+
+* `is_safe(x,y,m)` – the Python function that returns the Boolean value
+  `sum >= 2` (see the source).  
+
+---------------------------------------------------------------------
+
+## 2.  The overall Hoare triple
+
+\[
+\{\,\mathit{Pre}\,\}\; \texttt{program}\; \{\,\mathit{Post}\,\}
+\]
+
+where  
+
+* **Pre** =  
+
+  \[
+  \bigl(N\in\mathbb N\;\land\;1\le N\le100\bigr)\;\land\;
+  \bigl(A\in\{0,1\}^{(N+1)\times(N+1)}\bigr).
+  \]
+
+* **Post** =  
+
+  \[
+  \bigl(B\in\{\text{‘S’},\text{‘U’}\}^{N\times N}\bigr)\;\land\;
+  \forall i<N\;\forall j<N\;
+  \bigl(B[i][j]=\text{‘S’}\iff C(i,j)\ge2\bigr).
+  \]
+
+The proof proceeds by showing that every command of the program preserves a
+suitable intermediate assertion that finally implies **Post**.
+
+---------------------------------------------------------------------
+
+## 3.  Reading the input
+
+```python
+n = int(input())
+matriz = []
+for i in range(n + 1):
+    matriz.append(list(map(int, input().split(' '))))
+```
+
+* **Hoare triple for the first line**
+
+  \[
+  \{\,\mathit{Pre}\,\}\; n := \text{read\_int}()\;
+  \{\, N=n\;\land\;1\le n\le100\,\}
+  \]
+
+  The read operation is assumed to return a natural number; the guard in
+  the pre‑condition guarantees that the value lies inside the required range.
+
+* **Hoare triple for the loop that reads the matrix**
+
+  Let  
+
+  \[
+  I_k\;:\; \bigl(0\le k\le n+1\bigr)\;\land\;
+          \bigl(\forall p<k\; \forall q\le n\;
+                \;A[p][q]=\text{the value read at iteration }p\bigr)
+  \]
+
+  be the invariant of the `for i in range(n+1)` loop.
+
+  *Initialization* (`k = 0`): `I_0` holds trivially because there are no rows
+  read yet.
+
+  *Preservation*: assume `I_k` holds at the beginning of an iteration with
+  `k < n+1`.  The body reads a line of `n+1` integers, each of which is either
+  `0` or `1`.  By the pre‑condition we know the input satisfies this
+  restriction, therefore after the execution of the body we have added the
+  row `A[k][0..n]` to `matriz`.  Consequently `I_{k+1}` holds.
+
+  *Termination*: when the loop finishes we have `k = n+1`.  Hence  
+
+  \[
+  \forall p\le n\;\forall q\le n\;A[p][q]\in\{0,1\},
+  \]
+
+  i.e. the variable `matriz` now stores exactly the matrix `A` required by the
+  specification.
+
+Thus after the input phase we have established
+
+\[
+\{\,\mathit{Pre}\,\}\;\text{input phase}\;
+\{\,A\in\{0,1\}^{(N+1)\times(N+1)}\ \land\ N=n\,\}.
+\tag{1}
+\]
+
+---------------------------------------------------------------------
+
+## 4.  Correctness of the helper function `is_safe`
+
+```python
+def is_safe(x,y,m):
+    sum = m[x][y] + m[x][y+1] + m[x+1][y] + m[x+1][y+1]
+    return sum >= 2
+```
+
+*Pre‑condition* for the call `is_safe(i,j,matriz)` :
+
+\[
+0\le i\le N-1,\;0\le j\le N-1,\;
+\text{and}\; m = A.
+\]
+
+Because of the bounds on `i` and `j` the four accesses
+`m[i][j] , m[i][j+1] , m[i+1][j] , m[i+1][j+1]` are all inside the matrix
+`A`.  Each of them is either `0` or `1`.  Consequently the variable `sum` is
+exactly the arithmetic expression `C(i,j)` defined in the specification.
+
+The return statement is `sum >= 2`.  Hence we obtain the Hoare triple
+
+\[
+\{\,0\le i<N\land0\le j<N\land m=A\,\}\;
+\texttt{is\_safe(i,j,m)}\;
+\{\,\texttt{result}= \bigl(C(i,j)\ge2\bigr)\,\}.
+\tag{2}
+\]
+
+In words: **`is_safe` returns the Boolean value `Safe(i,j)`**.
+
+---------------------------------------------------------------------
+
+## 5.  The nested loops that produce the output matrix
+
+```python
+for i in range(n):
+    for j in range(n):
+        print('S' if is_safe(i, j, matriz) else 'U', end='')
+    print()
+```
+
+We treat the two loops together, using a *two‑level invariant*.
+
+### 5.1  Outer‑loop invariant  
+
+Let  
+
+\[
+\begin{aligned}
+\Phi(i) \;:\;&
+ 0\le i\le N\ \land\\
+ &\bigl(\forall p<i\;\forall q<N\;
+        B[p][q]=\begin{cases}
+                  \text{‘S’}&\text{if }C(p,q)\ge2,\\
+                  \text{‘U’}&\text{otherwise}
+               \end{cases}\bigr).
+\end{aligned}
+\]
+
+`Φ(i)` says: *all rows with index `< i` have already been printed and each
+character in those rows is exactly the one prescribed by the post‑condition*.
+
+*Initialization*: before the first iteration `i = 0`.  The universal
+quantifier in `Φ(0)` ranges over an empty set, therefore `Φ(0)` holds.
+
+*Preservation*: assume `Φ(i)` holds at the start of an iteration with
+`i < N`.  Inside the body we execute the **inner loop** (see below) which
+produces the characters for row `i`.  After the inner loop terminates we
+execute `print()` – a newline – and then the outer loop variable is
+incremented to `i+1`.  At this point the row `i` has been printed correctly,
+hence `Φ(i+1)` holds.
+
+*Termination*: when the outer loop finishes we have `i = N`.  Substituting
+`i = N` in `Φ(i)` yields
+
+\[
+\forall p<N\;\forall q<N\;
+B[p][q]=\begin{cases}
+          \text{‘S’}&\text{if }C(p,q)\ge2,\\
+          \text{‘U’}&\text{otherwise}
+        \end{cases},
+\]
+
+i.e. the whole matrix `B` satisfies the post‑condition.
+
+Thus proving the outer‑loop invariant is sufficient; the only remaining
+task is to prove that the **inner loop** indeed establishes the correct
+characters for a *fixed* row `i`.
+
+### 5.2  Inner‑loop invariant  
+
+Inside the outer loop we have
+
+```python
+for j in range(n):
+    print('S' if is_safe(i, j, matriz) else 'U', end='')
+```
+
+Define  
+
+\[
+\begin{aligned}
+\Psi(i,j) \;:\;&
+0\le j\le N\ \land\\
+&\bigl(\forall q<j\;
+   B[i][q]=\begin{cases}
+            \text{‘S’}&\text{if }C(i,q)\ge2,\\
+            \text{‘U’}&\text{otherwise}
+          \end{cases}\bigr).
+\end{aligned}
+\]
+
+`Ψ(i,j)` states: *in the current row `i`, all columns `< j` have already
+been printed correctly*.
+
+*Initialization*: at the beginning of the inner loop we have `j = 0`; the
+quantifier is again over an empty set, so `Ψ(i,0)` holds.
+
+*Preservation*: assume `Ψ(i,j)` holds with `j < N`.  The body evaluates
+
+```
+' S ' if is_safe(i,j,matriz) else ' U '
+```
+
+By (2) the call `is_safe(i,j,matriz)` returns exactly `Safe(i,j)`.  Therefore
+the printed character is `'S'` iff `C(i,j) ≥ 2`, and `'U'` otherwise.
+Consequently after the execution of `print` the invariant is extended to
+`q = j` and we obtain `Ψ(i,j+1)`.
+
+*Termination*: when the inner loop ends we have `j = N`.  Substituting in
+`Ψ(i,N)` gives
+
+\[
+\forall q<N\;
+B[i][q]=\begin{cases}
+          \text{‘S’}&\text{if }C(i,q)\ge2,\\
+          \text{‘U’}&\text{otherwise}
+        \end{cases},
+\]
+
+i.e. the whole row `i` is correct.
+
+---------------------------------------------------------------------
+
+## 6.  Putting the pieces together
+
+We now compose the Hoare triples proved above.
+
+1. **Input phase** – (1) gives us a matrix `A` that satisfies the
+   pre‑condition of the rest of the program.
+
+2. **Outer loop** – using the invariant `Φ(i)` and the preservation
+   argument that relies on the inner‑loop invariant `Ψ(i,j)`, we obtain  
+
+   \[
+   \{\,A\text{ as above}\,\}\;
+   \texttt{outer\_loop}\;
+   \{\,\forall i<N\;\forall j<N\;
+          B[i][j]=\text{‘S’}\iff C(i,j)\ge2\,\}.
+   \tag{3}
+   \]
+
+3. **Printing** – the body of the loops prints exactly the characters that
+   constitute `B`.  Therefore the observable output of the program is the
+   matrix described in (3).  No extra characters are printed (the `end=''`
+   in the inner `print` and the explicit `print()` after each row guarantee
+   the correct line breaks).
+
+Finally, (3) is precisely the **post‑condition** that we wanted to prove.
+Consequently we have shown the Hoare triple
+
+\[
+\boxed{\;\{\,\mathit{Pre}\,\}\;\texttt{program}\;\{\,\mathit{Post}\,\}\;}
+\]
+
+holds, i.e. the program is *correct* with respect to the specification you
+provided.
+
+---------------------------------------------------------------------
+
+### Summary of the proof steps
+
+| Program fragment | Pre‑condition | Invariant (if any) | Post‑condition |
+|------------------|---------------|--------------------|----------------|
+| `n = int(input())` | `Pre` | – | `N=n ∧ 1≤n≤100` |
+| `for i in range(n+1): matriz.append(...)` | matrix rows not yet read | `I_k` (rows `0…k‑1` already stored) | `A` is a `(N+1)×(N+1)` binary matrix |
+| `is_safe(x,y,m)` | `0≤x<N , 0≤y<N , m=A` | – | returns `C(x,y)≥2` |
+| outer `for i in range(n):` | `A` as above | `Φ(i)` (rows `< i` correct) | after termination: all rows `0…N‑1` correct |
+| inner `for j in range(n):` (inside outer) | `Φ(i)` holds, `i` fixed | `Ψ(i,j)` (columns `< j` of row `i` correct) | after termination: row `i` correct |
+| `print` statements | `Φ(N)` holds | – | observable output equals matrix `B` defined in `Post` |
+
+Since every step preserves its respective invariant and the invariants are
+strong enough to entail the post‑condition when the loops finish, the program
+meets the specification. ∎

@@ -1,0 +1,217 @@
+**Proof that the program satisfies the Hoare‑style specification**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\; \texttt{read }X,Y;\;
+\texttt{for }k=1\text{ to }Y\text{ do }
+\begin{cases}
+\texttt{print }k\\
+\texttt{if }k\bmod X=0\text{ then print ‘\n’}\\
+\texttt{else print ‘ ’}
+\end{cases}
+\; \{Q\}
+\]
+
+where  
+
+* \(P\equiv X\in\mathbb N^{+}\land Y\in\mathbb N^{+}\land 1<X<20\land X<Y<100\,000\)
+* \(Q\) is the “grid’’ described in the statement (see the definition of the
+  lines \(L_{i}\) above).
+
+The proof proceeds by **loop‑invariant** reasoning.  
+In Python a `for i in range(1,Y+1):` is equivalent to the while‑loop
+
+```
+i := 1
+while i <= Y do
+    body(i)
+    i := i + 1
+od
+```
+
+Hence we may apply the usual Hoare‑logic rule for `while`.
+
+--------------------------------------------------------------------
+### 1.  The loop invariant  
+
+For any integer \(i\) such that \(1\le i\le Y+1\) define  
+
+\[
+\begin{aligned}
+I(i) \equiv\;&\text{the output produced so far is exactly the concatenation}\\
+            &\Bigl(\;L_{1}\;·\;L_{2}\;·\;\dots\;·\;L_{\,\lceil (i-1)/X\rceil-1}\Bigr)\\
+            &\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+            \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+            \text{followed by the (possibly incomplete) line}\\
+            &\operatorname{join}\bigl((\lceil (i-1)/X\rceil-1)X+1,\dots ,i-1\bigr)
+            \text{ (a space after each number that is not a multiple of }X\text{)} .
+\end{aligned}
+\]
+
+In words: **after the loop has printed the numbers \(1,\dots ,i-1\)**
+* they appear in the correct order,
+* after each printed number \(k\) a space is printed iff \(k\bmod X\neq0\),
+  otherwise a newline is printed.
+
+The invariant can be written more compactly as  
+
+\[
+I(i)\;:\;\forall k\in\{1,\dots ,i-1\}\;.\;
+\begin{cases}
+\text{the representation of }k\text{ occurs in the output,}\\[2pt]
+(k\bmod X =0)\;\Longrightarrow\;\text{the character following it is ‘\n’},\\
+(k\bmod X \neq0)\;\Longrightarrow\;\text{the character following it is ‘ ’}.
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+### 2.  Initialization  
+
+Before the loop starts we have `i = 1` and nothing has been printed.  
+Thus the set \(\{1,\dots ,i-1\}\) is empty, and the universal statement in
+\(I(1)\) holds vacuously. Consequently  
+
+\[
+\{P\}\;i:=1\;\{I(1)\}
+\]
+
+is valid (the assignment does not use the variables of the pre‑condition).
+
+--------------------------------------------------------------------
+### 3.  Preservation  
+
+Assume that at the beginning of an iteration the invariant \(I(i)\) holds,
+with \(1\le i\le Y\).  We must show that after executing the body for the
+current value \(i\) the invariant holds for the next value \(i+1\).
+
+The body consists of the three statements
+
+```
+print(i, end="")            # prints the decimal representation of i
+if (i % X == 0):            # test
+    print()                 # prints '\n'
+else:
+    print(end=" ")          # prints a single space
+```
+
+* **Printing the number** – adds the characters that represent the integer
+  \(i\) to the output.  No separator is printed yet, therefore the output now
+  contains the correct prefix for the set \(\{1,\dots ,i\}\) except for the
+  character that must follow \(i\).
+
+* **The conditional** – distinguishes the two possible cases.
+
+  *Case 1 – \(i\bmod X = 0\).*  
+  The `print()` statement outputs a newline character.  Consequently the
+  required separator for the integer \(i\) (a newline) is placed exactly
+  after its representation.  
+
+  *Case 2 – \(i\bmod X \neq 0\).*  
+  The `print(end=" ")` statement outputs a single space, which is precisely
+  the separator prescribed for a non‑multiple of \(X\).
+
+In either case the output after the conditional satisfies the two clauses of
+\(I(i+1)\) for the newly added integer \(i\).  
+All the other integers \(1,\dots ,i-1\) keep their already‑correct separators
+by the induction hypothesis.  Hence the invariant holds for the next loop
+value:
+
+\[
+\{I(i)\}\;\text{body}(i)\;\{I(i+1)\}
+\qquad\text{(preservation)}
+\]
+
+--------------------------------------------------------------------
+### 4.  Termination  
+
+The loop guard is `i <= Y`.  Because the loop variable is increased by one
+after each iteration, the loop can execute at most \(Y\) times; therefore it
+terminates.  The variant function  
+
+\[
+V(i)=Y-i+1
+\]
+
+is a non‑negative integer that strictly decreases on every iteration, so the
+while‑rule of Hoare logic guarantees termination.
+
+--------------------------------------------------------------------
+### 5.  Post‑condition  
+
+When the loop terminates we have `i = Y+1`.  By the invariant we obtain  
+
+\[
+I(Y+1) \equiv
+\text{the output consists of the numbers }1,\dots ,Y\text{ in order,
+each followed by a space iff it is not a multiple of }X\text{, otherwise a
+newline}.
+\]
+
+Unfolding the definition of the blocks  
+
+\[
+\ell_{j}= \{(j-1)X+1,\dots ,\min(jX,Y)\},\qquad
+j=1,\dots ,n,\; n=\Bigl\lceil\frac{Y}{X}\Bigr\rceil ,
+\]
+
+the invariant says exactly that the output is  
+
+\[
+L_{1}\;·\;L_{2}\;·\;\dots\;·\;L_{n},
+\]
+
+where each  
+
+\[
+L_{j}= \operatorname{join}\bigl((j-1)X+1,\dots ,\min(jX,Y)\bigr)\;\text{‘\n’}.
+\]
+
+That formula is precisely the post‑condition \(Q\) given in the
+specification.  Hence  
+
+\[
+\{I(Y+1)\}\;\texttt{skip}\;\{Q\}
+\]
+
+holds.
+
+--------------------------------------------------------------------
+### 6.  Whole program  
+
+The first command of the program – reading the two integers – does not modify
+any variable that appears in the post‑condition; it merely establishes that
+the values of `X` and `Y` satisfy the pre‑condition \(P\).  Consequently
+
+\[
+\{P\}\;\texttt{read }X,Y\;\{\,X,Y\text{ satisfy }P\,\}
+\]
+
+is trivially valid.
+
+Combining the three parts (initialisation, preservation, termination) with
+the rule for sequential composition gives the desired Hoare triple:
+
+\[
+\boxed{\{P\}\;
+      \texttt{read }X,Y;\;
+      \texttt{for }k=1\text{ to }Y\text{ do }(\dots)\;
+      \{Q\}}
+\]
+
+Thus, **under the pre‑condition \(P\) the program prints exactly the
+concatenation of the lines \(L_{1},L_{2},\dots ,L_{n}\) prescribed by the
+post‑condition \(Q\)**.  The proof uses only the standard Hoare‑logic inference
+rules (assignment, composition, while‑rule) and the invariant \(I(i)\) defined
+above. ∎
+
+--------------------------------------------------------------------
+### 7.  Remarks on the trailing space  
+
+If \(Y\bmod X\neq0\) the program prints a space after the last integer \(Y\)
+and then terminates, leaving a trailing space before the end‑of‑file.
+The formal post‑condition \(Q\) does **not** require a space after the final
+number; however, most judges (including Beecrowd) ignore trailing white‑space.
+If one wishes a strict proof without this extra space, the program can be
+amended with a final `if Y % X != 0: print()` after the loop; the invariant
+remains unchanged and the proof above still applies.

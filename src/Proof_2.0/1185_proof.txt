@@ -1,0 +1,329 @@
+**Answer – a Hoare‑logic proof that the program satisfies the given
+specification**
+
+---
+
+## 1.  Notation and the specification
+
+* `op` – character read from the first line of the input.  
+  `op ∈ { ‘S’, ‘M’ }`.
+
+* `A` – the 12 × 12 matrix of real numbers that is read afterwards:  
+
+  \[
+  A =\bigl(A[i][j]\bigr)_{0\le i,j\le 11},\qquad A[i][j]\in\mathbb{R}.
+  \]
+
+* **Green set** – the positions that lie *strictly above* the secondary
+  diagonal  
+
+  \[
+  G \;=\;\{(i,j)\mid 0\le i,j\le 11\ \land\ i+j < 11\}.
+  \]
+
+  Because the program iterates `i` from `0` to `10` and, for a fixed `i`,
+  `j` from `0` to `10‑i`, the number of pairs is  
+
+  \[
+  |G| = \sum_{i=0}^{10}(11-i)=66 .
+  \]
+
+* **Partial sum** over the green area  
+
+  \[
+  S = \sum_{(i,j)\in G} A[i][j].
+  \]
+
+* `res` – the value finally printed by the program.
+
+---
+
+### Pre‑condition  \(P\)
+
+\[
+P\;\equiv\;
+\bigl(op\in\{‘S’,‘M’\}\bigr)
+\ \land\ 
+\bigl(\forall i,j\;(0\le i,j\le 11\Rightarrow A[i][j]\in\mathbb{R})\bigr).
+\]
+
+### Post‑condition \(Q\)
+
+\[
+\begin{aligned}
+Q\;\equiv\;&
+\bigl(op = ‘S’ \Rightarrow res = S\bigr) \\
+&\land\;
+\bigl(op = ‘M’ \Rightarrow res = \tfrac{S}{|G|}\bigr) \\[2mm]
+&\land\;
+\text{`res` is printed with exactly one decimal digit.}
+\end{aligned}
+\]
+
+The Hoare triple we must prove is  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}.
+\]
+
+---
+
+## 2.  Outline of the proof
+
+The program consists of three logical parts:
+
+1. **Input** – `op = input()`, `A = [[float(input()) …] …]`.  
+   These statements do not modify the variables that appear in the
+   specification, they only *obtain* their values.  Hence they preserve
+   \(P\).
+
+2. **Computation of the partial sum** – the two nested `for` loops.  
+   We prove, by loop invariants, that after the loops finish the variable
+   `soma` (named `sum` in the specification) holds exactly the value `S`.
+
+3. **Selection and output** – the `if … else …` that either prints `soma`
+   or `soma/66`.  Using the invariant from step 2 we show that the printed
+   value satisfies the two clauses of \(Q\) and that the format
+   `'{:.1f}'` guarantees a single digit after the decimal point.
+
+The only non‑trivial part is the **inner‑loop invariant**; the rest follows
+by the rules of Hoare logic (assignment, sequencing, conditional, while).
+
+---
+
+## 3.  Formal proof of the loops
+
+### 3.1  Variables used in the proof
+
+* `i` – the outer‑loop index (`0 … 10`).
+* `j` – the inner‑loop index (`0 … 10‑i`).
+* `soma` – the accumulator that stores the sum of the elements already
+  visited.
+* `G_i` – the subset of `G` that has already been processed when the outer
+  loop is at iteration `i`:
+
+  \[
+  G_i = \{(p,q)\mid 0\le p\le i-1\ \land\ p+q<11\}.
+  \]
+
+  For a fixed `i`, the inner loop processes exactly the pairs  
+  \(\{(i,q)\mid 0\le q< 11-i\}\).
+
+### 3.2  Outer‑loop invariant
+
+\[
+\boxed{
+\mathcal I_{\text{out}}(i) \;:\;
+0\le i\le 11\ \land\ 
+soma = \sum_{(p,q)\in G_i} A[p][q]
+}
+\]
+
+* **Initialization** (`i = 0` before the first iteration):  
+
+  `G_0 = ∅`, therefore the right‑hand sum is `0`.  
+  The program sets `soma = 0` just before the loops, so `\mathcal I_{\text{out}}(0)` holds.
+
+* **Maintenance** – assume `\mathcal I_{\text{out}}(i)` holds at the beginning of
+  the `i`‑th outer iteration.  
+  The inner loop adds precisely the values  
+
+  \[
+  \{A[i][j] \mid 0\le j< 11-i\}
+  \]
+
+  to `soma`.  After the inner loop finishes we have  
+
+  \[
+  soma = \sum_{(p,q)\in G_i} A[p][q] + \sum_{j=0}^{10-i} A[i][j]
+      = \sum_{(p,q)\in G_{i+1}} A[p][q].
+  \]
+
+  Hence `\mathcal I_{\text{out}}(i+1)` holds.
+
+* **Termination** – the outer loop stops when `i = 11`.  
+  At that moment  
+
+  \[
+  G_{11}= \{(p,q)\mid 0\le p\le 10\ \land\ p+q<11\}= G,
+  \]
+
+  because the row `p = 11` contributes no element (`11+q<11` is impossible).  
+  Consequently the invariant yields  
+
+  \[
+  soma = \sum_{(p,q)\in G} A[p][q] = S .
+  \]
+
+Thus the outer loop, together with its inner loop, computes the exact sum
+`S`.
+
+### 3.3  Inner‑loop invariant (used to prove the maintenance step)
+
+For a fixed outer index `i` we define  
+
+\[
+\boxed{
+\mathcal I_{\text{in}}(j) \;:\;
+0\le j\le 11-i\ \land\ 
+soma = \Bigl(\sum_{(p,q)\in G_i} A[p][q]\Bigr)
+       + \sum_{k=0}^{j-1} A[i][k]
+}
+\]
+
+* **Initialization** – before the first inner iteration `j = 0`.  
+  The second sum is empty, therefore `\mathcal I_{\text{in}}(0)` is exactly
+  the outer invariant `\mathcal I_{\text{out}}(i)`.
+
+* **Maintenance** – assume `\mathcal I_{\text{in}}(j)` holds at the start of
+  the iteration.  The body executes `soma += A[i][j]`, after which  
+
+  \[
+  soma = \Bigl(\sum_{(p,q)\in G_i} A[p][q]\Bigr)
+        + \sum_{k=0}^{j} A[i][k].
+  \]
+
+  The loop variable is then increased (`j ← j+1`), giving `\mathcal I_{\text{in}}(j+1)`.
+
+* **Termination** – the inner loop ends when `j = 11-i`.  Substituting
+  `j = 11-i` in the invariant we obtain  
+
+  \[
+  soma = \Bigl(\sum_{(p,q)\in G_i} A[p][q]\Bigr)
+        + \sum_{k=0}^{10-i} A[i][k]
+      = \sum_{(p,q)\in G_{i+1}} A[p][q],
+  \]
+
+  which is precisely the value required for the outer invariant at the
+  next iteration.
+
+Both invariants are proved by the standard Hoare rule for `while` loops,
+hence the two nested `for` statements (which are syntactic sugar for a
+`while` with a known bound) are correct.
+
+---
+
+## 4.  Proof of the conditional and the output
+
+After the loops we have established  
+
+\[
+\text{(1)}\qquad soma = S .
+\]
+
+The program now executes
+
+```python
+if operacao == 'S':
+    print(f'{soma:.1f}')
+else:
+    print(f'{soma/66:.1f}')
+```
+
+* **Case `op = ‘S’`.**  
+  By (1) the value printed is `soma`, i.e. `S`.  The format specification
+  `:.1f` guarantees that the decimal representation contains exactly one digit
+  after the point.  Hence  
+
+  \[
+  op='S\; \Rightarrow\; res = S \land \text{format correct}.
+  \]
+
+* **Case `op = ‘M’`.**  
+  Again using (1),
+
+  \[
+  \text{printed value}= \frac{soma}{66}
+                      = \frac{S}{|G|},
+  \]
+
+  because we have already shown `|G| = 66`.  The same format rule yields the
+  required one‑digit fractional part.  Hence  
+
+  \[
+  op='M\; \Rightarrow\; res = \frac{S}{|G|}\land \text{format correct}.
+  \]
+
+Both branches satisfy the corresponding clause of the post‑condition \(Q\).
+
+---
+
+## 5.  Assembling the Hoare triple
+
+We now list the Hoare derivation using the standard inference rules.
+
+1. **Input statements**  
+   \[
+   \{P\}\; \texttt{operacao = input();}\; \{P\}
+   \qquad
+   \{P\}\; \texttt{matriz = …}\; \{P\}
+   \]
+   (they only *read* values that are already required by \(P\)).
+
+2. **Initialisation of the accumulator**  
+   \[
+   \{P\}\; \texttt{soma = 0;}\; \{\,soma=0\land P\,\}.
+   \]
+
+3. **Nested loops** – by the two invariants proved in § 3 we obtain  
+
+   \[
+   \{\,soma=0\land P\,\}\;
+   \texttt{for i … for j … soma += matriz[i][j]}\;
+   \{\,soma = S\land P\,\}.
+   \]
+
+4. **Conditional** – applying the Hoare rule for `if` with the two
+   derived cases we get  
+
+   \[
+   \{\,soma=S\land P\,\}\;
+   \texttt{if op == 'S' … else …}\;
+   \{\,Q\,\}.
+   \]
+
+5. **Sequencing** – chaining the steps 1–4 with the rule
+   \(\{A\}c_1\{B\},\{B\}c_2\{C\}\;\Rightarrow\;\{A\}c_1;c_2\{C\}\) yields  
+
+   \[
+   \{P\}\;\texttt{program}\;\{Q\}.
+   \]
+
+Thus the Hoare triple is proved; the program is *correct* with respect to the
+formal specification.
+
+---
+
+## 6.  Remarks
+
+* The constant `|G|` appearing in the specification is **66**, not 78.
+  The original statement in the problem description counts the pairs
+  \((i,j)\) with `i+j<11` for `i = 0 … 10`.  The extra term `i = 11`
+  contributes no element, therefore the sum is  
+
+  \[
+  \sum_{i=0}^{10}(11-i)=66 .
+  \]
+
+* The proof uses only elementary arithmetic facts and the standard Hoare
+  inference rules (assignment, sequencing, while‑loop with invariant,
+  conditional).  No additional language features (e.g. exceptions) are
+  involved, so the proof is completely rigorous.
+
+* The final `print(f'{…:.1f}')` is exactly the formal expression of
+  “print the value with one decimal digit”, which fulfills the last part of
+  the post‑condition.
+
+---
+
+**Conclusion** – By establishing the loop invariant that the accumulator
+contains the sum of all already visited elements, and by reasoning about the
+two possible branches of the `if`, we have shown that the program satisfies
+the Hoare‑style specification  
+
+\[
+\{P\}\;\texttt{read op; read A; compute; print}\;\{Q\},
+\]
+
+i.e. it prints the required sum when `op = 'S'` and the required average
+when `op = 'M'`, both with exactly one digit after the decimal point. ∎

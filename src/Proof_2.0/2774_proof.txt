@@ -1,0 +1,239 @@
+## 1.  Overview  
+
+We prove, in Hoare‑logic style, that the program shown in the question satisfies the two specifications that were given:
+
+* **\(P_{\text{single}}\) – \(Q_{\text{single}}\)** :  for a *single* test case the program prints the sample standard deviation of the list of sensor readings, rounded to exactly five decimal digits.
+
+* **\(P_{\text{all}}\) – \(Q_{\text{all}}\)** :  for a *finite* sequence of test cases the program prints, one line per case, the same value for each case.
+
+The proof is carried out by separating the program into three parts
+
+1. the **outer loop** that reads test cases until end‑of‑file,
+2. the **inner loop** that computes the sum of squared differences, and
+3. the **final expression** that turns the sum into the standard deviation and prints it.
+
+For each part we give a Hoare triple, an invariant (when a loop is involved) and show that the triple follows from the Hoare inference rules (assignment, sequencing, conditional, while, …).  
+All auxiliary variables that appear in the program (`sensor`, `media`, `soma`, `i`, …) are introduced in the assertions; the “unused’’ integers `h` and `m` are simply read and then ignored.
+
+--------------------------------------------------------------------
+
+## 2.  Notation used in the proof  
+
+* `X = (x₁,…,xₙ)` – the list that is stored in variable `sensor` after the second `input()`.  
+  By the pre‑condition we know `n = |X| ≥ 2` and each `xᵢ ∈ ℝ`.
+
+* `μ(X) = (1/n)· Σ_{i=1}^{n} xᵢ` – arithmetic mean, denoted in the program by `media`.
+
+* `Σ²(X,μ) = Σ_{i=1}^{n} (xᵢ – μ)²` – the *un‑scaled* sum of squared deviations, denoted in the program by `soma` after the inner loop terminates.
+
+* `σ²(X) = Σ²(X,μ)/(n‑1)` – sample variance.
+
+* `acc(X) = √σ²(X)` – sample standard deviation, the value that the specification requires to be printed.
+
+* `format_5(a)` – the textual representation of a real number `a` rounded to exactly five digits after the decimal point (the format used in the `print` statement).
+
+* `⌈A⌉` – a Hoare assertion (a predicate over the current program state).  
+
+  When we write `⌈ … ⌉` we mean “the current values of the program variables satisfy …”.
+
+--------------------------------------------------------------------
+
+## 3.  The inner `for`‑loop (computation of `soma`)
+
+### 3.1  Goal  
+
+After the loop finishes we must have  
+
+\[
+\boxed{\; \text{post‑inner} \;:\; \text{`soma`} = \sum_{i=1}^{n} (x_i-\text{`media`})^2\;}
+\]
+
+where `media` already equals `μ(X)`.
+
+### 3.2  Loop invariant  
+
+\[
+\boxed{\; I_{\text{for}}(k) \;:\; 
+      0\le k\le n\ \land\ 
+      \text{`soma`} = \sum_{i=1}^{k} (x_i-\text{`media`})^2\;}
+\]
+
+* `k` is the number of sensor values that have already been processed
+  (the loop counter of the Python `for i in sensor:` construct).
+* When the loop starts `k = 0` and `soma = 0`, therefore `I_{\text{for}}(0)` holds.
+* The loop body is
+
+```python
+soma += (i - media) ** 2
+```
+
+Assume `I_{\text{for}}(k)` holds at the beginning of an iteration and the
+current element of the iterator is `i = x_{k+1}`.  
+After the assignment we have  
+
+\[
+\text{`soma`}_{\text{new}}=
+\text{`soma`}_{\text{old}} + (x_{k+1} - \text{`media`})^2
+      = \sum_{i=1}^{k} (x_i-\text{`media`})^2
+        + (x_{k+1} - \text{`media`})^2
+      = \sum_{i=1}^{k+1} (x_i-\text{`media`})^2 .
+\]
+
+Thus `I_{\text{for}}(k+1)` holds.  By the **while‑rule** (or the
+`for`‑rule, which is a special case of it) the invariant is preserved.
+
+When the loop terminates we have processed all `n` elements, i.e. `k = n`.
+Instantiating the invariant with `k = n` yields exactly `post‑inner`.
+
+--------------------------------------------------------------------
+
+## 4.  The computation of one test case (`ComputeAccuracy`)
+
+We denote the whole fragment that treats a single test case by  
+
+```
+READ h,m                (line “_ = input()”)
+READ sensor              (list of floats)
+media = sum(sensor)/len(sensor)
+soma = 0
+FOR i IN sensor: soma += (i - media) ** 2
+a = (soma/(len(sensor)-1)) ** 0.5
+PRINT format_5(a)
+```
+
+### 4.1  Hoare triple for the fragment  
+
+\[
+\{P_{\text{single}}\}\;\; \text{ComputeAccuracy}\;\; \{Q_{\text{single}}\}
+\]
+
+Recall  
+
+* **Pre‑condition**  
+
+  \[
+  P_{\text{single}} \;:\;
+  \exists\,h,m\in\mathbb N,\; X=(x_1,\dots ,x_n)\;
+  \bigl[n\ge 2\land (x_i\in\mathbb R)_{i=1}^{n}\bigr].
+  \]
+
+* **Post‑condition**  
+
+  \[
+  Q_{\text{single}} \;:\;
+  \text{the program prints } a = \operatorname{acc}(X)
+  \text{ and the printed line is } \operatorname{format\_5}(a).
+  \]
+
+### 4.2  Proof steps  
+
+| Step | Statement (Hoare triple) | Reason |
+|------|--------------------------|--------|
+| 1 | `{P_{\text{single}}}`  `h = input(); m = input();` `{P_1}` | Assignment rule; the two reads only bind the existentially‑quantified `h,m`.  `P_1` is `∃h,m. … ∧ sensor = X`. |
+| 2 | `{P_1}`  `sensor = list(map(float, input().split()))` `{P_2}` | After the second read we have `sensor = X` and `n = len(sensor) ≥ 2`. |
+| 3 | `{P_2}`  `media = sum(sensor)/len(sensor)` `{P_3}` | By definition of `μ`, `media = μ(X)`. |
+| 4 | `{P_3}`  `soma = 0` `{P_4}` | Trivial assignment; `soma = 0`. |
+| 5 | `{P_4}`  `for i in sensor: soma += (i‑media)**2` `{P_5}` | By the invariant `I_{\text{for}}` proved in §3 we obtain after the loop `P_5 : soma = Σ²(X,μ)`. |
+| 6 | `{P_5}`  `a = (soma/(len(sensor)-1)) ** 0.5` `{P_6}` | Substituting `soma` we get `a = √( Σ²(X,μ)/(n‑1) ) = acc(X)`. |
+| 7 | `{P_6}`  `print(f'{a:.5f}')` `{Q_{\text{single}}}` | The Python format `:.5f` is precisely `format_5`; therefore the printed line is `format_5(a)`. |
+
+All steps are justified by the **assignment axiom**, the **sequencing rule**, and the **while/for rule** (step 5).  Consequently the Hoare triple for a single test case holds.
+
+--------------------------------------------------------------------
+
+## 5.  The outer `while True` loop (reading an arbitrary number of test cases)
+
+### 5.1  Goal  
+
+After the outer loop terminates (by catching `EOFError`) the program must have printed the required line for **every** test case that appears in the input.
+
+### 5.2  Loop invariant  
+
+\[
+\boxed{\; I_{\text{outer}}(j) \;:\;
+   \begin{array}{l}
+   \text{the first } j \text{ test cases have been completely processed,}\\[2pt]
+   \text{and for each } 1\le r\le j \text{ the line } 
+   \operatorname{format\_5}\bigl(\operatorname{acc}(X_{r})\bigr)\\
+   \text{has already been printed.}
+   \end{array}}
+\]
+
+* `j` denotes the number of test cases that have already been read and
+  handled.
+* When the program starts, `j = 0` and `I_{\text{outer}}(0)` is trivially true.
+
+### 5.3  Preservation of the invariant  
+
+Assume `I_{\text{outer}}(j)` holds at the beginning of an iteration of the
+outer loop.  
+
+* The `try`‑block reads the next two lines (`h,m` and the sensor list).
+  By the **pre‑condition of the whole program** (`P_{\text{all}}`) we know
+  that these lines constitute a well‑formed test case `t_{j+1}` with
+  `X_{j+1}` satisfying the requirements (`|X_{j+1}| ≥ 2`).  
+
+* The body `ComputeAccuracy` is executed.  
+  By the result proved in §4 we know that it prints exactly
+  `format_5(acc(X_{j+1}))`.  
+
+* Consequently after the body finishes we have processed `j+1` cases,
+  i.e. `I_{\text{outer}}(j+1)` holds.
+
+Thus the invariant is preserved by the loop body.
+
+### 5.4  Termination  
+
+The loop terminates only when the `input()` statement raises `EOFError`.
+At that moment **no further test case exists** in the input file,
+hence the total number of cases is exactly `K = j`.  
+Because `I_{\text{outer}}(j)` holds, we have printed the required line for
+every case `t₁,…,t_K`.
+
+Formally we obtain the Hoare triple  
+
+\[
+\{P_{\text{all}}\}\; \texttt{while True: try … except EOFError: break}\;
+\{Q_{\text{all}}\}
+\]
+
+by the **while‑rule** with invariant `I_{\text{outer}}`.  
+
+The **pre‑condition** of the loop (`P_{\text{all}}`) guarantees that each
+iteration starts in a state where a well‑formed test case is available; the
+**post‑condition** follows from the invariant together with the fact that the
+loop ends only after the `EOFError` branch is taken.
+
+--------------------------------------------------------------------
+
+## 6.  Putting everything together  
+
+1. **Inner loop** (`for i in sensor`) – proved correct by invariant `I_{\text{for}}`
+   (Section 3).  
+
+2. **Single test case** – proved correct by sequencing the statements
+   and using the inner‑loop result (Section 4).  
+
+3. **Whole program** – proved correct by the outer‑loop invariant `I_{\text{outer}}`
+   (Section 5) and by invoking the single‑case correctness at each
+   iteration.
+
+Therefore we have derived, from the given Hoare‑logic specifications,
+the two required triples:
+
+\[
+\boxed{\{P_{\text{single}}\}\; \texttt{ComputeAccuracy}\; \{Q_{\text{single}}\}}
+\qquad\text{and}\qquad
+\boxed{\{P_{\text{all}}\}\; \texttt{MainProgram}\; \{Q_{\text{all}}\}} .
+\]
+
+Both triples are valid consequences of the Hoare inference rules, which
+establish that the Python program indeed
+
+* reads a (possibly empty) sequence of test cases,
+* for each case computes the sample standard deviation  
+  \(\displaystyle a_j = \sqrt{\frac{1}{n_j-1}\sum_{i=1}^{n_j}(x_{j,i}-\mu(X_j))^{2}}\),
+* prints `format_5(a_j)` on its own line, and
+* terminates after the last case.
+
+Thus the program satisfies the formal specification. ∎

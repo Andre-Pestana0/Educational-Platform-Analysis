@@ -1,0 +1,312 @@
+**Proof of the Hoare‑logic specification**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;{\tt Program}\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition “the input stream \(\mathbf I\) consists of real
+  numbers only”, and  
+
+* \(Q\) is the post‑condition that appears in the statement of the problem
+  (two first valid numbers are read, every preceding invalid number produces the
+  line *“nota invalida”*, the average of the two valid numbers is printed with
+  two decimal digits and no other output is produced).
+
+The program is
+
+```python
+while (nota1 := float(input())) < 0 or nota1 > 10:
+    print('nota invalida')
+while (nota2 := float(input())) < 0 or nota2 > 10:
+    print('nota invalida')
+print(f'media = {(nota1+nota2)/2.0}')
+```
+
+The proof is carried out in three parts  
+
+1. an invariant for the **first** loop,  
+
+2. an invariant for the **second** loop (which uses the result of the first),  
+
+3. the final assignment that prints the average.
+
+The proof uses the standard Hoare‑logic rules for assignment, sequencing,
+conditional, and while‑loops.
+
+
+
+---------------------------------------------------------------------
+
+## 1.  First loop  
+
+### 1.1  Notation used in the proof  
+
+* The *input* operation `float(input())` reads the next element of the
+  stream \(\mathbf I\).  
+  We denote this element by a fresh logical variable \(x_k\) where \(k\) is the
+  number of the read so far (starting with \(k=1\)).  
+
+* `print('nota invalida')` appends the string **“nota invalida”** to the output
+  list \(\mathbf O\).  
+
+* The program variable `nota1` holds the most recent value read from the input.
+
+* The loop counter **k** is not an explicit program variable; we keep it in the
+  logical state of the proof.
+
+---------------------------------------------------------------------
+
+### 1.2  Loop invariant  
+
+\[
+\begin{aligned}
+I_1 \equiv\;&
+\exists\,k\ge 1\;.\;
+\Bigl(
+   \underbrace{\bigl(\forall j < k\;.\;\neg\operatorname{Valid}(x_j)\bigr)}_{\text{all earlier reads invalid}}\\
+   &\qquad\land\;
+   \underbrace{\bigl(\mathbf O = \langle\underbrace{\text{“nota invalida”,}\dots,
+          \text{“nota invalida”}}_{k-1\;\text{times}}\rangle\bigr)}_{\text{exactly }k-1\text{ messages}}\\
+   &\qquad\land\;
+   \underbrace{\bigl(\text{the last value read is }x_k \equiv \texttt{nota1}\bigr)}_{\text{current input stored in }nota1}
+\Bigr)
+\end{aligned}
+\]
+
+Intuitively:
+
+* at the start of each iteration we have already read the first \(k-1\) input
+  numbers, all of them are **invalid**, and we have printed the same number of
+  “nota invalida’’ messages;  
+
+* the variable `nota1` contains the \(k\)-th input value (the value that will be
+  examined in the guard of the loop).
+
+---------------------------------------------------------------------
+
+### 1.3  Establishing the invariant  
+
+* **Initialization** (`k = 1`).  
+  Before the first test no input has been read, therefore  
+
+  \[
+  \forall j<1\;.\;\neg\operatorname{Valid}(x_j) \quad\text{(vacuously true)},
+  \qquad \mathbf O = \langle\rangle,
+  \qquad \texttt{nota1}=x_1 .
+  \]
+
+  Hence \(I_1\) holds with \(k=1\).
+
+* **Preservation** (Hoare rule for while).  
+  Assume \(I_1\) holds at the beginning of an iteration, i.e. we have the
+  situation described above with a particular \(k\).  
+  The guard of the loop is  
+
+  \[
+  G_1 \;:\; (\texttt{nota1} < 0) \lor (\texttt{nota1} > 10)
+          \;\equiv\; \neg\operatorname{Valid}(x_k).
+  \]
+
+  *If the guard is true* we execute the body `print('nota invalida')`.  
+  This appends one more “nota invalida’’ to \(\mathbf O\) and then the loop
+  repeats.  The next input statement reads \(x_{k+1}\) and stores it in
+  `nota1`.  Consequently the invariant holds with the new index \(k+1\).
+
+  *If the guard is false* the loop terminates; the invariant still holds
+  (with the same \(k\)) and we additionally have \(\operatorname{Valid}(x_k)\).
+
+Thus the invariant is preserved.
+
+* **Termination condition**.  
+  The while‑rule gives us  
+
+  \[
+  I_1\land\neg G_1\; \Longrightarrow\;
+  \exists k\;.\;
+  \bigl(\operatorname{Valid}(x_k)\bigr)\land
+  \bigl(\forall j<k\;.\;\neg\operatorname{Valid}(x_j)\bigr)
+  \land \mathbf O =\langle\text{“nota invalida”}\rangle^{k-1}\bigr).
+  \]
+
+  Define  
+
+  \[
+  i_1 := k .
+  \]
+
+  Then  
+
+  \[
+  s_1 = x_{i_1} = \texttt{nota1},\qquad
+  \forall j<i_1\;.\;\neg\operatorname{Valid}(x_j),\qquad
+  |\mathbf O| = i_1-1 .
+  \]
+
+---------------------------------------------------------------------
+
+## 2.  Second loop  
+
+The second loop starts **after** the first one has terminated, therefore we
+already know the value \(i_1\) and the first valid score \(s_1\).
+
+### 2.1  Loop invariant  
+
+\[
+\begin{aligned}
+I_2 \equiv\;&
+\exists\,k\ge i_1+1\;.\;
+\Bigl(
+   \underbrace{\bigl(\forall j\;(i_1<j<k)\;.\;\neg\operatorname{Valid}(x_j)\bigr)}_{\text{all reads after the first valid are invalid}}\\
+   &\qquad\land\;
+   \underbrace{\bigl(\mathbf O = 
+        \langle\underbrace{\text{“nota invalida”,}\dots,\text{“nota invalida”}}_{i_1-1\text{ times}},
+        \underbrace{\text{“nota invalida”,}\dots,\text{“nota invalida”}}_{k-i_1-1\text{ times}}\rangle\bigr)}_{\text{total }k-2\text{ messages}}\\
+   &\qquad\land\;
+   \underbrace{\bigl(\text{the last value read is }x_k \equiv \texttt{nota2}\bigr)}_{\text{current input stored in }nota2}
+\Bigr)
+\end{aligned}
+\]
+
+The invariant says that we have already printed the \(i_1-1\) messages that
+originated from the first loop, and we are now counting the additional invalid
+inputs that appear **after** the first valid one.
+
+### 2.2  Establishing the invariant  
+
+* **Initialization** (`k = i_1+1`).  
+  Immediately after the first loop we have  
+
+  \[
+  \mathbf O = \langle\text{“nota invalida”}\rangle^{i_1-1},
+  \qquad
+  \texttt{nota2}=x_{i_1+1}.
+  \]
+
+  Since no input after position \(i_1\) has been examined yet, the condition
+  \(\forall j\;(i_1<j<i_1+1)\;\neg\operatorname{Valid}(x_j)\) holds vacuously.
+  Hence \(I_2\) holds with \(k=i_1+1\).
+
+* **Preservation** (same reasoning as for the first loop).  
+  The guard of the second loop is  
+
+  \[
+  G_2 \;:\; (\texttt{nota2}<0)\lor(\texttt{nota2}>10)
+          \;\equiv\; \neg\operatorname{Valid}(x_k).
+  \]
+
+  If the guard is true we print another “nota invalida’’ and read the next
+  element \(x_{k+1}\) into `nota2`.  The invariant now holds with the new index
+  \(k+1\).  If the guard is false we have found the second valid number.
+
+* **Termination condition**.  
+  When the loop exits we have  
+
+  \[
+  I_2\land\neg G_2\; \Longrightarrow\;
+  \exists k\;.\;
+  \bigl(\operatorname{Valid}(x_k)\bigr)\land
+  \bigl(\forall j\;(i_1<j<k)\;.\;\neg\operatorname{Valid}(x_j)\bigr)
+  \land\; \mathbf O = \langle\text{“nota invalida”}\rangle^{k-2}\bigr).
+  \]
+
+  Define  
+
+  \[
+  i_2 := k .
+  \]
+
+  Then  
+
+  \[
+  s_2 = x_{i_2}= \texttt{nota2},\qquad
+  \forall j\;(i_1<j<i_2)\;.\;\neg\operatorname{Valid}(x_j),\qquad
+  |\mathbf O| = i_2-2 .
+  \]
+
+---------------------------------------------------------------------
+
+## 3.  Final `print`  
+
+The statement
+
+```python
+print(f'media = {(nota1+nota2)/2.0}')
+```
+
+is a single assignment to the *output* list:
+
+\[
+\mathbf O := \mathbf O\;{\small\mathbin{+\!\!+}}\;
+\bigl\langle\; \text{“media = ”}\;\|\;\operatorname{fmt}_{2}\!\bigl((\texttt{nota1}+\texttt{nota2})/2\bigr)\;\bigr\rangle .
+\]
+
+Using the Hoare rule for **skip‑like** statements we obtain the post‑condition
+
+\[
+\begin{aligned}
+&\exists i_1,i_2\;(1\le i_1<i_2)\\
+&\qquad\land\;\operatorname{Valid}(x_{i_1})\land\operatorname{Valid}(x_{i_2})\\
+&\qquad\land\;\forall k\;(1\le k<i_2\wedge k\neq i_1\;\Longrightarrow\;\neg\operatorname{Valid}(x_k))\\
+&\qquad\land\;L = (i_2-2)+1\\
+&\qquad\land\;\bigl(o_j=\text{“nota invalida”}\bigr)\ (1\le j\le i_2-2)\\
+&\qquad\land\;o_L = \text{“media = ”}\;\|\;\operatorname{fmt}_{2}\!\bigl((x_{i_1}+x_{i_2})/2\bigr)\\
+&\qquad\land\;m = (x_{i_1}+x_{i_2})/2 .
+\end{aligned}
+\]
+
+These clauses are exactly the clauses of the specification \(Q\) (the only
+difference is that we have written the average as
+\(\operatorname{fmt}_{2}((x_{i_1}+x_{i_2})/2)\); the definition of
+\(\operatorname{fmt}_{2}\) guarantees the required “two decimal digits’’).
+
+---------------------------------------------------------------------
+
+## 4.  Composition of the three parts  
+
+Hoare logic’s **sequence rule** allows us to combine the three verified parts:
+
+1. `{P}` first loop `{I_1 ∧ ¬G_1}`  
+
+2. `{I_1 ∧ ¬G_1}` second loop `{I_2 ∧ ¬G_2}`  
+
+3. `{I_2 ∧ ¬G_2}` final `print` `{Q}`  
+
+Because `{P}` entails the initialization of the first invariant, and the
+termination of each loop supplies the premises needed for the next component,
+the overall Hoare triple  
+
+\[
+\{P\}\;\texttt{Program}\;\{Q\}
+\]
+
+is proved.
+
+---------------------------------------------------------------------
+
+## 5.  Remarks on non‑termination  
+
+The specification \(Q\) is only required to hold for **terminating**
+executions.  If the input stream contains fewer than two valid numbers, the
+first or the second loop never meets its exit condition, and the program
+diverges.  This behaviour is allowed by the statement “the specification therefore
+only talks about executions that *do* terminate”.
+
+---------------------------------------------------------------------
+
+### Conclusion  
+
+We have exhibited suitable loop invariants, proved their initialization,
+preservation and termination, and shown that after the two loops the final
+`print` statement produces exactly the output described in the post‑condition.
+Hence the Hoare triple  
+
+\[
+\boxed{\;\{P\}\;\text{Program}\;\{Q\}\;}
+\]
+
+holds, i.e. the given Python program is *correct* with respect to the formal
+specification. ∎

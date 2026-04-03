@@ -1,0 +1,284 @@
+**Proof of the Hoare triple**
+
+\[
+\{P\}\;{\tt prog}\;\{Q\}
+\]
+
+where  
+
+\[
+\begin{aligned}
+P &\equiv |X|=10\;\land\;\forall i\in\{0,\dots ,9\}\;.\;X[i]\in\mathbb Z 
+      \;\land\;{\rm input}= \langle x^{\rm in}_0,\dots ,x^{\rm in}_9\rangle ,          \\
+Q &\equiv \bigl(\forall i\in\{0,\dots ,9\}\;.\; X[i]=\max (1,X^{0}[i])\bigr)             
+      \;\land\; {\rm out}= \langle\;{\tt "X["}\,\|\,i\,\|\,{\tt "] = "}\,\|\,X[i]\,\| \;:\;i=0\ldots 9\rangle
+      \;\land\;|{\rm out}|=10 .
+\end{aligned}
+\]
+
+The program is written in three successive fragments:
+
+```
+1) read X[0..9];
+2) for i := 0 to 9 do
+       if X[i] ≤ 0 then X[i] := 1 else skip fi
+   od;
+3) for i := 0 to 9 do
+       output ("X[" || i || "] = " || X[i])
+   od
+```
+
+We prove the triple by the **rule of composition**; each fragment is proved
+independently and the post‑condition of one fragment becomes the
+pre‑condition of the next one.
+
+--------------------------------------------------------------------
+### 1.  The reading fragment
+
+```
+read X[0..9];
+```
+
+*Semantics.*  For every `k∈{0,…,9}` the statement performs the assignment  
+
+\[
+X[k] := x^{\rm in}_k .
+\]
+
+The **assignment axiom** gives, for each `k`,
+
+\[
+\{\,X^{0}[k]=x^{\rm in}_k\,\}\;X[k]:=x^{\rm in}_k\;\{\,X[k]=X^{0}[k]\,\}.
+\]
+
+Since the ten assignments are executed sequentially, the rule of
+conjunction yields the Hoare triple
+
+\[
+\{P\}\;{\tt read\;X[0..9]}\;
+\Bigl\{\forall k\in\{0,\dots ,9\}\;.\;X[k]=X^{0}[k]\Bigr\}.
+\tag{R1}
+\]
+
+Thus after the first fragment the logical array `X` coincides with the
+initial array `X⁰` that contains the ten input numbers.
+
+--------------------------------------------------------------------
+### 2.  The correction loop
+
+```
+for i := 0 to 9 do
+    if X[i] ≤ 0 then X[i] := 1 else skip fi
+od
+```
+
+We use a **loop invariant** that expresses the part of the array that has
+already been examined.
+
+\[
+\boxed{I_{\text{corr}} \equiv
+   \bigl(\forall j\in\{0,\dots ,i-1\}\;.\;
+          X[j]=\max(1,X^{0}[j])\bigr)
+   \;\land\;
+   \bigl(\forall j\in\{i,\dots ,9\}\;.\;X[j]=X^{0}[j]\bigr)}
+\]
+
+`i` is the loop‑counter; at the beginning of an iteration it has the
+current value of the loop variable.
+
+--------------------------------------------------------------------
+#### 2.1  Initialization  
+
+Before the first iteration `i = 0`.  The first conjunct of the invariant
+is vacuous (the set `{0,…,i‑1}` is empty) and the second conjunct reduces
+to `∀j∈{0,…,9}. X[j]=X⁰[j]`, which is exactly the post‑condition of the
+reading fragment (R1).  Hence  
+
+\[
+\{\,\forall j\!.\!X[j]=X^{0}[j]\,\}\;{\tt i:=0}\;\{I_{\text{corr}}\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.2  Maintenance  
+
+Assume `I_corr` holds at the start of an iteration with a given `i`
+(`0≤i≤9`).  The body of the loop is
+
+```
+if X[i] ≤ 0 then X[i] := 1 else skip fi
+```
+
+Using the **conditional rule**, we consider the two cases.
+
+*Case 1:* `X[i] ≤ 0`.  
+Because `i` belongs to the second part of the invariant we have
+`X[i]=X⁰[i]`.  The guard `X[i] ≤ 0` therefore means `X⁰[i] ≤ 0`.  
+The assignment `X[i] := 1` yields, by the assignment axiom,
+
+\[
+X[i]=1=\max(1,X^{0}[i]).
+\]
+
+All other indices `j≠i` keep the values described by `I_corr`.  Consequently
+the invariant holds with `i` replaced by `i+1`.
+
+*Case 2:* `X[i] > 0`.  
+Again `X[i]=X⁰[i]` and the guard tells us `X⁰[i] > 0`.  The `else skip`
+does not modify the array, so after the iteration we still have  
+
+\[
+X[i]=X^{0}[i]=\max(1,X^{0}[i]).
+\]
+
+All other components are unchanged, therefore `I_corr` is preserved for the
+next value `i+1`.
+
+Thus the **loop‑invariant preservation** is proved:
+
+\[
+\{I_{\text{corr}}\}\;
+\bigl(\text{if }X[i]\le0\text{ then }X[i]:=1\text{ else skip}\bigr)
+\;\{I_{\text{corr}}[i:=i+1]\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.3  Termination  
+
+The loop terminates when `i = 10`.  Substituting `i = 10` in the invariant
+gives
+
+\[
+\forall j\in\{0,\dots ,9\}\;.\;X[j]=\max(1,X^{0}[j]).
+\tag{C1}
+\]
+
+Hence the correction loop establishes the **array part** of the final
+post‑condition `Q`.
+
+--------------------------------------------------------------------
+### 3.  The printing loop
+
+```
+for i := 0 to 9 do
+    output ("X[" || i || "] = " || X[i])
+od
+```
+
+We introduce a second invariant that describes the output that has been
+produced so far.
+
+\[
+\boxed{I_{\text{out}} \equiv
+   \bigl(\forall j\in\{0,\dots ,i-1\}\;.\;
+          {\rm out}[j]=\text{ "X["}\,\|\,j\,\|\,\text{"] = "}\,\|\,X[j]\bigr)
+   \;\land\;
+   |{\rm out}| = i }
+\]
+
+(`out[j]` denotes the *j‑th* element of the output sequence.)
+
+--------------------------------------------------------------------
+#### 3.1  Initialization  
+
+Before the first iteration we set `i := 0`.  Both conjuncts of `I_out`
+are true because the set `{0,…,i‑1}` is empty and `|out| = 0`.  Hence
+
+\[
+\{C1\}\;{\tt i:=0}\;\{I_{\text{out}}\}.
+\]
+
+--------------------------------------------------------------------
+#### 3.2  Maintenance  
+
+Assume `I_out` holds at the beginning of an iteration with a given `i`
+(`0≤i≤9`).  The body executes
+
+```
+output ("X[" || i || "] = " || X[i])
+```
+
+which appends precisely the string
+
+\[
+s_i = \text{ "X["}\,\|\,i\,\|\,\text{"] = "}\,\|\,X[i]
+\]
+
+to the output sequence.  By the **output axiom** we obtain
+
+\[
+|{\rm out}| = i+1\quad\text{and}\quad
+{\rm out}[i]=s_i .
+\]
+
+All earlier entries of `out` are unchanged, therefore the invariant
+holds with `i` replaced by `i+1`.  Formally,
+
+\[
+\{I_{\text{out}}\}\;
+\text{output}(s_i)\;
+\{I_{\text{out}}[i:=i+1]\}.
+\]
+
+--------------------------------------------------------------------
+#### 3.3  Termination  
+
+When the loop finishes we have `i = 10`.  Substituting `i = 10` in
+`I_out` yields
+
+\[
+\begin{aligned}
+\forall j\in\{0,\dots ,9\}&.\;
+   {\rm out}[j]=\text{ "X["}\,\|\,j\,\|\,\text{"] = "}\,\|\,X[j] ,\\
+|{\rm out}| &= 10 .
+\end{aligned}
+\tag{C2}
+\]
+
+These two statements are exactly the **output part** of the post‑condition
+`Q`.
+
+--------------------------------------------------------------------
+### 4.  Composition of the three fragments
+
+We have proved the following Hoare triples:
+
+* (R1) \(\{P\}\;{\tt read\;X[0..9]}\;\{\,\forall k.\,X[k]=X^{0}[k]\,\}\)
+* (R2) \(\{\,\forall k.\,X[k]=X^{0}[k]\,\}\;
+          {\tt for\;i=0}^{9}{\tt\;do\;corr\;body\;od}
+          \;\{\,\forall j.\,X[j]=\max(1,X^{0}[j])\,\}\)  (derived from C1)
+* (R3) \(\{\,\forall j.\,X[j]=\max(1,X^{0}[j])\,\}\;
+          {\tt for\;i=0}^{9}{\tt\;do\;print\;body\;od}
+          \;\{\,Q\,\}\)  (derived from C2)
+
+Applying the **rule of sequential composition** three times we obtain
+
+\[
+\{P\}\;{\tt prog}\;\{Q\},
+\]
+
+which is precisely the specification we wanted to verify.
+
+--------------------------------------------------------------------
+### 5.  Termination argument (optional)
+
+Both `for`‑loops are bounded by the constant `9`.  The loop variable `i`
+is increased by `1` at each iteration, therefore each loop executes a
+finite number of steps (exactly ten).  Consequently the whole program
+terminates for every state satisfying the pre‑condition `P`.
+
+--------------------------------------------------------------------
+## Conclusion
+
+We have exhibited suitable loop invariants, proved their initialization,
+preservation and termination, and combined the three program fragments by
+the composition rule.  Hence the Hoare triple
+
+\[
+\boxed{\{P\}\;{\tt prog}\;\{Q\}}
+\]
+
+holds: starting from any ten‑integer input, the program replaces every
+non‑positive entry by `1`, prints the ten resulting values in the required
+format, and produces exactly ten output lines.  This completes the formal
+correctness proof of the given Python program with respect to the
+specified pre‑ and post‑conditions.

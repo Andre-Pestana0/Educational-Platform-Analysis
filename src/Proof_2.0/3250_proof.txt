@@ -1,0 +1,589 @@
+**Answer Overview**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt Elevator}(f,s,g,u,d)\;\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in the statement,  
+* \(Q\) is the post‑condition that the program returns the minimum possible number of button pushes, or the distinguished value \(\infty\) (printed as *“use the stairs”*),  
+
+and the body of **Elevator** is exactly the Python program reproduced in the question.
+
+The proof is **partial‑correctness** (the program terminates for all inputs that satisfy \(P\); termination is immediate because the program contains no loops) together with a **correctness argument** that the value printed satisfies \(Q\).  
+
+The proof proceeds by a sequence of Hoare‑style assertions that follow the control‑flow of the program.  At each step we state the invariant that holds, justify why the command preserves it, and finally show that the invariant implies the post‑condition.  The main mathematical ingredient is a short number‑theoretic lemma showing that the greedy use of integer division performed by the program indeed yields the smallest possible number of pushes.
+
+---
+
+## 1.  Notation and auxiliary definitions  
+
+* The inputs are the five natural numbers  
+
+  \[
+  f,s,g,u,d\in\mathbb N,\qquad 1\le s\le f,\;1\le g\le f,\;0\le u,d\le 10^{6},\;f\le 10^{6}.
+  \]
+
+* We keep the original names used in the program, namely  
+
+  * `andares   = f` – total number of floors,  
+  * `começo    = s` – start floor,  
+  * `fim       = g` – goal floor,  
+  * `cima      = u` – “up” step,  
+  * `baixo     = d` – “down” step.
+
+* After the first **if** (the *descending‑case transformation*) we may replace the original variables by transformed ones, still called `começo`, `fim`, `cima` and `baixo`.  The transformation is a **bijection** on the state space; it simply mirrors the building with respect to the top floor.  Consequently
+
+  * the set of reachable floors from `começo` to `fim` is unchanged, and  
+  * the length of a shortest trajectory is unchanged.
+
+  Hence it is safe to reason only about the **post‑transformation** situation, where we always have  
+
+  \[
+  \boxed{\; \text{goal} \; \ge \; \text{start} \; } \tag{1}
+  \]
+
+  (i.e. `fim ≥ começo`).  The proof below works under (1); the symmetric case follows by the same argument applied before the transformation.
+
+* Define  
+
+  \[
+  \Delta \;:=\; \text{fim} - \text{começo}\;\;(\ge 0).
+  \]
+
+  The required trajectory must satisfy  
+
+  \[
+  x\cdot\text{cima}\;-\;y\cdot\text{baixo}\;=\;\Delta\qquad
+  (x,y\in\mathbb N)        \tag{2}
+  \]
+
+  where \(x\) is the number of *up* pushes and \(y\) the number of *down* pushes.  
+  The **minimum‑push function** is therefore  
+
+  \[
+  \operatorname{minPush}(s,g)=\min\{\,x+y\mid (x,y)\text{ satisfy (2) and keep the elevator inside }[1,f]\,\}.
+  \]
+
+  (If the set is empty the minimum is \(\infty\).)
+
+---
+
+## 2.  The Hoare proof  
+
+We annotate the program with assertions.  The notation  
+
+```
+{ A }  stmt  { B }
+```
+
+means “if the pre‑condition \(A\) holds before executing `stmt`, then the post‑condition \(B\) holds afterwards”.
+
+All assertions are logical formulas over the program variables; they may also refer to the auxiliary mathematical objects defined above.
+
+### 2.1  Input reading  
+
+```python
+andares, começo, fim, cima, baixo = map(int, input().split())
+```
+
+*Pre‑condition*  
+
+\[
+\{P\}
+\]
+
+*Post‑condition*  
+
+\[
+\{P\}\;\;\text{(the same, because the statement only stores the inputs).}
+\]
+
+No change – the invariant for the rest of the program is simply \(P\).
+
+---
+
+### 2.2  Symmetry transformation (descending case)
+
+```python
+if fim < começo:
+    cima, baixo = baixo, cima
+    começo      = andares - começo
+    fim         = andares - fim
+```
+
+*Pre‑condition*  
+
+\[
+\{P\}
+\]
+
+*Invariant after the `if`*  
+
+\[
+\boxed{I_{1}}\quad
+\begin{aligned}
+&\text{(i)}\; 1\le \text{começo}\le f,\; 1\le \text{fim}\le f,\\
+&\text{(ii)}\; \text{cima},\text{baixo}\in\mathbb N,\\
+&\text{(iii)}\; \mathcal{R}(s,g)=\mathcal{R}(\text{começo},\text{fim})\quad\text{and}\quad 
+      \operatorname{minPush}(s,g)=\operatorname{minPush}(\text{começo},\text{fim}).
+\end{aligned}
+\]
+
+*Justification*  
+
+* The assignment `cima,baixo = baixo,cima` merely swaps the two step sizes, which does not affect reachability because a trajectory using a “+u” followed later by a “‑d” can be mirrored.
+* The two assignments `começo = andares‑começo` and `fim = andares‑fim` reflect the start and goal floors with respect to the top floor.  For any floor \(x\) we have  
+
+  \[
+  \operatorname{valid}(x) \iff \operatorname{valid}(f+1-x).
+  \]
+
+  Moreover a trajectory  
+
+  \[
+  s\;\xrightarrow{+u,-d}\;g
+  \]
+
+  becomes  
+
+  \[
+  (f+1-s)\;\xrightarrow{-u,+d}\;(f+1-g),
+  \]
+
+  i.e. the same number of pushes with the two step sizes swapped.  Hence the set of reachable floor numbers and the length of a shortest trajectory are preserved.
+
+Consequently after the `if` we may assume (by case analysis) that **(1) holds**; the invariant \(I_{1}\) is true in both branches.
+
+---
+
+### 2.3  Zero‑up step case  
+
+```python
+if cima == 0:
+    print('use the stairs')
+    exit()
+```
+
+*Pre‑condition*  
+
+\[
+\{I_{1}\}
+\]
+
+*Branch condition*  
+
+\[
+cima = 0 .
+\]
+
+*Invariant*  
+
+\[
+I_{2}\;:\; \operatorname{minPush}(\text{começo},\text{fim}) = \infty .
+\]
+
+*Proof of invariant*  
+
+If `cima = 0` we can never increase the floor number; the only possible move is “‑baixo”.  Because of (1) we have `fim ≥ começo`.  Starting from `começo` we can only stay on the same floor or go down, never up, so reaching a strictly higher floor is impossible.  Hence the reachability set is empty and the minimum push value is \(\infty\).
+
+*Consequent post‑condition*  
+
+The program prints *“use the stairs”* and terminates.  Translating the printed string back to the abstract value \(n\) we obtain  
+
+\[
+n = \infty .
+\]
+
+Thus the post‑condition \(Q\) holds in this branch.
+
+---
+
+### 2.4  Compute the raw difference  
+
+```python
+diferença = fim - começo
+```
+
+*Pre‑condition*  
+
+\[
+\{I_{1}\land cima\neq 0\}
+\]
+
+*Post‑condition*  
+
+\[
+\{ I_{1}\land cima\neq 0\land \text{diferença}= \Delta\}
+\]
+
+where \(\Delta\) is the non‑negative integer defined in §1.
+
+---
+
+### 2.5  Goal already reached  
+
+```python
+if diferença == 0:
+    print(0)
+    exit()
+```
+
+*Branch condition*  
+
+\[
+\Delta = 0 .
+\]
+
+*Invariant*  
+
+\[
+I_{3}\;:\; \operatorname{minPush}(\text{começo},\text{fim}) = 0 .
+\]
+
+*Justification*  
+
+If `diferença` is zero, start and goal floors coincide, so the empty trajectory (no button push) reaches the goal.  No shorter trajectory exists, therefore the minimum is zero.
+
+*Consequent post‑condition*  
+
+The program prints `0` and terminates, i.e. \(n = 0 = \operatorname{minPush}(\text{começo},\text{fim})\).  Hence \(Q\) holds.
+
+---
+
+### 2.6  Initialise the counters  
+
+```python
+u = 0
+d = 0
+```
+
+*Pre‑condition*  
+
+\[
+\{I_{1}\land cima\neq 0\land \Delta>0\}
+\]
+
+*Post‑condition*  
+
+\[
+\{I_{1}\land cima\neq 0\land \Delta>0\land u=0\land d=0\}
+\]
+
+The counters `u` and `d` will later hold the numbers of *up* and *down* pushes respectively.
+
+---
+
+### 2.7  Greedy use of the “up” button  
+
+```python
+u += diferença // cima
+diferença %= cima
+```
+
+Let  
+
+\[
+q = \left\lfloor\frac{\Delta}{\text{cima}}\right\rfloor,\qquad
+r = \Delta\bmod \text{cima}\;(0\le r<\text{cima}).
+\]
+
+After the two statements we have  
+
+\[
+u = q,\qquad \text{diferença}=r .
+\]
+
+*Invariant after this block*  
+
+\[
+I_{4}\;:\;
+\begin{cases}
+\Delta = u\cdot\text{cima}+ \text{diferença},\\[2pt]
+0\le \text{diferença}<\text{cima}.
+\end{cases}
+\]
+
+*Why this invariant is useful*  
+
+Equation (2) can be rewritten as  
+
+\[
+x\cdot\text{cima} - y\cdot\text{baixo} = \Delta .
+\]
+
+If we set \(x = u + x'\) with \(x'\ge 0\) and move the term \(x'\cdot\text{cima}\) to the right‑hand side, we obtain  
+
+\[
+x'\cdot\text{cima} - y\cdot\text{baixo}= \text{diferença}.
+\]
+
+Thus after the greedy step the **remaining sub‑problem** is exactly the same form as the original one, but with a strictly smaller target \(\text{diferença}<\text{cima}\).  Consequently any optimal solution must contain at least \(u\) upward pushes; the remaining pushes (if any) will start from the floor `começo + u·cima` and have to cover the leftover distance \(\text{diferença}\).
+
+---
+
+### 2.8  Check whether the greedy step already solved the problem  
+
+```python
+if diferença == 0:
+    print(u)
+    exit()
+```
+
+*Branch condition*  
+
+\[
+r = 0 .
+\]
+
+*Invariant*  
+
+If the remainder is zero, the equation  
+
+\[
+\Delta = u\cdot\text{cima}
+\]
+
+holds, i.e. a trajectory consisting of exactly `u` upward pushes reaches the goal without ever leaving the building (the intermediate floors are `começo + k·cima` with \(1\le k\le u\), all of them are \(\le f\) because `fim ≤ f`).  Hence  
+
+\[
+\operatorname{minPush}(\text{começo},\text{fim}) = u .
+\]
+
+*Consequent post‑condition*  
+
+The program prints `u`; thus \(n = u = \operatorname{minPush}(\text{começo},\text{fim})\) and \(Q\) holds.
+
+---
+
+### 2.9  The “overshoot‑and‑come‑down” part  
+
+At this point we know  
+
+\[
+0 < r < \text{cima}.
+\]
+
+The program now **forces one more upward push**, thereby passing the goal floor, and then will try to come back down with the “down” button.
+
+```python
+u += 1
+diferença -= cima          # now diferença = r - cima  (<0)
+diferença *= -1            # now diferença = cima - r  (>0)
+```
+
+After these three statements we have  
+
+\[
+\begin{aligned}
+u &= q+1,\\
+\text{diferença} &= \text{cima} - r \quad\bigl(0 < \text{diferença} < \text{cima}\bigr).
+\end{aligned}
+\]
+
+*Invariant*  
+
+\[
+I_{5}\;:\;
+\begin{cases}
+\Delta = u\cdot\text{cima} - \text{diferença},\\[2pt]
+0<\text{diferença}<\text{cima}.
+\end{cases}
+\]
+
+Interpretation: after `u` upward pushes we are **\(\text{diferença}\) floors above the goal** and must descend that amount using the “down” button.
+
+---
+
+### 2.10  Zero‑down step case  
+
+```python
+if baixo == 0:
+    print('use the stairs')
+    exit()
+```
+
+*Branch condition*  
+
+\[
+\text{baixo}=0 .
+\]
+
+*Invariant*  
+
+If `baixo = 0` we cannot move down at all.  Because after the previous block we are strictly **above** the goal floor (the invariant \(I_{5}\) guarantees \(\text{diferença}>0\)), the goal is unreachable.  Hence  
+
+\[
+\operatorname{minPush}(\text{começo},\text{fim}) = \infty .
+\]
+
+*Consequent post‑condition*  
+
+The program prints *“use the stairs”* and terminates, i.e. \(n = \infty\); therefore \(Q\) holds.
+
+---
+
+### 2.11  Greedy use of the “down” button  
+
+```python
+d += diferença // baixo
+diferença %= baixo
+```
+
+Let  
+
+\[
+q' = \left\lfloor\frac{\text{diferença}}{\text{baixo}}\right\rfloor,\qquad
+r' = \text{diferença}\bmod\text{baixo}\;(0\le r' < \text{baixo}).
+\]
+
+After the two statements  
+
+\[
+d = q',\qquad \text{diferença}=r'.
+\]
+
+*Invariant*  
+
+\[
+I_{6}\;:\;
+\begin{cases}
+\Delta = u\cdot\text{cima} - d\cdot\text{baixo} - \text{diferença},\\[2pt]
+0\le \text{diferença}<\text{baixo}.
+\end{cases}
+\]
+
+*Explanation*  
+
+We have to solve  
+
+\[
+x\cdot\text{cima} - y\cdot\text{baixo}= \Delta,\qquad x=u,\;y=d+\dots .
+\]
+
+The greedy division `diferença // baixo` computes the **maximum** number of whole down‑steps that can be performed without overshooting the goal again.  After performing those `d` down pushes we are left with a remainder `diferença` that is **strictly smaller** than a single down step.
+
+If the remainder becomes zero we have exactly hit the goal floor; otherwise we cannot reach it because any further move would have to be either another up‑step (which would again overshoot) or another down‑step (which is impossible because the remainder is smaller than `baixo`).  Consequently a non‑zero remainder signals **unreachability**.
+
+---
+
+### 2.12  Final test  
+
+```python
+if diferença == 0:
+    print(u + d)
+else:
+    print('use the stairs')
+```
+
+*Two cases*
+
+| Condition on `diferença` | Consequence | Reasoning |
+|--------------------------|-------------|-----------|
+| `diferença = 0` | Program prints `u+d`. | By invariant \(I_{6}\) we have \(\Delta = u\cdot\text{cima} - d\cdot\text{baixo}\). Hence the trajectory consisting of `u` up pushes followed by `d` down pushes reaches the goal. Moreover, because we used the **maximum possible** number of up pushes (`q+1`) and then the **maximum possible** number of down pushes (`q'`), any other feasible trajectory would contain at least as many pushes (see Lemma 1 below). Thus `u+d` equals \(\operatorname{minPush}(\text{começo},\text{fim})\). |
+| `diferença ≠ 0` | Program prints *“use the stairs”*. | The invariant \(I_{6}\) tells us that after all possible whole up‑steps and down‑steps we are still at a distance `diferença` that is **strictly smaller** than both step sizes (`cima` and `baixo`). Any additional button press would either (i) go up again, overshooting the goal and then we would need another down step (which we have already shown impossible because the remainder is < `baixo`), or (ii) go down again, which is impossible because the remainder is < `baixo`. Therefore **no** sequence of pushes can reach the goal; the reachable set is empty and \(\operatorname{minPush} = \infty\). |
+
+Thus in both sub‑cases the printed result matches the abstract value \(n\) required by \(Q\).
+
+---
+
+## 3.  Lemma: Greedy optimality  
+
+*Lemma 1* (Greedy optimality for the one‑dimensional diophantine equation).  
+Assume `cima > 0`, `baixo > 0` and `Δ ≥ 0`. Let  
+
+\[
+q = \bigl\lfloor \Delta / \text{cima}\bigr\rfloor,\qquad
+r = \Delta - q\cdot\text{cima}\;(0\le r<\text{cima}).
+\]
+
+*Case A* – If \(r = 0\) then the unique minimal‑push solution is \((x,y) = (q,0)\).  
+
+*Case B* – If \(r > 0\) then any feasible solution must have \(x \ge q+1\).  
+Proof: Suppose a solution \((x,y)\) with \(x\le q\). Then  
+
+\[
+x\cdot\text{cima}\le q\cdot\text{cima}= \Delta - r < \Delta,
+\]
+
+so we would need a *negative* contribution from the down‑moves, i.e. \(y\cdot\text{baixo} > x\cdot\text{cima} - \Delta\), which is impossible because the left side is non‑negative while the right side is negative. Hence \(x\ge q+1\).
+
+Now set \(x = q+1\) and rewrite (2) as  
+
+\[
+(q+1)\cdot\text{cima} - y\cdot\text{baixo}= \Delta
+\;\Longleftrightarrow\;
+y\cdot\text{baixo}= \underbrace{\text{cima}-r}_{=: \Delta'} .
+\]
+
+Thus the remaining sub‑problem is to **exactly** cover the distance \(\Delta' = \text{cima}-r\) using only down‑steps. The greedy choice  
+
+\[
+y = \bigl\lfloor \Delta' / \text{baixo}\bigr\rfloor,\qquad
+\Delta'' = \Delta' \bmod \text{baixo}
+\]
+
+produces the *largest* possible integer \(y\) that does not overshoot. If the remainder \(\Delta''\) is zero we have found a feasible solution \((x,y) = (q+1,\; \lfloor\Delta'/\text{baixo}\rfloor)\). Any other feasible solution must have the same up‑count \(x\) (otherwise \(x\) would be larger and the total pushes would increase) and a down‑count at most \(y\); therefore the greedy pair \((x,y)\) yields the **minimum** value of \(x+y\).
+
+If the remainder \(\Delta''\) is non‑zero then no integer \(y\) can satisfy the equation, because the remainder is smaller than a single down step. Consequently **no** trajectory exists, i.e. \(\mathcal{R}(s,g)=\varnothing\).
+
+*Consequences for the program*  
+
+* The first division (`diferença // cima`) implements the `q` of the lemma.  
+* The extra `u += 1` implements the mandatory extra up‑push when `r>0`.  
+* The second division (`diferença // baixo`) implements the greedy computation of `y`.  
+
+Thus the algorithm exactly follows the constructive proof of Lemma 1, guaranteeing that:
+
+* when a solution exists it returns the **minimum** number of pushes, and  
+* when the remainder after the second division is non‑zero it correctly reports **unreachability**.
+
+---
+
+## 4.  Termination  
+
+The program contains no loops; each conditional branch ends with either `exit()` or proceeds to the next statement.  Therefore for every input satisfying the pre‑condition \(P\) the program terminates after a finite number of elementary steps.  
+
+---
+
+## 5.  Putting everything together  
+
+We have shown, step by step, that starting from any state that satisfies the pre‑condition \(P\),
+
+* the invariant \(I_{1}\) holds after the possible symmetry transformation;  
+* every subsequent command preserves the appropriate invariant;  
+* the final `if`‑statement either prints the integer `u+d` (which we proved equals \(\operatorname{minPush}(s,g)\)) or prints *“use the stairs”* (which we proved corresponds to \(\operatorname{minPush}(s,g)=\infty\)).  
+
+Therefore, on termination the concrete output of the program satisfies the abstract post‑condition \(Q\).  Consequently the Hoare triple  
+
+\[
+\boxed{\{P\}\;\;{\tt Elevator}(f,s,g,u,d)\;\;\{Q\}}
+\]
+
+is **proved**.
+
+---  
+
+### Summary of the proof  
+
+| Program fragment | Logical invariant after the fragment | Meaning for the specification |
+|------------------|--------------------------------------|--------------------------------|
+| Input reading | \(P\) | The inputs satisfy the given bounds |
+| Symmetry `if fim<começo` | \(I_{1}\) (reachability and optimal‑push value unchanged) | We may assume `fim ≥ começo` |
+| `if cima==0` | \(I_{2}\) (goal unreachable) | Program prints “use the stairs” → \(n=\infty\) |
+| `diferença = fim‑começo` | \(\Delta =\) raw distance |  |
+| `if diferença==0` | \(I_{3}\) (already at goal) | Program prints `0` → \(n=0\) |
+| Initialise `u,d` | `u=0 ∧ d=0` |  |
+| `u += diferença // cima ; diferença %= cima` | \(I_{4}\): \(\Delta = u·cima + diferença,\;0≤diferença<cima\) | Greedy maximal up‑steps |
+| `if diferença==0` | `diferença=0` ⇒ optimal pushes = `u` | Program prints `u` |
+| Extra up‑push (`u+=1 …`) | \(I_{5}\): \(\Delta = u·cima - diferença,\;0<diferença<cima\) | We are now above the goal |
+| `if baixo==0` | \(I_{2}\) again (cannot come down) | Program prints “use the stairs” |
+| `d += diferença // baixo ; diferença %= baixo` | \(I_{6}\): \(\Delta = u·cima - d·baixo - diferença,\;0≤diferença<baixo\) | Greedy maximal down‑steps |
+| Final test | *If* `diferença=0` → `n = u+d = minPush`; *else* → `n = ∞` | Exactly the post‑condition \(Q\) |
+
+All the logical implications are justified either by elementary arithmetic (integer division and remainder) or by Lemma 1, which is a standard number‑theoretic argument for the optimality of the greedy strategy in a one‑dimensional linear Diophantine equation with non‑negative unknowns.
+
+Hence the program is **correct** with respect to the Hoare‑style specification given in the problem statement.

@@ -1,0 +1,255 @@
+## 1.  What we have to show  
+
+We are given a Hoare triple  
+
+\[
+\{P\}\; \textbf{read\_X\_Y; compute\_A; print\_out}\; \{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\equiv X\in\mathbb Z\land X\ge 0\;\land\;Y\in\mathbb R\land Y>0 .
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\equiv &\; A = \frac{X}{Y}\\[1mm]
+      &\land\; \operatorname{round}_{3}(A)=\frac{\lfloor1000A+0.5\rfloor}{1000}\\[1mm]
+      &\land\; out = \big\lVert\operatorname{round}_{3}(A)\big\rVert\;{\tt\;``\;km/l''}.
+\end{aligned}
+\]
+
+The program that implements the three abstract commands is the Python fragment  
+
+```python
+distancia = int(input())        #  X ← int(input())
+combustivel = float(input())    #  Y ← float(input())
+print(f'{distancia/combustivel:.3f} km/l')
+```
+
+We must prove, using the inference rules of Hoare logic, that the concrete program
+indeed satisfies the specification.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic machinery we shall use  
+
+| Rule | Shape |
+|------|-------|
+| **Assignment** | \(\displaystyle\frac{}{ \{\,P[E/x]\,\}\;x:=E\; \{\,P\,\}}\) |
+| **Consequence** | \(\displaystyle\frac{P\Rightarrow P'\quad\{P'\}S\{Q'\}\quad Q'\Rightarrow Q}{\{P\}S\{Q\}}\) |
+| **Sequencing** | \(\displaystyle\frac{\{P\}S_{1}\{R\}\qquad\{R\}S_{2}\{Q\}}{\{P\}S_{1};S_{2}\{Q\}}\) |
+| **Output** (a specialised assignment) | \(\displaystyle\frac{}{ \{\,P\land out = e\,\}\;out:=e\; \{\,P\land out = e\,\}}\) |
+
+All three statements of the program are *deterministic* and contain **no loops**, therefore termination is immediate.
+
+--------------------------------------------------------------------
+
+## 3.  The concrete statements  
+
+| Abstract command | Concrete Python statement | Meaning (in the specification) |
+|------------------|---------------------------|--------------------------------|
+| `read_X_Y`       | `distancia = int(input())`   | `X := int(input())` |
+|                  | `combustivel = float(input())`| `Y := float(input())` |
+| `compute_A`      | *no explicit assignment* – the division is performed inside the `print` call, but for the proof we introduce a temporary variable `A` | `A := X / Y` |
+| `print_out`      | `print(f'{distancia/combustivel:.3f} km/l')` | `out := format(A,".3f")  ++  " km/l"` |
+
+(Here `++` denotes string concatenation, `format(A,".3f")` is the textual representation of `A` rounded to three decimal places.)
+
+--------------------------------------------------------------------
+
+## 4.  Proof of each fragment  
+
+### 4.1  Reading `X`
+
+*Goal*  
+
+\[
+\{P\}\;X:=\text{int}(input())\;\{P\land X\in\mathbb Z\land X\ge 0\}
+\]
+
+*Derivation*  
+
+1. By **consequence** we may strengthen the pre‑condition with the *input guarantee* that the first line of the file contains a non‑negative integer. Call this guarantee `G₁`.  
+   \[
+   P\;\land\;G₁\;\Rightarrow\;P .
+   \]
+
+2. Apply the **assignment rule** with the expression `int(input())`.  
+   The post‑condition of the rule is obtained by substituting the expression for `X` in the *desired* post‑condition:
+   \[
+   \{P\land G₁\}\;X:=\text{int}(input())\;
+   \{\,P\land X\in\mathbb Z\land X\ge 0\,\}.
+   \]
+
+Thus after the first statement we know that `X` is an integer and `X≥0`.
+
+---
+
+### 4.2  Reading `Y`
+
+*Goal*  
+
+\[
+\{P\land X\in\mathbb Z\land X\ge 0\}\;Y:=\text{float}(input())\;
+\{P\land X\in\mathbb Z\land X\ge 0\land Y\in\mathbb R\land Y>0\}
+\]
+
+*Derivation*  
+
+Exactly the same pattern as for `X`.  
+Assume the second line of the input satisfies the guarantee `G₂` :
+
+```
+G₂ : “the second line is a strictly positive real number”
+```
+
+1. Strengthen the pre‑condition with `G₂`.  
+2. Apply the **assignment rule**.  
+3. Use **consequence** to drop the auxiliary `G₂` (it is not needed any more).
+
+After the second statement we have the full pre‑condition `P` (i.e. the conjunction of all four elementary facts about `X` and `Y`).
+
+---
+
+### 4.3  Computing `A`
+
+*Goal*  
+
+\[
+\{P\}\;A:=X/Y\;\{P\land A = X/Y\}
+\]
+
+*Derivation*  
+
+No extra guarantee is required because `Y>0` (proved in the previous step) guarantees that the division is defined.
+
+Apply the **assignment rule** directly:
+
+\[
+\{P\}\;A:=X/Y\;\{P\land A = X/Y\}.
+\]
+
+Thus the variable `A` now stores the exact mathematical quotient.
+
+---
+
+### 4.4  Printing the result  
+
+The concrete statement is  
+
+```python
+print(f'{distancia/combustivel:.3f} km/l')
+```
+
+For the proof we rewrite it as a *pure assignment* to the output channel:
+
+\[
+\text{out} := \bigl\lfloor 1000A+0.5 \bigr\rfloor / 1000 \; ++\; \text{`` km/l''}.
+\]
+
+The first part of the concatenation, `⌊1000A+0.5⌋/1000`, is exactly the arithmetic definition of  
+\(\operatorname{round}_{3}(A)\) given in the specification.
+
+*Goal*  
+
+\[
+\{P\land A=X/Y\}\;
+\text{out}:= \operatorname{round}_{3}(A) \; ++\; \text{`` km/l''}
+\;
+\{Q\}.
+\]
+
+*Derivation*  
+
+1. **Assignment rule** yields the post‑condition  
+
+   \[
+   P\land A=X/Y\land
+   out = \operatorname{round}_{3}(A) \; ++\; \text{`` km/l''}.
+   \]
+
+2. By definition of the concatenation operator `++` we obtain  
+
+   \[
+   out = \big\lVert\operatorname{round}_{3}(A)\big\rVert\;\text{`` km/l''}.
+   \]
+
+3. The remaining conjunct of `Q` – the arithmetic expression for `\operatorname{round}_{3}` – is a *definition* of the function, therefore it can be added by the **consequence** rule (the post‑condition we have already implies it).
+
+Consequently the post‑condition after the `print` statement is exactly `Q`.
+
+--------------------------------------------------------------------
+
+## 5.  Putting the fragments together  
+
+We now chain the four steps with the **sequencing rule**.
+
+1. From Sections 4.1 – 4.2 we have  
+
+   \[
+   \{P\}\;X:=\text{int}(input());\;Y:=\text{float}(input())\;
+   \{P\}.
+   \]
+
+2. From Section 4.3  
+
+   \[
+   \{P\}\;A:=X/Y\;\{P\land A=X/Y\}.
+   \]
+
+3. From Section 4.4  
+
+   \[
+   \{P\land A=X/Y\}\;
+   \text{out}:=\operatorname{round}_{3}(A) ++\text{`` km/l''}\;
+   \{Q\}.
+   \]
+
+Apply sequencing twice:
+
+\[
+\begin{aligned}
+\{P\}&\;X:=\text{int}(input());Y:=\text{float}(input());A:=X/Y;
+      \text{out}:=\operatorname{round}_{3}(A) ++\text{`` km/l''}
+      \;\{Q\}.
+\end{aligned}
+\]
+
+Because the concrete Python program is *syntactically* the same sequence (the division and the formatting are performed inside the `print` call, but they are semantically equivalent to the intermediate assignment `A := X/Y` followed by the output assignment), the Hoare triple for the abstract program also holds for the concrete one.
+
+--------------------------------------------------------------------
+
+## 6.  Concluding statement  
+
+We have exhibited a formal derivation, using only the standard Hoare‑logic inference rules, that
+
+\[
+\boxed{\;
+\{\,X\in\mathbb Z,\;X\ge0,\;Y\in\mathbb R,\;Y>0\,\}
+\;
+\textbf{read\_X\_Y; compute\_A; print\_out}
+\;
+\{
+A = X/Y\;\land\;
+\operatorname{round}_{3}(A)=\frac{\lfloor1000A+0.5\rfloor}{1000}\;
+\land\;
+out = \big\lVert\operatorname{round}_{3}(A)\big\rVert\;{\tt\;`` km/l''}
+\}
+\;}
+\]
+
+holds.  Hence the Python program
+
+```python
+distancia = int(input())
+combustivel = float(input())
+print(f'{distancia/combustivel:.3f} km/l')
+```
+
+**correctly implements the specification**: given a non‑negative integer distance and a strictly positive amount of fuel, it terminates and prints the average consumption rounded to three decimal places, followed by a single space and the literal string *km/l*.

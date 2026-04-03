@@ -1,0 +1,268 @@
+**Proof that the program satisfies the Hoare‑logic specification**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\; \texttt{solve\_change()}\; \{Q\}
+\]
+
+where  
+
+* `solve_change()` is the whole program (read, compute the twelve quantities, print).  
+* `P` is the pre‑condition given in the statement (the input is a non‑negative real `N` with at most two decimal digits, i.e. `c = 100·N ∈ ℕ`).  
+* `Q` is the post‑condition that describes the twelve quantities `q₁ … q₁₂` (the number of notes/coins), the exact decomposition of the amount, the optimality of the decomposition, the greedy construction and the required output format.
+
+The proof proceeds by **sequential composition** of Hoare triples for each program fragment.  
+Because the program contains no loops, the only non‑trivial part of the proof is the establishment of the *greedy invariant* after each “division‑remainder’’ pair.
+
+---------------------------------------------------------------------
+
+## 1.  Notation used in the proof  
+
+| Program variable | Meaning in the specification |
+|------------------|------------------------------|
+| `valor`          | the current remainder `r_i` (cents) |
+| `nota100` … `nota2` | `q₁ … q₆` (notes) |
+| `moeda100` … `moeda1`| `q₇ … q₁₂` (coins) |
+| `d₁ … d₁₂`       | denominations in cents (see the table in the statement) |
+| `c`              | the original number of cents, `c = 100·N` |
+
+---------------------------------------------------------------------
+
+## 2.  Proof outline  
+
+1. **Conversion of the input** – from a decimal string to the integer `c`.  
+2. **Greedy construction** – for each denomination `d_i` we compute `q_i = r_{i‑1}//d_i` and `r_i = r_{i‑1} % d_i`.  
+   We maintain the invariant  
+
+   \[
+   \boxed{I_i \;:\; r_{i-1}= \operatorname{rem}(c,d_1)+d_1q_1+\dots+d_{i-1}q_{i-1}}
+   \tag{1}
+   \]
+
+   (i.e. after handling the first `i‑1` denominations the current value of `valor`
+   is exactly the remainder `r_{i-1}` of the Euclidean division of `c` by `d_i`).  
+3. **Termination of the sequence** – after the last pair we have `r_{12}=0` and therefore  
+
+   \[
+   c = \sum_{i=1}^{12} d_i q_i .
+   \tag{2}
+   \]
+
+4. **Optimality** – we prove that the greedy construction (the values that satisfy (1)) yields a decomposition with the minimum possible total number of pieces.  
+5. **Output** – we show that the printed lines correspond exactly to the values `q_i` and to the strings required in clause (iv) of `Q`.
+
+---------------------------------------------------------------------
+
+## 3.  Detailed Hoare‑logic derivation  
+
+### 3.1  Input conversion  
+
+```
+valor = float(input())
+valor = int(valor*100)
+```
+
+*Pre‑condition*  
+
+\[
+P \equiv 0\le N\le 10^{6}\land N=\frac{c}{100}\land c\in\mathbb N .
+\]
+
+*First assignment*  
+
+\[
+\{P\}\; \texttt{valor = float(input())}\; \{P\land \texttt{valor}=N\}
+\]
+
+(the `float` conversion does not change the value because the input is exactly `N`).
+
+*Second assignment*  
+
+\[
+\{P\land \texttt{valor}=N\}\;
+\texttt{valor = int(valor*100)}\;
+\{P\land \texttt{valor}=c\}
+\]
+
+Indeed `valor*100 = N·100 = c` and `c` is an integer, therefore `int(c)=c`.  
+Thus after the two statements we have the **loop‑free invariant**
+
+\[
+I_0 \;:\; \texttt{valor}=c .
+\tag{3}
+\]
+
+---------------------------------------------------------------------
+
+### 3.2  Greedy step for a generic denomination  
+
+For a fixed `i (1≤i≤12)` we consider the pair
+
+```
+q_i = valor // d_i
+valor = valor % d_i
+```
+
+Assume that before the pair the invariant `I_{i-1}` holds, i.e.
+
+\[
+\texttt{valor}= r_{i-1}
+\quad\text{with}\quad
+c = d_1 q_1 +\dots + d_{i-1} q_{i-1} + r_{i-1},
+\qquad 0\le r_{i-1}< d_i .
+\tag{4}
+\]
+
+*Division*  
+
+\[
+\{I_{i-1}\}\;
+\texttt{q_i = valor // d_i}\;
+\{I_{i-1}\land \texttt{q_i}= \big\lfloor\frac{r_{i-1}}{d_i}\big\rfloor\}
+\tag{5}
+\]
+
+*Remainder*  
+
+\[
+\{I_{i-1}\land \texttt{q_i}= \big\lfloor\frac{r_{i-1}}{d_i}\big\rfloor\}\;
+\texttt{valor = valor % d_i}\;
+\{I_i\}
+\tag{6}
+\]
+
+where  
+
+\[
+I_i \;:\; \texttt{valor}= r_i
+\quad\text{and}\quad
+c = d_1 q_1+\dots + d_i q_i + r_i ,
+\qquad 0\le r_i< d_{i+1}.
+\]
+
+The equality follows from the definition of Euclidean division:
+
+\[
+r_{i-1}= d_i\cdot\big\lfloor\frac{r_{i-1}}{d_i}\big\rfloor + \operatorname{rem}(r_{i-1},d_i)
+      = d_i q_i + r_i .
+\]
+
+Substituting the expression of `r_{i-1}` given by (4) yields exactly `I_i`.  
+Thus the Hoare rule for *composition* (`{A}S₁{B}` and `{B}S₂{C}` ⇒ `{A} S₁;S₂ {C}`) gives a valid triple for the pair.
+
+---------------------------------------------------------------------
+
+### 3.3  The whole sequence  
+
+Starting from `I₀` (3) and applying the above reasoning for `i = 1,…,12` we obtain the chain  
+
+\[
+I_0 \;\xRightarrow{\text{pair }1}\; I_1 \;\xRightarrow{\text{pair }2}\; \dots \;\xRightarrow{\text{pair }12}\; I_{12}.
+\]
+
+`I₁₂` is
+
+\[
+\boxed{
+\begin{aligned}
+&\texttt{valor}= r_{12}=0,\\[1mm]
+&c = \sum_{i=1}^{12} d_i q_i .
+\end{aligned}}
+\tag{7}
+\]
+
+Hence after the twelve “division‑remainder’’ statements the program has computed
+exactly the twelve integers `q₁,…,q₁₂` that satisfy clause (i) of the post‑condition.
+
+---------------------------------------------------------------------
+
+### 3.4  Minimality of the greedy solution  
+
+The set of denominations  
+
+\[
+(10000, 5000, 2000, 1000, 500, 200, 100, 50, 25, 10, 5, 1)
+\]
+
+is **canonical**: each denomination is a multiple of the next one,
+i.e. `d_i = k_i·d_{i+1}` with `k_i ∈ ℕ` (for the present set `k_i ∈ {2,5,2,2,5,2,2,5,2,2,5}`).
+For such a system the greedy algorithm is optimal.  
+A short exchange argument proves it:
+
+*Lemma.*  
+Let `c` be any amount of cents and let `q₁,…,q₁₂` be the greedy quantities.
+Suppose another feasible decomposition `q'_1,…,q'_12` exists with the same total value.
+If there is an index `j` with `q'_j > q_j`, then because `d_j` is a multiple of `d_{j+1}`
+we can replace one coin of denomination `d_j` by at most `k_j` coins of the next
+smaller denomination, thereby **increasing** the total number of pieces.
+Consequently any decomposition that uses fewer pieces than the greedy one must
+have `q'_j ≤ q_j` for every `j`, which forces `∑ q'_i = ∑ q_i`.
+
+Therefore the greedy construction satisfies clause (ii) of `Q` (minimal total number of pieces).
+
+---------------------------------------------------------------------
+
+### 3.5  Printing  
+
+The remaining statements are
+
+```python
+print("NOTAS:")
+print(f"{nota100} nota(s) de R$ 100.00")
+...
+print("MOEDAS:")
+print(f"{moeda1} moeda(s) de R$ 0.01")
+```
+
+Because of the naming convention used in the program we have  
+
+\[
+\begin{aligned}
+\texttt{nota100}=q_1,\; \texttt{nota50}=q_2,\;\dots ,\; \texttt{nota2}=q_6,\\
+\texttt{moeda100}=q_7,\; \dots ,\; \texttt{moeda1}=q_{12}.
+\end{aligned}
+\]
+
+Each `print` statement outputs exactly the literal string required in clause (iv) of `Q`
+followed by the value of the corresponding variable.  
+Thus the **output format** part of `Q` holds.
+
+---------------------------------------------------------------------
+
+## 4.  Assembling the Hoare triple  
+
+We have shown the following chain of Hoare triples:
+
+\[
+\begin{aligned}
+&\{P\}\; \texttt{valor = float(input())}\; \{P\land \texttt{valor}=N\}\\
+&\{P\land \texttt{valor}=N\}\; \texttt{valor = int(valor*100)}\; \{P\land \texttt{valor}=c\}\\
+&\{I_0\}\; \text{pair }1\; \{I_1\}\; ;\; \dots\; ;\; \text{pair }12\; \{I_{12}\}\\
+&\{I_{12}\}\; \text{printing statements}\; \{Q\}.
+\end{aligned}
+\]
+
+By the **rule of composition** (if `{A}S₁{B}` and `{B}S₂{C}` then `{A}S₁;S₂{C}`) we obtain
+
+\[
+\{P\}\; \texttt{solve\_change()}\; \{Q\}.
+\]
+
+All four clauses of the post‑condition `Q` have been proved:
+
+* (i) exact decomposition – equation (7);  
+* (ii) minimality – the exchange lemma for the canonical denomination set;  
+* (iii) greedy construction – invariant `I_i` established for every `i`;  
+* (iv) required textual output – direct correspondence of program variables to the printed lines.
+
+---------------------------------------------------------------------
+
+## 5.  Conclusion  
+
+The program **correctly implements** the specification: starting from any admissible
+input `N` (pre‑condition `P`) it terminates and prints the numbers of notes and coins
+that (a) sum up exactly to the amount, (b) use the smallest possible total number of
+pieces, and (c) are produced by the greedy algorithm described in the specification.
+Hence the Hoare triple `{P} solve_change() {Q}` is valid, which completes the formal
+correctness proof.  

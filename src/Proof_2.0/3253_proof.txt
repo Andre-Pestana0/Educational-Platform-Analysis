@@ -1,0 +1,470 @@
+## 1.  Overview  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt solve\_city\_traps}\;\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** is the *pre‑condition* that the input describes a finite directed
+  graph \(G=(V,E)\) whose vertex set contains the special vertex `0`.  
+
+* **\(Q\)** is the *post‑condition* that the program prints exactly the
+  lines required by the statement of the problem (the sets **TRAPPED**
+  and **UNREACHABLE**, or the single line *“NO PROBLEMS”*).
+
+The program is the Python source given in the question.  
+In the proof we treat each program fragment as a *command* in Hoare
+logic and we exhibit a **loop invariant** for every loop (the “read
+streets’’ loop, the inner‑loop that builds the reverse adjacency list,
+the DFS `while` loop and the final “produce output’’ loop).  
+From the invariants we derive the desired properties of the data
+structures (`ruas_adjacentes`, `chegam`, the two `visited` arrays) and
+finally the output.
+
+All identifiers are natural numbers, and we use the mathematical
+notation introduced in the specification:
+
+* `V ⊆ Id` – the set of vertices that actually appear in the input,
+  with `0 ∈ V`;
+* `E ⊆ V × V` – the set of directed edges defined by the input lines;
+* `reach(u,v)` – the reflexive‑transitive closure of `E`.
+
+---
+
+## 2.  Formalisation of the program  
+
+We annotate the program with *assertions* (the curly‑brackets denote
+Hoare triples).  For readability we write the code in a slightly
+re‑structured form that makes the control‑flow explicit.
+
+```text
+1  nro_ruas = int(input())                     {A0}
+2  no_problem = True                           {A1}
+3  ruas_adjacentes = {}                        {A2}
+4  chegam = {}                                 {A3}
+5  id_input_order = []                         {A4}
+6  for rua in range(nro_ruas):                {A5}
+7      id, nro_alcancaveis, *alcancaveis = \
+         map(int, input().split(' '))
+8      id_input_order.append(id)
+9      ruas_adjacentes[id] = alcancaveis
+10     for i in alcancaveis:                  {A6}
+11         if chegam.get(i) == None:
+12             chegam[i] = []
+13         chegam[i].append(id)
+14
+15 def dfs(vetor):
+16     pilha = [0]                             {D0}
+17     visited = [False] * 1000                {D1}
+18     while pilha:                            {D2}
+19         visited[pilha[0]] = True
+20         aux = pilha[0]
+21         pilha.pop(0)
+22         if vetor.get(aux) != None:
+23             for rua in vetor[aux]:
+24                 if visited[rua] == False:
+25                     pilha.insert(0, rua)
+26     return visited
+27
+28 visited  = dfs(ruas_adjacentes)            {E0}
+29 visited2 = dfs(chegam)                    {E1}
+30 unreachables = ''                          {F0}
+31 trappeds    = ''                           {F1}
+32 for id in id_input_order:                 {F2}
+33     rua = visited2[id]
+34     if rua == False:
+35         no_problem = False
+36         trappeds += f'TRAPPED {id}\n'
+37     rua = visited[id]
+38     if rua == False:
+39         no_problem = False
+40         unreachables += f'UNREACHABLE {id}\n'
+41
+42 if no_problem:
+43     print('NO PROBLEMS')
+44 else:
+45     print(trappeds + unreachables, end='')
+```
+
+The **commands** we will reason about are:
+
+* `C_read` – the whole `for rua …` block (lines 6‑13);
+* `C_dfs(vetor)` – the body of the `dfs` function (lines 15‑26);
+* `C_main` – the remaining part of the program (lines 28‑45).
+
+The proof proceeds in three phases:
+
+1. **Construction phase** (`C_read`): we show that after the input
+   loop the dictionaries `ruas_adjacentes` and `chegam` encode exactly
+   the edge set `E` and that `id_input_order` stores the vertices in the
+   order they were read.
+
+2. **Reachability phase** (`C_dfs`): we prove that a call
+   `dfs(ruas_adjacentes)` returns the array `visited` such that  
+
+   \[
+   visited[v]=\text{True}\iff reach(0,v)
+   \]
+
+   and that `dfs(chegam)` returns  
+
+   \[
+   visited2[v]=\text{True}\iff reach(v,0).
+   \]
+
+3. **Output phase** (`C_main`): using the two reachability arrays we
+   establish that the final loop (lines 32‑40) builds exactly the two
+   sets **TRAPPED** and **UNREACHABLE**, and that the final `if…else`
+   prints the required format, i.e. satisfies `Q`.
+
+---
+
+## 3.  Phase 1 – Construction of the graph  
+
+### 3.1  Loop invariant for the outer input loop  
+
+Let  
+
+\[
+\begin{aligned}
+I_{\text{out}}(k) \;\equiv\;
+&\bigl(0\le k\le nro\_ruas\bigr)                                 \\
+&\land\; \bigl(\forall u\in\text{keys}(ruas\_adjacentes)\; 
+     (u,\,v)\in E\text{ for each }v\in ruas\_adjacentes[u]\bigr)\\
+&\land\; \bigl(\forall v\in\text{keys}(chegam)\;
+      \bigl(v\in\text{keys}(chegam)\iff\exists u\;(u,v)\in E\bigr)\bigr)\\
+&\land\; \bigl(id\_input\_order\text{ contains exactly the first }k
+      input identifiers in the order they were read}\bigr).
+\end{aligned}
+\]
+
+*Initialization* (`k=0` before the first iteration): all three
+structures are empty, therefore `I_out(0)` holds trivially.
+
+*Preservation* – assume `I_out(k)` holds at the beginning of an
+iteration and the next line of the input is  
+
+\[
+(u,\;k_u,\;v_1,\dots ,v_{k_u}).
+\]
+
+The body executes:
+
+* `id_input_order.append(u)` – adds `u` at the end, hence the order
+  property extends to `k+1`.
+
+* `ruas_adjacentes[u] = [v_1,\dots ,v_{k_u}]` – adds the outgoing edges
+  from `u` to the adjacency dictionary, therefore for every
+  `v_i` we now have `(u,v_i)∈E`.  No other entry of `ruas_adjacentes`
+  changes, so the first conjunct of `I_out` is preserved.
+
+* The inner loop (lines 10‑13) iterates over each `v_i`.  
+  For a fixed `v_i` the statement  
+
+  \[
+  \text{chegam}[v_i].\text{append}(u)
+  \]
+
+  adds the reverse edge `u → v_i` to the list of predecessors of `v_i`.
+  Consequently the second conjunct of `I_out` (the characterisation of
+  `chegam`) is also preserved.
+
+Thus `I_out(k+1)` holds.  
+
+*Termination*: the loop ends when `k = nro_ruas`.  Consequently we have
+
+\[
+\begin{aligned}
+&\text{keys}(ruas\_adjacentes)=\{u\mid\exists v\;(u,v)\in E\}\cup\{0\},\\
+&\text{keys}(chegam)=\{v\mid\exists u\;(u,v)\in E\},\\
+&\text{for every }u,\;ruas\_adjacentes[u]=\{v\mid (u,v)\in E\},\\
+&\text{for every }v,\;chegam[v]=\{u\mid (u,v)\in E\},\\
+&id\_input\_order\text{ is exactly the list of vertices (except 0) in the
+  order they were read}.
+\end{aligned}
+\tag{1}
+\]
+
+These facts are exactly the concrete representation of the abstract
+graph \((V,E)\) required by the specification.
+
+---
+
+### 3.2  Loop invariant for the inner “reverse‑edge’’ loop  
+
+For completeness we give a simple invariant for the inner loop
+(lines 10‑13).  Let `S` be the set of already‑processed successors of the
+current `id`.  
+
+\[
+I_{\text{inner}}(S) \;\equiv\;
+\bigl(\forall v\in S\; (v\in\text{keys}(chegam) \land
+      u\in\text{chegam}[v])\bigr)
+\]
+
+*Initialization*: `S = ∅` – the property holds vacuously.  
+
+*Preservation*: when the loop processes a new successor `v`,
+the body either creates `chegam[v]=[]` (if it did not exist) and then
+appends `u`.  Hence after the execution `u∈chegam[v]` and the invariant
+holds for `S∪{v}`.  
+
+*Termination*: after the loop finishes, `S` is precisely the set of
+all successors `alcancaveis`, therefore for every edge `(u,v)∈E` we have
+`u∈chegam[v]`.  This is exactly the second conjunct of (1).
+
+---
+
+## 4.  Phase 2 – Correctness of the depth‑first search  
+
+We now prove that the function `dfs` computes the reachability set from
+the start vertex `0` in the graph described by the dictionary argument
+`vetor`.  The argument `vetor` is either `ruas_adjacentes` (the original
+graph) or `chegam` (the transpose).
+
+### 4.1  Specification of `dfs`
+
+For a given dictionary `vetor` that represents a directed graph
+\(G_{\text{vetor}}=(V_{\text{vetor}},E_{\text{vetor}})\) we define
+
+\[
+\operatorname{DFS}(vetor) \; \equiv\; 
+\bigl\{\,v\in Id \mid \text{the algorithm returns
+  visited}[v]=\text{True}\,\bigr\}.
+\]
+
+**Goal**  
+
+\[
+\{\,\text{vetor encodes }G_{\text{vetor}}\,\}\;
+\texttt{dfs(vetor)}\;
+\{\,\forall v\;(\text{visited}[v]=\text{True}\iff
+      reach_{G_{\text{vetor}}}(0,v))\,\}.
+\tag{2}
+\]
+
+### 4.2  Loop invariant for the DFS `while` loop  
+
+Let  
+
+* `S` – the set of vertices already **popped** from the stack (i.e.
+  already *visited* by the algorithm);
+* `U` – the set of vertices currently stored in the stack `pilha`
+  (the *frontier*).
+
+Define the invariant  
+
+\[
+\begin{aligned}
+I_{\text{dfs}}(S,U) \;\equiv\;
+&\;S\subseteq V_{\text{vetor}}\;\land\;U\subseteq V_{\text{vetor}}\\
+&\land\; \bigl(\forall v\in S\; \text{visited}[v]=\text{True}\bigr)\\
+&\land\; \bigl(\forall v\in U\; \text{visited}[v]=\text{False}\bigr)\\
+&\land\; \bigl(S\cup U = \{\,w\mid
+           \exists\text{ path }0\leadsto w\text{ in }G_{\text{vetor}}\}\bigr).
+\end{aligned}
+\tag{3}
+\]
+
+*Initialization* (`pilha = [0]`, `visited` all false):  
+
+\(S=\varnothing,\;U=\{0\}\).  
+Both sets are subsets of `V_vetor`, the only vertex that is true in
+`visited` is none, and the union `S∪U` is exactly the set of vertices
+reachable from `0` by a path of length ≤ 1.  Hence (3) holds.
+
+*Preservation* – assume the invariant holds at the start of an
+iteration and the loop body executes:
+
+1. `visited[pilha[0]] = True` – the vertex `x = pilha[0]` moves from `U`
+   to `S`.  Consequently the first two conjuncts of (3) remain true.
+
+2. `pilha.pop(0)` removes `x` from `U`.
+
+3. If `vetor.get(x) != None`, the algorithm iterates over all outgoing
+   neighbours `y` of `x`.  
+   For each neighbour `y` with `visited[y]==False` it executes
+   `pilha.insert(0,y)`.  
+   This adds `y` to `U` (the frontier) **iff** there exists an edge
+   `(x,y)∈E_{\text{vetor}}` and `y` has not been visited before.
+
+   Because `x∈S` (by the first step) and `y` is a direct successor of
+   `x`, any path `0⇒…⇒x⇒y` witnesses that `y` is reachable from `0`.  
+   Conversely, any vertex reachable from `0` that is not yet in `S`
+   must have a predecessor already in `S` (the first vertex on the
+   shortest path that is not in `S`).  That predecessor will eventually
+   be processed and will insert the vertex into `U`.  Hence the union
+   `S∪U` stays equal to the set of vertices reachable from `0`.
+
+Thus the invariant (3) is preserved.
+
+*Termination*: the loop ends when `pilha` (i.e. `U`) becomes empty.
+From (3) we obtain  
+
+\[
+S = \{\,v\mid reach_{G_{\text{vetor}}}(0,v)\,\}.
+\]
+
+Since the algorithm sets `visited[v]=True` exactly for the vertices in
+`S`, we have proved (2).
+
+---
+
+### 4.3  Consequences for the two calls  
+
+* `visited  = dfs(ruas_adjacentes)`  
+
+  By (1) `ruas_adjacentes` encodes the original edge set `E`.  
+  Hence  
+
+  \[
+  visited[v]=\text{True} \iff reach_{G}(0,v).
+  \tag{4}
+  \]
+
+* `visited2 = dfs(chegam)`  
+
+  `chegam` encodes the **transpose** graph \(G^{\top}=(V,E^{\top})\) where
+  \((v,u)\in E^{\top}\) iff \((u,v)\in E\).  
+  Reachability in the transpose satisfies  
+
+  \[
+  reach_{G^{\top}}(0,v) \iff reach_{G}(v,0).
+  \]
+
+  Therefore, using (2) again,
+
+  \[
+  visited2[v]=\text{True} \iff reach_{G}(v,0).
+  \tag{5}
+  \]
+
+Equations (4) and (5) are exactly the semantic meaning of the two
+boolean arrays that the program later consults.
+
+---
+
+## 5.  Phase 3 – Construction of the answer and final output  
+
+We now analyse the last loop (lines 32‑40) that builds the strings
+`trappeds` and `unreachables`.  The loop iterates over the vertices in
+the order stored in `id_input_order`, which by (1) is precisely the set
+\(V\setminus\{0\}\) (the problem never asks to treat vertex 0 itself).
+
+### 5.1  Loop invariant  
+
+Let `k` be the number of iterations already performed (i.e. the number
+of processed identifiers).  Define  
+
+\[
+\begin{aligned}
+I_{\text{out}}(k) \;\equiv\;
+&\bigl(\text{trappeds}= \!\!\!\!\!\!\!\!\bigcup_{\,i<k,\;i\in
+   \mathit{TRAPPED}} \!\!\!\!\!\!\!\! \text{``TRAPPED }i\text{''\n}\bigr)\\
+&\land\;
+  \bigl(\text{unreachables}= \!\!\!\!\!\!\!\!\bigcup_{\,i<k,\;i\in
+   \mathit{UNREACHABLE}} \!\!\!\!\!\!\!\! \text{``UNREACHABLE }i\text{''\n}\bigr)\\
+&\land\;
+  \bigl(\text{no\_problem}= (\mathit{TRAPPED}\cup\mathit{UNREACHABLE}
+          \subseteq \{\,\text{ids processed so far}\,\})\bigr).
+\end{aligned}
+\tag{6}
+\]
+
+*Initialization*: before the first iteration (`k=0`) both strings are
+empty and `no_problem` is `True`; the invariant holds trivially.
+
+*Preservation*: assume the invariant holds for `k` and the next id is
+`v = id_input_order[k]`.  
+
+* First test (line 33‑36):  
+
+  *If* `visited2[v] == False` then, by (5), `¬reach(v,0)`.  
+  Because `v≠0`, `reach(0,v)` holds (otherwise `v` would belong to the
+  *UNREACHABLE* set, not to *TRAPPED*).  Consequently `v∈\mathit{TRAPPED}`
+  and the body appends the line `TRAPPED v` to `trappeds` and sets
+  `no_problem = False`.  This updates the first component of (6) exactly
+  as required and preserves the third component.
+
+* Second test (line 37‑40):  
+
+  *If* `visited[v] == False` then, by (4), `¬reach(0,v)`.  Hence
+  `v∈\mathit{UNREACHABLE}` and the algorithm appends the appropriate line
+  to `unreachables` and again forces `no_problem = False`.  The second
+  component of (6) is updated accordingly.
+
+If a test fails, nothing is added and `no_problem` stays unchanged,
+which also respects (6).  Therefore after processing `v` the invariant
+holds for `k+1`.
+
+*Termination*: after the loop finishes (`k = |V|-1`) we have
+
+\[
+\begin{aligned}
+\text{trappeds} &= \bigcup_{v\in\mathit{TRAPPED}}
+                  \text{``TRAPPED }v\text{''\n},\\
+\text{unreachables} &= \bigcup_{v\in\mathit{UNREACHABLE}}
+                      \text{``UNREACHABLE }v\text{''\n},\\
+\text{no\_problem} &= (\mathit{TRAPPED}=\varnothing
+                       \land \mathit{UNREACHABLE}=\varnothing).
+\end{aligned}
+\tag{7}
+\]
+
+Thus the strings contain **exactly** one line for each element of the
+two sets, and `no_problem` correctly records whether both sets are empty.
+
+### 5.2  Final `if … else`  
+
+The last conditional (lines 42‑45) distinguishes the two cases:
+
+*If* `no_problem` is `True` (i.e. both sets are empty by (7)) the program
+prints the single line `NO PROBLEMS`.  
+
+*Otherwise* it prints `trappeds + unreachables`.  By (7) this concatenation
+contains precisely the lines required for the non‑empty sets, each
+exactly once, and no other line is printed.
+
+Hence the output satisfies the post‑condition `Q`.
+
+---
+
+## 6.  Summary of the proof  
+
+We have shown, using Hoare‑logic style reasoning, that:
+
+1. **Construction phase** – after the input loop the dictionaries
+   `ruas_adjacentes` and `chegam` are faithful representations of the
+   edge set `E` of the graph described by the input, and the list
+   `id_input_order` contains all vertices (except the special vertex
+   `0`) in the order they appeared.  This establishes the bridge between
+   the concrete data structures and the abstract model used in `P`.
+
+2. **Reachability phase** – a call to `dfs` on a dictionary that
+   encodes a directed graph returns a Boolean array that is the exact
+   characteristic function of the set of vertices reachable from the
+   start vertex `0`.  Consequently `visited` records `reach(0,·)` and
+   `visited2` records `reach(·,0)` for the original graph.
+
+3. **Output phase** – the final loop builds the two sets  
+
+   \[
+   \mathit{TRAPPED}= \{v\mid reach(0,v)\land\neg reach(v,0)\},
+   \qquad
+   \mathit{UNREACHABLE}= \{v\mid \neg reach(0,v)\},
+   \]
+
+   and prints exactly the required lines, or the single line
+   *“NO PROBLEMS”* when both sets are empty.
+
+Therefore  
+
+\[
+\{P\}\;\; \texttt{solve\_city\_traps}\;\; \{Q\}
+\]
+
+holds, i.e. the program is **correct** with respect to the Hoare‑logic
+specification given in the statement of the problem. ∎

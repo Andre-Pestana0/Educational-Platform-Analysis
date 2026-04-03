@@ -1,0 +1,375 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt colAlg}(S,N,ok)\;\;\{Q\}
+\tag{5}
+\]
+
+where  
+
+* `P` is the pre‑condition (3) – the input string `S` consists only of capital
+  letters and its length is between 1 and 10;  
+
+* `Q` is the post‑condition (4) – the algorithm returns the **Excel column
+  number** `n = num(S)` in `N` and `ok = true` **iff** `n ≤ MAX = 16384`,
+  otherwise it returns `ok = false` (conventionally `N = –1`) and prints the
+  literal  
+
+  ```
+  Essa coluna nao existe Tobias!
+  ```
+
+The program that implements `colAlg` is the fragment that you posted
+(the `for linha in sys.stdin:` loop).  
+Because the loop processes each input line independently, it is enough to
+prove the Hoare triple for a *single* iteration; the loop then follows from
+the rule of **consequence** and the fact that the body terminates for every
+iteration.
+
+The proof proceeds by structural induction on the length of the input
+string `S`.  For each branch we write a Hoare triple, apply the Hoare
+axioms (assignment, conditional) and finally combine the three branches
+with the rule for `if‑elsif‑else`.  The auxiliary functions
+`umaLetra`, `duasLetras` and `tresLetras` are proved correct separately;
+they are exactly the specialised forms of the generic base‑26 conversion
+(1).
+
+---
+
+## 2.  Auxiliary lemmas  
+
+### Lemma 1 – `umaLetra` computes `num` for a 1‑letter string  
+
+For any `c ∈ Σ`
+
+```
+umaLetra(c)  =  ord(c[0]) - 64
+```
+
+Since `ord('A') = 65` we have  
+
+\[
+\text{umaLetra}(c)=\bigl(\text{code}(c)-\text{code}('A')\bigr)+1
+                 = \operatorname{val}(c)
+                 = \operatorname{num}(c) .
+\]
+
+Thus  
+
+\[
+\{\,c\in\Sigma\,\}\; \text{umaLetra}(c)\; \{\,\text{result}= \operatorname{num}(c)\,\}.
+\tag{L1}
+\]
+
+### Lemma 2 – `duasLetras` computes `num` for a 2‑letter string  
+
+For any `c₁c₂ ∈ Σ²`
+
+```
+duasLetras(c₁c₂) = 26 + (ord(c₁)-65)*26 + ord(c₂)-64
+```
+
+Rewrite using `val`:
+
+\[
+\begin{aligned}
+\text{duasLetras}(c₁c₂)
+  &= 26 + ( \operatorname{val}(c₁)-1 )\;26 + (\operatorname{val}(c₂)-1)\\
+  &= 26 + \operatorname{val}(c₁)·26 - 26 + \operatorname{val}(c₂)-1\\
+  &= \operatorname{val}(c₁)·26 + \operatorname{val}(c₂)\\
+  &= \operatorname{num}(c₁c₂) .
+\end{aligned}
+\]
+
+Hence  
+
+\[
+\{\,c₁c₂\in\Sigma^{2}\,\}\; \text{duasLetras}(c₁c₂)\;
+   \{\,\text{result}= \operatorname{num}(c₁c₂)\,\}.
+\tag{L2}
+\]
+
+### Lemma 3 – `tresLetras` computes `num` for a 3‑letter string  
+
+For any `c₁c₂c₃ ∈ Σ³`
+
+```
+tresLetras(c₁c₂c₃) =
+   26 + 26*26
+ + 26*((ord(c₁)-65)*26 + ord(c₂)-65)
+ + ord(c₃)-64
+```
+
+Again using `val` :
+
+\[
+\begin{aligned}
+\text{tresLetras}(c₁c₂c₃)
+ &= 26 + 26^{2}
+    + 26\bigl((\operatorname{val}(c₁)-1)·26 + (\operatorname{val}(c₂)-1)\bigr)
+    + (\operatorname{val}(c₃)-1)\\
+ &= 26 + 26^{2}
+    + 26^{2}(\operatorname{val}(c₁)-1)
+    + 26(\operatorname{val}(c₂)-1)
+    + (\operatorname{val}(c₃)-1)\\
+ &= 26^{2}\operatorname{val}(c₁)
+    + 26   \operatorname{val}(c₂)
+    +        \operatorname{val}(c₃)\\
+ &= \operatorname{num}(c₁c₂c₃) .
+\end{aligned}
+\]
+
+Thus  
+
+\[
+\{\,c₁c₂c₃\in\Sigma^{3}\,\}\; \text{tresLetras}(c₁c₂c₃)\;
+   \{\,\text{result}= \operatorname{num}(c₁c₂c₃)\,\}.
+\tag{L3}
+\]
+
+---
+
+## 3.  The three length‑based cases  
+
+Let  
+
+* `S` be the current input line **without** the trailing newline
+  (`linha[:-1]` in the program).  
+* `k = |S|`.  
+* `n = num(S)`.
+
+The program distinguishes three disjoint cases:
+
+| case | guard (program) | action | derived Hoare triple |
+|------|-----------------|--------|----------------------|
+| **C₁** | `k = 1` | `print(umaLetra(S))` | see below |
+| **C₂** | `k = 2` | `print(duasLetras(S))` | see below |
+| **C₃** | `k = 3` | see inner `if` (error‑test) then either `print(error)` or `print(tresLetras(S))` | see below |
+| **C₄** | `k > 3` | `print(error)` | trivial |
+
+We prove each case separately.
+
+### 3.1  Case C₁ – one‑letter label  
+
+Pre‑condition for this branch is  
+
+\[
+P_{C₁}\; \equiv\; P\;\wedge\;|S|=1 .
+\]
+
+From Lemma 1 we have  
+
+\[
+\{S\in\Sigma\}\;\text{umaLetra}(S)\;\{\,\text{tmp}=n\,\}.
+\]
+
+The statement `print(umaLetra(S))` is an **output** command; the Hoare rule
+for output (see any textbook) is  
+
+\[
+\{\,\text{tmp}=n\,\}\;\text{print(tmp)}\;\{\,\text{output}= \text{decimal}(n)\,\}.
+\]
+
+Because `k=1 ≤ 3`, the column is always ≤ `XFD` (the largest 3‑letter column)
+hence `n ≤ MAX`.  Consequently the post‑condition `Q` reduces to  
+
+\[
+N=n,\;ok=\text{true},\;\text{output}=n .
+\]
+
+We set `N←tmp` and `ok←true` (the program does not assign them explicitly,
+but the specification allows us to view the printed value as the returned
+`N`).  Hence  
+
+\[
+\{P_{C₁}\}\;\text{branch C₁}\;\{Q\}.
+\tag{C1}
+\]
+
+### 3.2  Case C₂ – two‑letter label  
+
+Analogous to C₁.  The guard `|S|=2` gives  
+
+\[
+P_{C₂}\equiv P\wedge |S|=2 .
+\]
+
+Lemma 2 gives `tmp = n`.  The same output rule yields the required output.
+Again `n ≤ MAX` because the biggest 2‑letter column is `ZZ = 702 < 16384`.
+Therefore `Q` holds with `ok = true`.  
+
+\[
+\{P_{C₂}\}\;\text{branch C₂}\;\{Q\}.
+\tag{C2}
+\]
+
+### 3.3  Case C₃ – three‑letter label  
+
+Now  
+
+\[
+P_{C₃}\equiv P\wedge |S|=3 .
+\]
+
+Write `S = c₁c₂c₃`.  The program evaluates three Boolean expressions:
+
+```
+caso1 = c₁ > 'X'
+caso2 = c₁ == 'X' and c₂ > 'F'
+caso3 = c₁ == 'X' and c₂ == 'F' and c₃ > 'D'
+```
+
+Define  
+
+\[
+E \;:=\; \text{caso1} \lor \text{caso2} \lor \text{caso3}.
+\]
+
+`E` is **exactly** the condition  
+
+\[
+\operatorname{num}(c₁c₂c₃) > \operatorname{num}(\text{“XFD”}) = \text{MAX}.
+\tag{6}
+\]
+
+*Proof of (6).*  
+The lexical order of Excel columns coincides with the numeric order of
+`num`.  The first column that is *greater* than `XFD` must have a first
+letter larger than `X`, **or** start with `X` and a second letter larger
+than `F`, **or** start with `XF` and a third letter larger than `D`.  This
+is precisely the disjunction `E`.  Conversely, any string that satisfies
+`E` is lexicographically after `XFD` and therefore its numeric value is
+larger than `MAX`. ∎
+
+Hence the inner `if` is a direct test of `n > MAX`.
+
+---
+
+#### 3.3.1  Sub‑case `E` (invalid column)
+
+Guard: `E` is true.  
+The program executes `print("Essa coluna nao existe Tobias!")`.  
+Using the output rule we obtain  
+
+\[
+\{\,\text{true}\,\}\;\text{print(error)}\;\{
+   \text{output}= \text{“Essa coluna nao existe Tobias!”}\,\}.
+\]
+
+We also set `N←-1` and `ok←false` (again these are logical variables that
+the specification expects).  By (6) we have `n > MAX`, therefore the
+right‑hand side of `Q` holds.  
+
+\[
+\{P_{C₃}\wedge E\}\;\text{branch C₃‑error}\;\{Q\}.
+\tag{C3‑e}
+\]
+
+#### 3.3.2  Sub‑case `¬E` (valid column)
+
+Guard: `¬E`.  
+Now the program executes `print(tresLetras(S))`.  
+Lemma 3 gives a temporary variable `tmp = n`.  The output rule yields the
+desired decimal representation.  Because `¬E` is equivalent to `n ≤ MAX`,
+the left‑hand side of `Q` applies, i.e. `ok = true` and `N = n`.  
+
+\[
+\{P_{C₃}\wedge \neg E\}\;\text{branch C₃‑ok}\;\{Q\}.
+\tag{C3‑o}
+\]
+
+#### 3.3.3  Combination for case C₃  
+
+The Hoare rule for an `if‑else` statement gives
+
+\[
+\{P_{C₃}\}\;
+\begin{array}{c}
+\text{if }E\text{ then error else tresLetras}
+\end{array}
+\;
+\{Q\}.
+\tag{C3}
+\]
+
+---
+
+### 3.4  Case C₄ – length > 3  
+
+Guard: `|S| > 3`.  
+The program directly prints the error message, exactly as in sub‑case
+`E`.  Because any column longer than three letters is certainly larger than
+`XFD`, we have `n > MAX`.  The same reasoning as in (C3‑e) yields `Q`.
+
+\[
+\{P\wedge |S|>3\}\;\text{print(error)}\;\{Q\}.
+\tag{C4}
+\]
+
+---
+
+## 4.  Putting the pieces together  
+
+The whole body of the `for linha in sys.stdin:` loop is a **chain of
+mutually exclusive guarded commands**:
+
+\[
+\begin{aligned}
+&\text{if }|S|=1\text{ then C₁}\\
+&\text{elsif }|S|=2\text{ then C₂}\\
+&\text{elsif }|S|=3\text{ then C₃}\\
+&\text{else C₄}
+\end{aligned}
+\]
+
+The Hoare rule for a cascade of `if‑elsif‑else` statements states that if
+each individual guarded command satisfies `{P ∧ guard_i} body_i {Q}`
+then the whole cascade satisfies `{P} cascade {Q}`.
+
+We have proved exactly those four obligations: (C1), (C2), (C3) and (C4).
+Therefore
+
+\[
+\{P\}\;\text{body of the loop}\;\{Q\}
+\]
+
+holds for **one** iteration.
+
+The outer `for` loop merely repeats this body for each line read from
+`stdin`.  The loop invariant is simply “the specification holds for every
+line already processed”.  The invariant is established by the above
+single‑iteration proof and is preserved because each new iteration starts
+with a fresh `S` that satisfies `P` (the problem statement guarantees that
+the input respects the pre‑condition).  The loop terminates when the input
+stream ends, so the invariant together with the termination condition
+implies the post‑condition for the whole program.
+
+Hence the Hoare triple (5) is proved:
+
+\[
+\boxed{\{P\}\;\;{\tt colAlg}(S,N,ok)\;\;\{Q\}}
+\]
+
+i.e. **the program is correct with respect to the given formal
+specification**.
+
+---
+
+## 5.  Summary of the proof steps  
+
+| Step | Reasoning / rule used |
+|------|-----------------------|
+| 1.   | Define `val`, `num`, `MAX`. |
+| 2.   | Prove Lemma 1–3 – the three helper functions implement `num`. |
+| 3.   | Show that the guard `E` in the three‑letter branch is equivalent to `n > MAX`. |
+| 4.   | Derive Hoare triples for each length case (C₁–C₄) using assignment and output rules. |
+| 5.   | Apply the `if‑elsif‑else` rule to combine the four triples. |
+| 6.   | Use a simple loop invariant to lift the single‑iteration result to the whole `for` loop. |
+| 7.   | Conclude that the program satisfies the specification `Q` whenever the
+pre‑condition `P` holds. |
+
+Thus the Python program you posted is a **correct implementation** of the
+Excel‑column conversion algorithm as formalised in the Hoare‑logic
+specification.

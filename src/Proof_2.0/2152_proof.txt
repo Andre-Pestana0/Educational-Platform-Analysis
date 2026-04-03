@@ -1,0 +1,212 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;N\ge 1\;\land\;\forall i\in\{1,\dots ,N\}\;
+\bigl(0\le H_i\le 23\;\land\;0\le M_i\le 59\;\land\;O_i\in\{0,1\}\bigr)
+\tag{P}
+\]
+
+* **Post‑condition**  
+
+\[
+Q\;:\;\text{the output consists of the strings }
+s_i=\operatorname{line}(H_i,M_i,O_i)\;(i=1\ldots N)
+\text{ each terminated by “\textbackslash n”.}
+\tag{Q}
+\]
+
+The program is  
+
+```text
+n = int(input())                     # 1
+for i in range(n):                   # 2 … 5
+    x, y, z = map(int, input().split())
+    if (x<10) and (y<10):
+        if z==1: print(f'0{x}:0{y} - A porta abriu!')
+        else:    print(f'0{x}:0{y} - A porta fechou!')
+    elif (x<10) and (y>=10):
+        if z==1: print(f'0{x}:{y} - A porta abriu!')
+        else:    print(f'0{x}:{y} - A porta fechou!')
+    elif (x>=10) and (y<10):
+        if z==1: print(f'{x}:0{y} - A porta abriu!')
+        else:    print(f'{x}:0{y} - A porta fechou!')
+    else:
+        if z==1: print(f'{x}:{y} - A porta abriu!')
+        else:    print(f'{x}:{y} - A porta fechou!')
+```
+
+The auxiliary (pure) functions that appear in the specification are  
+
+* `pad2(x)` – adds a leading ‘0’ iff `x<10`;  
+* `msg(o)` – returns *“A porta abriu!”* for `o=1` and *“A porta fechou!”* for `o=0`;  
+* `line(h,m,o)=pad2(h) + ':' + pad2(m) + ' - ' + msg(o)`.
+
+Our proof will be **structural**: we first prove a Hoare triple for a *single* test case, then we lift it to the whole loop by means of a loop invariant.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare triple for one iteration  
+
+### 2.1  Specification of `process_case`
+
+```
+process_case(x,y,z):
+    if (x<10) and (y<10):
+        if z==1: print(f'0{x}:0{y} - A porta abriu!')
+        else:    print(f'0{x}:0{y} - A porta fechou!')
+    elif (x<10) and (y>=10):
+        if z==1: print(f'0{x}:{y} - A porta abriu!')
+        else:    print(f'0{x}:{y} - A porta fechou!')
+    elif (x>=10) and (y<10):
+        if z==1: print(f'{x}:0{y} - A porta abriu!')
+        else:    print(f'{x}:0{y} - A porta fechou!')
+    else:
+        if z==1: print(f'{x}:{y} - A porta abriu!')
+        else:    print(f'{x}:{y} - A porta fechou!')
+```
+
+**Pre‑condition**  
+
+\[
+P_i\;:\;0\le x\le 23\;\land\;0\le y\le 59\;\land\;z\in\{0,1\}
+\]
+
+**Post‑condition**  
+
+\[
+Q_i\;:\;\text{output the string } \operatorname{line}(x,y,z)
+\]
+
+We prove \(\{P_i\}\;{\tt process\_case}\;\{Q_i\}\) by case analysis on the four mutually exclusive Boolean guards.
+
+| Guard (condition)                              | Printed string                               | Equality with `line(x,y,z)` |
+|------------------------------------------------|---------------------------------------------|------------------------------|
+| `(x<10) and (y<10)` and `z==1`                 | `0{x}:0{y} - A porta abriu!`                | `pad2(x)=0x`, `pad2(y)=0y`, `msg(1)` |
+| `(x<10) and (y<10)` and `z==0`                 | `0{x}:0{y} - A porta fechou!`               | same as above, `msg(0)` |
+| `(x<10) and (y>=10)` and `z==1`                | `0{x}:{y} - A porta abriu!`                 | `pad2(x)=0x`, `pad2(y)=y` |
+| `(x<10) and (y>=10)` and `z==0`                | `0{x}:{y} - A porta fechou!`                | idem |
+| `(x>=10) and (y<10)` and `z==1`                | `{x}:0{y} - A porta abriu!`                 | `pad2(x)=x`, `pad2(y)=0y` |
+| `(x>=10) and (y<10)` and `z==0`                | `{x}:0{y} - A porta fechou!`                | idem |
+| `else` (i.e. `x>=10 ∧ y>=10`) and `z==1`       | `{x}:{y} - A porta abriu!`                  | `pad2(x)=x`, `pad2(y)=y` |
+| `else` and `z==0`                              | `{x}:{y} - A porta fechou!`                 | idem |
+
+In every branch the printed text is exactly  
+
+\[
+\operatorname{pad2}(x)\;:\;\operatorname{pad2}(y)\;-\;\operatorname{msg}(z)
+      \;=\;\operatorname{line}(x,y,z)
+\]
+
+Hence the rule **(conditional)** of Hoare logic gives  
+
+\[
+\{P_i\}\;{\tt process\_case}\;\{Q_i\}.
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+The program contains the loop
+
+```text
+i = 1
+while i <= n:
+    process_case(H_i,M_i,O_i)
+    i = i + 1
+```
+
+(`for i in range(n):` is syntactic sugar for the above.)
+
+### 3.1  Invariant  
+
+\[
+I(i)\;:\;
+\bigl(\forall k\in\{1,\dots ,i-1\}\;
+\text{the first }k\text{ output lines are }
+\operatorname{line}(H_k,M_k,O_k)\bigr)
+\tag{Inv}
+\]
+
+In words: *after the loop has processed the first `i‑1` test cases, the output already contains exactly the strings required for those cases*.
+
+### 3.2  Proof of the invariant  
+
+We use the three classic obligations:
+
+| Obligation | Reason |
+|------------|--------|
+| **Initialization** (`i = 1`) | Before the first iteration `i‑1 = 0`.  The statement “the first 0 lines are …” is vacuously true, therefore `I(1)` holds. |
+| **Maintenance** (preserve `I`) | Assume `I(i)` holds at the beginning of an iteration with `1 ≤ i ≤ N`. The body reads the triple `(H_i,M_i,O_i)` and calls `process_case`. By the result of § 2 we have `{P_i} process_case {Q_i}` and the pre‑condition `P_i` is satisfied because the global pre‑condition (P) guarantees the domain restrictions (1). Consequently the execution prints exactly `line(H_i,M_i,O_i)`. After the `print` the loop variable is increased (`i := i+1`). Hence at the start of the next iteration we have the first `i` lines correctly printed, i.e. `I(i+1)` holds. |
+| **Termination** (when the guard is false) | The guard of the loop is `i ≤ N`. The loop stops when `i = N+1`.  At that moment `I(N+1)` holds, i.e. the first `N` lines printed are `line(H_k,M_k,O_k)` for every `k = 1 … N`. This is exactly the sequence `S` defined in (3). |
+
+The three obligations are discharged using the Hoare‑logic rules:
+
+* **Rule for while**  
+
+  \[
+  \frac{\{I\land B\}\;C\;\{I\}}{\{I\}\;{\bf while}\;B\;{\bf do}\;C\;{\bf od}\;\{I\land\lnot B\}}
+  \]
+
+  with `B ≡ i ≤ N`, `C ≡ process_case; i:=i+1`.
+
+* **Rule for sequence** (first `process_case`, then the assignment).
+
+* **Rule of consequence** to replace the concrete pre‑condition of `process_case` (`0≤x≤23 …`) by the weaker `P_i` that follows from the global pre‑condition `P`.
+
+Thus the Hoare triple for the whole loop is proved:
+
+\[
+\{P\}\;{\tt for\;i\;in\;range(n):\;process\_case}\;\{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+## 4.  End‑to‑end correctness  
+
+Putting everything together:
+
+1. **Reading `n`** – the statement `n = int(input())` does not change any program variable that appears in the post‑condition; it merely binds the constant `N` used later. The pre‑condition guarantees that `N ≥ 1`.
+
+2. **Loop** – the Hoare triple proved in § 3 shows that after the loop terminates the output consists of exactly the strings `line(H_i,M_i,O_i)` for all `i = 1 … N`.
+
+3. **No further statements** – after the loop the program ends, therefore the final state satisfies the post‑condition `Q`.
+
+Consequently, the complete Hoare triple
+
+\[
+\boxed{\{P\}\;{\tt program}\;\{Q\}}
+\]
+
+holds. The program is *correct* with respect to the given formal specification.
+
+--------------------------------------------------------------------
+
+## 5.  Summary of the proof steps (concise)
+
+| Step | Hoare rule used | Statement |
+|------|----------------|-----------|
+| 1.   | **Assignment** | `n = int(input())` – does not affect `P` or `Q`. |
+| 2.   | **Invariant definition** | `I(i)` as in (Inv). |
+| 3.   | **Init** | `i = 1` ⇒ `I(1)` holds (empty prefix). |
+| 4.   | **Conditional** (four branches) | For each guard, the printed string equals `line(x,y,z)`. Hence `{P_i} process_case {Q_i}`. |
+| 5.   | **Sequence** | `process_case; i := i+1` preserves `I`. |
+| 6.   | **While** | From 3–5, `{I} while i ≤ N do … {I ∧ ¬(i ≤ N)}`. |
+| 7.   | **Consequence** | `I ∧ ¬(i ≤ N)` is exactly “the first N lines are `line(H_k,M_k,O_k)`”, i.e. `Q`. |
+| 8.   | **Overall** | `{P} program {Q}` proved. |
+
+--------------------------------------------------------------------
+
+### Final remark  
+
+The proof relies only on the *pure* definitions of `pad2`, `msg` and `line`.  The concrete `print` statements of the program are syntactic sugar for the concatenations used in those definitions, so the correspondence is exact.  Hence the program satisfies the Hoare‑logic specification.

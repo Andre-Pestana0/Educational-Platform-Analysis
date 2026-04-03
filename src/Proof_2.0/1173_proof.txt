@@ -1,0 +1,322 @@
+Below we give a **full Hoare‑logic proof** that the concrete Python program  
+
+```python
+v = int(input())                     # 1
+n = [v*2**i for i in range(10)]      # 2
+for i, j in enumerate(n):            # 3
+    print(f'N[{i}] = {j}')           # 4
+```
+
+satisfies the specification  
+
+\[
+\langle P\rangle\;{\tt Program}\;\langle Q\rangle ,
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;\equiv\; V\in\mathbb Z\;\land\;V<50
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;\equiv\;&\bigl(\forall i\in\{0,\dots ,9\}\;.\;N[i]=V\cdot 2^{i}\bigr)\\
+          &\land\;{\sf output}= 
+          \bigl(\,
+          "N[0] = " \!\parallel\! V
+          \;\Vert\; "\nN[1] = " \!\parallel\! V\!\cdot\!2
+          \;\Vert\; \dots
+          \;\Vert\; "\nN[9] = " \!\parallel\! V\!\cdot\!2^{9}
+          \bigr)
+\end{aligned}
+\]
+
+(“\(\parallel\)” denotes string concatenation, “\(\Vert\)” concatenates the ten lines).
+
+The proof is carried out in three **structural steps** that correspond to the three
+syntactic blocks of the program.
+
+---------------------------------------------------------------------
+
+## 1.  Reading the input  
+
+```
+v = int(input())
+```
+
+*Rule used*: **Assignment**  
+
+\[
+\frac{}{ \langle P \rangle\; v:=\llbracket\text{int(input())}\rrbracket\; \langle P[v\!\mapsto\!V]\rangle }
+\]
+
+Because the input routine is abstracted away we simply **bind** the
+identifier `v` to the value read from the environment.  
+Under the pre‑condition `P` we know that the value supplied by the environment
+satisfies `V∈ℤ ∧ V<50`.  Hence after the assignment we have the **state**
+
+```
+v = V    (the same integer that appears in P)
+```
+
+and all other variables are unchanged.  Consequently the Hoare triple
+
+\[
+\langle P\rangle\;v:=\text{int(input())}\;\langle P[v\!\mapsto\!V]\rangle
+\tag{1}
+\]
+
+holds.
+
+---------------------------------------------------------------------
+
+## 2.  Building the array `n`
+
+The list‑comprehension  
+
+```python
+n = [v*2**i for i in range(10)]
+```
+
+is semantically equivalent to the following explicit loop
+
+```python
+n = [0]*10                # allocate ten cells
+i = 0
+while i < 10:
+    n[i] = v*2**i
+    i = i + 1
+```
+
+We therefore prove the loop using the **while‑rule** with the invariant  
+
+\[
+I(k)\;\equiv\;0\le k\le 10\;\land\;
+\bigl(\forall i\in\{0,\dots ,k-1\}\;.\;n[i]=V\cdot 2^{i}\bigr)
+\tag{2}
+\]
+
+(The variable `v` already equals `V` by (1).)
+
+### 2.1  Initialization  
+
+Before entering the loop we execute the allocation `n = [0]*10`.  
+This does **not** affect the truth of `I(0)` because the universal part of
+(2) is vacuous when `k = 0`.  Hence
+
+\[
+\langle P[v\!\mapsto\!V]\rangle\; n:=[0]*10\; \langle I(0)\rangle .
+\tag{3}
+\]
+
+### 2.2  Maintenance  
+
+Assume `I(k)` holds at the top of an iteration with the loop guard `k<10`.  
+The body consists of the two statements
+
+```
+n[k] = v*2**k
+k = k+1
+```
+
+*Assignment 1*  
+
+\[
+\langle I(k)\rangle\; n[k]:=v*2**k\; \langle I(k)\land n[k]=V\cdot2^{k}\rangle .
+\tag{4}
+\]
+
+*Assignment 2* (increment of the index)  
+
+\[
+\langle I(k)\land n[k]=V\cdot2^{k}\rangle\; k:=k+1\;
+\langle I(k+1)\rangle .
+\tag{5}
+\]
+
+The conjunction of (4) and (5) shows that **if** `I(k)` holds before the
+iteration, then `I(k+1)` holds after it.  Hence the invariant is **preserved**.
+
+### 2.3  Termination  
+
+When the loop guard fails we have `k = 10`.  By the invariant `I(10)`
+
+\[
+\forall i\in\{0,\dots ,9\}\;.\;n[i]=V\cdot2^{i}.
+\tag{6}
+\]
+
+Thus after the list‑comprehension we have obtained precisely the **array part**
+of the post‑condition `Q`.
+
+Putting (3)–(5) together with the while‑rule yields the Hoare triple
+
+\[
+\langle P[v\!\mapsto\!V]\rangle\;
+\texttt{n = [v*2**i for i in range(10)]}\;
+\langle \forall i\in\{0,\dots ,9\}\;.\;n[i]=V\cdot2^{i}\rangle .
+\tag{7}
+\]
+
+---------------------------------------------------------------------
+
+## 3.  Printing the array  
+
+The printing loop
+
+```python
+for i, j in enumerate(n):
+    print(f'N[{i}] = {j}')
+```
+
+is equivalent to the following while‑loop (the variable `out` denotes the
+string that has been sent to the output device so far).
+
+```python
+i = 0
+out = ""                     # initially empty
+while i < 10:
+    out = out  || "\nN[" || str(i) || "] = " || str(n[i])
+    i = i + 1
+```
+
+(For the first iteration we treat the leading “\n” as the empty string, so the
+resulting `out` is exactly the concatenation described in `Q`.)
+
+We prove this loop with the invariant  
+
+\[
+J(k)\;\equiv\;0\le k\le 10\;\land\;
+\bigl(\text{out}= \bigl\Vert_{i=0}^{k-1}
+          "\nN["\!\parallel\! i\!\parallel\!"] = "\!\parallel\! n[i]\bigr)\bigr)
+\tag{8}
+\]
+
+where `\(\bigl\Vert\)` denotes concatenation of the first `k` lines.
+
+### 3.1  Initialization  
+
+Before the loop we set `i:=0` and `out:=""`.  Hence `J(0)` holds trivially.
+
+\[
+\langle \forall i\;.\;n[i]=V\cdot2^{i}\rangle\;
+i:=0;\;out:=""\;
+\langle J(0)\rangle .
+\tag{9}
+\]
+
+### 3.2  Maintenance  
+
+Assume `J(k)` holds and `k<10`.  The loop body performs
+
+```
+out = out || "\nN[" || str(k) || "] = " || str(n[k])
+k   = k + 1
+```
+
+Because of the invariant we already know that the current `out` equals the
+concatenation of the first `k` lines.  Adding the new line yields exactly the
+concatenation of the first `k+1` lines, i.e. `J(k+1)`.  Formally:
+
+*Assignment to `out`*  
+
+\[
+\langle J(k)\rangle\;
+out:=out\;\Vert\;"\nN["\!\parallel\!k\!\parallel\!"] = "\!\parallel\!n[k]\;
+\langle J(k)\land\text{new‑line}\rangle .
+\tag{10}
+\]
+
+*Increment of the index*  
+
+\[
+\langle J(k)\land\text{new‑line}\rangle\; k:=k+1\; \langle J(k+1)\rangle .
+\tag{11}
+\]
+
+Thus the invariant is preserved.
+
+### 3.3  Termination  
+
+When the guard fails we have `k = 10`.  By `J(10)` we obtain
+
+\[
+\text{out}= 
+\bigl\Vert_{i=0}^{9}
+          "\nN["\!\parallel\! i\!\parallel\!"] = "\!\parallel\! n[i]\bigr).
+\tag{12}
+\]
+
+Using (6) we may replace each `n[i]` by `V·2^{i}` and drop the leading “\n”
+(which is empty for the first line).  Hence the final value of `out` is exactly
+the string described in the **output part of `Q`**.
+
+Applying the while‑rule with invariant (8) gives the Hoare triple
+
+\[
+\langle \forall i\;.\;n[i]=V\cdot2^{i}\rangle\;
+\texttt{for i,j in enumerate(n): print(...)}\;
+\langle Q_{\text{output}}\rangle .
+\tag{13}
+\]
+
+---------------------------------------------------------------------
+
+## 4.  Composition of the three parts  
+
+We now put together the three derived triples:
+
+* (1) `⟨P⟩  v := int(input())   ⟨P[v↦V]⟩`
+* (7) `⟨P[v↦V]⟩  n = [v*2**i for i in range(10)]   ⟨∀i·n[i]=V·2^{i}⟩`
+* (13) `⟨∀i·n[i]=V·2^{i}⟩  printing‑loop   ⟨Q⟩`
+
+The **rule of sequential composition**  
+
+\[
+\frac{\langle P\rangle\;S_{1}\;\langle R\rangle\qquad
+      \langle R\rangle\;S_{2}\;\langle Q\rangle}
+     {\langle P\rangle\;(S_{1};S_{2})\;\langle Q\rangle}
+\]
+
+allows us to chain them, first (1) with (7) and then the result with (13).
+The intermediate assertions cancel, leaving exactly the required
+pre‑ and post‑conditions.
+
+Therefore we have proved the global Hoare triple
+
+\[
+\boxed{\;\langle P\rangle\;{\tt Program}\;\langle Q\rangle\;}
+\]
+
+which states:
+
+*If the program receives an integer `V` with `V<50`, then after termination*
+
+* the array `N` (named `n` in the code) satisfies `N[i] = V·2^{i}` for every
+  `i = 0 … 9`, and
+* the program has printed the ten lines  
+
+  `N[0] = V` , `N[1] = 2·V` , … , `N[9] = 2^{9}·V`  
+
+  in exactly that order.
+
+---------------------------------------------------------------------
+
+### Remarks on the proof style
+
+* The list‑comprehension is treated as a *syntactic sugar* for a bounded
+  loop; this is standard when reasoning about Python programs in Hoare logic.
+* The invariants `I(k)` and `J(k)` are **strong enough** to guarantee the
+  two parts of the post‑condition but **weak enough** to be provable
+  by simple induction on the loop counter.
+* The proof uses only the basic Hoare‑logic rules (assignment, while, and
+  composition); no auxiliary axioms about arithmetic or about the semantics
+  of `print` are required beyond the definition of string concatenation.
+
+Hence the Python program is **correct** with respect to the given formal
+pre‑ and post‑conditions.

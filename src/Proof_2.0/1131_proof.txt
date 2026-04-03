@@ -1,0 +1,377 @@
+Below is a **full Hoare‑logic proof** that the program supplied in the question fulfils the contract  
+
+\[
+\{\,\text{true}\,\}\;\text{GrenaisProgram}\;\{\,Q\,\}
+\]
+
+where the post‑condition \(Q\) is the one written in the specification (section 2).  
+The proof is written in the usual style of Hoare logic:  
+
+* each program fragment is surrounded by a Hoare triple,  
+* the **assignment axiom**, **conditional rule**, **while rule** and the **rule of consequence** are used,  
+* a **loop invariant** is exhibited and shown to be established, preserved and to imply the post‑condition when the loop terminates.
+
+--------------------------------------------------------------------
+
+## 1.  Notation that will be used in the proof  
+
+* Program variables  
+
+| variable | meaning (after the program has read *k* matches) |
+|----------|---------------------------------------------------|
+| `vinter` | number of Inter victories (`interWins`)          |
+| `vgremio`| number of Grêmio victories (`gremioWins`)        |
+| `empates`| number of draws (`draws`)                         |
+| `n`      | number of matches already processed (`total`)    |
+
+* Input sequence  
+
+\[
+S=\langle(i_1,g_1,c_1),\dots ,(i_n,g_n,c_n)\rangle
+\]
+
+is assumed **well‑formed** (definition WF).  
+The program consumes the sequence from left to right: after reading the
+*k*‑th pair \((i_k,g_k)\) it immediately reads the continuation flag \(c_k\).
+
+* Derived quantities (definition STAT)  
+
+\[
+\begin{aligned}
+\text{interWins}(S)   &= |\{k\mid i_k>g_k\}|,\\
+\text{gremioWins}(S)  &= |\{k\mid g_k>i_k\}|,\\
+\text{draws}(S)       &= |\{k\mid i_k=g_k\}|,\\
+\text{total}(S)       &= n .
+\end{aligned}
+\]
+
+* Winner message (definition WIN)  
+
+\[
+\operatorname{winner}(S)=
+\begin{cases}
+\text{“Inter venceu mais”}      &\text{if } \text{interWins}(S) > \text{gremioWins}(S),\\
+\text{“Gremio venceu mais”}    &\text{if } \text{gremioWins}(S) > \text{interWins}(S),\\
+\text{“Não houve vencedor”}    &\text{otherwise.}
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+
+## 2.  Loop invariant
+
+For every \(k\;(0\le k\le n)\) we define the predicate  
+
+\[
+\boxed{\;I(k)\;}\; \equiv\;
+\begin{aligned}
+&\exists S_k\; \bigl(
+   \text{pref}_k = S_k\;\land\;
+   \text{WF}(S_k)\;\land\;
+   \text{total}(S_k)=k\;\land\\
+&\qquad\text{interWins}(S_k)=\#\{j\le k\mid i_j>g_j\}\;\land\\
+&\qquad\text{gremioWins}(S_k)=\#\{j\le k\mid g_j>i_j\}\;\land\\
+&\qquad\text{draws}(S_k)=\#\{j\le k\mid i_j=g_j\}\bigr) .
+\end{aligned}
+\tag{INV}
+\]
+
+Intuitively, after the first **k** iterations the program has processed exactly the
+prefix \(\text{pref}_k\) of the input and the three counters contain the
+correct statistics for that prefix.
+
+--------------------------------------------------------------------
+
+## 3.  Establishing the invariant before the loop  
+
+The program starts with  
+
+```python
+vitorias_gremio = 0
+vitorias_inter = 0
+empates = 0
+```
+
+and **has not yet read any match**.  
+Formally we have the Hoare triple (assignment axiom)
+
+\[
+\{\,\text{true}\,\}\;
+\begin{array}{l}
+vitorias\_gremio := 0;\\
+vitorias\_inter := 0;\\
+empates := 0
+\end{array}
+\;\{\,I(0)\,\}.
+\]
+
+Indeed, for the empty prefix \(\text{pref}_0 = \langle\rangle\) we can take
+\(S_0=\langle\rangle\); it satisfies WF (vacuously), has total \(=0\) and all three
+counters are zero, exactly the values assigned by the three statements.
+Thus **\(I(0)\) holds**.
+
+--------------------------------------------------------------------
+
+## 4.  Body of the loop – preservation of the invariant  
+
+Inside the loop we have the following sequence (the “prompt” line is printed
+*before* the next pair is read, exactly as required by the specification):
+
+```python
+continua := int(input('Novo grenal (1-sim 2-nao)\n'))   # the flag c_k
+inter, gremio = map(int, input().split(' '))          # (i_k , g_k)
+# update the counters
+if gremio > inter:
+    vitorias_gremio += 1
+elif gremio < inter:
+    vitorias_inter += 1
+else:
+    empates += 1
+```
+
+We prove the Hoare triple
+
+\[
+\{\,I(k)\land (continua = 1)\,\}\;\text{Body}\;\{\,I(k+1)\,\}      \tag{B}
+\]
+
+where **Body** denotes the four statements above.
+
+### 4.1  Reading the flag  
+
+The assignment `continua := …` does not change any of the three counters,
+hence the invariant is still true after it.  
+Formally, using the assignment axiom we obtain  
+
+\[
+\{\,I(k)\,\}\;continua := \text{read flag}\;\{\,I(k)\land (continua = c_k)\,\}.
+\]
+
+Because the loop guard guarantees `continua = 1`, we may replace `c_k` by `1`.
+
+### 4.2  Reading the next match  
+
+The statement  
+
+```python
+inter, gremio = map(int, input().split(' '))
+```  
+
+stores the next pair \((i_{k+1},g_{k+1})\) in the program variables `inter`,
+`gremio`.  No counter is changed, therefore the invariant still holds,
+now referring to the prefix of length **k** together with the freshly read
+pair, i.e. to \(\text{pref}_{k+1}\) *without* yet counting the result.
+
+### 4.3  Updating the counters  
+
+We consider the three possible outcomes of the match.
+
+*Case 1 – Grêmio wins (`gremio > inter`).*  
+
+The statement `vitorias_gremio += 1` adds exactly one to the counter that
+records the number of matches where \(g_{k+1}>i_{k+1}\).  
+All other counters stay unchanged.  
+Consequently after the three‑way conditional we have  
+
+\[
+\begin{aligned}
+vitorias\_gremio   &= \#\{j\le k+1\mid g_j>i_j\},\\
+vitorias\_inter   &= \#\{j\le k  \mid i_j>g_j\},\\
+empates           &= \#\{j\le k  \mid i_j=g_j\}.
+\end{aligned}
+\]
+
+*Case 2 – Inter wins (`gremio < inter`).*  
+
+Analogously `vitorias_inter += 1` yields the correct value for the set
+\(\{j\le k+1\mid i_j>g_j\}\); the other two counters are unchanged.
+
+*Case 3 – Draw (`gremio == inter`).*  
+
+`empates += 1` makes the draw counter count the set
+\(\{j\le k+1\mid i_j=g_j\}\); the two victory counters stay as before.
+
+In every case the three counters contain exactly the statistics required for
+the prefix of length \(k+1\).  Together with the fact that the prompt line has
+already been printed once for this iteration, we have established \(I(k+1)\).
+
+Hence the triple **(B)** holds.
+
+--------------------------------------------------------------------
+
+## 5.  The while‑rule  
+
+The loop in the program is
+
+```python
+while (continua := int(input('Novo grenal (1-sim 2-nao)\n'))) == 1:
+    … body …
+```
+
+In Hoare‑logic notation it is of the form  
+
+\[
+\textbf{while}\;B\;\textbf{do}\;C
+\]
+
+with guard  
+
+\[
+B\; \equiv\; (continua = 1)
+\]
+
+and body \(C\) = **Body** proved above.
+
+The **while rule** states that, if an invariant \(I\) satisfies
+
+* **(Init)** \(\{P\}\;\text{initialisation}\;\{I\}\) (which we have: \(P\equiv\text{true}\) and \(I=I(0)\)),
+* **(Pres)** \(\{I\land B\}\;C\;\{I\}\) (which is exactly the triple (B) proved above),
+
+then  
+
+\[
+\{P\}\;\textbf{while}\;B\;\textbf{do}\;C\;\{I\land\neg B\}
+\]
+
+holds.
+
+Applying the rule with the invariant \(I(k)\) gives the Hoare triple  
+
+\[
+\{\,\text{true}\,\}\;
+\textbf{while}\;(continua=1)\;\textbf{do}\;C\;
+\{\,I(n)\land (continua=2)\,\}.          \tag{W}
+\]
+
+Because the input sequence is well‑formed, the loop terminates exactly after
+the last flag \(c_n=2\) has been read; therefore the final value of the loop
+counter is \(n = \text{total}(S)\).  The invariant \(I(n)\) tells us that at
+this moment
+
+* the three counters contain the values \(\text{interWins}(S)\),
+  \(\text{gremioWins}(S)\) and \(\text{draws}(S)\),
+* the variable `n` (which we introduced only for the proof) equals the
+  number of processed matches, i.e. \(\text{total}(S)\).
+
+Thus after the loop we have exactly the statistical information required by
+the post‑condition.
+
+--------------------------------------------------------------------
+
+## 6.  The statements after the loop – reaching the post‑condition  
+
+After the loop the program executes
+
+```python
+print(f'{empates + vitorias_inter + vitorias_gremio} grenais')
+print(f'Inter:{vitorias_inter}')
+print(f'Gremio:{vitorias_gremio}')
+print(f'Empates:{empates}')
+```
+
+and then the final conditional that prints the winner message.
+
+### 6.1  Printing the four statistical lines  
+
+From the invariant we know
+
+\[
+\begin{aligned}
+empates + vitorias\_inter + vitorias\_gremio
+ & = \text{draws}(S)+\text{interWins}(S)+\text{gremioWins}(S)\\
+ & = \text{total}(S) .
+\end{aligned}
+\]
+
+Consequently the four `print` statements produce exactly the strings
+
+```
+total(S) grenais
+Inter:interWins(S)
+Gremio:gremioWins(S)
+Empates:draws(S)
+```
+
+which are the first four components of the required output in \(Q\).
+
+### 6.2  The final conditional  
+
+The last part of the program is
+
+```python
+if vitorias_inter > vitorias_gremio:
+    print('Inter venceu mais')
+elif vitorias_inter < vitorias_gremio:
+    print('Gremio venceu mais')
+else:
+    print('Nao houve vencedor')
+```
+
+Using the invariant we can replace the three counters by the corresponding
+functions of the input sequence, obtaining precisely the three cases of the
+definition of \(\operatorname{winner}(S)\) (definition WIN).  Hence the line
+printed by the program is exactly \(\operatorname{winner}(S)\).
+
+--------------------------------------------------------------------
+
+## 7.  Assembling the whole proof  
+
+We have shown the following Hoare triples:
+
+1. **Initialisation**  
+
+   \[
+   \{\,\text{true}\,\}\;\text{assignments of the three counters}\;\{\,I(0)\,\}.
+   \]
+
+2. **Preservation of the invariant** (body of the loop)  
+
+   \[
+   \{\,I(k)\land (continua=1)\,\}\;C\;\{\,I(k+1)\,\}\qquad\text{for all }k<n .
+   \]
+
+3. **While rule** (by 1 and 2)  
+
+   \[
+   \{\,\text{true}\,\}\;
+   \textbf{while}\;(continua=1)\;\textbf{do}\;C\;
+   \{\,I(n)\land (continua=2)\,\}.
+   \]
+
+4. **Post‑loop prints**  
+
+   \[
+   \{\,I(n)\land (continua=2)\,\}\;
+   \text{four prints and the final conditional}\;
+   \{\,Q\,\}.
+   \]
+
+By **sequencing** (rule of composition) the four triples give the overall
+Hoare triple
+
+\[
+\boxed{\{\,\text{true}\,\}\;\text{GrenaisProgram}\;\{\,Q\,\}}
+\]
+
+which is exactly the specification required in the statement.
+
+--------------------------------------------------------------------
+
+## 8.  Conclusion  
+
+The program reads a **finite well‑formed** sequence of match results and
+answers “continue/stop”, prints the prompt after each match, and when the user
+answers “2” it terminates printing
+
+* the total number of matches,
+* the number of Inter victories,
+* the number of Grêmio victories,
+* the number of draws,
+* and the appropriate winner message (or “Não houve vencedor”).
+
+All these values are precisely the mathematical functions
+\(\text{total},\text{interWins},\text{gremioWins},\text{draws},
+\operatorname{winner}\) defined in the specification.  
+Hence the Hoare‑logic proof above demonstrates that the program satisfies the
+given pre‑condition (true) and post‑condition \(Q\); i.e. the program is
+**correct** with respect to the formal contract. ∎

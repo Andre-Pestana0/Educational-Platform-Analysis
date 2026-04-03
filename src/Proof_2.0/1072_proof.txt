@@ -1,0 +1,351 @@
+## 1.  What has to be shown  
+
+We are asked to prove that the Python program  
+
+```python
+n = int(input())
+in_ = 0
+out = 0
+for i in range(n):
+    x = int(input())
+    if 10 <= x <= 20:
+        in_ += 1
+    else:
+        out += 1
+print(f'{in_} in')
+print(f'{out} out')
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{\,\text{Pre}\,\}\;P\;\{\,\text{Post}\,\}
+\]
+
+with  
+
+* **Pre**  
+
+\[
+\begin{aligned}
+\text{Pre}\equiv\;& N\in\mathbb N\ \land\ N<10\,000\\
+                  &\land\;\forall i\;(1\le i\le N\Rightarrow X_i\in\mathbb Z\land -10^{7}<X_i<10^{7})
+\end{aligned}
+\]
+
+* **Post**  
+
+\[
+\begin{aligned}
+\text{Post}\equiv\;& I=[10,20] \\[1mm]
+                    &\land\;in =\#\{i\mid1\le i\le N\land X_i\in I\}\\[1mm]
+                    &\land\;out = N-in \\[1mm]
+                    &\land\;\text{the program prints the two lines } 
+                       \text{“in in”} \text{ and } \text{“out out”}.
+\end{aligned}
+\]
+
+(The interval in the source code is \([10,20]\); we therefore replace the generic
+\(I=[0,100]\) that appears in the statement of the problem by the concrete
+interval used by the program.  The proof proceeds exactly the same for any
+closed interval.)
+
+Thus we must show that, starting from a state that satisfies **Pre**, after the
+execution of the whole program the state satisfies **Post**.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules we shall use  
+
+| Rule | Meaning |
+|------|----------|
+| **Assignment** | \(\{P[E/x]\}\;x:=E\;\{P\}\) |
+| **Sequence**   | \(\{P\}S_1\{Q\},\{Q\}S_2\{R\}\;\Rightarrow\;\{P\}S_1;S_2\{R\}\) |
+| **Conditional**| \(\{P\land B\}S_1\{Q\},\{P\land\neg B\}S_2\{Q\}\;\Rightarrow\;\{P\}\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\{Q\}\) |
+| **While** (partial correctness) | If \(\{Inv\land B\}S\{Inv\}\) and \(\{P\}\textbf{while }B\textbf{ do }S\{Inv\land\neg B\}\) with \(Inv\) an invariant, then \(\{P\}\textbf{while }B\textbf{ do }S\{Inv\land\neg B\}\).  |
+| **Consequence**| From \(P\Rightarrow P'\) and \(\{P'\}S\{Q'\}\) and \(Q'\Rightarrow Q\) we obtain \(\{P\}S\{Q\}\). |
+
+We will apply these rules to each statement of the program.
+
+--------------------------------------------------------------------
+
+## 3.  Decomposing the program  
+
+Let us rename the program variables so that they match the symbols of the
+specification:
+
+| Python variable | Specification symbol |
+|-----------------|----------------------|
+| `n`             | `N`                  |
+| `x`             | `X_i` (the value read in the *i*‑th iteration) |
+| `in_`           | `in`                 |
+| `out`           | `out`                |
+
+The program consists of the following blocks:
+
+1. **Read `N`**  
+   `n = int(input())`
+
+2. **Initialise the counters**  
+   `in_ = 0 ; out = 0`
+
+3. **Counting loop**  
+
+   ```
+   for i in range(n):          # i runs from 0 to N‑1
+       x = int(input())
+       if 10 <= x <= 20:
+           in_ += 1
+       else:
+           out += 1
+   ```
+
+4. **Printing**  
+
+   ```
+   print(f'{in_} in')
+   print(f'{out} out')
+   ```
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the first three blocks  
+
+### 4.1  Reading `N`
+
+The input operation does not change any program variable; it merely *binds*
+`n` to the first integer on the input stream.  By the definition of the
+pre‑condition we already know that the first integer on the input belongs to
+\(\mathbb N\) and is \< 10 000, therefore after the assignment we have
+
+\[
+\{\,\text{Pre}\,\}\;n:=N\;\{\,N\in\mathbb N\land N<10\,000\land\Phi\,\},
+\]
+
+where \(\Phi\) abbreviates the universal condition on the subsequent inputs.
+Thus the post‑condition of this statement is exactly the *pre‑condition* of the
+remaining program.
+
+### 4.2  Initialising the counters  
+
+Using the assignment rule twice:
+
+\[
+\{\,N\in\mathbb N\land N<10\,000\land\Phi\,\}\;in_:=0\;\{\,in_=0\land\ldots\}
+\]
+
+\[
+\{\,in_=0\land\ldots\}\;out:=0\;\{\,in_=0\land out=0\land\ldots\}
+\]
+
+Consequently after the two initialisations we have the invariant  
+
+\[
+Inv_0\equiv (in_=0)\land(out=0)\land(N\in\mathbb N\land N<10\,000\land\Phi).
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Loop invariant for the counting loop  
+
+We use a **while‑style** invariant because a `for` loop can be rewritten as a
+`while` loop with an explicit counter.  Let  
+
+```
+i := 0                # loop counter
+while i < N:
+    x := read()
+    if 10 <= x <= 20:
+        in_ := in_ + 1
+    else:
+        out := out + 1
+    i := i + 1
+```
+
+### 5.1  Definition of the invariant  
+
+\[
+\begin{aligned}
+Inv(k) \equiv\;& 0\le k\le N\ \land\\
+               &in_k = \#\{\,j\mid 1\le j\le k\land X_j\in[10,20]\,\}\ \land\\
+               &out_k = k - in_k,
+\end{aligned}
+\]
+
+where `in_k` and `out_k` denote the values of the counters after the first
+`k` iterations (i.e. when the loop variable `i` equals `k`).  
+Intuitively: after having processed the first `k` numbers we have already
+counted exactly those that belong to the interval, and the rest are counted
+as `out`.
+
+### 5.2  **Initialization** (base case `k = 0`)  
+
+Before the loop starts we have `i = 0`, `in_ = 0`, `out = 0`.  Substituting
+`k = 0` in `Inv(k)` we obtain  
+
+\[
+0\le 0\le N\land in_ = 0\land out = 0,
+\]
+
+which is precisely the state established by the initialisation block.
+Hence  
+
+\[
+\{Inv_0\}\;i:=0\;\{Inv(0)\}.
+\]
+
+### 5.3  **Preservation**  
+
+Assume `Inv(k)` holds at the beginning of an iteration and that the loop guard
+`i < N` (i.e. `k < N`) is true.  We must show that after executing the body the
+state satisfies `Inv(k+1)`.
+
+*Reading `x`* does not affect the counters, therefore the invariant still
+holds with the same `in_k` and `out_k`.
+
+*Conditional*  
+
+```
+if 10 <= x <= 20:
+        in_ := in_ + 1
+else:
+        out := out + 1
+```
+
+Let  
+
+\[
+c \;=\; \bigl\lceil 10\le x\le 20\bigr\rceil\in\{0,1\}.
+\]
+
+Then the two branches can be written compactly as  
+
+\[
+in_ := in_ + c,\qquad out := out + (1-c).
+\]
+
+Using the **assignment** rule we obtain  
+
+\[
+\{Inv(k)\land c=1\}\;in_:=in_+1\;\{in_{k+1}=in_k+1\land out_{k+1}=out_k\}
+\]
+
+\[
+\{Inv(k)\land c=0\}\;out:=out+1\;\{in_{k+1}=in_k\land out_{k+1}=out_k+1\}.
+\]
+
+In both cases we have  
+
+\[
+in_{k+1}=in_k + c,\qquad out_{k+1}=out_k + (1-c),
+\]
+
+and by definition of `c`
+
+\[
+c = \bigl\lceil X_{k+1}\in[10,20]\bigr\rceil .
+\]
+
+Therefore  
+
+\[
+\begin{aligned}
+in_{k+1} &= \#\{j\mid 1\le j\le k\land X_j\in[10,20]\}
+          + \bigl\lceil X_{k+1}\in[10,20]\bigr\rceil   \\
+        &= \#\{j\mid 1\le j\le k+1\land X_j\in[10,20]\},
+\end{aligned}
+\]
+
+and similarly  
+
+\[
+out_{k+1}= (k+1)-in_{k+1}.
+\]
+
+Thus after the conditional the invariant `Inv(k+1)` holds.
+
+*Increment of the loop counter*  
+
+```
+i := i + 1
+```
+
+adds 1 to `i`, turning the value `k` into `k+1`.  The invariant `Inv(k+1)`
+already mentions `k+1`, therefore the assignment preserves it.
+
+Consequently  
+
+\[
+\{Inv(k)\land i< N\}\;\text{body}\;\{Inv(k+1)\}.
+\]
+
+### 5.4  **Termination**  
+
+When the loop guard becomes false we have `i = N`.  
+Applying the **while** rule we obtain  
+
+\[
+\{Inv(0)\}\;\text{while }i<N\text{ do body}\;\{Inv(N)\land i\ge N\}.
+\]
+
+Since `i` never exceeds `N`, the condition `i≥N` simplifies to `i=N`.  
+Thus after the loop we know  
+
+\[
+Inv(N) \equiv
+\begin{cases}
+in = \#\{j\mid 1\le j\le N\land X_j\in[10,20]\}\\
+out = N - in .
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  The printing statements  
+
+We have proved that after the loop the program state satisfies exactly the
+numerical part of the post‑condition.  The two `print` statements are simple
+output commands; they do not modify any variable.  Using the **consequence**
+rule we can strengthen the post‑condition of the loop with the additional
+requirement that the two lines are printed:
+
+```
+print(f'{in_} in')
+print(f'{out} out')
+```
+
+Both statements are instances of the rule  
+
+\[
+\{P\}\;\text{print }e\;\{P\}
+\]
+
+because printing is observationally pure with respect to the logical state.
+Consequently the final Hoare triple becomes  
+
+\[
+\{\,\text{Pre}\,\}\;P\;\{\,\text{Post}\,\}.
+\]
+
+--------------------------------------------------------------------
+
+## 7.  Summary of the proof  
+
+| Program fragment | Hoare triple derived |
+|------------------|----------------------|
+| `n = int(input())` | \(\{Pre\}\;n:=N\;\{N\in\mathbb N\land N<10\,000\land\Phi\}\) |
+| `in_ = 0; out = 0` | \(\{N\in\mathbb N\land N<10\,000\land\Phi\}\;in_:=0;out:=0\;\{Inv(0)\}\) |
+| counting loop   | \(\{Inv(0)\}\;\textbf{while }i<N\textbf{ do body}\;\{Inv(N)\}\) (proved by invariant `Inv(k)`) |
+| printing        | \(\{Inv(N)\}\;\text{print …; print …}\;\{Post\}\) |
+| **Composition** | By the **sequence** rule the three rows give the overall triple \(\{Pre\}P\{Post\}\). |
+
+Thus, assuming the pre‑condition holds (a non‑negative integer `N` smaller than
+10 000 followed by exactly `N` integers each in the range \((-10^{7},10^{7})\)),
+the program terminates and, on termination,  
+
+* `in_` equals the number of input values that lie in the interval \([10,20]\);
+* `out` equals `N – in_`;
+* the two required lines are printed.
+
+Hence the program is **correct** with respect to the Hoare‑logic specification
+given in the problem statement. ∎

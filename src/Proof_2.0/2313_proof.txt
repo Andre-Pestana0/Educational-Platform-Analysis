@@ -1,0 +1,393 @@
+## 1.  What we have to show  
+
+We are given the Hoare triple  
+
+\[
+\{\,0<A,B,C<10^{5}\,\}\;\; \textbf{TriangleClassifier}(A,B,C)\;\;
+\{\,\mathsf{Post}(A,B,C,\text{out})\,\}
+\]
+
+where  
+
+* `out` is the whole text written by the program (one line if the
+  triangle is invalid, two lines otherwise);
+* `\mathsf{Post}` is the disjunction described in the statement
+  (invalid → “Invalido”; otherwise a first line that tells the
+  **type** of the triangle and a second line that tells whether it is
+  right‑angled).
+
+The program that we must verify is the Python fragment reproduced in the
+question.  
+The proof proceeds in the usual Hoare‑logic fashion:
+
+1. **Show that the pre‑condition is satisfied by the input** (trivial,
+   because the problem guarantees `0<A,B,C<10⁵`);
+2. **Identify a loop invariant** for the `for i in range(3)` loop;
+3. **Prove that the invariant holds initially, is preserved by the body,
+   and together with the loop‑exit condition yields the desired facts**;
+4. **Reason about the three possible control‑flow branches after the loop**
+   (the early `exit` for an equilateral triangle, the `else` part when the
+   triangle is valid, and the `else` part when it is invalid);
+5. **Conclude that the produced output satisfies the post‑condition**.
+
+The proof below follows these steps very closely, using the notation of
+the specification.
+
+--------------------------------------------------------------------
+
+### 2.  Notation used in the proof  
+
+* The three input numbers are denoted `A`, `B`, `C`.  
+  The program reads them into the list `lados = [A,B,C]`.
+* At any moment we write  
+
+  \[
+  (l_1,l_2,l_3) := (lados[i],\,lados[(i+1)\bmod 3],\,lados[(i+2)\bmod 3])
+  \]
+
+  i.e. the current side `l_1` together with the two *other* sides.
+* `valido`  – Boolean variable that is **True** as long as no side
+  violating the triangle inequality has been seen.
+* `isoceles` – Boolean variable that becomes **True** as soon as a pair
+  of equal sides is observed (except the case where all three are equal,
+  which is handled before the loop).
+* `maior_lado` – a list of three integers.  
+  After each iteration it stores the *largest* side examined so far in
+  position 0 and the two complementary sides in positions 1 and 2.
+* After the loop we define  
+
+  \[
+  (c,a,b) := (maior\_lado[0],\,maior\_lado[1],\,maior\_lado[2])
+  \]
+
+  (the order of `a` and `b` is irrelevant for the right‑triangle test).
+
+--------------------------------------------------------------------
+
+### 3.  Loop invariant  
+
+Let `k` be the number of already performed iterations (`0 ≤ k ≤ 3`).
+The invariant **I(k)** is the conjunction of the following three
+properties:
+
+| Property | Formal statement |
+|----------|------------------|
+| **I₁**   | `valido` is **True**  **iff** for every side `l₁` examined in the first `k` iterations we have `l₁ < l₂ + l₃`. |
+| **I₂**   | `isoceles` is **True**  **iff** among the first `k` examined sides there exists a pair of equal lengths, **and** not all three inputs are equal (the all‑equal case has already caused an early `exit`). |
+| **I₃**   | `maior_lado[0]` equals the greatest side among the first `k` examined sides; `maior_lado[1]` and `maior_lado[2]` are the *other two* sides that accompanied that greatest side when it was examined. |
+
+In symbols
+
+\[
+\begin{aligned}
+I(k) \; \equiv\; &
+\bigl(\forall j<k\;.\; l_{1}^{(j)} < l_{2}^{(j)} + l_{3}^{(j)}\bigr) \;\Longleftrightarrow\; valido \\
+&\land\; \bigl(\exists j<k\;.\; l_{1}^{(j)} = l_{2}^{(j)}\ \lor\ l_{1}^{(j)} = l_{3}^{(j)}\ \lor\ l_{2}^{(j)} = l_{3}^{(j)}\bigr)
+   \;\Longleftrightarrow\; isoceles \\
+&\land\; \bigl(\max\{l_{1}^{(0)},\dots,l_{1}^{(k-1)}\}=maior\_lado[0]\bigr)
+   \land\; \bigl(\text{the two remaining sides of that maximal iteration are } maior\_lado[1],maior\_lado[2]\bigr)
+\end{aligned}
+\]
+
+The invariant is *strong enough* to let us prove the post‑condition after
+the loop and it is *obviously* true before the first iteration (see
+§ 4.1).
+
+--------------------------------------------------------------------
+
+### 4.  Proof that the invariant holds  
+
+#### 4.1  Initialization (`i = 0`)  
+
+Before the loop we set  
+
+```python
+valido   = True
+isoceles = False
+maior_lado = [0,0,0]
+```
+
+* No side has been examined yet, therefore the universal condition in
+  **I₁** is vacuously true, and `valido` is indeed `True`.
+* No equality among examined sides exists, hence `isoceles` is `False`,
+  matching **I₂**.
+* The “largest side seen so far’’ is `0`, which is smaller than any
+  positive input, so `maior_lado[0] = 0` satisfies **I₃**.
+Thus `I(0)` holds.
+
+#### 4.2  Preservation  
+
+Assume `I(k)` holds at the beginning of the `k`‑th iteration (`0 ≤ k < 3`).
+The body executes the following statements (shown with the corresponding
+Hoare triples).
+
+1. **Assignment of the three sides**  
+
+   ```python
+   l1,l2,l3 = lados[i], lados[(i+1)%3], lados[(i+2)%3]
+   ```
+
+   This merely introduces fresh names for the three input numbers; the
+   logical facts about them are unchanged.
+
+2. **Triangle‑inequality test**  
+
+   ```python
+   if (l1 >= l2 + l3):
+       valido = False
+       break
+   ```
+
+   *If the guard is true* we set `valido` to `False` and exit the loop.
+   The invariant after the break is **not** required any more – we will
+   use the fact that `valido = False` to prove the “invalid’’ branch of
+   the post‑condition (see § 5.1).
+
+   *If the guard is false* we have `l1 < l2 + l3`.  
+   Because `I₁` already guarantees that every previously examined side
+   satisfied its inequality, after this test the universal condition
+   holds for the first `k+1` sides, and `valido` stays `True`.  
+   Hence **I₁** is preserved.
+
+3. **Isosceles test**  
+
+   ```python
+   if (l1 == l2):
+       isoceles = True
+   ```
+
+   The only new possibility for `isoceles` to become `True` is the case
+   `l1 == l2`.  Consequently after the `if` we have  
+
+   \[
+   isoceles \; \Longleftrightarrow\;
+   (\exists j\le k\;.\;l_{1}^{(j)} = l_{2}^{(j)} \lor
+                     l_{1}^{(j)} = l_{3}^{(j)} \lor
+                     l_{2}^{(j)} = l_{3}^{(j)} )
+   \]
+
+   which is precisely **I₂** for `k+1`.
+
+4. **Maximum‑side update**  
+
+   ```python
+   if (l1 > maior_lado[0]):
+       maior_lado = [l1,l2,l3]
+   ```
+
+   *If the guard is false* the current side `l1` is not larger than the
+   previously stored maximum, therefore the largest side among the first
+   `k+1` values is still `maior_lado[0]`.  The auxiliary values
+   `maior_lado[1],maior_lado[2]` remain the correct companions of that
+   maximum, so **I₃** is unchanged.
+
+   *If the guard is true* we replace the whole list by the triple
+   `(l1,l2,l3)`.  By the guard we know `l1` is larger than any side
+   examined earlier, therefore it becomes the new global maximum and the
+   accompanying sides are exactly the two remaining sides of the triangle.
+   Hence **I₃** holds for `k+1`.
+
+All three parts of the invariant are therefore preserved.  
+Thus, by induction, `I(k)` holds for every `k = 0,1,2,3` **as long as the
+loop is not broken early**.
+
+--------------------------------------------------------------------
+
+### 5.  Reasoning after the loop  
+
+Two different ways can leave the loop:
+
+* **Early `break`** because the triangle inequality failed for some side.
+* **Normal termination** after the three iterations (`k = 3`).
+
+We treat each case separately.
+
+#### 5.1  The `break` case – the triangle is *invalid*  
+
+When the guard `l1 >= l2 + l3` is true we set `valido = False` and exit
+the loop.  Consequently `valido` is `False` after the loop, and the
+program executes the `else` branch of the outer `if (valido)`:
+
+```python
+else:
+    print("Invalido")
+```
+
+Because `valido` became `False` exactly when a side violated the
+inequality, we have  
+
+\[
+\neg\mathsf{Tri}(A,B,C)
+\]
+
+(the definition of `\mathsf{Tri}` is precisely the conjunction of the
+three strict inequalities).  The program prints the string
+`"Invalido"` and nothing else, i.e.
+
+\[
+\text{out}= \texttt{"Invalido"} .
+\]
+
+Hence the post‑condition clause  
+
+\[
+\neg\mathsf{Tri}(A,B,C)\ \land\ \text{out}= \texttt{"Invalido"}
+\]
+
+holds.
+
+#### 5.2  Normal termination – the triangle is *valid*  
+
+Assume the loop finishes all three iterations (`k = 3`).  
+Because the `break` was never taken, the test in step 2 was never true,
+hence for every side we have `l1 < l2 + l3`.  By **I₁** we obtain
+
+\[
+valido = True \quad\Longrightarrow\quad \mathsf{Tri}(A,B,C).
+\]
+
+(Recall that the three tests performed are exactly the three
+inequalities that constitute `\mathsf{Tri}`.)
+
+From now on the program executes the block
+
+```python
+if (valido):
+    if (isoceles):
+        print("Valido-Isoceles")
+    else:
+        print("Valido-Escaleno")
+    if (maior_lado[0]**2 == maior_lado[1]**2 + maior_lado[2]**2):
+        print("Retangulo: S")
+    else:
+        print("Retangulo: N")
+```
+
+The **equilateral** case has already been excluded at the very beginning
+(see § 6).  Consequently the triangle is either *isosceles* or
+*scalene*.
+
+* **Isosceles vs. Scalene**  
+  By **I₂**, after the loop `isoceles` is true exactly when at least one
+  pair of sides among the three inputs is equal (and they are not all
+  equal, because that case would have caused the early `exit`).  Hence
+
+  \[
+  isoceles \Longleftrightarrow \mathsf{Iso}(A,B,C), \qquad
+  \neg isoceles \Longleftrightarrow \mathsf{Scal}(A,B,C).
+  \]
+
+  The program prints `"Valido-Isoceles"` when `isoceles` is true and
+  `"Valido-Escaleno"` otherwise, which matches the first line demanded by
+  `\mathsf{Post}`.
+
+* **Right‑angled test**  
+  By **I₃** the triple `(maior_lado[0],maior_lado[1],maior_lado[2])`
+  equals `(c,a,b)` where `c` is the *largest* side of the triangle and
+  `a,b` are the remaining two sides.  Consequently
+
+  \[
+  maior\_lado[0]^{2}=maior\_lado[1]^{2}+maior\_lado[2]^{2}
+  \;\Longleftrightarrow\;
+  a^{2}+b^{2}=c^{2}
+  \;\Longleftrightarrow\;
+  \mathsf{Right}(A,B,C).
+  \]
+
+  The program prints `"Retangulo: S"` exactly when the equality holds,
+  otherwise `"Retangulo: N"`.  This is precisely the second line required
+  by the post‑condition.
+
+* **Construction of `out`**  
+  The two `print` statements are executed consecutively, therefore the
+  resulting output string is  
+
+  \[
+  \text{out}= \text{first‑line}\;\Vert\;\text{"\textbackslash n"}\;\Vert\;
+          \text{second‑line},
+  \]
+
+  exactly as prescribed in `\mathsf{Post}`.
+
+Thus, when the loop terminates normally we have proved that
+
+\[
+\mathsf{Tri}(A,B,C)\ \land\
+\bigl(\mathsf{Equil}(A,B,C)\ \lor\ \mathsf{Iso}(A,B,C)\ \lor\ \mathsf{Scal}(A,B,C)\bigr)
+\ \land\ \bigl(\mathsf{Right}(A,B,C)\ \text{or}\ \neg\mathsf{Right}(A,B,C)\bigr)
+\]
+
+and that the printed string coincides with the specification.
+
+#### 5.3  The *equilateral* early‑exit case  
+
+If the three input numbers are equal, the program executes
+
+```python
+if (lados[0] == lados[1] == lados[2]):
+    print("Valido-Equilatero")
+    print("Retangulo: N")
+    exit()
+```
+
+*Because* `A = B = C`, the triangle inequalities are satisfied, i.e.
+`Tri(A,B,C)` holds, and `Equil(A,B,C)` holds by definition.
+An equilateral triangle can never be right‑angled (its largest side
+satisfies `c² = a² = b²`, never `c² = a² + b²`).  Hence
+`\mathsf{Right}(A,B,C)` is **false**.
+
+The program prints exactly the two required lines, concatenated with a
+newline, so the post‑condition is satisfied for this branch as well.
+
+--------------------------------------------------------------------
+
+### 6.  Termination  
+
+The loop iterates over the fixed range `range(3)`.  Hence it certainly
+terminates after at most three iterations, regardless of whether a
+`break` is taken earlier.  All other statements are simple
+assignments or `print`s, which are terminating.  Therefore the whole
+program terminates for every admissible input.
+
+--------------------------------------------------------------------
+
+### 7.  Conclusion  
+
+We have shown, using a formally stated loop invariant, that  
+
+* from the pre‑condition `0<A,B,C<10⁵` the program never aborts,
+* after the loop either `valido = False` (invalid triangle) or
+  `valido = True` together with the correct values of `isoceles` and
+  `maior_lado`,
+* the three possible output branches (equilateral early‑exit,
+  valid‑triangle, invalid‑triangle) each produce a string that exactly
+  matches the corresponding clause of `\mathsf{Post}`.
+
+Consequently the Hoare triple  
+
+\[
+\{\,0<A,B,C<10^{5}\,\}\;\; \textbf{TriangleClassifier}(A,B,C)\;\;
+\{\,\mathsf{Post}(A,B,C,\text{out})\,\}
+\]
+
+holds.  The Python program is **correct** with respect to the given
+Hoare‑style specification.  
+
+
+
+--------------------------------------------------------------------
+**Summary of the proof steps**
+
+| Step | What we proved | Hoare‑logic rule used |
+|------|----------------|-----------------------|
+| 1.   | Pre‑condition holds (given) | **(Assumption)** |
+| 2.   | Invariant `I(0)` holds before the loop | **(Init)** |
+| 3.   | `I(k) → body → I(k+1)` (preservation) | **(Consequence + Assignment + If‑rule)** |
+| 4.   | `I(3) ∧ ¬break ⇒ valido = True ∧ Tri(A,B,C)` | **(While‑rule)** |
+| 5.   | `break ⇒ ¬Tri(A,B,C) ∧ out = "Invalido"` | **(If‑rule)** |
+| 6.   | `I(3) ∧ valido ⇒ correct classification & right‑angle test` | **(If‑rule)** |
+| 7.   | Early `exit` for equilateral ⇒ `Equil(A,B,C) ∧ ¬Right(A,B,C)` | **(If‑rule)** |
+| 8.   | All branches satisfy `Post` | **(Disjunction of post‑conditions)** |
+| 9.   | Loop terminates → whole program terminates | **(While‑termination)** |
+
+Thus the program meets the specification.  

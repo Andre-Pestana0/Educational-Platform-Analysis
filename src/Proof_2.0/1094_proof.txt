@@ -1,0 +1,344 @@
+## 1.  Overview  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\; \texttt{program}\;\; \{Q\}
+\]
+
+where  
+
+* **\(P\)** is the pre‑condition listed in the specification (a positive
+  integer \(N\) and a list of \(N\) records \((\text{amount}_i,\text{type}_i)\)
+  with the required ranges),  
+
+* **\(Q\)** is the post‑condition that describes the three subtotals,
+  the three percentages (rounded to two decimal digits) and the exact
+  string that must be printed.
+
+The program is reproduced below with line numbers that we will refer to
+in the proof.
+
+```text
+1  coelhos = ratos = sapos = total = 0                # (init)
+2  for i in range(int(input())):                     # (loop header)
+3      quantidade, animal = input().split(' ')       # (read a record)
+4      total += int(quantidade)                      # (accumulate total)
+5      if animal == 'C':
+6          coelhos += int(quantidade)
+7      elif animal == 'R':
+8          ratos   += int(quantidade)
+9      elif animal == 'S':
+10         sapos   += int(quantidade)
+11 # after the loop
+12 print(f"Total: {total} cobaias")
+13 print(f"Total de coelhos: {coelhos}")
+14 print(f"Total de ratos: {ratos}")
+15 print(f"Total de sapos: {sapos}")
+16 print(f"Percentual de coelhos: {((100.0 / total) * coelhos):.2f} %")
+17 print(f"Percentual de ratos:   {((100.0 / total) * ratos):.2f} %")
+18 print(f"Percentual de sapos:   {((100.0 / total) * sapos):.2f} %")
+```
+
+The only non‑trivial part of the proof is the **for‑loop**; everything
+else follows by simple assignment or by the semantics of the `print`
+statement.  
+
+We therefore:
+
+1. Define a **loop invariant** `I`.  
+2. Show that `I` holds after the initialisation (line 1).  
+3. Prove that the body of the loop (lines 3‑10) preserves `I`.  
+4. Derive from `I ∧ ¬cond` (i.e. after the loop terminates) the equalities
+   required by `Q`.  
+5. Show that the three `print` statements produce exactly the string
+   described in `Q`.
+
+All reasoning is carried out in the standard Hoare‑logic system
+(assignment rule, composition rule, conditional rule, while‑rule, and the
+rule for the `for`‑loop, which is just a bounded `while`).  
+
+---
+
+## 2.  Notation for the proof  
+
+* `i` – the loop counter, ranging from `0` to `N‑1`.  
+* `amount[i]` – the integer read at the *i*‑th iteration (the value of
+  `quantidade`).  
+* `type[i]`   – the character read at the *i*‑th iteration (the value of
+  `animal`).  
+
+For readability we write `Σ_{k<i} e_k` for the sum of `e_k` over all
+indices `k` such that `0 ≤ k < i`.
+
+We also use the Iverson bracket `[[P]]` that equals `1` when the predicate
+`P` is true and `0` otherwise – exactly the notation that appears in the
+post‑condition.
+
+---
+
+## 3.  Loop invariant  
+
+\[
+\boxed{
+\begin{aligned}
+I(i) \equiv\;&
+\begin{cases}
+0 \le i \le N \\[2pt]
+\text{total}      = \displaystyle\sum_{k=0}^{i-1} \text{amount}[k] \\[6pt]
+\text{coelhos}    = \displaystyle\sum_{k=0}^{i-1} [[\text{type}[k] = C]]\;\text{amount}[k] \\[6pt]
+\text{ratos}      = \displaystyle\sum_{k=0}^{i-1} [[\text{type}[k] = R]]\;\text{amount}[k] \\[6pt]
+\text{sapos}      = \displaystyle\sum_{k=0}^{i-1} [[\text{type}[k] = S]]\;\text{amount}[k]
+\end{cases}
+\end{aligned}}
+\]
+
+Intuitively, after the first *i* iterations the four accumulator variables
+contain exactly the sums of the first *i* records.
+
+---
+
+## 4.  Proof that the invariant holds  
+
+### 4.1  Initialization  
+
+Before the loop starts we have `i = 0` (the loop counter is implicit in the
+`for` construction) and, by line 1, all four accumulators are `0`.  
+
+Therefore  
+
+\[
+\begin{aligned}
+\text{total}   &= \sum_{k=0}^{-1}\text{amount}[k] = 0\\
+\text{coelhos} &= \sum_{k=0}^{-1} [[\text{type}[k]=C]]\text{amount}[k] = 0\\
+\text{ratos}   &= \sum_{k=0}^{-1} [[\text{type}[k]=R]]\text{amount}[k] = 0\\
+\text{sapos}   &= \sum_{k=0}^{-1} [[\text{type}[k]=S]]\text{amount}[k] = 0 .
+\end{aligned}
+\]
+
+Thus `{P}` ⇒ `{I(0)}` holds (the **initialisation rule**).
+
+### 4.2  Preservation  
+
+Assume `I(i)` holds at the beginning of an iteration and that `i < N`
+(the loop condition is true).  
+We must show that after executing the body (lines 3‑10) the invariant
+holds for `i+1`.
+
+*Line 3* reads a record, so `quantidade = amount[i]` and `animal = type[i]`.  
+Both values satisfy the constraints of `P` (they are positive integers and
+one of `C,R,S`) because they come from the input that the pre‑condition
+guarantees.
+
+*Line 4* performs the assignment  
+
+\[
+\text{total}' = \text{total} + \text{amount}[i].
+\]
+
+Using the assignment axiom of Hoare logic we obtain  
+
+\[
+\text{total}' = \sum_{k=0}^{i-1}\text{amount}[k] + \text{amount}[i]
+               = \sum_{k=0}^{i}\text{amount}[k].
+\]
+
+*Lines 5‑10* are a chain of mutually exclusive `if`‑branches.  
+Exactly one of the three branches is taken, namely the one whose
+condition matches `type[i]`.  For each branch we have:
+
+* If `type[i] = C` (line 5 true) then  
+
+  \[
+  \text{coelhos}' = \text{coelhos} + \text{amount}[i]
+  = \sum_{k=0}^{i-1}[[\text{type}[k]=C]]\text{amount}[k] + \text{amount}[i]
+  = \sum_{k=0}^{i}[[\text{type}[k]=C]]\text{amount}[k].
+  \]
+
+  The other two accumulators are unchanged, i.e.
+
+  \[
+  \text{ratos}' = \text{ratos},\qquad
+  \text{sapos}' = \text{sapos},
+  \]
+
+  which are already equal to the corresponding sums up to index `i‑1`;
+  because `[[type[i]=R]] = [[type[i]=S]] = 0` the equalities also hold
+  for the sums up to `i`.
+
+* The cases `type[i] = R` and `type[i] = S` are completely symmetric,
+  yielding the analogous updates for `ratos` or `sapos`.
+
+Consequently, after the whole body we have
+
+\[
+\begin{aligned}
+\text{total}'   &= \sum_{k=0}^{i} \text{amount}[k] ,\\
+\text{coelhos}' &= \sum_{k=0}^{i} [[\text{type}[k]=C]]\text{amount}[k] ,\\
+\text{ratos}'   &= \sum_{k=0}^{i} [[\text{type}[k]=R]]\text{amount}[k] ,\\
+\text{sapos}'   &= \sum_{k=0}^{i} [[\text{type}[k]=S]]\text{amount}[k] .
+\end{aligned}
+\]
+
+Thus `I(i+1)` holds.  By the **conditional rule** and the **composition rule**
+the whole block (lines 3‑10) preserves the invariant.
+
+### 4.3  Termination  
+
+The loop runs exactly `N` times because the `for` iterates over
+`range(N)`.  Hence after the last iteration we have `i = N` and the loop
+condition `i < N` is false.  Consequently we can conclude
+
+\[
+I(N) \;\land\; \neg(i<N) \;\Longrightarrow\;
+\begin{cases}
+\text{total}   = \displaystyle\sum_{k=0}^{N-1}\text{amount}[k] \\[4pt]
+\text{coelhos} = \displaystyle\sum_{k=0}^{N-1}[[\text{type}[k]=C]]\text{amount}[k] \\[4pt]
+\text{ratos}   = \displaystyle\sum_{k=0}^{N-1}[[\text{type}[k]=R]]\text{amount}[k] \\[4pt]
+\text{sapos}   = \displaystyle\sum_{k=0}^{N-1}[[\text{type}[k]=S]]\text{amount}[k]
+\end{cases}
+\tag{1}
+\]
+
+Because each `amount[k] ≥ 1`, the sum `total` is a positive integer; therefore
+the division by `total` performed later is safe (no division‑by‑zero).
+
+---
+
+## 5.  Deriving the post‑condition from the invariant  
+
+From (1) we obtain the three equalities that appear in `Q` for the four
+totals:
+
+```
+total   = Σ_{i=1}^{N} amount_i
+total_C = Σ_{i=1}^{N} [[type_i = C]]·amount_i
+total_R = Σ_{i=1}^{N} [[type_i = R]]·amount_i
+total_S = Σ_{i=1}^{N} [[type_i = S]]·amount_i
+```
+
+(The index shift from `0…N‑1` to `1…N` is immaterial.)
+
+Adding the three equalities yields  
+
+\[
+\text{total} = \text{total\_C} + \text{total\_R} + \text{total\_S},
+\]
+
+which is explicitly required by `Q`.
+
+### 5.1  Percentages  
+
+The program computes (lines 16‑18)
+
+\[
+p_C = \bigl((100.0 / \text{total}) * \text{coelhos}\bigr) ,
+\qquad
+p_R = \bigl((100.0 / \text{total}) * \text{ratos}\bigr) ,
+\qquad
+p_S = \bigl((100.0 / \text{total}) * \text{sapos}\bigr) .
+\]
+
+The Python formatting `:.2f` implements **round‑to‑nearest,
+ties‑to‑even** with exactly two decimal digits, which is precisely the
+function `round₂(·)` used in the specification.  Therefore
+
+\[
+\begin{aligned}
+\text{perc\_C} &= round_{2}\!\Bigl(100\frac{\text{total\_C}}{\text{total}}\Bigr) ,\\
+\text{perc\_R} &= round_{2}\!\Bigl(100\frac{\text{total\_R}}{\text{total}}\Bigr) ,\\
+\text{perc\_S} &= round_{2}\!\Bigl(100\frac{\text{total\_S}}{\text{total}}\Bigr) .
+\end{aligned}
+\]
+
+Thus the three percentage clauses of `Q` are satisfied.
+
+### 5.2  The printed string  
+
+The six `print` statements concatenate literal text, the integer values,
+and the formatted percentages.  By the semantics of `print` we obtain the
+exact string described in `Q` (the concatenation operator `‖` in the
+specification is the same as Python’s f‑string interpolation).  No extra
+white‑space or missing newline characters appear, so the `out` component of
+the post‑condition holds.
+
+---
+
+## 6.  Summary of the Hoare‑logic derivation  
+
+1. **Initialisation**  
+
+   \[
+   \{P\}\; \texttt{coelhos = ratos = sapos = total = 0}\; \{I(0)\}
+   \]
+
+2. **Loop** – we treat the `for` as a bounded `while` (`i < N`):
+
+   * **Invariant preservation**  
+
+     \[
+     \{I(i) \land i<N\}\; \text{body (lines 3‑10)}\; \{I(i+1)\}
+     \]
+
+   * **Termination** (`i` is increased by the `for` construct, thus after
+     `N` iterations `i = N`).  
+
+   By the **while‑rule** we obtain  
+
+   \[
+   \{I(0)\}\; \texttt{for i in range(N): …}\; \{I(N)\}.
+   \]
+
+3. **Exit condition**  
+
+   From `I(N)` we derived the equalities for `total`, `total_C`,
+   `total_R`, `total_S` and the relationship
+   `total = total_C + total_R + total_S`.
+
+4. **Percentage computation**  
+
+   Using the semantics of the arithmetic expression and the formatting
+   `:.2f` we get the three `perc_*` equalities of `Q`.
+
+5. **Output**  
+
+   The six `print` statements produce exactly the string described in the
+   `out` clause of `Q`.
+
+Putting all steps together with the **composition rule** yields the full
+Hoare triple
+
+\[
+\boxed{\{P\}\;\; \texttt{program}\;\; \{Q\}}
+\]
+
+which completes the formal proof of correctness.
+
+---
+
+## 7.  Remarks on the proof  
+
+* The invariant `I` is the natural “running‑sum” invariant; it is
+  sufficient because the program never needs any additional information
+  (e.g. it never inspects a record more than once).
+
+* The pre‑condition guarantees `total > 0`.  This is essential for the
+  division in the percentage formulas; without it the program could raise
+  a `ZeroDivisionError`.  The problem statement (and the original
+  Beecrowd test data) indeed ensures at least one animal, so the proof
+  is sound.
+
+* The rounding function `round₂` is exactly the effect of the Python
+  format specification `:.2f`.  If a different rounding mode were used,
+  the post‑condition would have to be adapted accordingly.
+
+* The proof does not rely on any particular implementation detail of the
+  `for` loop; any equivalent loop that iterates `N` times and processes the
+  input records in order would satisfy the same invariant and therefore
+  the same specification.
+
+---
+
+**Conclusion** – The Python program satisfies the Hoare‑logic specification
+given by the pre‑condition `P` and the post‑condition `Q`.  Hence the program
+is *correct* with respect to the problem statement.

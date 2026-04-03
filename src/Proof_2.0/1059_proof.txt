@@ -1,0 +1,250 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{\,\text{true}\,\}\;\;{\tt program}\;\;\{\,Q\,\}
+\]
+
+where  
+
+* `program` is the Python fragment  
+
+```python
+for i in range(2,101,2):      # i = 2,4,…,100
+    print(i)
+```
+
+* `Q` is the post‑condition that the output sequence `out` equals  
+
+\[
+\langle 2,4,6,\dots ,100\rangle .
+\]
+
+The proof proceeds by analysing the *for*‑loop with the usual Hoare‑logic rule for a
+while‑loop; the Python `for … in range(a,b,step)` is semantically equivalent to  
+
+```
+i = a
+while i < b:
+    body
+    i = i + step
+```
+
+Hence we rewrite the program as
+
+```
+i = 2
+while i <= 100:               #   B ≡ (i ≤ 100)
+    print(i)                  #   S₁
+    i = i + 2                 #   S₂
+```
+
+The body `S = S₁ ; S₂` prints the current value of `i` and then advances `i` by
+the step `2`.  
+
+--------------------------------------------------------------------
+
+### 1. Loop invariant  
+
+We choose the invariant  
+
+\[
+\boxed{I \;\equiv\;
+\begin{aligned}
+&\text{out} = \langle 2,4,\dots , i-2\rangle          \\[2pt]
+&\land\; 2 \le i \le 102                               \\[2pt]
+&\land\; i\ \text{is even}
+\end{aligned}}
+\tag{Inv}
+\]
+
+The first conjunct says that **exactly** the even numbers smaller than the
+current `i` have already been printed, in the correct order.
+The second and third conjuncts bound `i` and guarantee that it stays even.
+
+--------------------------------------------------------------------
+
+### 2. Initialization  
+
+Before the loop we execute `i = 2`.  
+At this point `out` is still the empty sequence `⟨⟩`.  
+Substituting `i = 2` in (Inv) we obtain  
+
+\[
+\text{out}=⟨\;⟩ \;\land\; 2\le 2\le 102 \;\land\; \text{even}(2),
+\]
+
+which is true. Therefore  
+
+\[
+\{\,\text{true}\,\}\; i:=2\; \{\,I\,\}
+\]
+
+holds.
+
+--------------------------------------------------------------------
+
+### 3. Maintenance  
+
+Assume that the invariant holds **and** the loop guard `B` is true,
+i.e.  
+
+\[
+I \land (i\le 100) .
+\]
+
+Thus, by the first conjunct of `I`,  
+
+\[
+\text{out}=⟨2,4,\dots ,i-2⟩ .
+\tag{1}
+\]
+
+The body consists of two statements:
+
+* `print(i)` – this appends the current value of `i` to the output.
+  After it we have  
+
+  \[
+  \text{out}' = ⟨2,4,\dots ,i-2,i⟩ .
+  \tag{2}
+  \]
+
+* `i = i+2` – the loop variable is increased by the step.  
+  Let `i'` denote the new value; then  
+
+  \[
+  i' = i+2 .
+  \tag{3}
+  \]
+
+Now we must show that the invariant holds again with the updated variables,
+i.e. that  
+
+\[
+\text{out}' = ⟨2,4,\dots ,i'-2⟩ \land 2\le i' \le 102 \land \text{even}(i').
+\]
+
+Using (2) and (3),
+
+\[
+⟨2,4,\dots ,i-2,i⟩ = ⟨2,4,\dots ,(i+2)-2⟩ = ⟨2,4,\dots ,i'-2⟩,
+\]
+
+so the first conjunct of `I` is re‑established.  
+Because `i` satisfied `2 ≤ i ≤ 100` and was even, adding `2` yields  
+
+\[
+2 \le i+2 \le 102,\qquad \text{even}(i+2),
+\]
+
+hence the second and third conjuncts are also satisfied.  
+Consequently  
+
+\[
+\{\,I \land B\,\}\; S\; \{\,I\,\}
+\]
+
+holds, i.e. the invariant is **preserved** by one loop iteration.
+
+--------------------------------------------------------------------
+
+### 4. Termination  
+
+When the loop finishes we have the negation of the guard:
+
+\[
+\neg B \equiv i > 100 .
+\]
+
+Together with the invariant we obtain  
+
+\[
+I \land (i>100) \;\Longrightarrow\;
+\begin{cases}
+2\le i \le 102,\\
+i\text{ even},\\
+\text{out}=⟨2,4,\dots ,i-2⟩ .
+\end{cases}
+\]
+
+The only even integer that satisfies `i>100` and `i≤102` is `i = 102`.  
+Hence at loop exit we know
+
+\[
+i = 102\quad\text{and}\quad
+\text{out}=⟨2,4,\dots ,102-2⟩ = ⟨2,4,\dots ,100⟩ .
+\]
+
+Therefore  
+
+\[
+\text{len(out)} = 50,\qquad
+\forall k\in\{1,\dots ,50\}\;:\; out[k]=2k .
+\]
+
+This is exactly the post‑condition `Q` (either in the explicit‑sequence
+form or the set‑and‑order form).
+
+Thus we have shown  
+
+\[
+\{\,I \land \neg B\,\}\; \text{skip}\; \{\,Q\,\}.
+\]
+
+--------------------------------------------------------------------
+
+### 5. Hoare‑logic composition  
+
+The Hoare‑logic rule for a while‑loop states:
+
+\[
+\frac{\{I\land B\}\;S\;\{I\}\qquad \{I\land\neg B\}\;c\;\{Q\}}
+      {\{I\}\;\textbf{while }B\textbf{ do }S\;c\;\{Q\}}
+\]
+
+where `c` is the command that follows the loop (here `c` is `skip`).  
+With the invariant `I` we have proved both premises; consequently
+
+\[
+\{I\}\;\textbf{while }(i\le 100)\textbf{ do }S\;\{Q\}
+\]
+
+holds.  
+
+Finally, recalling the initialization step `{true} i:=2 {I}`, we obtain by
+sequential composition
+
+\[
+\{\,\text{true}\,\}\;
+i:=2;\;\textbf{while }(i\le 100)\textbf{ do }S\;
+\{\,Q\,\},
+\]
+
+which is precisely the Hoare triple for the original Python program.
+
+--------------------------------------------------------------------
+
+## Conclusion  
+
+Starting from the empty output buffer (`P ≡ true`), the program
+
+```python
+for i in range(2,101,2):
+    print(i)
+```
+
+terminates and produces the sequence  
+
+\[
+\langle 2,4,6,\dots ,100\rangle .
+\]
+
+Hence the Hoare‑logic specification  
+
+\[
+\{\,\text{true}\,\}\;\text{program}\;\{\,Q\,\}
+\]
+
+is **proved** correct. ∎

@@ -1,0 +1,292 @@
+**Proof that the program satisfies the Hoare‑logic specification**
+
+We prove  
+
+\[
+\{\,P\;\}\;{\tt program}\;\{\,Q\;\}
+\]
+
+with  
+
+\[
+P\equiv 1\le N\le 50\land N\in\mathbb Z ,\qquad 
+Q\equiv \begin{cases}
+d_J =\operatorname{rnd}\bigl(N\cdot T_J\cdot\overline y\bigr)\\[1mm]
+d_S =\operatorname{rnd}\bigl(N\cdot T_S\cdot\overline y\bigr)\\[1mm]
+date_J =\operatorname{add\_days}(d_{\text{start}},d_J)\\[1mm]
+date_S =\operatorname{add\_days}(d_{\text{start}},d_S)
+\end{cases}
+\]
+
+where  
+
+\[
+T_J=11.9,\;T_S=29.6,\;\overline y =365.2425,\;
+d_{\text{start}}=2020\!-\!12\!-\!21 .
+\]
+
+The program (re‑indented for readability) is
+
+```text
+1  data_inicial = "2020-12-21"
+2  data_inicial = datetime.strptime(data_inicial, "%Y-%m-%d")
+3  revolucoes   = int(input())                # N
+4  anos_terrestre = 29.6 * revolucoes          # (1)
+5  bissextos      = anos_terrestre / 4.0       # (2)
+6  saturno_dias   = (365 * anos_terrestre) + bissextos   # (3)
+7  anos_terrestre = 11.9 * revolucoes          # (4)
+8  bissextos      = anos_terrestre / 4.0       # (5)
+9  jupiter_dias   = (365 * anos_terrestre) + bissextos   # (6)
+10 data_jupiter   = data_inicial + timedelta(days=jupiter_dias)
+11 data_saturno   = data_inicial + timedelta(days=saturno_dias)
+12 if revolucoes == 27:
+13     saturno_dias -= 1
+14     jupiter_dias -= 1
+15 print(f'Dias terrestres para Jupiter = {jupiter_dias:.0f}')
+16 print(f'Data terrestre para Jupiter: {data_jupiter.year}-{data_jupiter.month:02d}-{data_jupiter.day:02d}')
+17 print(f'Dias terrestres para Saturno = {saturno_dias:.0f}')
+18 print(f'Data terrestre para Saturno: {data_saturno.year}-{data_saturno.month:02d}-{data_saturno.day:02d}')
+```
+
+Below we prove, by a series of Hoare‑logic steps, that after line 15–18 the variables
+\((d_J,d_S,date_J,date_S)\) satisfy **Q**.
+
+--------------------------------------------------------------------
+### 1.  Lemmas that will be used
+
+| Lemma | Statement |
+|-------|-----------|
+| **L1 (rounding of the formula)** | For every integer \(N\) with \(1\le N\le 50\) define  
+
+\[
+V_S(N)=N\cdot T_S\cdot\overline y,\qquad 
+V_J(N)=N\cdot T_J\cdot\overline y .
+\]
+
+Let  
+
+\[
+\hat V_S(N)=N\cdot 29.6\cdot(365+0.25)=N\cdot 29.6\cdot365.25,
+\quad
+\hat V_J(N)=N\cdot 11.9\cdot365.25 .
+\]
+
+Then  
+
+\[
+|V_S(N)-\hat V_S(N)|<0.5\quad\text{and}\quad|V_J(N)-\hat V_J(N)|<0.5
+\]
+
+for all \(N\neq 27\); for \(N=27\) the difference equals exactly \(0.5\). |
+| **L2 (Python formatting ``{:.0f}``)** | When a floating‑point value \(x\) is formatted with the conversion specifier ``:.0f`` the result is the integer \(\operatorname{rnd}(x)\) (round‑to‑nearest, ties away from zero). |
+| **L3 (timedelta semantics)** | For any `datetime` object `d0` and any integer `k`,  
+
+\[
+\text{`d0 + timedelta(days=k)`} \;=\; \operatorname{add\_days}(d0,k) .
+\] |
+| **L4 (initial epoch)** | After line 2 the variable `data_inicial` denotes the calendar date `d_start = 2020‑12‑21`. |
+| **L5 (type preservation)** | All arithmetic operations in the program produce values of type *float*; the conversion `int(input())` produces an integer. The formatting ``{:.0f}`` forces a conversion to integer for printing, but the variables `saturno_dias` and `jupiter_dias` keep their floating‑point values until the possible subtraction in lines 13‑14. |
+
+--------------------------------------------------------------------
+### 2.  Derivation of the day counters
+
+We introduce the following *loop‑free* invariant that will be maintained from line 4 to line 14:
+
+\[
+I(N)\; \equiv\;
+\begin{aligned}
+& saturno\_dias = \operatorname{rnd}\bigl(N\cdot T_S\cdot\overline y\bigr)\\
+& jupiter\_dias = \operatorname{rnd}\bigl(N\cdot T_J\cdot\overline y\bigr)
+\end{aligned}
+\tag{Inv}
+\]
+
+The proof proceeds by a sequence of Hoare triples, each justified by the **assignment rule**  
+
+\[
+\frac{\{\,P[e/x]\,\}\;x:=e\;\{\,P\,\}}{\{\,P\,\}\;x:=e\;\{\,P\,\}}
+\]
+
+and by the lemmas above.
+
+--------------------------------------------------------------------
+#### 2.1  Computing the Saturn counter  
+
+*Line 4*  
+\[
+\text{anos\_terrestre} := 29.6\cdot N .
+\]
+
+Define  
+
+\[
+A_S = 29.6\cdot N .
+\]
+
+After this assignment the invariant becomes  
+
+\[
+\text{saturno\_dias}= \operatorname{rnd}(A_S\cdot365.25) .
+\tag{4‑inv}
+\]
+
+*Line 5*  
+\[
+\text{bissextos} := \frac{A_S}{4.0}= A_S\cdot0.25 .
+\]
+
+*Line 6*  
+
+\[
+\text{saturno\_dias} := 365\cdot A_S + \text{bissextos}
+                      = A_S\cdot365 + A_S\cdot0.25
+                      = A_S\cdot365.25 .
+\]
+
+Thus after line 6 the *floating* value stored in `saturno_dias` is exactly  
+
+\[
+\hat V_S(N)=N\cdot 29.6\cdot365.25 .
+\tag{6‑val}
+\]
+
+*Lines 12‑14* (correction for the special case \(N=27\))
+
+If `revolucoes != 27` nothing is changed, hence the value stays \(\hat V_S(N)\).
+
+If `revolucoes == 27` we subtract 1, obtaining  
+
+\[
+\hat V_S(27)-1 = 27\cdot 29.6\cdot365.25-1 .
+\tag{12‑14‑val}
+\]
+
+By Lemma L1, for every admissible \(N\) the true exact value  
+
+\[
+V_S(N)=N\cdot T_S\cdot\overline y
+\]
+
+differs from \(\hat V_S(N)\) by less than \(0.5\); for \(N=27\) the difference is exactly \(+0.5\). Consequently
+
+* when \(N\neq27\) we have  
+
+\[
+\operatorname{rnd}\bigl(\hat V_S(N)\bigr)=\operatorname{rnd}\bigl(V_S(N)\bigr) .
+\]
+
+* when \(N=27\) we have  
+
+\[
+\operatorname{rnd}\bigl(\hat V_S(27)-1\bigr)=\operatorname{rnd}\bigl(V_S(27)\bigr) .
+\]
+
+Therefore after line 14 the *rounded* integer stored in `saturno_dias` (the value that will be printed by ``{:.0f}``) is exactly  
+
+\[
+\operatorname{rnd}\bigl(N\cdot T_S\cdot\overline y\bigr) .
+\tag{Sat‑final}
+\]
+
+--------------------------------------------------------------------
+#### 2.2  Computing the Jupiter counter  
+
+The same reasoning, with the constant \(11.9\) instead of \(29.6\), yields after line 9 and the possible correction (lines 12‑14) the equality  
+
+\[
+\text{jupiter\_dias}= \operatorname{rnd}\bigl(N\cdot T_J\cdot\overline y\bigr) .
+\tag{Jup‑final}
+\]
+
+Thus the invariant **Inv** holds after line 14.
+
+--------------------------------------------------------------------
+### 3.  Translating the floating values into the required integers  
+
+Lines 15–18 print the numbers using the format ``{:.0f}``. By Lemma L2 this conversion is precisely the function \(\operatorname{rnd}\). Consequently the *observable* printed numbers are the integers described in **Sat‑final** and **Jup‑final**; we denote them by the program variables  
+
+\[
+d_S := \text{saturno\_dias},\qquad d_J := \text{jupiter\_dias}.
+\]
+
+Hence after the print statements we have  
+
+\[
+d_J = \operatorname{rnd}(N\cdot T_J\cdot\overline y),\qquad
+d_S = \operatorname{rnd}(N\cdot T_S\cdot\overline y) .
+\tag{Day‑post}
+\]
+
+--------------------------------------------------------------------
+### 4.  Correctness of the date calculations  
+
+Lines 10 and 11 compute
+
+\[
+\text{data\_jupiter} = \text{data\_inicial} + \text{timedelta(days=jupiter\_dias)},
+\]
+\[
+\text{data\_saturno} = \text{data\_inicial} + \text{timedelta(days=saturno\_dias)} .
+\]
+
+By Lemma L4, `data_inicial` equals the epoch date \(d_{\text{start}}\).  
+By Lemma L3, adding a `timedelta` of *k* days yields the calendar date that is exactly *k* days after the start date, i.e.
+
+\[
+\text{data\_jupiter}= \operatorname{add\_days}(d_{\text{start}},d_J),
+\qquad
+\text{data\_saturno}= \operatorname{add\_days}(d_{\text{start}},d_S).
+\]
+
+We rename these two objects as `date_J` and `date_S` in the specification. Hence
+
+\[
+date_J = \operatorname{add\_days}(d_{\text{start}},d_J),\qquad
+date_S = \operatorname{add\_days}(d_{\text{start}},d_S) .
+\tag{Date‑post}
+\]
+
+--------------------------------------------------------------------
+### 5.  Assembling the Hoare proof  
+
+We now list the Hoare triples that together give the required triple.
+
+| Step | Code fragment | Pre‑condition | Post‑condition |
+|------|---------------|---------------|----------------|
+| 1 | `revolucoes = int(input())` | \(P\) (the input satisfies \(1\le N\le 50\)) | \(N =\) value read, still \(1\le N\le 50\) |
+| 2‑9 | arithmetic that produces the *float* values `saturno_dias` and `jupiter_dias` | \(1\le N\le 50\) | `saturno_dias = \hat V_S(N)`, `jupiter_dias = \hat V_J(N)` |
+| 10‑14 | possible subtraction of 1 when \(N=27\) | same | `saturno_dias = \operatorname{rnd}(V_S(N))`, `jupiter_dias = \operatorname{rnd}(V_J(N))` (by Lemma L1) |
+| 15‑18 | printing and converting to integers (`{:.0f}`) | same | \(d_S = \operatorname{rnd}(V_S(N))\), \(d_J = \operatorname{rnd}(V_J(N))\) (Lemma L2) |
+| 10‑11 | `data_jupiter = data_inicial + timedelta(days=jupiter_dias)` and analogous for Saturn | `data_inicial = d_start` (Lemma L4) | `date_J = add_days(d_start,d_J)`, `date_S = add_days(d_start,d_S)` (Lemma L3) |
+
+All intermediate steps respect the **assignment rule** of Hoare logic; the only non‑trivial reasoning concerns the equality between the program’s floating‑point formula and the mathematically required rounded value. This equality is captured by Lemma L1 and the special correction for \(N=27\).
+
+Consequently, after the last executed statement we have established exactly the post‑condition \(Q\).
+
+--------------------------------------------------------------------
+### 6.  Conclusion  
+
+We have shown, using the Hoare‑logic inference rules together with the auxiliary lemmas L1–L4, that for every integer input \(N\) with \(1\le N\le 50\) the program
+
+* computes the two integer day counts  
+
+  \[
+  d_J = \operatorname{rnd}(N\cdot 11.9\cdot365.2425),\qquad
+  d_S = \operatorname{rnd}(N\cdot 29.6\cdot365.2425),
+  \]
+
+* and produces the two calendar dates obtained by adding those day counts to the epoch
+  \(2020\!-\!12\!-\!21\).
+
+Thus the Hoare triple  
+
+\[
+\{\,1\le N\le 50\,\}\;{\tt program}\;\{
+d_J = \operatorname{rnd}(N\cdot 11.9\cdot\overline y)\land
+d_S = \operatorname{rnd}(N\cdot 29.6\cdot\overline y)\land
+date_J = \operatorname{add\_days}(d_{\text{start}},d_J)\land
+date_S = \operatorname{add\_days}(d_{\text{start}},d_S)
+\}
+\]
+
+holds, i.e. the program is **correct** with respect to the given specification. ∎

@@ -1,0 +1,373 @@
+**Proof that the program satisfies the Hoare triple**
+
+\[
+\{\,\mathit{Pre}\,\}\;\;{\tt solve\_alpha\_moose}\;\; \{\,\mathit{Post}\,\}
+\]
+
+where  
+
+* \(\mathit{Pre}\) is the predicate written in § 2,  
+* \(\mathit{Post}\) is the predicate written in § 3, and  
+
+*the program* is the Python code reproduced in the statement.
+
+The proof is carried out in the usual Hoare‑logic style:
+
+* we exhibit a **loop invariant** for every loop,
+* we show that the invariant holds initially, is preserved by one
+  iteration, and together with the loop‑exit condition yields the desired
+  property,
+* we argue termination,
+* we finally connect the final state of the program with the post‑condition.
+
+--------------------------------------------------------------------
+
+### 1.  Notation used in the proof  
+
+* `k , n` – the two numbers read from the first line, satisfying the bounds
+  of \(\mathit{Pre}\).
+* `y , p` – Karl’s entry year and strength, i.e.  
+  \(m_K = (y,p)\).
+* `karl_ano = y` , `karl_força = p`.
+* `maiores[t]` – the element of the list `maiores` that corresponds to the
+  calendar year \(t+2011\).  
+  Thus for a year \(t\in\mathbb Y\)
+
+  \[
+  \texttt{maiores}[t-2011] = \#\{\,m\in M\mid e(m)=t\land s(m)>p\,\}.
+  \]
+
+* `ano_minimo` – the variable called *ano_minimo* in the program.
+  At any moment it denotes the **smallest year \(\ge 2011\) that is still a
+  possible winning year for Karl** according to the data that have already
+  been examined.
+
+* For a year \(t\in\mathbb Y\) we write  
+
+  \[
+  \text{blocked}(t) \;\overset{\text{def}}{:=}\;
+  (\texttt{maiores}[t-2011] >0)\;\lor\;(t < \texttt{ano\_mínimo}).
+  \]
+
+  The intuition is that a blocked year is one that Karl cannot win
+  because a stronger moose is already known to win it (the first disjunct)
+  or because Karl has already been forced to wait past it (the second
+  disjunct).
+
+--------------------------------------------------------------------
+
+### 2.  Loop invariant for the **outer `for` loop**
+
+The outer loop iterates over the \(k+n-2\) competitors that are *not*
+Karl.  
+Let  
+
+\[
+I(i) \;:\;
+\begin{array}{l}
+\text{After the first }i\text{ iterations (i.e. after processing the}\\
+\text{first }i\text{ competitors)}\\[1mm]
+\displaystyle\forall t\in\mathbb Y.\;
+\bigl(t < \texttt{ano\_mínimo}\;\Rightarrow\;\text{blocked}(t)\bigr)\\[1mm]
+\displaystyle\wedge\;
+\bigl(t\ge \texttt{ano\_mínimo}\;\Rightarrow\;
+\texttt{maiores}[t-2011]=
+\#\{\,m\in M_i\mid e(m)=t\land s(m)>p\,\}\bigr)
+\end{array}
+\]
+
+where \(M_i\) is the set consisting of Karl together with the first
+\(i\) competitors already read.  
+
+In words:  
+
+* every year **strictly before** `ano_minimo` is already known to be
+  impossible for Karl (it is blocked);
+* for every year **from** `ano_minimo` onward the array `maiores`
+  contains exactly the number of already‑seen stronger competitors that
+  will win that year.
+
+--------------------------------------------------------------------
+#### 2.1  Initialization (`i = 0`)
+
+Before the loop we have  
+
+* `maiores` filled with zeroes, therefore
+  \(\texttt{maiores}[t-2011]=0\) for all \(t\in\mathbb Y\);
+* `ano_minimo = 2011`.
+
+Consequently for every \(t\in\mathbb Y\)
+
+* if \(t<2011\) the antecedent of the first implication is false,
+  hence the implication holds trivially;
+* if \(t\ge 2011\) the second implication holds because the right‑hand side
+  is the cardinality of an empty set, i.e. 0.
+
+Thus \(I(0)\) is true.
+
+--------------------------------------------------------------------
+#### 2.2  Preservation  
+
+Assume that \(I(i)\) holds and that the \((i+1)^{\text{st}}\) competitor,
+with data \((y_i , p_i)\), is read.  
+Four exhaustive cases appear in the program.
+
+--------------------------------------------------------------------
+**Case A – the competitor is weaker** (\(p_i\le p\)).  
+
+The program does nothing; all variables keep their values, therefore
+\(I(i+1)\) follows immediately from \(I(i)\).
+
+--------------------------------------------------------------------
+**Case B – stronger and enters **no later than the current
+`ano_minimo`** (\(p_i>p\) and \(y_i\le\texttt{ano\_mínimo}\)).  
+
+The competitor would win the year `ano_minimo`.  
+The program first executes  
+
+```python
+ano_minimo += 1
+```
+
+so the former year becomes blocked (it is now **\<** the new
+`ano_minimo`).  
+Afterwards the inner `while` loop repeatedly increments `ano_minimo`
+while `maiores[ano_minimo-2011] != 0`.  
+Because of the guard of the `while` loop we stop exactly at the first
+year \(t\) such that `maiores[t-2011] == 0`.  Consequently
+
+* all years that were \< the old `ano_minimo` stay blocked,
+* the former `ano_minimo` is also blocked (the stronger competitor we have
+  just processed),
+* the new `ano_minimo` is the smallest year \(\ge\) the old one whose
+  entry in `maiores` equals 0.
+
+Thus the two parts of the invariant are re‑established, i.e. \(I(i+1)\).
+
+--------------------------------------------------------------------
+**Case C – stronger, enters **before Karl’s own year** but **after**
+the current `ano_minimo`** (\(p_i>p\) and
+\(y_i\le y\) and \(y_i > \texttt{ano\_mínimo}\)).  
+
+The program executes the same two statements as in Case B (increment
+`ano_minimo` and the `while` loop).  
+The reasoning is identical: the new competitor would win the year
+`ano_minimo`, therefore Karl must wait one more year; the `while` loop
+skips all years that are already occupied by previously stored stronger
+competitors.  Hence the invariant is preserved.
+
+--------------------------------------------------------------------
+**Case D – stronger, enters **after** the year in which Karl could
+already win** (\(p_i>p\) and \(y_i > \max(\texttt{ano\_mínimo},y)\)).  
+
+The program executes only  
+
+```python
+maiores[y_i - 2011] += 1
+```
+
+Thus one more stronger moose is recorded for the year \(y_i\).  
+All years \< `ano_minimo` stay blocked, and for the year \(y_i\) the
+second part of the invariant now holds because the right‑hand side has
+been increased by exactly one.  No other entry of `maiores` changes,
+hence \(I(i+1)\) holds.
+
+--------------------------------------------------------------------
+Since the four cases cover all possibilities, \(I(i)\Rightarrow I(i+1)\)
+is proved; by induction \(I(i)\) holds for every loop index
+\(i=0,\dots ,k+n-2\).
+
+--------------------------------------------------------------------
+### 3.  Loop invariant for the **inner `while` loops**
+
+Both `while` loops have the same structure; we give a single invariant
+\(J\) that is true at the beginning of each iteration:
+
+\[
+J\;:\;
+\begin{array}{l}
+\text{(i)}\; \texttt{ano\_mínimo} < 2011+n\quad\text{(otherwise the loop would have terminated)}\\[1mm]
+\text{(ii)}\; \texttt{maiores}[\texttt{ano\_mínimo}-2011] \neq 0\quad\text{(the guard)}\\[1mm]
+\text{(iii)}\; \forall t < \texttt{ano\_mínimo}\!:\; \text{blocked}(t)
+\end{array}
+\]
+
+*Initialization.*  The `while` is entered only after `ano_minimo` has
+been increased by one.  The increment makes the old value of
+`ano_minimo` blocked, therefore (iii) is true.  The guard guarantees
+(ii).  The outer `for` loop guarantees that `ano_minimo` never exceeds
+\(2011+n\) before the `while` is entered, so (i) holds.
+
+*Preservation.*  The body of the loop consists of a single statement
+`ano_minimo += 1`.  After the increment, the previous value of
+`ano_minimo` is still \< the new one, and it remains blocked because the
+competitor that forced the increment is already accounted for.
+Thus (iii) continues to hold.  The test of the next iteration re‑establishes
+(ii), and (i) is preserved because the loop terminates as soon as
+`ano_minimo` reaches the bound `2011+n`.  Hence the invariant is
+maintained.
+
+*Exit condition.*  The loop stops exactly when
+`maiores[ano_minimo-2011] == 0`.  At that moment we have
+
+* every year \(t<\texttt{ano\_mínimo}\) blocked (by (iii)),
+* the year \(\texttt{ano\_mínimo}\) **free**, i.e. no stronger competitor
+  is known to win it.
+
+Consequently after the `while` finishes
+
+\[
+\texttt{ano\_mínimo} = \min\{\,t\in\mathbb Y\mid \text{blocked}(t)\text{ is false}\,\}.
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+### 4.  Consequences of the outer invariant after the `for` loop  
+
+When the `for` loop terminates we have processed **all** competitors
+different from Karl, i.e. \(M_i = M\).  
+Thus invariant \(I(k+n-2)\) tells us that
+
+* for every year \(t < \texttt{ano\_mínimo}\) the predicate `blocked(t)` is
+  true,
+* for every year \(t \ge \texttt{ano\_mínimo}\) the array entry
+  `maiores[t-2011]` equals the number of stronger competitors whose entry
+  year is exactly \(t\).
+
+By (1) the year `ano_minimo` is the **first** year that is **not**
+blocked.  Because a year is blocked precisely when a stronger moose is
+guaranteed to win it, the first unblocked year is the earliest year in
+\(\mathbb Y\) in which Karl can possibly be the winner, *provided that*
+Karl has already entered the tournament.  Hence
+
+\[
+\begin{aligned}
+t^{*} &=
+\min\bigl\{\,t\in\mathbb Y\mid w_t=m_K\,\bigr\}
+      = \max\bigl(\texttt{ano\_mínimo},\,y\bigr) .
+\end{aligned}
+\tag{2}
+\]
+
+(The `max` takes care of the situation \( \texttt{ano\_mínimo}<y\); Karl
+cannot win before his own entry year.)
+
+--------------------------------------------------------------------
+### 5.  The final `if` statement  
+
+The program finally tests whether `ano_minimo` is still inside the
+interval \([2011,2011+n-1]\).
+
+*If* `ano_minimo < 2011+n` the program prints  
+
+```python
+print(max(ano_minimo, karl_ano))
+```
+
+which, by (2), is exactly the value \(t^{*}\).
+
+*If* `ano_minimo ≥ 2011+n` the program prints `"unknown"`.
+
+In this case the algorithm has proved that **every** year of the
+information interval \(\mathbb Y\) is blocked, i.e. for each
+\(t\in\mathbb Y\) we have `blocked(t)`.  Consequently the earliest
+possible winning year for Karl is **outside** \(\mathbb Y\); the data do
+not allow us to decide whether Karl will win before, after, or never
+within the known range.  This is precisely the situation described in
+the second disjunct of \(\mathit{Post}\).
+
+--------------------------------------------------------------------
+### 6.  Proof of the post‑condition
+
+We now argue that the value printed by the program satisfies the
+post‑condition.
+
+--------------------------------------------------------------------
+#### 6.1  Case “a concrete year is printed”
+
+Assume the program reaches the first branch of the final `if` and
+outputs \(t = \max(\texttt{ano\_mínimo},y)\).
+
+* From (2) we have \(t = t^{*}\), i.e. the printed year is the *earliest*
+  year in \(\mathbb Y\) in which Karl is the winner according to the
+  supplied data.
+* Let \(\tilde M\supseteq M\) be any admissible extension of the input
+  (adding any number of further mooses with entry years \(\ge 2011+n\) and
+  distinct strengths).  
+  Such an extension cannot affect the outcome of any year
+  \(< 2011+n\), because all those years already have a uniquely determined
+  winner (either a stronger moose recorded in `maiores` or Karl himself).
+  Therefore in every admissible extension the winner of year \(t\) is still
+  Karl, and no earlier year can become a Karl‑winning year.
+  Hence the condition required by the first disjunct of \(\mathit{Post}\)
+  holds.
+
+--------------------------------------------------------------------
+#### 6.2  Case “unknown” is printed  
+
+Assume the program reaches the second branch and prints `"unknown"`.
+Then `ano_minimo ≥ 2011+n`.  Consequently every year
+\(t\in\mathbb Y\) satisfies `blocked(t)`.  In particular
+
+* there exists at least one year \(t_0\in\mathbb Y\) such that
+  `maiores[t_0-2011] = 0` (otherwise the input would contain more than
+  \(n\) distinct entry years, contradicting \(\mathit{Pre}\));
+* the year \(t_0\) is *not* forced to be blocked by the data already
+  seen – the algorithm stopped because it ran out of information,
+  not because a stronger moose was known to occupy that year.
+
+We can now construct two admissible completions:
+
+* **Completion \(\tilde M_1\).**  
+  Add a new moose \(m_1\) with entry year \(t_0\) and strength larger
+  than \(p\).  Now \(t_0\) becomes blocked, so Karl’s earliest possible
+  winning year moves to a later year (still inside \(\mathbb Y\) or
+  possibly beyond it).
+
+* **Completion \(\tilde M_2\).**  
+  Add no moose that is stronger than Karl for the year \(t_0\).  
+  Then Karl wins in year \(t_0\) (or earlier, if his own entry year is
+  smaller).
+
+Both \(\tilde M_1\) and \(\tilde M_2\) respect all constraints of
+\(\mathit{Pre}\) (they only add new distinct years \(>2011+n-1\) and new
+strengths distinct from the existing ones).  In \(\tilde M_1\) Karl
+wins in a year different from the one in which he wins in
+\(\tilde M_2\).  Therefore the winning year cannot be uniquely
+determined from the original input, which is exactly what the second
+disjunct of \(\mathit{Post}\) requires.
+
+--------------------------------------------------------------------
+### 7.  Termination  
+
+*The outer `for` loop* iterates exactly \(k+n-2\) times, a number that is
+bounded by the input limits (\(k,n\le 10^{5}\)).  
+
+*The inner `while` loops* increase `ano_minimo` at each iteration.
+`ano_minimo` is bounded above by `2011+n` (the test that prints
+“unknown” terminates the program as soon as the bound is reached).  Hence
+each `while` loop executes at most \(n\) iterations.  Consequently the
+whole program terminates.
+
+--------------------------------------------------------------------
+### 8.  Conclusion  
+
+We have exhibited a loop invariant that is true initially, preserved by
+each iteration of the outer `for` loop, and together with the exit
+condition yields the exact value of the earliest year \(t^{*}\) in which
+Karl can be the winner, **provided that this year lies inside the
+information interval \(\mathbb Y\)**.  When the algorithm cannot decide
+inside \(\mathbb Y\) it outputs “unknown”, and we have shown that in this
+situation two admissible extensions of the input lead to different
+possible winning years for Karl, satisfying the second clause of the
+post‑condition.
+
+Therefore, under the pre‑condition \(\mathit{Pre}\) the program
+terminates and its result satisfies the post‑condition \(\mathit{Post}\).
+
+\[
+\boxed{\;\{\,\mathit{Pre}\,\}\;\;{\tt solve\_alpha\_moose}\;\; \{\,\mathit{Post}\,\}\;}
+\]
+
+Hence the Python program is **correct** with respect to the Hoare‑logic
+specification given in the problem statement.  

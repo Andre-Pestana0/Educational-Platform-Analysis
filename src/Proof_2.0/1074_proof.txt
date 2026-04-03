@@ -1,0 +1,231 @@
+Below we give a **complete Hoare‑logic proof** that the concrete Python program satisfies the specification that you supplied.  
+The proof follows the usual rules of Hoare logic (assignment, composition, conditional, and while‑loop) and uses a **loop invariant** that captures exactly the post‑condition for the part of the output that has already been produced.
+
+--------------------------------------------------------------------
+
+## 1.  The program (rewritten with explicit variables)
+
+```
+1  read  N                     # the first line of the input
+2  i := 0                      # loop counter (0‑based)
+3  while i < N do
+4      read  x                # the (i+1)-st input integer, i.e. X[i+1]
+5      if x = 0 then
+6          r := "NULL"
+7      elif x % 2 = 0 then
+8          r := "EVEN "
+9      else
+10         r := "ODD "
+11     endif
+12     if x > 0 then
+13         r := r || "POSITIVE"
+14     elif x < 0 then
+15         r := r || "NEGATIVE"
+16     endif
+17     out[i+1] := r           # write the (i+1)-st output line
+18     i := i + 1
+19 endwhile
+```
+
+*Lines 5‑11 implement the parity part,  
+lines 12‑16 the sign part,  
+line 17 writes the result, and line 18 advances the loop counter.*
+
+--------------------------------------------------------------------
+
+## 2.  The specification
+
+*Pre‑condition*  
+
+\[
+P\;\equiv\; N\in\mathbb Z\land 0<N<10\,000\;\land\;
+\bigl(\forall i\;(1\le i\le N).\;X[i]\in\mathbb Z\land -10^{7}<X[i]<10^{7}\bigr)
+\]
+
+*Post‑condition*  
+
+\[
+Q\;\equiv\;\forall i\;(1\le i\le N).\;
+\begin{cases}
+X[i]=0            &\Rightarrow\; out[i]="\text{NULL}"\\[1mm]
+X[i]\neq0         &\Rightarrow\; out[i]=\text{Msg}\bigl(\text{Parity}(X[i]),\text{Sign}(X[i])\bigr)
+\end{cases}
+\]
+
+where  
+
+\[
+\text{Parity}(x)=\begin{cases}
+\text{Even}&\text{if }x\bmod 2=0\\
+\text{Odd} &\text{otherwise}
+\end{cases}\qquad
+\text{Sign}(x)=\begin{cases}
+\text{Positive}&\text{if }x>0\\
+\text{Negative}&\text{if }x<0
+\end{cases}
+\]
+
+and `Msg` is defined exactly as in the statement.
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant
+
+For a loop that has already processed **k** numbers (0 ≤ k ≤ N) we define
+
+\[
+\boxed{
+I(k)\; \equiv\;
+\begin{aligned}
+&0\le k\le N\\
+&\land\; i = k\\
+&\land\; \bigl(\forall j\;(1\le j\le k).\;
+   \bigl[ X[j]=0 \Rightarrow out[j]="\text{NULL}"\bigr] \\
+&\qquad\qquad\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+   \land\; \bigl[ X[j]\neq0 \Rightarrow
+        out[j]=\text{Msg}(\text{Parity}(X[j]),\text{Sign}(X[j]))\bigr]\bigr)
+\end{aligned}}
+\]
+
+In words: after the loop has executed *k* times, the first *k* output lines are already correct, and the counter `i` equals *k*.
+
+--------------------------------------------------------------------
+
+## 4.  Proof outline
+
+We prove the Hoare triple  
+
+\[
+\{P\}\; \text{Program}\; \{Q\}
+\]
+
+by the **while‑rule**:
+
+\[
+\frac{\{I\land i<N\}\;S\;\{I\}}{\{I\}\;\textbf{while}\;i<N\;\textbf{do}\;S\;\{I\land\neg(i<N)\}}
+\]
+
+where *S* denotes the body of the loop (lines 4‑18).  
+Thus we have to show three things:
+
+1. **Initialization** – `P ⇒ I(0)`.
+2. **Maintenance** – assuming `I(k) ∧ i<N` (i.e. `k<N`) we must prove `{I(k)}` *body*`{I(k+1)}`.
+3. **Termination** – after the loop we have `I(N) ∧ ¬(i<N)` which is exactly `Q`.
+
+We treat the three points one by one.
+
+--------------------------------------------------------------------
+
+### 4.1  Initialization
+
+From `P` we know that a value `N` has been read and that `0<N<10 000`.  
+The program sets `i:=0` (line 2). Hence after line 2 we have `i=0`.  
+No output has been produced yet, therefore the universal quantifier in `I(0)` is vacuously true.  
+Consequently `P ⟹ I(0)` holds.
+
+--------------------------------------------------------------------
+
+### 4.2  Maintenance (the core of the proof)
+
+Assume `I(k)` holds **and** `i<N`.  
+Because `i=N` would stop the loop, `i<N` implies `k<N`.  
+The body of the loop is executed with the current input value `x = X[k+1]`.  
+We must show that after lines 4‑18 the invariant `I(k+1)` is true.
+
+The proof proceeds by a **case analysis on `x`**.  
+All arithmetic facts used are elementary and hold for every integer (including negative numbers).
+
+| case | condition on `x` | value stored in `r` after line 11 | value stored in `r` after line 16 | produced output `out[k+1]` |
+|------|-------------------|-----------------------------------|-----------------------------------|---------------------------|
+| **C0** | `x = 0` | `"NULL"` (line 5) | unchanged (lines 12‑15 are skipped because `x>0` and `x<0` are false) | `"NULL"` |
+| **C1** | `x ≠ 0 ∧ x` even (`x % 2 = 0`) | `"EVEN "` (line 7) | – if `x>0` → `"EVEN " || "POSITIVE"` = `"EVEN POSITIVE"` (line 13)  <br> – if `x<0` → `"EVEN " || "NEGATIVE"` = `"EVEN NEGATIVE"` (line 15) | `"EVEN POSITIVE"` or `"EVEN NEGATIVE"` |
+| **C2** | `x ≠ 0 ∧ x` odd (`x % 2 ≠ 0`) | `"ODD "` (line 9) | – if `x>0` → `"ODD " || "POSITIVE"` = `"ODD POSITIVE"` (line 13)  <br> – if `x<0` → `"ODD " || "NEGATIVE"` = `"ODD NEGATIVE"` (line 15) | `"ODD POSITIVE"` or `"ODD NEGATIVE"` |
+
+*Why are these the only possibilities?*  
+From the pre‑condition we know `x∈ℤ`. The three mutually exclusive tests `x=0`, `x%2=0`, `else` cover all integers.
+
+Now we verify that each resulting string coincides with the specification:
+
+* **C0** (`x=0`): the specification requires `out[k+1]="NULL"` (the special rule). The program produces exactly that string, so the clause  
+
+  \[
+  X[k+1]=0 \;\Rightarrow\; out[k+1]="\text{NULL}"
+  \]
+
+  holds.
+
+* **C1** (`x≠0` and even):
+  * If `x>0`, the specification asks for `Msg(Even,Positive) = "EVEN POSITIVE"`.  
+    The program builds `"EVEN "` (line 7) and appends `"POSITIVE"` (line 13) → `"EVEN POSITIVE"`.
+  * If `x<0`, the specification asks for `Msg(Even,Negative) = "EVEN NEGATIVE"`.  
+    The program builds `"EVEN "` and appends `"NEGATIVE"` → `"EVEN NEGATIVE"`.
+
+* **C2** (`x≠0` and odd) is analogous, giving `"ODD POSITIVE"` or `"ODD NEGATIVE"` which match `Msg(Odd,Positive)` and `Msg(Odd,Negative)`.
+
+Thus, after line 17 (`out[i+1] := r`) we have
+
+\[
+\begin{aligned}
+&X[k+1]=0 \;\Rightarrow\; out[k+1]="\text{NULL"}\\
+&X[k+1]\neq0 \;\Rightarrow\; out[k+1]=\text{Msg}(\text{Parity}(X[k+1]),\text{Sign}(X[k+1]))
+\end{aligned}
+\]
+
+Exactly the part of the invariant that mentions index `k+1`.
+
+Finally, line 18 executes `i := i+1`. Because before the increment we had `i=k` (by the invariant), after the increment we have `i=k+1`. All other components of `I(k+1)` are unchanged (the already‑produced lines `out[1]…out[k]` stay correct). Consequently
+
+\[
+\{I(k)\land i<N\}\;\text{body}\;\{I(k+1)\}
+\]
+
+holds. This proves the **maintenance** condition of the while‑rule.
+
+--------------------------------------------------------------------
+
+### 4.3  Termination
+
+The loop condition is `i < N`.  
+When the loop finishes we have `¬(i<N)`, i.e. `i = N`.  
+By the invariant we also have `I(N)`.  
+Instantiating `k = N` in `I(k)` gives precisely the post‑condition `Q`:
+
+* for every `j` with `1 ≤ j ≤ N` the correct string has been written,
+* and there are no further indices.
+
+Hence `{I(N) ∧ ¬(i<N)} ⇒ Q`.
+
+--------------------------------------------------------------------
+
+## 5.  Whole‑program Hoare triple
+
+Putting the three steps together:
+
+1. **Initialization** `{P} i:=0 {I(0)}`
+2. **Loop** `{I(k) ∧ i<N} body {I(k+1)}` (proved above)
+3. **Termination** `{I(N)} skip {Q}` (trivial)
+
+By the **sequence rule** we obtain `{P} (i:=0; while … do body) {Q}`.  
+The statements that read the numbers (`read N` and `read x`) are pure input actions; they do not modify any program variable other than the ones that store the values, and they respect the bounds given in `P`. Therefore they preserve the truth of the Hoare triples above.
+
+Consequently we have proved the Hoare triple
+
+\[
+\boxed{\{P\}\;\text{Program}\;\{Q\}}
+\]
+
+which states that **the Python program always produces exactly the strings required by the specification** for every admissible input.
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on the Python specifics
+
+* `numero % 2 == 0` works for negative numbers as well, because in Python the remainder has the same sign as the divisor (`2`). Hence `Even(x) ⇔ x % 2 == 0` holds for all integers, matching the definition of `Even`.
+* The concatenation operator `+=` builds the final string with a single space between the two words (`"EVEN "` or `"ODD "` already contain the trailing space). No extra spaces are introduced, so the output format is exactly the one required by `Msg`.
+* The program never prints a trailing space after the sign word, because the sign word is appended **without** a following space.
+
+--------------------------------------------------------------------
+
+### 7.  Conclusion
+
+The invariant‑based Hoare‑logic proof shows that the given Python implementation satisfies the formal pre‑ and post‑conditions you supplied. Therefore the program is **correct** with respect to the specification of the Beecrowd problem *1074 – “Even, Odd, Positive, Negative”*.

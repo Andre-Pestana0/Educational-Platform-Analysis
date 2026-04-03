@@ -1,0 +1,158 @@
+**Proof of correctness of the Python program with respect to the Hoare‑logic specification**
+
+---------------------------------------------------------------------
+
+### 1.  What has to be shown  
+
+We have the Hoare triple  
+
+\[
+\{\,P(N)\,\}\;\;\textbf{program}\;\;\{\,Q(N,\mathit{out})\,\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+  \[
+  P(N)\;:\; N\in\mathbb N\land 1\le N\le 34 .
+  \]
+
+* **Post‑condition**  
+
+  \[
+  \begin{aligned}
+  Q(N,\mathit{out})\;:\;&\mathit{out}= \operatorname{pref}_{N}(S)\;\Vert\;\nl \\[1mm]
+                 &\land\; |\operatorname{pref}_{N}(S)| = N \\[1mm]
+                 &\land\; \forall i\;(0\le i<N\;\Rightarrow\; s_i\in\Sigma) .
+  \end{aligned}
+  \]
+
+The program (rewritten in a more “Hoare‑logic‑friendly” form) is
+
+```
+1  N  ←  int(input())                # read N
+2  citacao ← [L, I, F, E, ' ', I, ...]# constant list of 34 characters
+3  n_primeiros ← "".join(citacao[:N])# prefix of length N turned into a string
+4  print(n_primeiros)                # writes the string and a newline
+```
+
+Our goal is to prove that, **starting from any state that satisfies** \(P(N)\), **the final state** after executing the four statements **satisfies** \(Q(N,\mathit{out})\).
+
+---------------------------------------------------------------------
+
+### 2.  Notational conventions for the proof  
+
+* The *state* is a mapping from program variables to values.  
+* We write `⟦S⟧σ` for the value of the expression `S` evaluated in state σ.  
+* `σ[x ↦ v]` denotes the state that is identical to σ except that variable `x` holds `v`.  
+* `out` denotes the whole text that the program has sent to standard output; in Python `print` appends the line‑feed character `\n` (our `\nl`).  
+
+The constant list `citacao` is fixed; we denote the corresponding constant string  
+
+\[
+S \;=\; s_0 s_1\ldots s_{33}\;\;=\;\; \text{“LIFE IS NOT A PROBLEM TO BE SOLVED”}.
+\]
+
+Thus for every index `i` (0 ≤ i < 34) we have  
+
+\[
+\text{citacao}[i] = s_i\; .
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Proof outline (Hoare‑logic rules)
+
+We will use the standard Hoare‑logic inference rules:
+
+* **(Assign)** \(\{\,Q[x:=E]\,\}\;x:=E\;\{\,Q\,\}\)  
+* **(Seq)**   \(\{P\}\;c_1\; \{R\}\) and \(\{R\}\;c_2\; \{Q\}\) ⇒ \(\{P\}\;c_1;c_2\; \{Q\}\)  
+* **(Read)**  \(\{\,\top\,\}\;\;N:=\text{input()}\;\;\{\,N\in\mathbb N\,\}\) (the language guarantees that `int(input())` returns a natural number)  
+* **(Output)** \(\{\,\top\,\}\;\;\text{print}(e)\;\;\{\,\mathit{out}= \llbracket e\rrbracket\;\Vert\;\nl\,\}\)
+
+The only non‑trivial part is the **slice‑and‑join** statement (line 3).  
+We treat it as a single atomic operation whose semantics we can describe precisely:
+
+```
+n_primeiros ← "".join(citacao[:N])
+```
+
+For a state σ with a value `N = n` (0 ≤ n ≤ 34) the expression `citacao[:N]` evaluates to the list  
+
+\[
+\bigl[ s_0, s_1,\dots , s_{n-1}\bigr] .
+\]
+
+`"".join` concatenates the elements, producing the string  
+
+\[
+s_0 s_1\ldots s_{n-1}= \operatorname{pref}_{n}(S) .
+\]
+
+Hence we have the following **assignment rule** for line 3:
+
+\[
+\boxed{
+\{\,0\le N\le 34\,\}\;
+n\_primeiros := \operatorname{pref}_{N}(S)\;
+\{\, n\_primeiros = \operatorname{pref}_{N}(S) \,\}
+}
+\tag{A3}
+\]
+
+---------------------------------------------------------------------
+
+### 4.  Detailed derivation
+
+We start from the pre‑condition \(P(N)\).
+
+| Step | Command | Hoare triple derived | Reason |
+|------|---------|----------------------|--------|
+| 0 | – | \(\{\,1\le N\le 34\,\}\) (the given pre‑condition) | assumption |
+| 1 | `N ← int(input())` | \(\{\,\top\,\}\; N:=\text{input()}\; \{\,N\in\mathbb N\,\}\) | **Read** rule |
+| 2 | – | \(\{\,1\le N\le 34\,\}\) | From step 0 we already know `N` satisfies the bound; the read does not change `N`. |
+| 3 | – | \(\{\,0\le N\le 34\,\}\) | Since `1 ≤ N ≤ 34` implies `0 ≤ N ≤ 34`. |
+| 4 | `n_primeiros ← "".join(citacao[:N])` | \(\{\,0\le N\le 34\,\}\; n\_primeiros := \operatorname{pref}_{N}(S)\; \{\, n\_primeiros = \operatorname{pref}_{N}(S) \,\}\) | **(A3)** above |
+| 5 | `print(n_primeiros)` | \(\{\, n\_primeiros = \operatorname{pref}_{N}(S) \,\}\; \text{print}(n\_primeiros)\; \{\,\mathit{out}= \operatorname{pref}_{N}(S)\;\Vert\;\nl \,\}\) | **Output** rule (the printed text is exactly the value of `n_primeiros`, then a newline) |
+| 6 | – | \(\{\,\mathit{out}= \operatorname{pref}_{N}(S)\;\Vert\;\nl \,\}\) | From steps 4 and 5 by **Seq** |
+| 7 | – | \(\{\,\mathit{out}= \operatorname{pref}_{N}(S)\;\Vert\;\nl \land |\operatorname{pref}_{N}(S)| = N \land \forall i< N\; s_i\in\Sigma \,\}\) | The two extra conjuncts are *pure logical facts* that follow from the definition of \(S\) and the bound `1 ≤ N ≤ 34`. |
+| 8 | – | \(\{\,Q(N,\mathit{out})\,\}\) | This is exactly the post‑condition required. |
+
+**Explanation of step 7 (adding the two extra conjuncts).**  
+
+* The length property: by definition of `pref_N`, the string consists of the first `N` characters of `S`. Consequently its length is `N`. Formally  
+
+  \[
+  |\operatorname{pref}_{N}(S)| = N .
+  \]
+
+* Alphabet property: the specification of the problem states that every character of the constant quote belongs to the allowed alphabet \(\Sigma\). Because `1 ≤ N ≤ 34` and `S` has length 34, for every index `i` with `0 ≤ i < N` we have `s_i ∈ Σ`. This is a static property of the constant data, not of the execution, and therefore can be added to the post‑condition without any further proof steps.
+
+Thus after step 6 we already have the core part of the post‑condition (the exact output). The two logical facts are true in *any* state that satisfies the pre‑condition, so they may be conjoined freely.
+
+---------------------------------------------------------------------
+
+### 5.  Concluding the proof  
+
+From the derivation above we have built a chain of Hoare triples that starts with the given pre‑condition \(P(N)\) and ends with the required post‑condition \(Q(N,\mathit{out})\). By the **soundness** of Hoare logic, the program therefore **correctly implements** the specification:
+
+*If the input integer `N` satisfies \(1\le N\le 34\), the program prints exactly the first `N` characters of the fixed quote `S`, followed by a newline; the printed characters are all capital letters or blanks, and the visible part of the line has length `N`.*
+
+---------------------------------------------------------------------
+
+### 6.  Summary in natural language  
+
+1. **Pre‑condition satisfied** – the program reads an integer `N`. The problem statement guarantees that the judge will supply a value in the range `1 … 34`; the pre‑condition matches this guarantee.
+
+2. **Construction of the prefix** – the constant list `citacao` is precisely the sequence of characters \(s_0,\dots,s_{33}\). Slicing it with `[:N]` selects the first `N` elements, i.e. the characters \(s_0\ldots s_{N-1}\). Joining them with `""` produces the string \(\operatorname{pref}_{N}(S)\).
+
+3. **Output** – `print` writes that string and automatically appends the line‑feed character `\n`. Consequently the whole output `out` is  
+
+   \[
+   \operatorname{pref}_{N}(S)\;\Vert\;\nl .
+   \]
+
+4. **Post‑condition verified** – the visible part of the output is exactly the required prefix, has length `N`, and each of its characters belongs to the allowed alphabet \(\Sigma\).
+
+Hence the program fulfills the Hoare‑logic specification. ∎

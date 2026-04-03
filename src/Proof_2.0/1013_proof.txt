@@ -1,0 +1,242 @@
+**Proof of correctness (Hoare‑logic) of the program**
+
+```python
+def maior(a, b):
+    return int((a + b + abs(a - b)) / 2)
+
+a, b, c = map(int, input().split())
+print(f'{maior(maior(a, b), c)} eh o maior')
+```
+
+We show that the program satisfies the Hoare triple  
+
+\[
+\{P\}\; \texttt{program}\;\{Q\}
+\]
+
+where  
+
+* \(P\)  – the input file contains exactly three (decimal) integers  
+  \[
+  P\; \equiv\; \exists a_0,b_0,c_0\in\mathbb Z.\;
+          \text{input}= \langle a_0\rangle\;\langle\text{space}\rangle\;
+                     \langle b_0\rangle\;\langle\text{space}\rangle\;
+                     \langle c_0\rangle .
+  \]
+
+* \(Q\) – after termination the only line written to the output file is  
+
+  \[
+  \underbrace{\langle\max_3(a_0,b_0,c_0)\rangle}_{\text{decimal digits}}
+  \;\;+\; \texttt{“ eh o maior”}.
+  \]
+
+--------------------------------------------------------------------
+
+### 1.  Specification of the auxiliary function `maior`
+
+We first prove a Hoare triple for the function that computes the maximum of two
+integers.
+
+> **Claim**  
+> \[
+> \{\,\text{true}\,\}\;
+> \texttt{def maior(a,b): return int((a+b+abs(a-b))/2)}\;
+> \{\,\texttt{ret}= \max(a,b)\,\}
+> \tag{1}
+> \]
+
+*Proof.*  
+For arbitrary integers \(a,b\) we consider two cases.
+
+*Case 1 – \(a\ge b\).*  
+Then \(|a-b| = a-b\) and
+
+\[
+\frac{a+b+|a-b|}{2}
+   = \frac{a+b+(a-b)}{2}
+   = \frac{2a}{2}=a .
+\]
+
+Since `int` simply truncates a rational number that is already an integer,
+the function returns \(a = \max(a,b)\).
+
+*Case 2 – \(a<b\).*  
+Now \(|a-b| = b-a\) and
+
+\[
+\frac{a+b+|a-b|}{2}
+   = \frac{a+b+(b-a)}{2}
+   = \frac{2b}{2}=b .
+\]
+
+Thus the function returns \(b = \max(a,b)\).
+
+Both cases exhaust the possibilities, therefore the returned value is
+\(\max(a,b)\) for every pair of integers.  By the **function‑call rule**
+(the body of the function is executed in the caller’s state) we obtain (1). ∎
+
+
+
+--------------------------------------------------------------------
+
+### 2.  Hoare triples for the statements of the main program
+
+We now annotate each statement of the main program with a pre‑ and a
+post‑condition, using the **assignment axiom**, **composition rule**, and the
+function specification (1).
+
+---
+
+#### 2.1  Reading the three numbers  
+
+```python
+a, b, c = map(int, input().split())
+```
+
+The statement extracts the three decimal numbers that the pre‑condition
+guarantees to be present.  After execution we have the concrete values
+\(a=a_0,\; b=b_0,\; c=c_0\).
+
+\[
+\{P\}\;
+a,b,c = \texttt{map(int,input().split())}\;
+\{\,a=a_0\land b=b_0\land c=c_0\,\}
+\tag{2}
+\]
+
+The rule of **consequence** allows us to replace the post‑condition of (2) by
+the weaker one
+
+\[
+\{\,a=a_0\land b=b_0\land c=c_0\,\}\;\Longrightarrow\;
+\{\,\text{true}\,\}
+\]
+
+because the later statements do not depend on the concrete names of the
+variables, only on their values.
+
+---
+
+#### 2.2  First call of `maior`  
+
+```python
+t = maior(a, b)               # t is a temporary variable
+```
+
+Using the specification (1) of `maior` with the actual arguments
+\(a_0,b_0\) we obtain
+
+\[
+\{\,a=a_0\land b=b_0\,\}\;
+t = \texttt{maior}(a,b)\;
+\{\,t = \max(a_0,b_0)\,\}
+\tag{3}
+\]
+
+---
+
+#### 2.3  Second (nested) call of `maior`  
+
+```python
+m = maior(t, c)               # m is the final result
+```
+
+Apply (1) again, this time with arguments \(t\) (which is already known to be
+\(\max(a_0,b_0)\)) and \(c_0\):
+
+\[
+\{\,t=\max(a_0,b_0)\land c=c_0\,\}\;
+m = \texttt{maior}(t,c)\;
+\{\,m = \max(\max(a_0,b_0),c_0)\,\}
+\tag{4}
+\]
+
+Because the binary maximum is associative,
+\(\max(\max(a_0,b_0),c_0)=\max_3(a_0,b_0,c_0)\).
+
+Thus (4) can be rewritten as  
+
+\[
+\{\,\dots\,\}\; m = \texttt{maior}(t,c)\;
+\{\,m = \max_3(a_0,b_0,c_0)\,\}.
+\tag{4'}
+\]
+
+---
+
+#### 2.4  Printing the result  
+
+```python
+print(f'{m} eh o maior')
+```
+
+The `f`‑string concatenates the decimal representation of the integer `m`
+with the literal text `" eh o maior"` and writes it as a single line.
+Hence
+
+\[
+\{\,m = \max_3(a_0,b_0,c_0)\,\}\;
+\texttt{print}(f'{m} eh o maior')\;
+\{\,\texttt{out}= \langle\max_3(a_0,b_0,c_0)\rangle\;{\tt\;“ eh o maior”}\,\}
+\tag{5}
+\]
+
+---
+
+### 3.  Composition of the whole program
+
+Using the **sequence rule** of Hoare logic we compose the triples
+(2)–(5).  The intermediate assertions cancel, leaving only the initial
+pre‑condition \(P\) and the final post‑condition \(Q\):
+
+\[
+\begin{aligned}
+\{P\} &\; a,b,c = \texttt{map(int,input().split())} \\
+      &\; t = \texttt{maior}(a,b) \\
+      &\; m = \texttt{maior}(t,c) \\
+      &\; \texttt{print}(f'{m} eh o maior') \\
+      &\; \{Q\}
+\end{aligned}
+\]
+
+Thus we have proved the Hoare triple
+
+\[
+\boxed{\; \{P\}\;\texttt{program}\;\{Q\}\;}
+\]
+
+which states exactly that, under the only assumption that the input file
+contains three integers, the program writes one line consisting of the
+decimal representation of the greatest of the three numbers followed by the
+literal phrase *“eh o maior”*.
+
+--------------------------------------------------------------------
+
+### 4.  Remarks on the arithmetic proof of `maior`
+
+The crucial arithmetic identity used in the proof of (1) is
+
+\[
+\max(a,b)=\frac{a+b+|a-b|}{2}\qquad(\forall a,b\in\mathbb Z).
+\]
+
+It follows directly from the two cases \(a\ge b\) and \(a<b\) shown above.
+Because the Python expression `int((a+b+abs(a-b))/2)` evaluates exactly this
+rational number (the division yields an integer, `int` merely discards the
+trailing “.0”), the function implements the mathematical formula without any
+additional branching.
+
+--------------------------------------------------------------------
+
+### 5.  Conclusion
+
+* The auxiliary function `maior` is a correct implementation of the binary
+  maximum.
+* The main program reads the three integers, applies `maior` twice, and prints
+  the result.
+* By a step‑wise Hoare‑logic derivation we have shown that the program satisfies
+  the specification \(\{P\}\; \text{program}\; \{Q\}\).
+
+Hence the given Python program is **correct** with respect to the stated
+pre‑ and post‑conditions. ∎

@@ -1,0 +1,287 @@
+## 1.  What we have to show  
+
+We are asked to prove the Hoare triple  
+
+\[
+\{P\}\;{\tt read\_array\_and\_print\_small\_values}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; (|A| = 100)\;\land\; \forall i\in[0..99]\;.\;A[i]\in\mathbb{R}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\; \equiv\;&\forall i\in[0..99]\;.\;
+      \bigl(A[i]\le 10\ \Longrightarrow\  \text{Print}(i,\lceil A[i]\rceil_{1})\bigr)   \\[2mm]
+   &\land \forall i\in[0..99]\;.\;
+      \bigl(\text{Print}(i,x)\ \Longrightarrow\ x=\lceil A[i]\rceil_{1}\land A[i]\le 10\bigr)
+\end{aligned}
+\]
+
+The program is  
+
+```python
+# 1 – read the 100 numbers
+A = []                               # (a)
+for i in range(100):                # (b)
+    A.append(float(input()))        # (c)
+
+# 2 – print the numbers that are ≤ 10
+for i in range(100):                # (d)
+    if A[i] <= 10:                  # (e)
+        print(f'A[{i}] = {A[i]:.1f}')   # (f)
+```
+
+In Hoare‑logic we prove the triple by **sequential composition**:
+
+\[
+\{P\}\;S_{1}\; \{P_{1}\},\qquad
+\{P_{1}\}\;S_{2}\; \{Q\}
+\;\Longrightarrow\;
+\{P\}\;(S_{1};S_{2})\; \{Q\}
+\]
+
+Thus we need two intermediate specifications:
+
+* after the first `for`‑loop (`S₁`) we must know that `A` is a total
+  function of length 100 whose entries are the 100 numbers read from
+  the input;
+* after the second `for`‑loop (`S₂`) we must know that exactly the
+  required lines have been printed.
+
+The proof proceeds by giving a **loop invariant** for each `while`‑style
+loop that underlies the Python `for`.  The invariants are strong enough
+to imply the desired intermediate specifications when the loop finishes.
+
+--------------------------------------------------------------------
+
+## 2.  The first loop – reading the array
+
+### 2.1  Translation to a `while`‑loop  
+
+`for i in range(100):` is equivalent to  
+
+```python
+i = 0
+while i < 100:
+    A.append(float(input()))
+    i = i + 1
+```
+
+### 2.2  Loop invariant  
+
+\[
+\boxed{
+I_{1}(i)\; \equiv\;
+\bigl(0\le i\le 100\bigr)\ \land\ 
+\bigl(|A| = i\bigr)\ \land\ 
+\forall k\in[0..i-1]\;.\;A[k]\in\mathbb{R}
+}
+\]
+
+*Interpretation* – after having executed the body `i` times,
+  * exactly the first `i` positions of `A` are defined,
+  * each of them is a real number (the conversion `float` guarantees this),
+  * the length of the list is `i`.
+
+### 2.3  Proof that `I₁` is an invariant  
+
+* **Initialization** (`i = 0`).  
+  `|A| = 0` (the list is empty) and the universal quantifier over an empty
+  index set is true, therefore `I₁(0)` holds.
+
+* **Preservation** – assume `I₁(i)` holds and `i < 100`.  
+  The body executes `A.append(float(input()))`.  
+  By the semantics of `append`, the new element becomes `A[i]`; the
+  conversion to `float` guarantees that the new element belongs to
+  ℝ.  Consequently after the append we have `|A| = i+1` and
+  `∀k∈[0..i]·A[k]∈ℝ`.  The subsequent assignment `i = i+1` yields
+  exactly `I₁(i+1)`.
+
+* **Termination** – the loop exits when `i = 100`.  
+  By the invariant we obtain `|A| = 100` and
+  `∀k∈[0..99]·A[k]∈ℝ`.  This is precisely the **intermediate
+  specification** `P₁` we need for the second part of the program:
+
+  \[
+  P_{1}\; \equiv\; (|A| = 100)\ \land\ \forall i\in[0..99]\;A[i]\in\mathbb{R}
+  \]
+
+Thus we have proved  
+
+\[
+\{P\}\;S_{1}\;\{P_{1}\}
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  The second loop – printing the small values
+
+### 3.1  Translation to a `while`‑loop  
+
+```python
+i = 0
+while i < 100:
+    if A[i] <= 10:
+        print(f'A[{i}] = {A[i]:.1f}')
+    i = i + 1
+```
+
+### 3.2  Loop invariant  
+
+\[
+\boxed{
+\begin{aligned}
+I_{2}(i) \equiv\;& (0\le i\le 100) \\
+                &\land\; \forall k\in[0..i-1]\;.\;
+                     \bigl(A[k]\le 10 \Longrightarrow
+                           \text{Print}(k,\lceil A[k]\rceil_{1})\bigr)\\[1mm]
+                &\land\; \forall k\in[0..i-1]\;.\;
+                     \bigl(\text{Print}(k,x) \Longrightarrow
+                           x=\lceil A[k]\rceil_{1}\land A[k]\le 10\bigr)
+\end{aligned}
+}
+\]
+
+*Interpretation* – after the loop has processed the first `i` indices,
+  the two clauses of the post‑condition hold for **all those indices**.
+
+### 3.3  Proof that `I₂` is an invariant  
+
+* **Initialization** (`i = 0`).  
+  The two universal quantifiers range over the empty set,
+  therefore `I₂(0)` holds trivially.
+
+* **Preservation** – assume `I₂(i)` holds and `i < 100`.  
+
+  1. The test `A[i] <= 10` is evaluated.  
+     *If it is false* the body does nothing, and we still have
+     `Print(k,·)` for `k < i` exactly as required; nothing is added for
+     index `i`.  
+     The invariant for `i+1` therefore holds because the two universal
+     statements are unchanged and the range now includes `i`, but the
+     antecedent `A[i] ≤ 10` is false, so the implication in the first
+     clause is true, and the second clause never applies.
+
+  2. *If the test is true* the statement  
+
+     ```python
+     print(f'A[{i}] = {A[i]:.1f}')
+     ```
+
+     is executed.  In Python the format specifier `:.1f` produces a
+     decimal representation of `A[i]` **rounded to one fractional digit**
+     (the same function that we denote by `⌈·⌉₁`).  Consequently the
+     side‑effect is exactly  
+
+     \[
+     \text{Print}(i,\lceil A[i]\rceil_{1})
+     \]
+
+     and the two clauses of the invariant become true for the new
+     index `i` as well:
+
+     * `A[i] ≤ 10 ⇒ Print(i,⌈A[i]⌉₁)` holds because the antecedent is
+       true and the consequent was just performed.
+     * `Print(i,x) ⇒ x = ⌈A[i]⌉₁ ∧ A[i] ≤ 10` holds because the only
+       possible printed line for index `i` is the one we have just
+       generated, and the guard guarantees `A[i] ≤ 10`.
+
+  After the body we execute `i = i + 1`.  Hence `I₂(i+1)` holds.
+
+* **Termination** – when the loop finishes we have `i = 100`.  
+  Substituting `i = 100` in `I₂(i)` yields  
+
+  \[
+  \forall k\in[0..99]\;.\;
+       \bigl(A[k]\le 10 \Longrightarrow \text{Print}(k,\lceil A[k]\rceil_{1})\bigr)
+  \]
+  and  
+
+  \[
+  \forall k\in[0..99]\;.\;
+       \bigl(\text{Print}(k,x) \Longrightarrow
+             x=\lceil A[k]\rceil_{1}\land A[k]\le 10\bigr)
+  \]
+
+  which is precisely the post‑condition `Q`.
+
+Thus we have proved  
+
+\[
+\{P_{1}\}\;S_{2}\;\{Q\}
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Putting the two parts together  
+
+From (1) and (2) and the rule of **sequential composition** of Hoare
+logic we obtain  
+
+\[
+\{P\}\;(S_{1};S_{2})\;\{Q\}
+\]
+
+which is exactly the required Hoare triple for the whole program.
+
+--------------------------------------------------------------------
+
+## 5.  Summary of the proof steps  
+
+| Step | Statement | Reason |
+|------|-----------|--------|
+| 1 | `P` holds before the program starts | given |
+| 2 | `I₁(0)` holds before the first loop | definition of `I₁` |
+| 3 | `I₁` is preserved by the body of the first loop | `append` adds a real number |
+| 4 | Loop terminates with `i = 100` → `P₁` | invariant + exit condition |
+| 5 | `P₁` is the pre‑condition for the second loop | (1) |
+| 6 | `I₂(0)` holds before the second loop | definition of `I₂` |
+| 7 | `I₂` is preserved by the body of the second loop | case analysis on the guard; `print` produces `Print(i,⌈A[i]⌉₁)` |
+| 8 | Loop terminates with `i = 100` → `Q` | invariant + exit condition |
+| 9 | By sequential composition, `P ⇒ Q` for the whole program | Hoare‑logic rule |
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on the specification  
+
+* The **pre‑condition** does not talk about *how* the array is filled; it
+  merely requires that after the first loop the program possesses a
+  total function `A : [0‥99] → ℝ`.  The loop invariant `I₁` shows that the
+  program indeed constructs such a function by reading exactly 100
+  numbers.
+
+* The **post‑condition** expresses two directions:
+
+  1. *Soundness*: every element `≤ 10` is printed (first conjunct).  
+  2. *Completeness*: nothing else is printed (second conjunct).
+
+  The invariant `I₂` captures both directions simultaneously for the
+  part of the array already examined, and therefore guarantees the full
+  `Q` when the loop is finished.
+
+* The formatting `:.1f` in Python corresponds mathematically to the
+  operator `⌈·⌉₁` defined in the specification, so the side‑effect
+  `Print(i,⌈A[i]⌉₁)` is exactly what the program produces.
+
+--------------------------------------------------------------------
+
+### **Conclusion**
+
+Using standard Hoare‑logic rules (assignment, while‑rule with an
+appropriate invariant, and sequential composition) we have shown that,
+under the pre‑condition that the input consists of a 100‑element real
+array, the program terminates and the state of the world after it
+finishes satisfies the post‑condition that **exactly** the pairs
+`(i, A[i])` with `A[i] ≤ 10` are printed, each value being displayed with
+one digit after the decimal point.  Hence the program is **correct** with
+respect to the given formal specification.

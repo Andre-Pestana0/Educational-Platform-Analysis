@@ -1,0 +1,198 @@
+**Answer – a Hoare‑logic proof that the Python program satisfies the given specification**
+
+Below we give a *complete* correctness proof of the program
+
+```python
+num = int(input())                # ①
+numHex = hex(num)                 # ②
+numHex = numHex.replace('0x','').upper()   # ③
+print(numHex)                     # ④
+```
+
+with respect to the Hoare triple  
+
+\[
+\{\,P\,\}\;{\tt prog}\;\{\,Q\,\}
+\]
+
+where  
+
+* \(P \equiv V\in\mathbb N\land 1\le V\le 2\cdot10^{9}\)   (the input integer is a positive 32‑bit value)  
+* \(Q \equiv S = \operatorname{hex}(V)\,\Vert\,\backslash n\) (the output is the uppercase hexadecimal representation of the input followed by a newline).
+
+The proof proceeds by assigning a Hoare triple to each primitive statement, then using the **sequencing rule**  
+
+\[
+\frac{\{P\}\;c_1\;\{R\}\qquad \{R\}\;c_2\;\{Q\}}{\{P\}\;c_1;c_2\;\{Q\}}
+\]
+
+to obtain the triple for the whole program.
+
+---------------------------------------------------------------------
+
+## 1.   A small library of primitive specifications  
+
+| Primitive | Hoare specification (pre‑ / post‑condition) |
+|-----------|---------------------------------------------|
+| `input()` | \(\{\,\top\,\}\;x = \text{input}()\;\{\,x = V\land P\}\) – the value read from *stdin* is stored in the variable `x` and satisfies the pre‑condition \(P\). |
+| `int(e)` | \(\{\,e = v\land v\in\mathbb Z\,\}\;x = \text{int}(e)\;\{\,x = v\land v\in\mathbb N\,\}\). |
+| `hex(n)` | \(\{\,n\in\mathbb N\,\}\;y = \text{hex}(n)\;\{\,y = \text{“0x”}\;\Vert\;h\land h\in\Sigma^{+}\land\) <br>                                                                                                                                                                                          \(\operatorname{hex}(n)=h\) (the *mathematical* function defined in the statement). |
+| `replace(s, a, b)` | \(\{\,s = a\Vert t\;\lor\;s\neq a\Vert t\,\}\;u = s.\text{replace}(a,b)\;\{\,u = t\Vert b\;\lor\;u = s\,\}\). In our program the pattern `'0x'` occurs **exactly once** at the beginning of the string returned by `hex`, therefore we may specialise the post‑condition to \(\{\,u = h\}\) where \(h\) is the string without the prefix. |
+| `upper(s)` | \(\{\,s\in\Sigma^{+}\,\}\;u = s.\text{upper}()\;\{\,u = s\text{ with every letter in }\{a,\dots ,f\}\text{ replaced by the corresponding capital}\,\}\). |
+| `print(x)` | \(\{\,x = w\,\}\;\text{print}(x)\;\{\,S = w\Vert\backslash n\,\}\) – the value of `x` is written to *stdout* followed by the end‑of‑line character. |
+
+All these specifications are *axioms* for the proof; they capture the observable behaviour of the corresponding built‑in functions and are accepted as given in a Hoare‑logic treatment of Python.
+
+---------------------------------------------------------------------
+
+## 2.   Formalisation of the program variables  
+
+| Symbol | Meaning in the proof |
+|--------|----------------------|
+| `V`    | The integer that the **environment** supplies on *stdin*. |
+| `num`  | The Python variable that receives the integer after `int(input())`. |
+| `numHex` | The Python variable that will finally contain the uppercase hexadecimal digits (without the leading “0x”). |
+| `S`    | The string that the **environment** observes on *stdout* after the program terminates. |
+
+---------------------------------------------------------------------
+
+## 3.   Proof of each command  
+
+### 3.1  Statement ① – reading the input  
+
+\[
+\begin{aligned}
+&\{\,P\,\}\\
+&\texttt{num = int(input())}\\
+&\{\,\texttt{num}=V\land P\,\}
+\end{aligned}
+\]
+
+*Reason.*  
+`input()` returns the textual representation of the integer that the user typed. By the primitive specification of `input()` we obtain a variable (call it `t`) such that `t = V`.  
+`int(t)` converts the string to the integer value `V`.  Hence after ① the program state satisfies `num = V` and still satisfies the original pre‑condition \(P\) (the value of `V` has not been changed).
+
+---------------------------------------------------------------------
+
+### 3.2  Statement ② – calling the library function `hex`
+
+\[
+\begin{aligned}
+&\{\,\texttt{num}=V\land P\,\}\\
+&\texttt{numHex = hex(num)}\\
+&\{\,\texttt{numHex}= \text{“0x”}\Vert h\land h\in\Sigma^{+}\land 
+        \operatorname{hex}(V)=h\,\}
+\end{aligned}
+\]
+
+*Reason.*  
+The primitive specification of `hex` tells us that for any natural number \(n\) it returns a string consisting of the two‑character prefix “0x” followed by a **lower‑case** hexadecimal digit sequence `h`. Moreover the returned digit sequence is exactly the mathematical function \(\operatorname{hex}(n)\) defined in the statement of the problem.  
+Since `num = V`, we obtain the asserted post‑condition.
+
+---------------------------------------------------------------------
+
+### 3.3  Statement ③ – removing the prefix and converting to upper‑case  
+
+The statement is a *composition* of two primitive operations, therefore we apply the sequencing rule twice.
+
+#### 3.3.1  The `replace` part  
+
+\[
+\begin{aligned}
+&\{\,\texttt{numHex}= \text{“0x”}\Vert h\land h\in\Sigma^{+}\,\}\\
+&\texttt{numHex = numHex.replace('0x','')}\\
+&\{\,\texttt{numHex}=h\,\}
+\end{aligned}
+\]
+
+*Reason.*  
+Because the string returned by `hex` **always** starts with the literal `'0x'`, the primitive specification of `replace` yields the exact result `h` after the call.
+
+#### 3.3.2  The `upper` part  
+
+\[
+\begin{aligned}
+&\{\,\texttt{numHex}=h\,\}\\
+&\texttt{numHex = numHex.upper()}\\
+&\{\,\texttt{numHex}=h^{\uparrow}\,\}
+\end{aligned}
+\]
+
+where \(h^{\uparrow}\) denotes the string obtained from \(h\) by converting every letter `a…f` to its capital counterpart `A…F`.  
+
+*Reason.*  By the specification of `upper` we obtain exactly this transformation.  
+Since the mathematical function \(\operatorname{hex}(V)\) is defined **with upper‑case letters**, we have  
+
+\[
+h^{\uparrow}= \operatorname{hex}(V).
+\]
+
+Thus after the whole line ③ we have  
+
+\[
+\{\,\texttt{numHex}= \operatorname{hex}(V)\,\}.
+\]
+
+---------------------------------------------------------------------
+
+### 3.4  Statement ④ – printing  
+
+\[
+\begin{aligned}
+&\{\,\texttt{numHex}= \operatorname{hex}(V)\,\}\\
+&\texttt{print(numHex)}\\
+&\{\,S = \operatorname{hex}(V)\,\Vert\backslash n\,\}
+\end{aligned}
+\]
+
+*Reason.*  The primitive specification of `print` states that the argument is written to *stdout* followed by a newline.  Consequently the output variable \(S\) equals the argument concatenated with `\n`.
+
+---------------------------------------------------------------------
+
+## 4.   Composition of the four statements  
+
+We now chain the four Hoare triples using the sequencing rule:
+
+\[
+\begin{array}{c}
+\{P\}\;\texttt{num = int(input())}\;\{\texttt{num}=V\land P\}\\[2mm]
+\hline
+\{\texttt{num}=V\land P\}\;\texttt{numHex = hex(num)}\;
+\{\texttt{numHex}= \text{“0x”}\Vert h\land \operatorname{hex}(V)=h\}\\[2mm]
+\hline
+\{\texttt{numHex}= \text{“0x”}\Vert h\}\;
+\texttt{numHex = numHex.replace('0x','')}\;
+\{\texttt{numHex}=h\}\\[2mm]
+\hline
+\{\texttt{numHex}=h\}\;
+\texttt{numHex = numHex.upper()}\;
+\{\texttt{numHex}= \operatorname{hex}(V)\}\\[2mm]
+\hline
+\{\texttt{numHex}= \operatorname{hex}(V)\}\;
+\texttt{print(numHex)}\;
+\{S = \operatorname{hex}(V)\,\Vert\,\backslash n\}
+\end{array}
+\]
+
+Applying the sequencing rule repeatedly we obtain the Hoare triple for the whole program:
+
+\[
+\boxed{\;\{\,P\,\}\;\texttt{prog}\;\{\,S = \operatorname{hex}(V)\,\Vert\,\backslash n\,\}\;}
+\]
+
+which is exactly the post‑condition \(Q\) required by the specification.
+
+---------------------------------------------------------------------
+
+## 5.   Concluding remarks  
+
+* The proof uses **only** the given mathematical definition of the function \(\operatorname{hex} : \mathbb N \to \Sigma^{+}\) and the elementary specifications of the Python primitives.  
+* The three *semantic* properties that had to be shown are:  
+
+  1. `hex(num)` returns the prefix “0x” followed by the **lower‑case** representation of \(\operatorname{hex}(V)\).  
+  2. `replace('0x','')` removes that prefix and nothing else.  
+  3. `upper()` converts the remaining lower‑case digits to the required upper‑case alphabet.
+
+* Because the pre‑condition guarantees \(1\le V\le 2\cdot10^{9}\), the value is positive and therefore \(\operatorname{hex}(V)\) is non‑empty and its most‑significant digit is never ‘0’.  Consequently the output satisfies the “no leading zero” requirement that appears in the informal statement of the problem.
+
+Hence the program is **correct** with respect to the Hoare‑logic specification given in the question. ∎

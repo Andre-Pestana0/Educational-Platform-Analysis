@@ -1,0 +1,311 @@
+**Proof of correctness (Hoare‑style) for the given Python program**  
+
+We work with the *classical* Hoare triple  
+
+\[
+\{P\}\;C\;\{Q\}
+\]
+
+where  
+
+* \(P\) – pre‑condition (what is known before the program starts)  
+* \(C\) – the whole command (the two `for`‑loops together with the
+  initialisation and the final `print`)  
+* \(Q\) – post‑condition (what has to hold after the program terminates).
+
+The proof consists of three parts  
+
+1. **Specification of the input** – we translate the informal description of the
+   problem into a precise logical predicate.  
+2. **Correctness of the first loop** – an invariant that captures the
+   “search‑for‑the‑first‑two‑positive‑numbers’’ behaviour.  
+3. **Correctness of the second loop** – an invariant that captures the
+   accumulation of the arithmetic series.  
+
+Finally we combine the two invariants and obtain the required post‑condition.
+
+---------------------------------------------------------------------
+
+## 1.  Formal specification
+
+*Let*  
+
+\[
+\mathbf I = (i_0,i_1,\dots ,i_{m-1})\qquad (m\ge 2)
+\]
+
+be the finite sequence of integers supplied on a single input line
+(the `input().split()` call turns the line into a list of `int`s).
+
+Define  
+
+\[
+\begin{aligned}
+\text{pos}_1 &:= \min\{k\mid 0\le k<m\;\land\; i_k>0\},\\[2mm]
+\text{pos}_2 &:= \min\{k\mid \text{pos}_1<k<m\;\land\; i_k>0\}.
+\end{aligned}
+\]
+
+*The program is required to use*  
+
+\[
+A   = i_{\text{pos}_1},\qquad
+N'  = i_{\text{pos}_2}
+\]
+
+and to output  
+
+\[
+S = \sum_{t=0}^{N'-1}(A+t)
+   = N'\,A + \frac{N'(N'-1)}{2}.
+\]
+
+---------------------------------------------------------------------
+
+### 1.1  Pre‑condition  
+
+\[
+\boxed{
+P \;:\;
+\begin{aligned}
+&\mathbf I \text{ is a non‑empty finite sequence of integers},\\
+&|\mathbf I|\ge 2,\\
+&\exists k\;(0\le k<|\mathbf I|\wedge i_k>0),\\
+&\exists \ell\;(k<\ell<|\mathbf I|\wedge i_\ell>0).
+\end{aligned}}
+\]
+
+In words: the input line contains at least two **positive** integers; the
+first one will become the starting value `A`, the second one will become the
+count `N'`.
+
+---------------------------------------------------------------------
+
+### 1.2  Post‑condition  
+
+\[
+\boxed{
+Q \;:\;
+\begin{aligned}
+&\mathsf{out}=S,\\[1mm]
+&\text{where }A = i_{\text{pos}_1},\; N' = i_{\text{pos}_2},\\
+& S = N'\,A + \frac{N'(N'-1)}{2}.
+\end{aligned}}
+\]
+
+---------------------------------------------------------------------
+
+## 2.  First loop – finding the two positive numbers  
+
+The program fragment that implements the search is
+
+```python
+A, N = 0, 0
+for x in range(len(numeros)):
+    if numeros[x] > 0:
+        if A == 0:
+            A = numeros[x]          # first positive found
+        else:
+            N = numeros[x]          # second positive found
+```
+
+### 2.1  Loop invariant  
+
+Let  
+
+\[
+\begin{aligned}
+I_1(x) \equiv\;&
+\bigl(0\le x\le |\mathbf I|\bigr) \;\land\\
+&\bigl(\;A = 0 \;\rightarrow\; \forall k<x\;(i_k\le 0)\bigr) \;\land\\
+&\bigl(\;A\neq 0 \;\rightarrow\; A = i_{\text{pos}_1}\bigr) \;\land\\
+&\bigl(\;N = 0 \;\rightarrow\; (\;A=0\;\lor\; \forall k<x\;(i_k\le 0\;\lor\;i_k=A)\;)\bigr) \;\land\\
+&\bigl(\;N\neq 0 \;\rightarrow\; N = i_{\text{pos}_2}\bigr).
+\end{aligned}
+\]
+
+Intuitively:
+
+* **(i)** `x` is the current loop index (always inside the list bounds).  
+* **(ii)** If `A` has not been set yet, then every element examined so far
+  is non‑positive.  
+* **(iii)** As soon as `A` becomes non‑zero, it equals the *first* positive
+  element of the input (`i_{pos₁}`).  
+* **(iv)** If `N` is still zero, then either `A` is still zero (no positive
+  seen) or the only positive seen so far is exactly `A`.  
+* **(v)** When `N` becomes non‑zero it equals the *second* positive element
+  (`i_{pos₂}`).
+
+### 2.2  Proof that `I₁` is indeed an invariant  
+
+*Initialization* (`x = 0`).  
+Before the first iteration we have `A = 0` and `N = 0`.  
+All elements with index `< 0` have been examined – there are none – so the
+conditions in `I₁(0)` hold trivially.
+
+*Preservation* (assume `I₁(x)` holds at the start of an iteration, prove
+`I₁(x+1)` after the body).  
+Two cases:
+
+1. **`numeros[x] ≤ 0`** – the `if` body is skipped, `A` and `N` stay unchanged.
+   The statements about “no positive seen yet” remain true, therefore
+   `I₁(x+1)` holds.
+
+2. **`numeros[x] > 0`** – the inner `if` executes.
+
+   *If `A == 0`* then this is the **first** positive encountered (because of
+   the induction hypothesis that no earlier element was positive).  
+   The assignment `A = numeros[x]` makes `A = i_x = i_{pos₁}` and the
+   invariant clauses (ii)–(v) are satisfied for the new `x+1`.
+
+   *If `A != 0`* then we already have the first positive stored in `A`.  
+   The assignment `N = numeros[x]` stores the **second** positive, i.e.
+   `N = i_x = i_{pos₂}`.  All clauses of `I₁(x+1)` are satisfied.
+
+*Termination* – the `for` loop ends when `x = |\mathbf I|`.  
+At that point `I₁(|\mathbf I|)` tells us that `A = i_{pos₁}` and `N = i_{pos₂}`,
+exactly the two numbers required by the specification.
+
+---------------------------------------------------------------------
+
+## 3.  Second loop – summing the arithmetic progression  
+
+The second fragment is
+
+```python
+resposta = 0
+for y in range(N):
+    resposta += (A + y)
+```
+
+### 3.1  Loop invariant  
+
+\[
+I_2(y) \equiv
+\bigl(0\le y\le N\bigr) \;\land\;
+\bigl(\text{resposta}= \sum_{t=0}^{y-1}(A+t)\bigr).
+\]
+
+(The empty sum for `y = 0` is defined to be `0`, which matches the
+initialisation `resposta = 0`.)
+
+### 3.2  Proof of invariance  
+
+*Initialization* (`y = 0`).  
+`resposta = 0 = \sum_{t=0}^{-1}(A+t)`.  Hence `I₂(0)` holds.
+
+*Preservation* (assume `I₂(y)` before the body, prove `I₂(y+1)` after).  
+
+The body executes `resposta ← resposta + (A + y)`.  Using the induction
+hypothesis,
+
+\[
+\begin{aligned}
+\text{new resposta}
+   &= \Bigl(\sum_{t=0}^{y-1}(A+t)\Bigr) + (A+y)  \\
+   &= \sum_{t=0}^{y}(A+t).
+\end{aligned}
+\]
+
+Thus after the increment of the loop variable (`y ← y+1`) we have exactly the
+statement of `I₂(y+1)`.
+
+*Termination* – the loop stops when `y = N`.  
+From `I₂(N)` we obtain  
+
+\[
+\text{resposta}= \sum_{t=0}^{N-1}(A+t) = S,
+\]
+
+which is precisely the arithmetic series required in the post‑condition.
+
+---------------------------------------------------------------------
+
+## 4.  Putting the pieces together  
+
+We now compose the two verified fragments.
+
+* After the first `for`‑loop we have, by `I₁(|\mathbf I|)`,  
+
+  \[
+  A = i_{\text{pos}_1},\qquad N = i_{\text{pos}_2}.
+  \]
+
+* The second `for`‑loop, starting with these values, yields, by `I₂(N)`,  
+
+  \[
+  \text{resposta}= \sum_{t=0}^{N-1}(A+t)
+                = N\,A + \frac{N(N-1)}{2}.
+  \]
+
+* The final statement `print(f'{resposta}')` outputs the integer stored in
+  `resposta`.  Naming this output `out` we obtain  
+
+  \[
+  out = N\,A + \frac{N(N-1)}{2}.
+  \]
+
+Since `A` and `N` are exactly the first two positive numbers of the input,
+the value printed coincides with the `S` defined in the specification.
+Consequently the post‑condition `Q` holds.
+
+---------------------------------------------------------------------
+
+## 5.  Hoare triple  
+
+Summarising the derivation in Hoare notation:
+
+\[
+\boxed{
+\{P\}\;
+\begin{array}{l}
+A,N := 0,0;                     \\
+\textbf{for }x:=0\;\textbf{to }|\mathbf I|-1\;\textbf{do}\\
+\qquad\textbf{if } \mathbf I[x]>0\ \textbf{then}\\
+\qquad\qquad\textbf{if }A=0\ \textbf{then }A:=\mathbf I[x]\\
+\qquad\qquad\textbf{else }N:=\mathbf I[x]\\
+\qquad\textbf{fi}\\
+\textbf{od};\\[2mm]
+\textbf{resposta}:=0;\\
+\textbf{for }y:=0\ \textbf{to }N-1\ \textbf{do}\\
+\qquad\textbf{resposta}:=\textbf{resposta}+A+y\\
+\textbf{od};\\[2mm]
+\textbf{print }(\textbf{resposta})
+\end{array}
+\; \{Q\}}
+\]
+
+The proof above shows that the triple is *valid*: every execution that starts
+in a state satisfying `P` terminates and ends in a state satisfying `Q`.
+
+---------------------------------------------------------------------
+
+## 6.  Remarks on the original Python code  
+
+* The code uses `range(len(numeros))` and `range(N)`.  In Hoare logic we treat
+  these as the usual bounded‑for loops whose semantics is exactly the
+  `while`‑loop with a decreasing natural‑number variant, guaranteeing termination.  
+
+* The variable names in the specification (`A`, `N'`, `S`) have been matched
+  with the program variables (`A`, `N`, `resposta`).  The invariant `I₁`
+  guarantees that after the first loop the program’s `A` and `N` are the
+  mathematically defined `A` and `N'`.
+
+* No overflow or other side‑effects are assumed; the language’s integer type
+  is unbounded (as in Python), so the arithmetic expression in `Q` is well
+  defined for every input that satisfies `P`.
+
+---------------------------------------------------------------------
+
+**Conclusion** – By exhibiting a correct invariant for each loop and by
+showing that the invariants imply the required final expression, we have proved
+the Hoare triple  
+
+\[
+\{P\}\;C\;\{Q\}
+\]
+
+for the given Python program.  Hence the program is *correct* with respect to
+the formal specification: it always prints the sum of the first `N'` consecutive
+integers starting at `A`, where `A` and `N'` are the first two positive numbers
+appearing in the input line

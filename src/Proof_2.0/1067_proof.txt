@@ -1,0 +1,227 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{\,P\;\}\;S\;\{\,Q\;\},
+\qquad  
+P\equiv 1\le X\le 1000 ,
+\]
+
+where `S` is the Python fragment  
+
+```python
+valor = int(input())                 #  valor = X
+for i in range(int((valor-1)/2)+1): #  i = 0,…,n‑1
+    print(2*i + 1)                   #  print the odd 2*i+1
+```
+
+and the post‑condition `Q` is the one given in the statement:
+
+```
+∃ n∈ℕ . out = ⟨o1,…,on⟩ ∧ (∀j∈{1,…,n}. oj = 2j‑1) ∧ (2n‑1 ≤ X < 2n+1)
+      ∧ (∀k∈Odd(X). ∃j . oj = k)                (1)
+```
+
+In words: the program must print **exactly** the odd numbers `1,3,5,…` that are ≤ `X`, in increasing order, one per line.
+
+The proof proceeds in the usual Hoare‑logic fashion:
+
+1.  isolate the loop,
+2.  exhibit a **loop invariant** `I`,
+3.  show that `I` holds initially,
+4.  prove that one iteration of the loop preserves `I`,
+5.  prove that when the loop finishes, `I` together with the loop‑exit condition implies `Q`,
+6.  argue termination (a decreasing natural‑number variant).
+
+Because Python’s `for … in range(e)` is just syntactic sugar for a `while` loop that iterates `e` times, we may replace it by an equivalent `while` program that is easier to reason about.
+
+---
+
+## 2.  Re‑writing the `for` as a `while`
+
+Let  
+
+\[
+n \;:=\; \bigl\lfloor\frac{X-1}{2}\bigr\rfloor + 1
+      \;=\; \operatorname{int}\bigl((X-1)/2\bigr)+1 .
+\]
+
+`range(n)` yields the sequence `0,1,…,n‑1`.  
+The program is therefore equivalent to
+
+```text
+i := 0
+while i < n do
+    print(2*i + 1)
+    i := i + 1
+od
+```
+
+All the statements that follow are proved for this `while` version; the same conclusions hold for the original `for`.
+
+---
+
+## 3.  Loop invariant  
+
+\[
+\boxed{
+I(i,out) \; \equiv\;
+\begin{array}{l}
+0 \le i \le n \;\land\\[2pt]
+out = \langle 2\cdot0+1,\;2\cdot1+1,\;\dots,\;2\cdot(i-1)+1\rangle .
+\end{array}}
+\tag{I}
+\]
+
+* `i` is the number of iterations already performed,
+* `out` contains exactly the odd numbers that have been printed so far,
+  i.e. the first `i` odds `1,3,…,2i‑1`.
+
+---
+
+## 4.  Initialization  
+
+Before the loop we have `i := 0` and `out` is the empty sequence `⟨⟩`.  
+Thus  
+
+* `0 ≤ i ≤ n`  (because `n ≥ 1` for every admissible `X`),
+* the second conjunct of `I` holds vacuously (the list of the first `0` odds is `⟨⟩`).
+
+Hence `{P}  i := 0; out := ⟨⟩  {I}` is provable.
+
+---
+
+## 5.  Preservation  
+
+Assume the invariant `I` holds at the top of an iteration and that the loop guard `i < n` is true.  
+We must show that after executing the body
+
+```text
+print(2*i + 1)
+i := i + 1
+```
+
+the invariant holds again.
+
+*The `print` statement* does not modify any program variable; it only appends a line to the external output.  
+Consequently the logical variable `out` is extended with the value `2*i+1`.  
+Formally we can write the effect as  
+
+\[
+out' = out \,\frown\, \langle 2*i+1\rangle .
+\]
+
+Because of the inductive hypothesis (the second conjunct of `I`) we know  
+
+\[
+out = \langle 2\cdot0+1,\dots,2\cdot(i-1)+1\rangle .
+\]
+
+Appending `2*i+1` yields  
+
+\[
+out' = \langle 2\cdot0+1,\dots,2\cdot(i-1)+1,2\cdot i+1\rangle .
+\]
+
+*The assignment* `i := i+1` changes `i` to `i' = i+1`.
+
+Now we check the two parts of `I` for the primed variables:
+
+1. **Bounds on `i'`.**  
+   From `i < n` we have `i+1 ≤ n`. Together with `i ≥ 0` we obtain `0 ≤ i' ≤ n`.
+
+2. **Shape of `out'`.**  
+   By the calculation above `out'` is exactly the list of the first `i'` odds,
+   i.e. `⟨2·0+1,…,2·(i')‑1⟩`.
+
+Thus `I(i',out')` holds. By the Hoare rule for the `while` body we have  
+
+\[
+\{ I \land i<n \}\; \text{body}\; \{ I \}.
+\]
+
+---
+
+## 6.  Termination  
+
+The natural‑number expression `n‑i` is a *variant* that strictly decreases
+by one on each loop iteration (because `i` is increased by one) and is always non‑negative while the guard `i<n` holds.  
+Therefore the loop cannot execute forever; it terminates after exactly `n` iterations.
+
+---
+
+## 7.  Exit condition ⇒ post‑condition  
+
+When the loop terminates we have the guard falsified, i.e. `i = n`.  
+By the invariant `I` we obtain
+
+\[
+out = \langle 2\cdot0+1,\;2\cdot1+1,\dots,2\cdot(n-1)+1\rangle
+     = \langle 1,3,5,\dots,2n-1\rangle .
+\tag{2}
+\]
+
+From the definition of `n`
+
+\[
+n-1 = \Bigl\lfloor\frac{X-1}{2}\Bigr\rfloor
+\quad\Longrightarrow\quad
+2n-1 \le X < 2n+1 .
+\tag{3}
+\]
+
+Equation (2) gives us the first two conjuncts of `Q` (existence of `n`,
+the exact shape `oj = 2j‑1`).  
+Equation (3) supplies the third conjunct `2n‑1 ≤ X < 2n+1`.
+
+It remains to show the fourth conjunct,
+\(\forall k\in\mathsf{Odd}(X).\;\exists j.\;oj = k\).
+
+Let `k` be any odd integer with `1 ≤ k ≤ X`.  
+Because `k` is odd we can write `k = 2·t+1` for a unique `t ∈ ℕ`.  
+Since `k ≤ X` and `2n‑1` is the greatest odd `≤ X` (by (3)),
+we have `t ≤ n‑1`.  
+Consequently `j := t+1` satisfies `1 ≤ j ≤ n` and  
+
+\[
+oj = 2j-1 = 2(t+1)-1 = 2t+1 = k .
+\]
+
+Thus every odd number up to `X` appears in the output list, establishing the fourth conjunct.
+
+All four conjuncts of `Q` are satisfied, therefore  
+
+\[
+\{ I \land i=n \}\; \text{skip}\; \{ Q \}
+\]
+
+holds. By the **while‑rule** of Hoare logic we obtain  
+
+\[
+\{ I_0 \}\; \text{while } i<n\; \text{do body od}\; \{ Q \},
+\]
+
+where `I₀` is the invariant after the initialization step.  
+
+Finally, adding the initial assignment `valor = X` (which does not affect `out`) yields  
+
+\[
+\{\,1\le X\le 1000\,\}\; S\; \{\,Q\,\},
+\]
+
+exactly the required Hoare triple.
+
+---
+
+## 8.  Summary of the proof steps  
+
+| Step | Hoare rule used | Reason |
+|------|----------------|--------|
+| 1.   | **Assignment** (`valor = X`) | copies the input to a program variable, does not affect `out`. |
+| 2.   | **Assignment** (`i:=0; out:=⟨⟩`) | establishes the invariant `I`. |
+| 3.   | **While‑rule** (with invariant `I`) | shows preservation (body) and termination (variant `n-i`). |
+| 4.   | **Consequence** (exit condition `i=n`) | derives the four conjuncts of `Q`. |
+| 5.   | **Composition** of the above pieces | yields the full Hoare triple. |
+
+Thus the given Python program satisfies the formal specification: for every integer input `X` with `1 ≤ X ≤ 1000` it prints **exactly** the odd numbers `1,3,5,…` not larger than `X`, each on its own line, in strictly increasing order. ∎

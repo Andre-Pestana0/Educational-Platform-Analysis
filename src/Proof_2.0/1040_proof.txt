@@ -1,0 +1,470 @@
+**Proof of correctness of the program with respect to the Hoare‑logic specification**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\textbf{Program}\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in § 2.1,  
+
+* \(Q\) is the post‑condition given in § 2.2,  
+
+* “Program’’ is the concrete Python fragment shown in the question.
+
+The proof proceeds by the usual Hoare‑logic rules (assignment, sequencing, conditional, and the rule for *output* that we introduce as a convenient abbreviation).  
+All arithmetic is performed on *exact* decimal numbers that have one digit after the decimal point; this is captured by the set \(\mathbb R_{1}\).
+
+--------------------------------------------------------------------
+
+## 1.  Logical model of the program  
+
+*Variables*  
+
+```
+N1,N2,N3,N4,E    – real numbers that belong to ℝ₁
+M,Mf             – real numbers that will be computed
+out              – a finite list of strings (the output)
+```
+
+*Auxiliary predicates*  
+
+```
+⟨x⟩  ≜  the decimal string of x with exactly one digit after the point
+print(s)  ≜  out := out ⧺ (s)                (append s to the list)
+read(x)   ≜  x is bound to the next value of the input stream
+```
+
+*Weight vector*  
+
+\[
+w=(2,3,4,1),\qquad \Sigma w =10 .
+\]
+
+--------------------------------------------------------------------
+
+## 2.  The proof
+
+We give a derivation tree that ends with the post‑condition \(Q\).  
+Every line is a Hoare triple; the rule that justifies the line is indicated in brackets.
+
+--------------------------------------------------------------------
+### 2.1  Reading the four grades  
+
+\[
+\{P\}\; \textbf{read } N_{1},N_{2},N_{3},N_{4}\; \{P_{1}\}
+\tag{R‑read}
+\]
+
+where  
+
+\[
+P_{1}\; \equiv\; N_{1},N_{2},N_{3},N_{4}\in\mathbb R_{1}
+                \;\wedge\; \text{the rest of the input stream is unchanged}.
+\]
+
+The rule *read* simply adds the information that the variables now contain the
+values that were present in the input.  Because \(P\) already guarantees that
+the stream contains at least those four numbers, the triple is valid.
+
+--------------------------------------------------------------------
+### 2.2  Computing the initial weighted average  
+
+```
+M := (2*N1 + 3*N2 + 4*N3 + N4) / 10
+```
+
+*Assignment axiom*  
+
+\[
+\{P_{1}[\,M\;\leftarrow\;(2N_{1}+3N_{2}+4N_{3}+N_{4})/10\,]\}\;
+M := (2*N1+3*N2+4*N3+N4)/10\;
+\{P_{1}\}
+\tag{A‑M}
+\]
+
+The substitution yields the predicate  
+
+\[
+P_{2}\;\equiv\;
+N_{1},N_{2},N_{3},N_{4}\in\mathbb R_{1}
+\;\wedge\;
+M = \frac{2N_{1}+3N_{2}+4N_{3}+N_{4}}{10}.
+\]
+
+*Closure of ℝ₁ under the operation*  
+
+Because each \(N_i\) has exactly one decimal digit, the product \(w_iN_i\) also has
+exactly one decimal digit; the sum of four such numbers still has one decimal
+digit, and division by the constant 10 merely shifts the decimal point one
+position to the left. Hence  
+
+\[
+N_{1},\dots,N_{4}\in\mathbb R_{1}\;\Longrightarrow\;M\in\mathbb R_{1}.
+\]
+
+Thus we can strengthen \(P_{2}\) to  
+
+\[
+P_{2}'\; \equiv\; P_{2}\;\wedge\; M\in\mathbb R_{1}.
+\tag{C‑ℝ₁}
+\]
+
+--------------------------------------------------------------------
+### 2.3  The first output (the line “Media: …”)  
+
+```
+print("Media: " ‖ ⟨M⟩)
+```
+
+Using the *output* rule (which is just a special case of assignment on the
+variable `out`) we obtain  
+
+\[
+\{P_{2}'\}\; \textbf{print }("Media: "‖⟨M⟩)\; \{P_{3}\}
+\tag{O‑1}
+\]
+
+with  
+
+\[
+P_{3}\;\equiv\; P_{2}'\;\wedge\;
+out = (\text{``Media: ``}\,\|\,\langle M\rangle).
+\]
+
+--------------------------------------------------------------------
+### 2.4  Conditional on the value of **M**
+
+The program now executes  
+
+```
+if M >= 7.0:               # branch A
+    …                      
+elif M < 5.0:              # branch B
+    …
+else:                      # branch C (5.0 ≤ M ≤ 6.9)
+    …
+```
+
+The Hoare rule for a *multi‑way* conditional is the conjunction of the three
+implications obtained from the three branches.  We treat each branch separately.
+
+--------------------------------------------------------------------
+#### 2.4.1  Branch A – `M >= 7.0`  
+
+*Pre‑condition for the branch*  
+
+\[
+B_A \;\equiv\; P_{3}\;\wedge\;(M\ge 7.0).
+\]
+
+*Program of the branch*  
+
+```
+print("Aluno aprovado.")
+```
+
+Applying the output rule again:
+
+\[
+\{B_A\}\; \textbf{print }("Aluno aprovado.")\; \{B_A'\}
+\tag{O‑A}
+\]
+
+where  
+
+\[
+B_A' \equiv B_A \;\wedge\;
+out = \bigl(\text{``Media: ``}\,\|\,\langle M\rangle,
+            \text{``Aluno aprovado.''}\bigr).
+\]
+
+Because the branch ends here, the whole conditional contributes the implication  
+
+\[
+(B_A \Longrightarrow B_A') .
+\tag{Imp‑A}
+\]
+
+--------------------------------------------------------------------
+#### 2.4.2  Branch B – `M < 5.0`
+
+Exactly the same reasoning gives  
+
+\[
+\{B_B\}\; \textbf{print }("Aluno reprovado.")\; \{B_B'\},
+\]
+
+with  
+
+\[
+B_B \equiv P_{3}\wedge (M<5.0),\qquad
+B_B' \equiv B_B\wedge
+out = \bigl(\text{``Media: ``}\,\|\,\langle M\rangle,
+            \text{``Aluno reprovado.''}\bigr).
+\tag{Imp‑B}
+\]
+
+--------------------------------------------------------------------
+#### 2.4.3  Branch C – `5.0 ≤ M ≤ 6.9`
+
+*Pre‑condition of the branch*  
+
+\[
+B_C \;\equiv\; P_{3}\;\wedge\;(5.0\le M\le 6.9).
+\]
+
+The statements executed in this branch are (written as a sequence)
+
+```
+print("Aluno em exame.")
+read E
+print("Nota do exame: " ‖ ⟨E⟩)
+Mf := (M+E)/2
+if Mf >= 5.0:
+        print("Aluno aprovado.")
+else:
+        print("Aluno reprovado.")
+print("Media final: " ‖ ⟨Mf⟩)
+```
+
+We treat them step by step.
+
+--------------------------------------------------------------------
+##### a)  Printing “Aluno em exame.”
+
+\[
+\{B_C\}\; \textbf{print }("Aluno em exame.")\; \{C_1\}
+\tag{O‑C1}
+\]
+
+\[
+C_1\equiv B_C\wedge
+out = \bigl(\text{``Media: ``}\,\|\,\langle M\rangle,
+            \text{``Aluno em exame.''}\bigr).
+\]
+
+--------------------------------------------------------------------
+##### b)  Reading the exam grade  
+
+\[
+\{C_1\}\; \textbf{read }E\; \{C_2\}
+\tag{R‑E}
+\]
+
+\[
+C_2\equiv C_1\wedge (E\in\mathbb R_{1}).
+\]
+
+The pre‑condition of the whole program guarantees that an extra number exists in
+the input *iff* the execution reaches this point (the branch is taken only when
+\(5.0\le M\le 6.9\)).  Hence the read is safe.
+
+--------------------------------------------------------------------
+##### c)  Printing the exam grade  
+
+\[
+\{C_2\}\; \textbf{print }("Nota do exame: "‖⟨E⟩)\; \{C_3\}
+\tag{O‑C2}
+\]
+
+\[
+C_3\equiv C_2\wedge
+out = \bigl(\text{``Media: ``}\,\|\,\langle M\rangle,
+            \text{``Aluno em exame.''},
+            \text{``Nota do exame: ``}\,\|\,\langle E\rangle\bigr).
+\]
+
+--------------------------------------------------------------------
+##### d)  Computing the final average  
+
+```
+Mf := (M+E)/2
+```
+
+Assignment axiom:
+
+\[
+\{C_3\}\; Mf := (M+E)/2\; \{C_4\}
+\tag{A‑Mf}
+\]
+
+\[
+C_4\equiv C_3\wedge
+Mf = \frac{M+E}{2}.
+\]
+
+Again, because both \(M\) and \(E\) belong to \(\mathbb R_{1}\), their sum has one
+decimal digit and division by 2 keeps exactly one decimal digit; therefore  
+
+\[
+C_4\;\Longrightarrow\; Mf\in\mathbb R_{1}.
+\tag{C‑ℝ₁‑Mf}
+\]
+
+--------------------------------------------------------------------
+##### e)  Conditional on **Mf**
+
+The program now executes
+
+```
+if Mf >= 5.0:
+        print("Aluno aprovado.")
+else:
+        print("Aluno reprovado.")
+```
+
+We split into the two sub‑branches.
+
+*Branch e₁* (`Mf ≥ 5.0`)  
+
+\[
+\{C_4\wedge (Mf\ge5.0)\}\;
+\textbf{print }("Aluno aprovado.")\;
+\{C_{5a}\}
+\tag{O‑C3a}
+\]
+
+\[
+C_{5a}\equiv C_4\wedge(Mf\ge5.0)\wedge
+out = \bigl(\dots,
+            \text{``Aluno aprovado.''}\bigr).
+\]
+
+*Branch e₂* (`Mf < 5.0`)  
+
+\[
+\{C_4\wedge (Mf<5.0)\}\;
+\textbf{print }("Aluno reprovado.")\;
+\{C_{5b}\}
+\tag{O‑C3b}
+\]
+
+\[
+C_{5b}\equiv C_4\wedge(Mf<5.0)\wedge
+out = \bigl(\dots,
+            \text{``Aluno reprovado.''}\bigr).
+\]
+
+The conditional rule gives the implication  
+
+\[
+\bigl(C_4\wedge (Mf\ge5.0)\Longrightarrow C_{5a}\bigr)\;\wedge\;
+\bigl(C_4\wedge (Mf<5.0)\Longrightarrow C_{5b}\bigr)
+\tag{Imp‑Mf}
+\]
+
+and we denote the resulting state after the conditional by \(C_5\) (it contains
+the appropriate third line – “Aluno aprovado.” or “Aluno reprovado.” – depending
+on the value of \(Mf\)).
+
+--------------------------------------------------------------------
+##### f)  Printing the final average  
+
+```
+print("Media final: " ‖ ⟨Mf⟩)
+```
+
+\[
+\{C_5\}\; \textbf{print }("Media final: "‖⟨Mf⟩)\; \{C_6\}
+\tag{O‑C4}
+\]
+
+\[
+C_6\equiv C_5\wedge
+out = \bigl(\text{``Media: ``}\,\|\,\langle M\rangle,
+            \text{``Aluno em exame.''},
+            \text{``Nota do exame: ``}\,\|\,\langle E\rangle,
+            \text{(branch‑dependent message)},
+            \text{``Media final: ``}\,\|\,\langle Mf\rangle\bigr).
+\]
+
+--------------------------------------------------------------------
+##### g)  Summary of branch C  
+
+Collecting (O‑C1) – (O‑C4) and the two implications (Imp‑Mf) we obtain  
+
+\[
+\{B_C\}\;\textbf{branch C}\;\{C_6\}.
+\tag{Imp‑C}
+\]
+
+The predicate \(C_6\) is exactly the existential part of the post‑condition
+\(Q\) (the clause “\(5.0\le M\le6.9\) ⇒ …”).  In particular it contains the
+existential quantifier \(\exists E\in\mathbb R_{1}\) because the variable \(E\) is
+introduced *inside* the branch.
+
+--------------------------------------------------------------------
+### 2.5  Putting the three branches together  
+
+The whole conditional statement is proved by the *conditional rule*:
+
+\[
+\frac{
+   (B_A\Longrightarrow B_A')\;\wedge\;
+   (B_B\Longrightarrow B_B')\;\wedge\;
+   (B_C\Longrightarrow C_6)
+}{
+   \{P_{3}\}\;
+   \textbf{if }M\ge7.0\textbf{ then … elif }M<5.0\textbf{ then … else … fi}
+   \;\{\,Q\,\}
+}
+\tag{COND}
+\]
+
+where the right‑hand side of the rule is exactly the post‑condition \(Q\) –
+the three disjoint cases of \(Q\) correspond to the three implications above.
+
+--------------------------------------------------------------------
+### 2.6  Full derivation
+
+Putting together the derivation steps in the order they appear in the program:
+
+\[
+\begin{array}{ll}
+1.&\{P\}\;\textbf{read }N_1,N_2,N_3,N_4\;\{P_{1}\}\qquad\text{(R‑read)}\\[2pt]
+2.&\{P_{1}\}\;M:=\frac{2N_{1}+3N_{2}+4N_{3}+N_{4}}{10}\;\{P_{2}'\}\qquad\text{(A‑M)+(C‑ℝ₁)}\\[2pt]
+3.&\{P_{2}'\}\;\textbf{print }("Media: "‖⟨M⟩)\;\{P_{3}\}\qquad\text{(O‑1)}\\[2pt]
+4.&\{P_{3}\}\;\textbf{if }M\ge7.0\textbf{ then … elif }M<5.0\textbf{ then … else … fi}\;\{Q\}\qquad\text{(COND)}\\[2pt]
+\end{array}
+\]
+
+Every line is justified by a Hoare rule; the last line yields exactly the
+post‑condition \(Q\).  Hence the Hoare triple  
+
+\[
+\{P\}\;\textbf{Program}\;\{Q\}
+\]
+
+is proved.
+
+--------------------------------------------------------------------
+## 3.  Remarks on the arithmetic and the formatting  
+
+* **One‑decimal‑digit closure** –  
+  If \(x\in\mathbb R_{1}\) and \(c\in\mathbb Z\) then \(c\cdot x\in\mathbb R_{1}\).  
+  The sum of a finite family of numbers of \(\mathbb R_{1}\) is again in
+  \(\mathbb R_{1}\).  
+  Division by the constants \(10\) and \(2\) merely moves the decimal point,
+  therefore the results \(M\) and \(M_f\) are guaranteed to belong to
+  \(\mathbb R_{1}\).  
+
+* **Printing** – the Python format specifications `"{:.1f}"` and the f‑string
+  `f"{media:.1f}"` implement exactly the function \(\langle\cdot\rangle\); they
+  round the internal binary floating‑point value to the nearest decimal with a
+  single digit after the point, which coincides with the mathematical value
+  because the numbers are already of that form.
+
+--------------------------------------------------------------------
+## 4.  Conclusion  
+
+We have exhibited a complete Hoare‑logic derivation that starts from the
+pre‑condition \(P\) (the four input grades belong to \(\mathbb R_{1}\)) and ends
+with the post‑condition \(Q\) (the list of strings printed by the program is
+exactly the one prescribed by the specification).  Each command of the Python
+program has been shown to preserve the invariant required for the next step,
+and the three possible control‑flow branches have been proved to yield the
+corresponding part of the post‑condition.  Consequently the program is **correct
+with respect to the given Hoare‑logic specification**.

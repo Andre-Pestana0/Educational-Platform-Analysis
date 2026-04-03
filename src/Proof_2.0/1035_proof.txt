@@ -1,0 +1,264 @@
+### 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,\top\,\}\;\;{\sf read}\;A,B,C,D;\;
+{\sf if}\;E\;{\sf then}\;{\sf write}\;“Valores aceitos”
+\;{\sf else}\;{\sf write}\;“Valores nao aceitos”
+\;\;\{\,\Phi\,\}
+\]
+
+where  
+
+* \(E\) is the Boolean expression that appears in the program  
+
+\[
+E\;\equiv\;(b>c)\land(d>a)\land(c+d>a+b)\land(c>0)\land(d>0)\land(a\%2==0)
+\]
+
+* \(\Phi\) is the post‑condition  
+
+\[
+\Phi\;\equiv\;
+\bigl(\text{msg}= “Valores aceitos”\bigr)\;\Leftrightarrow\;P(A,B,C,D)
+\;\land\;
+\bigl(\text{msg}= “Valores nao aceitos”\bigr)\;\Leftrightarrow\;\neg P(A,B,C,D)
+\]
+
+and  
+
+\[
+P(A,B,C,D)\;:=\;(B>C)\land(D>A)\land(C+D>A+B)\land(C>0)\land(D>0)\land(A\equiv0\pmod 2).
+\]
+
+The pre‑condition \(\top\) is *true*; the program may start with any four integers.
+
+Because the program contains **no loops** it always terminates, so proving *partial* correctness is enough to obtain *total* correctness.
+
+--------------------------------------------------------------------
+
+### 2.  Equality of the program guard and the specification predicate  
+
+The only non‑trivial point is to show that the guard \(E\) used by the program is *logically equivalent* to the predicate \(P\).
+
+| sub‑condition | program guard | specification |
+|---------------|---------------|---------------|
+| \(B>C\)       | `b > c`       | \(B>C\) |
+| \(D>A\)       | `d > a`       | \(D>A\) |
+| \(C+D>A+B\)   | `c+d > a+b`   | \(C+D>A+B\) |
+| \(C>0\)       | `c > 0`       | \(C>0\) |
+| \(D>0\)       | `d > 0`       | \(D>0\) |
+| \(A\) even    | `a%2 == 0`    | \(A\equiv0\pmod 2\) |
+
+All six conjuncts are syntactically the same (the only difference is the notation for “even”). Therefore  
+
+\[
+\boxed{E\;\Leftrightarrow\;P(A,B,C,D)}\tag{1}
+\]
+
+holds for every valuation of the variables.
+
+--------------------------------------------------------------------
+
+### 3.  Hoare‑logic proof  
+
+We use the standard Hoare rule for the *if* statement  
+
+\[
+\frac{\{\,\Gamma\land E\,\}\;S_{1}\;\{\,\Delta\,\}\qquad
+      \{\,\Gamma\land\neg E\,\}\;S_{2}\;\{\,\Delta\,\}}
+     {\{\,\Gamma\,\}\;{\sf if}\;E\;{\sf then}\;S_{1}\;{\sf else}\;S_{2}\;
+      \{\,\Delta\,\}}
+\tag{IF}
+\]
+
+where  
+
+* \(\Gamma\) is the pre‑condition that holds before the *if*,
+* \(E\) the guard,
+* \(S_{1}\) the *then* branch,
+* \(S_{2}\) the *else* branch,
+* \(\Delta\) the desired post‑condition.
+
+--------------------------------------------------------------------
+#### 3.1  The program before the *if*  
+
+The statement  
+
+```python
+a, b, c, d = map(int, input().split())
+```
+
+only *reads* the four integers and binds them to the variables \(A,B,C,D\).  
+Reading does not change any logical property of the variables, therefore
+
+\[
+\{\,\top\,\}\;{\sf read}\;A,B,C,D\;\{\,\top\,\}
+\tag{READ}
+\]
+
+holds trivially. Consequently, just before the *if* we still have the pre‑condition \(\Gamma\equiv\top\).
+
+--------------------------------------------------------------------
+#### 3.2  The *then* branch  
+
+\(S_{1}\) is the single statement  
+
+```python
+print('Valores aceitos')
+```
+
+which we model as the assignment  
+
+\[
+\text{msg} := “Valores aceitos”.
+\]
+
+The Hoare rule for an assignment is  
+
+\[
+\frac{}{\,\{\,\Phi[\text{msg}\mapsto “Valores aceitos”]\,\}\;
+      \text{msg} := “Valores aceitos”\;
+      \{\,\Phi\,\}} .
+\tag{ASSIGN}
+\]
+
+Take  
+
+\[
+\Phi_{1}\;:=\;(\text{msg}= “Valores aceitos”) \Leftrightarrow P(A,B,C,D)
+          \;\land\;(\text{msg}= “Valores nao aceitos”) \Leftrightarrow \neg P(A,B,C,D).
+\]
+
+After substituting the right‑hand side of the assignment for **msg** we obtain  
+
+\[
+\Phi_{1}[\text{msg}\mapsto “Valores aceitos”]\;=\;
+\bigl( “Valores aceitos” = “Valores aceitos”\bigr) \Leftrightarrow P
+\;\land\;
+\bigl( “Valores aceitos” = “Valores nao aceitos”\bigr) \Leftrightarrow \neg P .
+\]
+
+The first equality is true, the second is false; therefore the formula reduces to  
+
+\[
+P(A,B,C,D) .
+\]
+
+Hence the Hoare triple for the *then* branch becomes  
+
+\[
+\{\,P(A,B,C,D)\,\}\; \text{msg}:=“Valores aceitos”\;
+\{\,\Phi_{1}\,\}.
+\tag{THEN}
+\]
+
+But the antecedent of this triple is exactly the guard together with the pre‑condition:
+
+\[
+\{\,\top\land E\,\}\;S_{1}\;\{\,\Phi_{1}\,\}
+\]
+
+because by (1) we have \(\top\land E \;\Leftrightarrow\; P(A,B,C,D)\).
+
+--------------------------------------------------------------------
+#### 3.3  The *else* branch  
+
+\(S_{2}\) is  
+
+```python
+print('Valores nao aceitos')
+```
+
+i.e.  
+
+\[
+\text{msg} := “Valores nao aceitos”.
+\]
+
+Repeating the same reasoning with  
+
+\[
+\Phi_{2}\;:=\;\Phi_{1}
+\]
+
+gives  
+
+\[
+\Phi_{2}[\text{msg}\mapsto “Valores nao aceitos”]\;=\;
+\bigl( “Valores nao aceitos” = “Valores aceitos”\bigr) \Leftrightarrow P
+\;\land\;
+\bigl( “Valores nao aceitos” = “Valores nao aceitos”\bigr) \Leftrightarrow \neg P .
+\]
+
+The first equality is false, the second true, so the whole formula simplifies to  
+
+\[
+\neg P(A,B,C,D).
+\]
+
+Thus we have  
+
+\[
+\{\,\neg P(A,B,C,D)\,\}\; \text{msg}:=“Valores nao aceitos”\;
+\{\,\Phi_{1}\,\}.
+\tag{ELSE}
+\]
+
+Again, because of (1),
+
+\[
+\{\,\top\land\neg E\,\}\;S_{2}\;\{\,\Phi_{1}\,\}
+\]
+
+holds.
+
+--------------------------------------------------------------------
+#### 3.4  Putting the pieces together  
+
+Applying rule (IF) with  
+
+* \(\Gamma = \top\),
+* \(E\) the guard,
+* \(S_{1}\) and \(S_{2}\) as above,
+* \(\Delta = \Phi_{1}\),
+
+we obtain  
+
+\[
+\{\,\top\,\}\;{\sf if}\;E\;{\sf then}\;S_{1}\;{\sf else}\;S_{2}\;
+\{\,\Phi_{1}\,\}.
+\tag{IF‑RESULT}
+\]
+
+Finally, chaining (READ) and (IF‑RESULT) with the **sequence** rule  
+
+\[
+\frac{\{\,\Gamma\,\}C_{1}\{\,\Delta\,\}\qquad
+      \{\,\Delta\,\}C_{2}\{\,\Sigma\,\}}
+     {\{\,\Gamma\,\}C_{1};C_{2}\{\,\Sigma\,\}}
+\]
+
+yields the desired Hoare triple for the whole program:
+
+\[
+\boxed{\;
+\{\,\top\,\}\;
+\text{read }A,B,C,D;
+\;{\sf if}\;E\;{\sf then}\;{\sf write}\;“Valores aceitos”
+\;{\sf else}\;{\sf write}\;“Valores nao aceitos”
+\;\{\,\Phi\,\}\;}
+\]
+
+where \(\Phi\) is exactly the post‑condition stated in the specification.
+
+--------------------------------------------------------------------
+
+### 4.  Conclusion  
+
+* The guard of the `if` statement is logically equivalent to the acceptance predicate \(P\).  
+* In the *then* branch the program writes “Valores aceitos” and, under the assumption \(P\), the post‑condition \(\Phi\) holds.  
+* In the *else* branch the program writes “Valores nao aceitos” and, under the assumption \(\neg P\), the same post‑condition \(\Phi\) holds.  
+
+Therefore the Hoare triple is valid; the program **correctly implements** the specification: after termination the output string is “Valores aceitos” **iff** all six conditions of \(P(A,B,C,D)\) are satisfied, otherwise it is “Valores nao aceitos”. Since the program contains no loops, it also **terminates** for every input, giving total correctness.

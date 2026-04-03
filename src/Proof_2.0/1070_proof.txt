@@ -1,0 +1,282 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{\,X\in\mathbb N^{+}\,\}\;\;{\tt program}\;\;\{\,Q\,\}
+\]
+
+where  
+
+* `X` is the value read from the input,
+* `Q` is the post‑condition described in the statement of the question, and  
+
+* the program is  
+
+```python
+x = int(input())          # line 1
+x += (x+1) % 2            # line 2
+for i in range(6):       # line 3 … 7
+    print(x)             # line 4
+    x += 2               # line 5
+```
+
+--------------------------------------------------------------------
+
+### 1.  Notation that will be used in the proof  
+
+* `x` – the program variable that holds the current integer,
+* `k` – the *smallest odd integer ≥ X* (definition given in the post‑condition),
+* `i` – the loop counter that runs from `0` to `5`,
+* `out` – the (finite) list of values that have already been printed,
+* `len(out)` – the number of printed values.
+
+The Hoare‑logic rules we shall employ are the **assignment rule**, the **consequence rule**, and the **while‑rule** (the `for`‑loop is turned into a `while` as explained below).
+
+--------------------------------------------------------------------
+
+### 2.  From the input to the variable `x`
+
+The first line of the program reads the integer supplied on the input stream and stores it in `x`.  
+The Hoare‑logic rule for input is simply a *skip* – the value of `x` after the statement is exactly the value that has been read. Hence
+
+\[
+\{\,X\in\mathbb N^{+}\,\}\;x:=X\;\{\,x=X\land X\in\mathbb N^{+}\,\}.
+\tag{A1}
+\]
+
+--------------------------------------------------------------------
+
+### 3.  Computing the smallest odd number `k`
+
+The second line of the program is
+
+```python
+x += (x+1) % 2
+```
+
+which is the assignment `x := x + ((x+1) mod 2)`.  
+We prove that after this assignment the variable `x` equals the `k` defined in the
+post‑condition.
+
+---
+
+**Lemma 1**  
+
+\[
+\forall n\in\mathbb Z\;.\;
+n + ((n+1)\bmod 2) = 
+\begin{cases}
+n      & \text{if } n\bmod 2 = 1,\\
+n+1    & \text{if } n\bmod 2 = 0 .
+\end{cases}
+\tag{L1}
+\]
+
+*Proof.*  
+If `n` is odd then `n mod 2 = 1` and consequently `(n+1) mod 2 = 0`.  
+If `n` is even then `n mod 2 = 0` and `(n+1) mod 2 = 1`. ∎
+
+---
+
+Applying (L1) with `n = X` we obtain exactly the definition of `k`.  
+Thus the following Hoare triple holds (assignment rule + Lemma 1):
+
+\[
+\{\,x=X\land X\in\mathbb N^{+}\,\}\;
+x := x + ((x+1)\bmod 2)\;
+\{\,x = k\land odd(k)\land k\ge X\land (k-1)<X\,\}.
+\tag{A2}
+\]
+
+The last three conjuncts express that `k` is the *smallest* odd number not
+smaller than `X`.
+
+--------------------------------------------------------------------
+
+### 4.  Transforming the `for`‑loop into a `while`‑loop
+
+The Python construction  
+
+```python
+for i in range(6):
+    body
+```
+
+is equivalent to  
+
+```python
+i = 0
+while i < 6:
+    body
+    i = i + 1
+```
+
+Hence we shall prove the `while` version and then use the *equivalence rule* for
+the `for`‑loop.
+
+--------------------------------------------------------------------
+
+### 5.  Loop invariant
+
+We introduce the following **loop invariant** `I(i,x,out)` :
+
+\[
+\begin{aligned}
+I(i,x,out)\;\equiv\;&
+0\le i\le 6\ \land\\
+&x = k + 2i\ \land\\
+&\bigl|out\bigr| = i\ \land\\
+&\forall j\;(0\le j < i\;\Longrightarrow\; out[j] = k + 2j).
+\end{aligned}
+\tag{Inv}
+\]
+
+In words:
+
+* `i` is the number of iterations already performed,
+* the current value of `x` is exactly the next odd number to be printed,
+* `out` contains precisely the first `i` odd numbers of the required
+  arithmetic progression.
+
+--------------------------------------------------------------------
+
+### 6.  Initialization of the invariant
+
+Before the loop we execute `i = 0` and initialise `out` to the empty list.
+Using the assignment rule we obtain
+
+\[
+\{\,x=k\,\}\;i:=0\;\{\,i=0\land x=k\,\}.
+\]
+
+Appending the empty list does not change the truth of `I` (the three
+conjuncts are trivially satisfied for `i=0`). Hence
+
+\[
+\{\,x=k\,\}\;(i:=0;\;out:=[])\;\{\,I(0,k,[])\,\}.
+\tag{Linit}
+\]
+
+--------------------------------------------------------------------
+
+### 7.  Preservation of the invariant
+
+Assume that `I(i,x,out)` holds at the beginning of an iteration and that the loop
+guard `i < 6` is true.  The body of the loop is
+
+```python
+print(x)   # (conceptually: out.append(x))
+x += 2
+i = i + 1
+```
+
+* **Printing** – we model the effect of `print(x)` by appending the current
+  value of `x` to `out`.  From the invariant we know `x = k + 2i`; therefore after
+  the append we have  
+
+  \[
+  out' = out\!\frown\!\langle k+2i\rangle ,
+  \qquad |out'| = i+1,
+  \qquad\forall j<i\; (out'[j]=k+2j)
+  \]
+  and also `out'[i] = k+2i`.
+
+* **Updating `x`** – the assignment `x := x + 2` yields  
+
+  \[
+  x' = (k+2i)+2 = k+2(i+1).
+  \]
+
+* **Updating `i`** – `i := i+1` gives `i' = i+1`.
+
+Collecting the three steps we obtain exactly the invariant with `i` replaced
+by `i'`:
+
+\[
+I(i',x',out')\;.
+\]
+
+Formally, using the **sequence rule** and the **assignment rule** we have
+
+\[
+\{\,I(i,x,out)\land i<6\,\}\;
+\bigl(\text{print}(x);\;x:=x+2;\;i:=i+1\bigr)
+\;\{\,I(i+1,x+2,out\!\frown\!\langle x\rangle)\,\}.
+\tag{Lpres}
+\]
+
+Thus the invariant is preserved.
+
+--------------------------------------------------------------------
+
+### 8.  Termination condition and post‑condition
+
+When the loop finishes we have `¬(i<6)`, i.e. `i = 6`.  
+From the invariant we obtain
+
+* `|out| = i = 6`, therefore exactly six numbers have been printed,
+* for every `j = 0,…,5` we have `out[j] = k + 2j`,
+* each `out[j]` is odd because `k` is odd and adding a multiple of `2`
+  preserves oddness.
+
+Consequently the six printed values are  
+
+\[
+\langle k,\;k+2,\;k+4,\;k+6,\;k+8,\;k+10\rangle,
+\]
+
+which is precisely the tuple  
+
+\[
+\mathbf{o}= \langle o_1,\dots ,o_6\rangle,\qquad 
+o_i = k+2(i-1)\;(i=1,\dots ,6).
+\]
+
+Hence the post‑condition `Q` holds.  Formally, using the **while‑rule**:
+
+\[
+\frac
+{\{\,x=k\}\;i:=0;\;out:=[]\;\{\,I(0,k,[])\,\}
+\qquad
+\{\,I(i,x,out)\land i<6\,\}\;{\rm body}\;\{\,I(i+1,x',out')\,\}
+\qquad
+\{\,I(6,x_{final},out_{final})\Rightarrow Q\,\}}
+{\{\,x=k\,\}\;{\rm while}\;(i<6)\;{\rm do\;body}\;\{\,Q\,\}}
+\tag{Lwhile}
+\]
+
+The last implication is immediate from the description of `I` when `i=6`.
+
+--------------------------------------------------------------------
+
+### 9.  Assembling the whole proof
+
+Putting together the three major parts:
+
+1. **Input and first assignment** – (A1) and (A2) give `{X∈ℕ⁺} … {x = k}`.
+2. **Loop** – (Linit), (Lpres) and (Lwhile) prove `{x = k} … {Q}`.
+3. **Overall program** – by the **sequence rule** we obtain  
+
+   \[
+   \{\,X\in\mathbb N^{+}\,\}\;
+   \bigl(\text{read }X;\;x:=X;\;x:=x+((x+1)\bmod 2);\;
+   \text{for }i\text{ in }range(6):\;{\rm body}\bigr)
+   \;\{\,Q\,\}.
+   \]
+
+Thus the Hoare triple is proved: the program satisfies the specification.
+
+--------------------------------------------------------------------
+
+### 10.  Summary of the logical argument
+
+| Program fragment | Pre‑condition | Post‑condition |
+|------------------|---------------|----------------|
+| `x = int(input())` | `X∈ℕ⁺` | `x = X` |
+| `x += (x+1)%2` | `x = X` | `x = k` (smallest odd ≥ X) |
+| `i = 0; out = []` | `x = k` | `I(0,k,[])` |
+| Loop body (print, `x+=2`, `i+=1`) | `I(i,x,out) ∧ i<6` | `I(i+1,x+2,out⧺⟨x⟩)` |
+| Loop termination (`i = 6`) | `I(6,x, out)` | `Q` (six odd numbers `k, k+2,…,k+10`) |
+
+All Hoare‑logic proof obligations are discharged, therefore the program is **correct** with respect to the given formal specification. ∎

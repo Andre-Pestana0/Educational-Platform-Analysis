@@ -1,0 +1,354 @@
+**Answer – a Hoare‑logic proof that the program satisfies the given specification**
+
+Below we give a full Hoare‑logic derivation for the program
+
+```python
+numero_testes = int(input())                #  (1)
+for i in range(numero_testes):              #  (2)
+    caracteres = len(input())               #  (3)
+    print("%.2f" % (caracteres*0.01))       #  (4)
+```
+
+The proof is completely formal: we exhibit a loop invariant, we use the
+assignment, sequencing and while‑rules of Hoare logic, and we finally
+show that the post‑condition \(Q\) follows from the invariant after the
+loop terminates.  The only “semantic” facts we need about the language
+are the usual ones for the built‑in functions `int`, `input`, `len` and
+the formatting operator `"% .2f"`; they are stated as logical axioms
+(see the *Auxiliary lemmas* section).
+
+---------------------------------------------------------------------
+
+## 1.  Notation that will be used in the proof  
+
+* \(C\) – the integer read in (1).  
+* \(w_i\) – the \(i\)-th line read in (3); formally  
+  \(w_i =\) the string returned by the *i*‑th call of `input()` inside the
+  loop.  
+* \(|w_i|\) – the length of that string, i.e. `len(input())`.  
+* \(t_i = |w_i|/100\) – the “real” typing time of the word.  
+* `fmt(x)` – the string produced by the conversion `"% .2f" % x`.  
+  By definition  
+
+  \[
+  \text{fmt}(x) = \text{the unique string }s\text{ such that }s
+  =\text{round\_half\_up}(x,2) \text{ printed with exactly two decimal
+  digits}.
+  \]
+
+* \(\mathbf{out}[i]\) – the *i*‑th line written by the program, i.e. the
+  value printed in the *i*‑th iteration of the loop.
+
+---------------------------------------------------------------------
+
+## 2.  Auxiliary logical facts (proved once, used everywhere)
+
+| Lemma | Formal statement | Reason |
+|-------|------------------|--------|
+| **L1** | `int(input()) = C`  ⇔  the first line of the input is the decimal representation of a non‑negative integer \(C\). | definition of `int` and `input`. |
+| **L2** | `len(input()) = |w_i|`. | definition of `len`. |
+| **L3** | `caracteres*0.01 = |w_i|/100`. | arithmetic: `0.01 = 1/100`. |
+| **L4** | `print("%.2f" % x)` writes `fmt(x)` on a new line. | definition of the formatting operator. |
+| **L5** | `range(C)` yields the sequence \(0,1,\dots ,C-1\). | definition of `range`. |
+| **L6** | If a Hoare triple \(\{P\}\;S\;\{Q\}\) holds and \(P\Rightarrow P'\) then \(\{P'\}\;S\;\{Q\}\) also holds (rule of consequence). | standard Hoare rule. |
+| **L7** | If a Hoare triple \(\{P\}\;S\;\{Q\}\) holds and \(Q\Rightarrow Q'\) then \(\{P\}\;S\;\{Q'\}\) also holds. | rule of consequence (right). |
+
+All arithmetic is assumed to be performed over the exact real numbers;
+the rounding performed by `fmt` is captured by Lemma L4.
+
+---------------------------------------------------------------------
+
+## 3.  The specification we have to prove  
+
+*Pre‑condition*  
+
+\[
+P\;\equiv\; C\in\mathbb N\land C\ge 1\;\land\;
+\forall i\in\{1,\dots ,C\}\;(w_i\in\Sigma^{*}\land 9\le|w_i|\le 10\,000).
+\]
+
+*Post‑condition*  
+
+\[
+Q\;\equiv\;\forall i\in\{1,\dots ,C\}\;
+\bigl(\operatorname{time}(w_i)=|w_i|/100\;\land\;
+\mathbf{out}[i]=\operatorname{fmt}(|w_i|/100)\bigr).
+\]
+
+Recall that \(\operatorname{time}(w_i)\) is defined in the statement of
+\(Q\) as \(|w_i|/100\); therefore the first conjunct of \(Q\) is
+trivially true once we have proved the second one.
+
+---------------------------------------------------------------------
+
+## 4.  Loop invariant  
+
+During the execution of the `for`‑loop we keep the following invariant
+\(I(k)\) (where \(k\) is the value of the loop counter *after* the
+\(k\)-th iteration, i.e. the number of processed test cases).
+
+\[
+\boxed{
+I(k)\; \equiv\; 0\le k\le C\;\land\;
+\forall j\in\{1,\dots ,k\}\;
+\bigl(\mathbf{out}[j]=\operatorname{fmt}(|w_j|/100)\bigr)
+}
+\tag{Inv}
+\]
+
+The invariant says exactly what we need to prove after each
+iteration: the first \(k\) output lines are correct.
+
+---------------------------------------------------------------------
+
+## 5.  Proof structure  
+
+We will prove the Hoare triple  
+
+\[
+\{P\}\;\text{program}\;\{Q\}
+\]
+
+by the standard Hoare‑logic rules:
+
+1. **Initialization** – show that the invariant holds before the first
+   iteration.
+2. **Preservation** – assuming the invariant holds at the beginning of an
+   iteration and that the loop guard is true, prove that it holds after
+   the body executes.
+3. **Termination** – after the loop finishes we have \(k=C\); from the
+   invariant we obtain the post‑condition.
+
+All other statements (`int(input())` and the `for` header) are
+straight‑line code and are handled by the assignment rule.
+
+---------------------------------------------------------------------
+
+## 6.  Detailed derivation  
+
+### 6.1  Statement (1) – reading the number of test cases  
+
+```
+numero_testes = int(input())
+```
+
+We use Lemma L1.  From the pre‑condition we know that the first line of
+the input is a decimal representation of a natural number \(C\ge 1\).  
+Hence the assignment yields the value `numero_testes = C`.  Formally we
+have
+
+\[
+\{P\}\; \texttt{numero\_testes = int(input())}\; \{P\land
+\texttt{numero\_testes}=C\}
+\tag{A1}
+\]
+
+(The extra conjunct is a consequence of the pre‑condition, so the rule
+of consequence lets us keep the original \(P\) as the pre‑condition.)
+
+### 6.2  Statement (2) – the `for` loop  
+
+The Python statement  
+
+```python
+for i in range(numero_testes):
+    BODY
+```
+
+is equivalent to the following while‑loop (the standard translation used
+in Hoare‑logic textbooks):
+
+```
+i = 0;
+while i < numero_testes:
+    BODY
+    i = i + 1
+```
+
+Thus we prove the Hoare triple for the while‑form and then apply the
+rule that `for` is a syntactic sugar for it.
+
+The **initialisation** of the loop counter is
+
+\[
+\{P\land\texttt{numero\_testes}=C\}\;
+i:=0\;
+\{I(0)\}
+\tag{A2}
+\]
+
+Indeed, with \(k=0\) the invariant \(I(0)\) reduces to “\(0\le 0\le C\)”
+(which follows from \(C\ge 1\)) and the universal quantifier has an empty
+range, so the second conjunct holds vacuously.
+
+The **loop guard** is the Boolean expression `i < numero_testes`,
+i.e. \(i<C\).  The **while‑rule** requires us to prove the preservation
+step:
+
+\[
+\{I(k)\land k<C\}\; \text{BODY}\; \{I(k+1)\}
+\tag{A3}
+\]
+
+where `BODY` consists of statements (3) and (4).  Below we prove (A3).
+
+---------------------------------------------------------------------
+
+### 6.3  Preservation – body of the loop  
+
+Recall the invariant \(I(k)\):
+
+\[
+0\le k\le C\land
+\forall j\in\{1,\dots ,k\}\;
+\bigl(\mathbf{out}[j]=\operatorname{fmt}(|w_j|/100)\bigr)
+\tag{Inv(k)}
+\]
+
+Assume \(I(k)\) holds and that the loop guard \(k<C\) is true.  We have to
+show that after executing statements (3) and (4) the invariant holds for
+\(k+1\).
+
+#### 6.3.1  Statement (3) – reading the word and computing its length  
+
+```
+caracteres = len(input())
+```
+
+Using Lemma L2 we obtain
+
+\[
+\texttt{caracteres}=|w_{k+1}|
+\tag{B1}
+\]
+
+because the \((k+1)\)-st call to `input()` reads exactly the word
+\(w_{k+1}\) (the loop iterates in the same order as the input lines).
+
+#### 6.3.2  Statement (4) – printing the formatted time  
+
+```
+print("%.2f" % (caracteres*0.01))
+```
+
+First, by Lemma L3 and (B1)
+
+\[
+\texttt{caracteres}*0.01 = |w_{k+1}|/100 .
+\tag{B2}
+\]
+
+Then Lemma L4 tells us that the `print` statement writes
+
+\[
+\operatorname{fmt}\bigl(|w_{k+1}|/100\bigr)
+\]
+
+on a new line.  By the definition of the output array \(\mathbf{out}\)
+the line that is just written becomes \(\mathbf{out}[k+1]\).  Hence we
+have derived
+
+\[
+\mathbf{out}[k+1]=\operatorname{fmt}\bigl(|w_{k+1}|/100\bigr).
+\tag{B3}
+\]
+
+All other output lines \(\mathbf{out}[j]\) with \(j\le k\) are unchanged,
+so together with the induction hypothesis \(\forall j\le k\) we obtain
+
+\[
+\forall j\in\{1,\dots ,k+1\}\;
+\bigl(\mathbf{out}[j]=\operatorname{fmt}(|w_j|/100)\bigr).
+\tag{B4}
+\]
+
+Since after the body the loop counter will be increased to \(k+1\) (the
+statement `i = i + 1` in the while‑translation), we also have the
+numerical part \(0\le k+1\le C\) (the upper bound follows from the guard
+\(k<C\)).  Consequently
+
+\[
+I(k+1) \quad\text{holds}.
+\]
+
+Thus we have proved the preservation triple (A3).
+
+---------------------------------------------------------------------
+
+### 6.4  Termination of the loop  
+
+The loop terminates when the guard becomes false, i.e. when
+\(i \not< C\).  At that moment the loop counter has the value
+\(i=C\).  By the invariant we therefore have
+
+\[
+\forall j\in\{1,\dots ,C\}\;
+\bigl(\mathbf{out}[j]=\operatorname{fmt}(|w_j|/100)\bigr).
+\tag{T1}
+\]
+
+Recall that the specification defines
+\(\operatorname{time}(w_j)=|w_j|/100\).  Hence (T1) is exactly the second
+conjunct of the post‑condition \(Q\); the first conjunct of \(Q\) follows
+by definition of \(\operatorname{time}\).  Therefore
+
+\[
+\{I(C)\}\;\text{skip}\;\{Q\}
+\tag{A4}
+\]
+
+holds (skip does nothing, we just rename the invariant).
+
+---------------------------------------------------------------------
+
+### 6.5  Putting the pieces together  
+
+1. From (A1) and (A2) we have  
+
+   \[
+   \{P\}\;\texttt{numero\_testes=int(input())};\;i:=0\;\{I(0)\}.
+   \]
+
+2. By the while‑rule, using (A3) for preservation and (A4) for the
+   post‑condition, we obtain  
+
+   \[
+   \{I(0)\}\;
+   \texttt{while } i<C \texttt{ do BODY}\;
+   \{Q\}.
+   \]
+
+3. The `for`‑statement is syntactic sugar for the while‑loop, therefore
+   the same Hoare triple holds for the original `for` construct.
+
+4. Finally, by concatenating the initial assignment (1) with the loop
+   we get the desired Hoare triple for the whole program:
+
+\[
+\boxed{\;\{P\}\;\texttt{program}\;\{Q\}\;}
+\]
+
+---------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have exhibited a formal Hoare‑logic proof that the given Python
+program satisfies the specification
+
+*pre‑condition*  
+
+\(P:\) the first input line is a natural number \(C\ge 1\) and the next
+\(C\) lines are words whose lengths lie between 9 and 10 000;
+
+*post‑condition*  
+
+\(Q:\) for each test case \(i\) the program prints the value
+\(\operatorname{fmt}(|w_i|/100)\), i.e. the typing time of the word
+formatted with exactly two decimal digits.
+
+The proof rests on a simple loop invariant that records that all
+already‑processed output lines are correct, and on the elementary facts
+about `len`, multiplication by `0.01`, and the `"% .2f"` formatter.
+Since the invariant is established initially, preserved by each
+iteration, and yields the required property when the loop finishes,
+the Hoare triple \(\{P\}\,\texttt{program}\,\{Q\}\) is proved correct.

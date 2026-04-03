@@ -1,0 +1,289 @@
+## 1.  What we have to show  
+
+We must prove the **total‑correctness Hoare triple**
+
+\[
+\{\,\mathsf{Pre}\,\}\;\;{\tt program}\;\;\{\,\mathsf{Post}\,\}
+\]
+
+where  
+
+* **Pre**  :   \(0\le D\le 2000\)  and  \(D\in\mathbb Z\)  
+* **Post** :  
+
+\[
+P\in\{1,2,3\}\;\land\;
+\bigl((D\le 800\land P=1)\;\lor\;
+(800<D\le 1400\land P=2)\;\lor\;
+(1400<D\le 2000\land P=3)\bigr)
+\]
+
+The program (renaming the variable *distancia* to the specification variable *D*) is  
+
+```text
+1  read D
+2  if (D < 0 or D > 2000) then
+3        print "Distância inválida"
+4  else
+5        if (D <= 800) then
+6                print "1"
+7        elif (D <= 1400) then
+8                print "2"
+9        else
+10               print "3"
+```
+
+The only observable result of the program is the value that is printed; we denote it by \(P\).
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules that will be used  
+
+| Rule | Shape | Comment |
+|------|-------|---------|
+| **Assignment** | \(\{\,\phi[E/x]\,\}\;x:=E\;\{\,\phi\,\}\) | not needed here (no assignments) |
+| **If‑then‑else** | \(\displaystyle\frac{\{\,\phi\land B\,\}\;S_1\;\{\,\psi\,\}\qquad\{\,\phi\land\neg B\,\}\;S_2\;\{\,\psi\,\}}{\{\,\phi\,\}\;\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\;\{\,\psi\,\}}\) |
+| **Consequence** | \(\displaystyle\frac{\phi'\Rightarrow\phi\qquad\{\,\phi\,\}S\{\,\psi\,\}\qquad\psi\Rightarrow\psi'}{\{\,\phi'\,\}S\{\,\psi'\,\}}\) |
+| **Termination** | A program that consists only of a finite number of statements (no loops, no recursion) is guaranteed to terminate; therefore proving partial correctness suffices for total correctness. |
+
+--------------------------------------------------------------------
+
+## 3.  Proof of **partial correctness**  
+
+We perform a **case analysis** that mirrors the program’s nested conditionals.
+
+### 3.1  Outer test  
+
+Let  
+
+\[
+B_0 \equiv (D<0\lor D>2000)
+\]
+
+The Hoare triple for the whole program can be obtained by applying the *if‑then‑else* rule with  
+
+* \(S_1\) = `print "Distância inválida"`  
+* \(S_2\) = the inner three‑way conditional (lines 5‑10)
+
+Hence we must prove  
+
+1. \(\{\,\mathsf{Pre}\land B_0\,\}\;S_1\;\{\,\mathsf{Post}\,\}\)  
+2. \(\{\,\mathsf{Pre}\land\neg B_0\,\}\;S_2\;\{\,\mathsf{Post}\,\}\)
+
+---
+
+#### 1.  Branch `S₁` (the “invalid distance” branch)
+
+From the **pre‑condition** we have  
+
+\[
+0\le D\le 2000 .
+\]
+
+Consequently  
+
+\[
+\mathsf{Pre}\land B_0 \equiv (0\le D\le 2000)\land (D<0\lor D>2000)
+\]
+
+is **unsatisfiable**; there is *no* state that can satisfy both conjuncts at the same time.  
+In Hoare logic a triple whose antecedent is false is *vacuously* true:
+
+\[
+\{\,\text{false}\,\}S_1\{\,\mathsf{Post}\,\}
+\]
+
+Therefore the first required triple holds automatically.
+
+---
+
+#### 2.  Branch `S₂` (the “valid distance” branch)
+
+Because the outer guard is false we have  
+
+\[
+\neg B_0 \equiv \neg(D<0\lor D>2000) \equiv (0\le D\le 2000)
+\]
+
+Thus the antecedent of the second triple is exactly the **pre‑condition** itself:
+
+\[
+\mathsf{Pre}\land\neg B_0\; \equiv\; \mathsf{Pre}.
+\]
+
+Consequently we only need to show that the *inner* conditional (lines 5‑10) satisfies the post‑condition under the assumption \(0\le D\le 2000\).
+
+### 3.2  Inner three‑way test  
+
+Define the two guards that appear in the inner conditional:
+
+\[
+\begin{aligned}
+B_1 &\equiv D\le 800,\\
+B_2 &\equiv D\le 1400 .
+\end{aligned}
+\]
+
+The program fragment `S₂` can be rewritten as the following *nested* if‑statement:
+
+```text
+if B1 then
+        print "1"
+else
+        if B2 then
+                print "2"
+        else
+                print "3"
+```
+
+We apply the *if‑then‑else* rule twice.
+
+--------------------------------------------------------------------
+#### 3.2.1  First level (`B₁`)
+
+We must prove  
+
+* **(a)** \(\{\,\mathsf{Pre}\land B_1\,\}\) `print "1"` \(\{\,\mathsf{Post}\,\}\)  
+* **(b)** \(\{\,\mathsf{Pre}\land\neg B_1\,\}\) *second‑level‑if* \(\{\,\mathsf{Post}\,\}\)
+
+--------------------------------------------------------------------
+##### (a)  The `print "1"` branch  
+
+Assume \(\mathsf{Pre}\land B_1\).  This gives us
+
+\[
+0\le D\le 2000 \quad\text{and}\quad D\le 800 .
+\]
+
+Hence \(D\le 800\) holds, and the program prints the literal *1*.  
+We interpret the printed literal as the output variable \(P\).  Consequently
+
+\[
+P = 1 .
+\]
+
+From the above we can derive the required post‑condition:
+
+* \(P\in\{1,2,3\}\) – true because \(P=1\);
+* \(D\le 800\land P=1\) – true by the two facts we already have.
+
+Thus the disjunction inside **Post** is satisfied, and the whole post‑condition holds.  
+Therefore the Hoare triple (a) is proved.
+
+--------------------------------------------------------------------
+##### (b)  The *else* part (second‑level‑if)
+
+Now the antecedent is  
+
+\[
+\mathsf{Pre}\land\neg B_1 \equiv (0\le D\le 2000)\land (D>800).
+\]
+
+So we know \(800<D\le 2000\).  
+We have to prove, again using the *if‑then‑else* rule, that the second‑level conditional satisfies **Post**.
+
+--------------------------------------------------------------------
+#### 3.2.2  Second level (`B₂`)
+
+The guards are  
+
+* \(B_2\equiv D\le 1400\)  
+* \(\neg B_2\equiv D>1400\)
+
+We need the two triples
+
+* **(c)** \(\{\,\mathsf{Pre}\land\neg B_1\land B_2\,\}\) `print "2"` \(\{\,\mathsf{Post}\,\}\)  
+* **(d)** \(\{\,\mathsf{Pre}\land\neg B_1\land\neg B_2\,\}\) `print "3"` \(\{\,\mathsf{Post}\,\}\)
+
+--------------------------------------------------------------------
+##### (c)  The `print "2"` branch  
+
+Assume \(\mathsf{Pre}\land\neg B_1\land B_2\).  This yields
+
+\[
+\begin{aligned}
+&0\le D\le 2000,\\
+& D>800,\\
+& D\le 1400 .
+\end{aligned}
+\]
+
+Hence \(800<D\le 1400\) and the program prints the literal *2*, i.e. \(P=2\).
+
+Now check the post‑condition:
+
+* \(P\in\{1,2,3\}\) – true because \(P=2\);
+* the second disjunct \((800<D\le 1400\land P=2)\) holds exactly by the facts above.
+
+Thus **Post** follows, and (c) is proved.
+
+--------------------------------------------------------------------
+##### (d)  The `print "3"` branch  
+
+Assume \(\mathsf{Pre}\land\neg B_1\land\neg B_2\).  This gives
+
+\[
+\begin{aligned}
+&0\le D\le 2000,\\
+& D>800,\\
+& D>1400 .
+\end{aligned}
+\]
+
+Therefore \(1400<D\le 2000\) and the program prints *3*; i.e. \(P=3\).
+
+Again the post‑condition is satisfied:
+
+* \(P\in\{1,2,3\}\) – true because \(P=3\);
+* the third disjunct \((1400<D\le 2000\land P=3)\) holds.
+
+Hence (d) is proved.
+
+--------------------------------------------------------------------
+#### 3.2.3  Collecting the inner proof  
+
+We have shown (c) and (d); by the *if‑then‑else* rule they give us the triple for the second‑level conditional.  
+Together with (b) we obtain the triple for the first‑level conditional, and together with the outer *if* we finally have
+
+\[
+\{\,\mathsf{Pre}\,\}\;{\tt program}\;\{\,\mathsf{Post}\,\}.
+\]
+
+Thus **partial correctness** is established.
+
+--------------------------------------------------------------------
+
+## 4.  Proof of **termination** (total correctness)
+
+The program consists of:
+
+* a single input statement,
+* a finite chain of Boolean tests (`if … else …`),
+* and a single `print` in each leaf of the decision tree.
+
+There are **no loops**, **no recursion**, and **no unbounded computation**.  
+Consequently every execution reaches a `print` statement after a bounded number of elementary steps and stops.  
+Therefore the program **terminates for every state satisfying the pre‑condition**.
+
+--------------------------------------------------------------------
+
+## 5.  Conclusion  
+
+We have demonstrated, using the Hoare‑logic inference rules, that
+
+\[
+\boxed{\;\{0\le D\le 2000\}\;{\tt program}\;
+\bigl(P\in\{1,2,3\}\land
+\bigl((D\le 800\land P=1)\lor(800<D\le 1400\land P=2)\lor(1400<D\le 2000\land P=3)\bigr)\bigr)\;}
+\]
+
+holds.  
+Because the program also terminates, the Hoare triple expresses **total correctness**.  
+
+Hence the given Python program is a correct implementation of the specification that awards  
+
+* **1 point** when the distance is at most 800 cm,  
+* **2 points** when it lies in the interval (800 cm, 1400 cm], and  
+* **3 points** when it lies in (1400 cm, 2000 cm].
+
+The extra `print "Distância inválida"` branch is never reachable under the stipulated pre‑condition, so it does not affect the correctness proof. ∎

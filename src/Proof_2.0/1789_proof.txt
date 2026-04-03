@@ -1,0 +1,432 @@
+## 1.  What we have to show  
+
+We are given a **Hoare‑logic specification**  
+
+*pre‑condition*  
+
+\[
+P\;\; \equiv\;\;
+\bigl(L\in\mathbb N^{+}\wedge 1\le L\le 500\bigr)
+\;\wedge\;
+\Bigl(\forall i\in\{1,\dots ,L\}\;(V_i\in\mathbb N\wedge 1\le V_i\le 50)\Bigr)
+\tag{P}
+\]
+
+*post‑condition*  
+
+\[
+Q\;\; \equiv\;\;
+\text{output}= \mathsf{level}(M),\qquad
+M:=\max_{1\le i\le L}V_i,
+\quad
+\mathsf{level}(m)=
+\begin{cases}
+1 & m<10\\[2pt]
+2 & 10\le m<20\\[2pt]
+3 & m\ge 20 .
+\end{cases}
+\tag{Q}
+\]
+
+The program that we must prove correct is the **Beecrowd 1789** solution
+
+```python
+while True:
+    try:
+        _ = int(input())                 # line 1
+        grupoLesmas = map(int, input().split(' '))   # line 2
+        turbo = max(grupoLesmas)         # line 3
+        if turbo < 10:                   # line 4
+            resposta = '1'
+        elif turbo < 20:                 # line 5
+            resposta = '2'
+        else:                            # line 6
+            resposta = '3'
+        print(resposta)                  # line 7
+    except EOFError:                     # line 8
+        break
+```
+
+The program reads **any number of test cases** until an EOF is encountered.  
+For each test case it must satisfy the Hoare triple  
+
+\[
+\{P\}\; \text{slug\_level\_program}\; \{Q\}.
+\tag{*}
+\]
+
+Consequently we have to prove two things  
+
+1. **Partial correctness** – if the pre‑condition holds for a test case, the
+   statements executed for that test case terminate and the post‑condition
+   holds.  
+2. **Total correctness** – the outer `while True … except EOFError` loop
+   always terminates when the input stream ends.
+
+Below we give a **formal Hoare‑logic proof**.  The proof is written in a
+structured style that mirrors the syntax of the program; each line is
+annotated with a Hoare triple and the inference rule that justifies it.
+
+---
+
+## 2.  Proof skeleton
+
+| line | program fragment | Hoare triple (pre‑condition → post‑condition) |
+|------|------------------|-----------------------------------------------|
+| 0    | `while True:`    | invariant `I₀` holds before each iteration   |
+| 1    | `try:` … `except EOFError: break` | the `try‑except` is treated as a *conditional break*; we prove that either a test case is processed correctly (see lines 1‑7) **or** EOF is detected and the loop terminates. |
+| 1‑7  | processing of one test case | `{P} … {Q}` (the core of the proof) |
+| 8    | `break` (EOF)    | loop invariant `I₀` together with `¬C` ⇒ termination |
+
+The **outer loop invariant** `I₀` is:
+
+\[
+I₀\; \equiv\;
+\bigl(\text{the program is ready to read the next test case}\bigr)
+\;\wedge\;
+\bigl(\text{all previously processed test cases satisfied }Q\bigr).
+\tag{I₀}
+\]
+
+Because the program never stores any state from a previous case, the second
+conjunct is trivially true; therefore the invariant reduces to
+
+\[
+I₀\;\equiv\;\text{“ready to read a test case”}.
+\]
+
+The invariant is established **before** entering the loop (the program has
+just started, so it is ready to read the first case) and it is preserved by
+the body of the loop – we shall show this after the inner proof.
+
+---
+
+## 3.  Inner proof – one test case  
+
+We now prove the Hoare triple \(\{P\}\;S\;\{Q\}\) where  
+
+\(S\) = the sequence of statements from line 1 to line 7 (the body of the
+`try` block).  The proof proceeds step‑by‑step, using the standard Hoare
+rules:
+
+* **(Assign)** \(\{\,\phi[E/x]\,\}\;x:=E\;\{\,\phi\,\}\)  
+* **(Seq)**   \(\{A\}S_1\{B\},\; \{B\}S_2\{C\}\;\Rightarrow\;\{A\}S_1;S_2\{C\}\)  
+* **(If)**   \(\{A\wedge B\}S_1\{C\},\;\{A\wedge\neg B\}S_2\{C\}\;\Rightarrow\;\{A\}\;\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\;\{C\}\)  
+* **(Conseq)** \(\{A'\}\;S\;\{B'\}\), \(A\Rightarrow A'\), \(B' \Rightarrow B\) \(\Rightarrow\;\{A\}\;S\;\{B\}\).
+
+Below we write **\( \{ \alpha \} \) … \( \{ \beta \} \)** for each line,
+showing the logical assertion that holds immediately before and after the
+statement.
+
+### 3.1  Reading `L`
+
+```python
+_ = int(input())
+```
+
+*Pre‑condition* before this line is **\(P\)**.  
+The input guarantees that the first integer of the test case is exactly the
+value `L`.  The assignment discards the value, therefore it does not affect
+any program variable.  By the **(Assign)** rule we obtain
+
+\[
+\{P\}\;_:=\text{int(input())}\;\{P\}.
+\tag{3.1}
+\]
+
+Thus after line 1 the same pre‑condition still holds.
+
+### 3.2  Reading the vector `V`
+
+```python
+grupoLesmas = map(int, input().split(' '))
+```
+
+The call `input().split(' ')` returns a list of **exactly `L` strings**,
+because the problem statement says that each test case contains `L` numbers
+on the second line.  Applying `int` to each element yields the vector  
+
+\[
+V = (V_1,\dots ,V_L) \quad\text{with}\quad
+\forall i\;(1\le i\le L\; \Rightarrow\; V_i\in\mathbb N\wedge 1\le V_i\le 50).
+\]
+
+Consequently the assignment stores a *well‑formed* iterator `grupoLesmas`
+that, when consumed, will produce exactly the numbers required by `P`.  Using
+the **(Assign)** rule again we obtain
+
+\[
+\{P\}\; \text{grupoLesmas}:= \text{map(int, input().split(' '))}\;
+\{P\}.
+\tag{3.2}
+\]
+
+### 3.3  Computing the maximum
+
+```python
+turbo = max(grupoLesmas)
+```
+
+The built‑in `max` is defined for any non‑empty finite iterable; the iterator
+contains precisely the `L` speeds, and `L≥1` by the pre‑condition.  Therefore
+
+\[
+\text{turbo}=M:=\max_{1\le i\le L}V_i .
+\]
+
+The **(Assign)** rule yields
+
+\[
+\{P\}\; \text{turbo}:= \max(\text{grupoLesmas})\;
+\{P\wedge \text{turbo}=M\}.
+\tag{3.3}
+\]
+
+Now the variable `turbo` holds the exact value `M` required by the post‑condition.
+
+### 3.4–3.6  The case distinction
+
+```python
+if turbo < 10:
+    resposta = '1'
+elif turbo < 20:
+    resposta = '2'
+else:
+    resposta = '3'
+```
+
+We treat the three branches as a single `if‑elif‑else`.  
+Let  
+
+\[
+B_1 \equiv \text{turbo}<10,\qquad
+B_2 \equiv \text{turbo}<20,\qquad
+B_3 \equiv \neg B_1\wedge\neg B_2\;( \text{i.e. } \text{turbo}\ge 20).
+\]
+
+From (3.3) we know `turbo = M`.  Hence
+
+* If \(B_1\) holds, then \(M<10\) and we assign `resposta='1'`.  
+  By **(Assign)** we have  
+
+  \[
+  \{P\wedge B_1\wedge \text{turbo}=M\}\;
+  \text{resposta}:='1'\;
+  \{P\wedge \text{turbo}=M\wedge \text{resposta}='1'\}.
+  \tag{3.4a}
+  \]
+
+* If \(B_2\) holds (and \(B_1\) does not), then \(10\le M<20\) and we assign
+  `resposta='2'`.  
+
+  \[
+  \{P\wedge\neg B_1\wedge B_2\wedge \text{turbo}=M\}\;
+  \text{resposta}:='2'\;
+  \{P\wedge \text{turbo}=M\wedge \text{resposta}='2'\}.
+  \tag{3.4b}
+  \]
+
+* If \(B_3\) holds, then \(M\ge 20\) and we assign `resposta='3'`.  
+
+  \[
+  \{P\wedge\neg B_1\wedge\neg B_2\wedge \text{turbo}=M\}\;
+  \text{resposta}:='3'\;
+  \{P\wedge \text{turbo}=M\wedge \text{resposta}='3'\}.
+  \tag{3.4c}
+  \]
+
+Applying the **(If)** rule to the three branches we obtain
+
+\[
+\{P\wedge \text{turbo}=M\}\;
+\textbf{if } \text{turbo}<10\textbf{ then } \dots
+\textbf{ elif }\text{turbo}<20\textbf{ then } \dots
+\textbf{ else } \dots\;
+\{P\wedge \text{turbo}=M\wedge
+  (\text{resposta}='1'\lor\text{resposta}='2'\lor\text{resposta}='3')\}.
+\tag{3.4}
+\]
+
+Because the three cases are mutually exclusive and collectively exhaustive,
+the disjunction simplifies to the **definition of the level function**:
+
+\[
+\text{resposta}= \begin{cases}
+'1' &\text{iff } M<10\\
+'2' &\text{iff } 10\le M<20\\
+'3' &\text{iff } M\ge 20 .
+\end{cases}
+\tag{3.4′}
+\]
+
+Thus after line 6 we have exactly the relationship required by the post‑condition,
+except that the value is a string.
+
+### 3.7  Printing the answer
+
+```python
+print(resposta)
+```
+
+The statement does not modify any program variable; it only produces the
+observable output.  By the **(Assign‑like)** rule for I/O we can write
+
+\[
+\{P\wedge \text{turbo}=M\wedge
+   \text{resposta}= \mathsf{level}(M)\}\;
+\text{print(resposta)}\;
+\{P\wedge \text{turbo}=M\wedge
+   \text{output}= \mathsf{level}(M)\}.
+\tag{3.5}
+\]
+
+Now the post‑condition \(Q\) holds.
+
+### 3.8  Composition of the inner part
+
+Using the **(Seq)** rule repeatedly we compose the triples (3.1)–(3.5):
+
+\[
+\{P\}\; \text{line 1};\text{line 2};\text{line 3};
+\text{if…elif…else};\text{print}\;
+\{Q\}.
+\tag{*inner*}
+\]
+
+Thus we have proved **partial correctness** of a *single* test case:
+if the input satisfies the pre‑condition \(P\), the program terminates
+(and prints a line) and the printed value equals \(\mathsf{level}(M)\).
+
+---
+
+## 4.  The outer loop – total correctness
+
+The outer construction is
+
+```python
+while True:
+    try:
+        …  # body that we have just proved correct
+    except EOFError:
+        break
+```
+
+### 4.1  Loop invariant
+
+We choose the invariant
+
+\[
+I₀ \equiv \text{“the program is ready to read the next test case”}.
+\]
+
+Formally, \(I₀\) can be expressed as
+
+\[
+I₀ \equiv \bigl(\exists L\in\mathbb N^{+}\;.\;
+    \forall i\in\{1,\dots ,L\}\;(V_i\in\mathbb N\wedge 1\le V_i\le 50)\bigr)
+\]
+
+i.e. *there exists a well‑formed test case waiting on the input stream*.
+If the input has already reached EOF, the existential part is false, which
+means the loop guard `True` is still true but the `try` block will raise
+`EOFError` immediately.
+
+### 4.2  Preservation of the invariant
+
+* **Case 1 – a test case is present**  
+  The `try` block executes the body. By the inner proof we have  
+
+  \[
+  \{P\}\; \text{body}\; \{Q\}.
+  \]
+
+  The body consumes **exactly one** test case (the integer `L` and the line
+  with the `L` speeds). After it finishes, the next unread line of the input
+  is again either a well‑formed test case or EOF. Hence the invariant `I₀`
+  holds again.
+
+* **Case 2 – EOF is encountered**  
+  The call to `input()` raises `EOFError`. Control jumps to the `except`
+  clause, which executes `break`. The loop terminates, and the invariant is
+  no longer required.
+
+Thus the **while‑rule** (Hoare’s rule for `while B do S`) is satisfied with
+
+* guard `B ≡ True`,
+* invariant `I₀`,
+* body `S` = `try … except …`,
+* and the fact that the only way to leave the loop is via the `break`
+  triggered by `EOFError`.
+
+Formally:
+
+\[
+\frac{
+   \{I₀\}\; S\; \{I₀\}
+   \qquad
+   I₀ \wedge \neg B \;\Rightarrow\; \text{termination}
+}{
+   \{I₀\}\; \textbf{while } B \textbf{ do } S\; \{I₀\}
+}
+\]
+
+Since `B` is `True`, the condition `I₀ ∧ ¬B` never holds; termination is
+guaranteed by the explicit `break` when EOF occurs.
+
+### 4.3  From invariant to overall post‑condition
+
+When the program finally exits the loop, the only observable effect is the
+sequence of lines printed by the `print` statements inside the body.  For
+each iteration we have shown (inner proof) that the printed line equals
+\(\mathsf{level}(M)\) of the corresponding test case.  Consequently the
+entire output satisfies the specification
+
+\[
+\forall\; \text{test case } i:\; \text{output}_i = \mathsf{level}(M_i).
+\]
+
+That is exactly the **global post‑condition** stated in Section 5 of the
+specification:
+
+\[
+\bigl(\forall i\ge 1\;(P_i \Rightarrow Q_i)\bigr)
+\;\wedge\; \text{termination on EOF}.
+\]
+
+Hence the program is **totally correct** with respect to the given Hoare
+specification.
+
+---
+
+## 5.  Summary of the proof
+
+1. **Inner part** (`try` block)  
+   * Using the assignment rule we keep the pre‑condition `P` after reading
+     `L` and the vector `V`.  
+   * `max` computes `M` and we store it in `turbo`.  
+   * The `if‑elif‑else` distinguishes the three intervals of `M` and
+     assigns the string that is precisely `\mathsf{level}(M)`.  
+   * `print` outputs that string, establishing the post‑condition `Q`.  
+
+   Hence \(\{P\}\; \text{body}\; \{Q\}\) holds (partial correctness).
+
+2. **Outer loop** (`while True … except EOFError`)  
+   * Invariant `I₀` = “ready to read the next test case”.  
+   * The body preserves `I₀` (by the inner proof) whenever a test case is
+     present.  
+   * When EOF is reached the `except` clause executes `break`, causing the
+     loop to terminate.  
+
+   Therefore the while‑rule yields total correctness: the program terminates
+   on EOF and, for every test case that satisfies the pre‑condition, prints
+   the correct level.
+
+Consequently the given Python program **satisfies the Hoare‑logic
+specification**:
+
+\[
+\boxed{\{P\}\;\text{slug\_level\_program}\;\{Q\}}
+\]
+
+for each test case, and the whole program satisfies the global specification
+“process all test cases until EOF, printing the correct level for each”.

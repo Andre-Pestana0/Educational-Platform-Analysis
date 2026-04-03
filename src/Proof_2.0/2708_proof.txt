@@ -1,0 +1,209 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;{\tt process\_input}\;\{Q\}
+\]
+
+where  
+
+*`process_input`* is the whole Python fragment (initialisation, the
+`while`‑loop and the two `print`s),  
+
+*`P`* is the pre‑condition described in § 2,  
+
+*`Q`* is the post‑condition described in § 4.
+
+The proof follows the usual three‑step pattern for loops:
+
+1. **Choose a loop invariant** `I(k)`.  
+2. **Show** `I(0)` (initialisation).  
+3. **Show** `I(k) ⇒ I(k+1)` (preservation).  
+4. **Show** when the loop terminates `I(k)` implies the desired
+post‑condition `Q`.  
+
+All the other statements are proved with the ordinary Hoare rule
+`{A} x := e {A[e/x]}`.
+
+---------------------------------------------------------------------
+
+### 1.  Notation used in the proof  
+
+* The program variables are renamed to the mathematical ones used in the
+specification  
+
+  ```
+  total_turistas  →  T          (tourists still inside)
+  total_jipes     →  J          (jeeps   still inside)
+  ```
+
+* The input stream is abstracted as a finite sequence  
+
+  \[
+  \mathbf{in}= \langle(d_1,t_1),\dots ,(d_n,t_n)\rangle ,\qquad
+  d_i\in S,\;0\le t_i\le 20 .
+  \]
+
+* For a predicate `p` we write `[p]` for its Iverson bracket (1 if `p`
+holds, 0 otherwise).  
+
+* The auxiliary counters defined in the specification are  
+
+  \[
+  \begin{aligned}
+  J_k &:=\sum_{i=1}^{k}[d_i=\texttt{SALIDA}]
+        -\sum_{i=1}^{k}[d_i=\texttt{VUELTA}],\\[2pt]
+  T_k &:=\sum_{i=1}^{k}[d_i=\texttt{SALIDA}]\,t_i
+        -\sum_{i=1}^{k}[d_i=\texttt{VUELTA}]\,t_i .
+  \end{aligned}
+  \]
+
+---------------------------------------------------------------------
+
+### 2.  Loop invariant  
+
+\[
+I(k)\; \equiv\;
+\begin{cases}
+J = J_k,\\[2pt]
+T = T_k,\\[2pt]
+J_k\ge 0\ \wedge\ T_k\ge 0 .
+\end{cases}
+\qquad\text{for every }k\in\{0,\dots ,n\}.
+\]
+
+`I(k)` says that after the first `k` input pairs have been processed the
+program variables contain exactly the mathematical counters defined
+above and that both counters are non‑negative (the latter follows from
+the semantics of the problem – a jeep or a tourist can never be “more
+inside” than the number that entered).
+
+---------------------------------------------------------------------
+
+### 3.  Initialisation  
+
+Before the loop we have
+
+```
+total_turistas = 0
+total_jipes    = 0
+```
+
+i.e. `T = 0` and `J = 0`.  
+By definition `J_0 = 0` and `T_0 = 0`.  
+Hence `I(0)` holds:
+
+\[
+\{P\}\; \texttt{total\_turistas = 0; total\_jipes = 0}\;
+\{I(0)\}.
+\]
+
+---------------------------------------------------------------------
+
+### 4.  Preservation  
+
+Assume `I(k)` holds at the beginning of an iteration and that the next
+input pair is `(d_{k+1},t_{k+1})`.  
+The body of the loop is
+
+```
+if d == 'SALIDA':
+        J = J + 1
+        T = T + t
+else:               # d == 'VUELTA'
+        J = J - 1
+        T = T - t
+```
+
+*Case 1 –  d = SALIDA*  
+
+```
+J' = J + 1 = J_k + 1 = J_{k+1}
+T' = T + t = T_k + t_{k+1} = T_{k+1}
+```
+
+*Case 2 –  d = VUELTA*  
+
+```
+J' = J - 1 = J_k - 1 = J_{k+1}
+T' = T - t = T_k - t_{k+1} = T_{k+1}
+```
+
+In both cases the new values satisfy the definitions of `J_{k+1}` and
+`T_{k+1}`; consequently `I(k+1)` holds.  The non‑negativity part follows
+because the specification guarantees that a *VUELTA* never appears more
+times than the preceding *SALIDA* for the same jeep or for the same
+tourist group, so subtraction cannot make a counter negative.
+
+Thus we have proved the Hoare triple for the loop body:
+
+\[
+\{I(k)\land d_{k+1}\in S\land 0\le t_{k+1}\le 20\}\;
+\text{body}\;
+\{I(k+1)\}.
+\]
+
+---------------------------------------------------------------------
+
+### 5.  Termination  
+
+The input sequence is finite (pre‑condition `P`).  
+The loop condition is `while (linha := input()) != 'ABEND'`.  
+When the `ABEND` token is read, the loop guard becomes false, therefore
+the loop terminates after exactly `n` iterations.  No additional
+argument is required for partial correctness; termination follows from
+the finiteness of the input.
+
+---------------------------------------------------------------------
+
+### 6.  Post‑condition  
+
+When the loop finishes we have processed all `n` pairs, i.e. `k = n`.
+By the invariant we know `J = J_n` and `T = T_n`.  The two `print`s are
+
+```python
+print(total_turistas)   # prints T
+print(total_jipes)      # prints J
+```
+
+Hence the program outputs `T_n` on the first line and `J_n` on the second
+line.  Moreover `I(n)` guarantees `J_n ≥ 0` and `T_n ≥ 0`.  Substituting the
+definitions of `J_n` and `T_n` gives exactly the formulas appearing in
+the specification of `Q`.
+
+Therefore the Hoare triple for the whole program is proved:
+
+\[
+\{P\}\;
+\underbrace{
+\begin{array}{l}
+\texttt{total\_turistas = 0;}\\
+\texttt{total\_jipes = 0;}\\
+\texttt{while (linha := input()) != 'ABEND':}\\
+\qquad\texttt{acao, turistas = linha.split()[0], int(linha.split()[1])}\\
+\qquad\texttt{if acao == 'SALIDA':}\\
+\qquad\qquad\texttt{total\_jipes += 1}\\
+\qquad\qquad\texttt{total\_turistas += turistas}\\
+\qquad\texttt{elif acao == 'VUELTA':}\\
+\qquad\qquad\texttt{total\_jipes -= 1}\\
+\qquad\qquad\texttt{total\_turistas -= turistas}\\
+\texttt{print(total\_turistas)}\\
+\texttt{print(total\_jipes)}
+\end{array}
+}_{\text{process\_input}}
+\;
+\{Q\}.
+\]
+
+---------------------------------------------------------------------
+
+### 7.  Conclusion  
+
+The invariant `I(k)` is true initially, preserved by each iteration,
+and together with the termination condition yields the exact values
+required by the post‑condition.  Consequently the Python program
+conforms to the Hoare‑logic specification: it prints the number of
+tourists still inside the centre and the number of jeeps that have not
+yet returned, both non‑negative and computed exactly as prescribed by
+the definitions of `T_n` and `J_n`.  ∎

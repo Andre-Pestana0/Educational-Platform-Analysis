@@ -1,0 +1,281 @@
+**Proof that the program satisfies the Hoare‑logic specification**
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\text{program}\;\{Q\}
+\]
+
+by exhibiting a loop invariant for the `while True` loop, showing that the
+invariant holds before the first iteration, is preserved by every iteration,
+and together with the exit condition yields the post‑condition \(Q\).
+We also prove termination (the loop cannot run forever) because the input
+is finite and the pre‑condition guarantees the closing tag `</body>`.
+
+--------------------------------------------------------------------
+### 1.  Notation that will be used in the proof  
+
+* The whole input file is the finite sequence  
+
+  \[
+  S=\langle s_{1},s_{2},\dots ,s_{n}\rangle .
+  \]
+
+* The (unique) indices that satisfy the existential part of the pre‑condition
+  are denoted  
+
+  \[
+  i^{*},j^{*}\quad\text{with }1\le i^{*}<j^{*}\le n,
+  \qquad s_{i^{*}}=\langle\!body\!\rangle ,\; s_{j^{*}}=\langle\!/body\!\rangle .
+  \]
+
+* At any moment of the execution we denote by  
+
+  \[
+  t\in\{0,\dots ,n\}
+  \]
+
+  the number of input lines that have already been **read** (including the
+  current line, if the body of the loop is being executed).  
+  Thus after the \(t\)-th iteration the program has examined the prefix  
+
+  \[
+  S[1..t]=\langle s_{1},\dots ,s_{t}\rangle .
+  \]
+
+* The variable `dentro` is the Boolean flag used by the program.
+  The variable `O_{t}` denotes the sequence that has already been printed
+  (the concatenation of all calls to `print`).  
+
+* For a sequence \(A\) we write \(|A|\) for its length.
+
+--------------------------------------------------------------------
+### 2.  Loop invariant  
+
+\[
+\boxed{
+\begin{array}{l}
+I(t)\equiv
+\bigl(t\le n\bigr) \;\land\\[2mm]
+\bigl(\; \text{dentro}= \text{True}
+        \;\Longleftrightarrow\;
+        i^{*}<t<j^{*}\bigr) \;\land\\[2mm]
+\bigl(\; O_{t}= S[i^{*}+1 .. t]\;
+        \text{if }i^{*}<t<j^{*},
+        \text{otherwise }O_{t}= \langle\rangle\;\bigr)
+\end{array}}
+\]
+
+In words:
+
+* after reading the first \(t\) input lines, we have not read past the end of
+  the file (\(t\le n\));
+* the flag `dentro` is **True** exactly when we have already seen the opening
+  tag and have not yet seen the closing tag;
+* the output produced so far is precisely the subsequence of \(S\) that lies
+  strictly between the opening tag and the current line (if we are already
+  inside the body).
+
+--------------------------------------------------------------------
+### 3.  Establishing the invariant before the loop  
+
+Before the first iteration we have read **no** line, i.e. \(t=0\).
+
+* `dentro` is initialised to `False`.  
+  Because \(0 < i^{*}\) (the first tag is at position \(i^{*}\ge 1\)),
+  the equivalence `dentro = True  ⇔  i^{*}<0<j^{*}` holds (both sides are
+  false).
+
+* No line has been printed, therefore \(O_{0}= \langle\rangle\), which is
+  exactly the empty subsequence defined by the invariant for the case
+  \(i^{*}<0<j^{*}\) being false.
+
+Consequently \(I(0)\) holds.  This is the **initialisation** step of the
+Hoare‑logic proof.
+
+--------------------------------------------------------------------
+### 4.  Preservation of the invariant  
+
+Assume that at the beginning of an iteration we have
+\(I(t)\) for some \(t\) with \(0\le t < n\)
+(the loop condition is `while True`, therefore the body is entered
+unconditionally).  
+The next statement reads a line:
+
+```python
+linha = input()
+```
+
+Hence the variable `linha` now contains \(s_{t+1}\) and the index `t` is
+conceptually increased to \(t+1\).  
+We consider the three mutually exclusive cases that the program tests.
+
+--------------------------------------------------------------------
+#### 4.1  Case 1 – the line contains the opening tag  
+
+Condition: `'<body>' in linha` is true, i.e. \(s_{t+1}= \langle\!body\!\rangle\).
+
+* By the pre‑condition there is exactly one such line, therefore
+  \(t+1 = i^{*}\).
+* The body of the `if` executes:
+
+  ```python
+  dentro = True
+  continue
+  ```
+
+  * `dentro` becomes `True`.  Because \(i^{*}=t+1\) and we still have not read
+    the closing tag, we have \(i^{*}<t+1<j^{*}\) **iff** \(t+1<j^{*}\), which
+    holds because \(i^{*}<j^{*}\) (existential part of \(P\)).
+  * The `continue` statement skips the rest of the loop body, so no line is
+    printed during this iteration.  Consequently  
+
+    \[
+    O_{t+1}= O_{t}= \langle\rangle = S[i^{*}+1..t+1]\quad\text{(empty, because
+    }t+1=i^{*}).
+    \]
+
+Thus after the iteration \(I(t+1)\) holds.
+
+--------------------------------------------------------------------
+#### 4.2  Case 2 – the line contains the closing tag  
+
+Condition: `'</body>' in linha` is true, i.e. \(s_{t+1}= \langle\!/body\!\rangle\).
+
+* By the pre‑condition this line is unique, therefore \(t+1=j^{*}\).
+* The body of the `elif` executes:
+
+  ```python
+  exit()
+  ```
+
+  The program terminates **immediately**; no further statements are executed.
+  At the moment of termination we have read the line \(s_{j^{*}}\) and
+  printed exactly the lines that precede it while `dentro` was true.
+  Because `dentro` is true exactly for indices \(i^{*}<k<j^{*}\) (the invariant
+  before the test guarantees this), the printed sequence is  
+
+  \[
+  O_{j^{*}-1}= S[i^{*}+1 .. j^{*}-1].
+  \]
+
+  The post‑condition \(Q\) requires precisely this sequence, so the
+  termination condition together with the invariant yields \(Q\).
+
+--------------------------------------------------------------------
+#### 4.3  Case 3 – the line is neither opening nor closing tag  
+
+Condition: both tests are false, i.e.  
+
+\[
+s_{t+1}\neq\langle\!body\!\rangle\quad\text{and}\quad
+s_{t+1}\neq\langle\!/body\!\rangle .
+\]
+
+The program reaches the final `if`:
+
+```python
+if dentro:
+    print(linha)
+```
+
+* If `dentro` is **False**, nothing is printed.
+  By the invariant we have either \(t+1\le i^{*}\) or \(t+1\ge j^{*}\).
+  In both cases the definition of \(O_{t+1}\) (the printed sequence) stays
+  unchanged, i.e. \(O_{t+1}=O_{t}\).  The invariant still holds because the
+  condition “\(i^{*}<t+1<j^{*}\)” is false.
+
+* If `dentro` is **True**, then by the invariant \(i^{*}<t<j^{*}\).
+  The `print` statement outputs the current line \(s_{t+1}\).  
+  Consequently  
+
+  \[
+  O_{t+1}= O_{t}\,\|\,\langle s_{t+1}\rangle
+          = S[i^{*}+1 .. t]\;\|\,\langle s_{t+1}\rangle
+          = S[i^{*}+1 .. t+1].
+  \]
+
+  Moreover after printing we still have \(i^{*}<t+1<j^{*}\), so the Boolean
+  part of the invariant (`dentro` stays true) remains valid.
+
+Thus in all three cases the invariant \(I(t+1)\) holds after the
+iteration.
+
+--------------------------------------------------------------------
+### 5.  Termination  
+
+The input file contains exactly \(n\) lines, each of bounded length
+(\(\le 1000\) characters).  The loop reads **one** line per iteration.
+Because the pre‑condition guarantees the existence of a line
+\(s_{j^{*}}=\langle\!/body\!\rangle\) with \(j^{*}\le n\), the iteration in
+which \(t+1=j^{*}\) will execute the `exit()` statement and stop the loop.
+Hence the loop cannot run indefinitely; it terminates after at most \(n\)
+iterations.  This satisfies the required *partial correctness* together with
+the argument that the loop indeed reaches the terminating branch.
+
+--------------------------------------------------------------------
+### 6.  Deriving the post‑condition  
+
+When the program terminates we are in **Case 2** (the `exit()` branch).  
+At that moment the invariant holds for \(t=j^{*}-1\) (the last line that was
+read before the closing tag).  Instantiating \(I(j^{*}-1)\) gives
+
+\[
+\begin{aligned}
+\text{dentro} &= \text{True} \quad\text{(because }i^{*}<j^{*}-1<j^{*}\text{)}\\[1mm]
+O_{j^{*}-1} &= S[i^{*}+1 .. j^{*}-1].
+\end{aligned}
+\]
+
+The program then executes `exit()` **without printing anything else**,
+so the final output \(O\) equals \(O_{j^{*}-1}\).  Consequently
+
+\[
+O = \langle s_{i^{*}+1},\,s_{i^{*}+2},\dots ,s_{j^{*}-1}\rangle .
+\]
+
+This is exactly the sequence defined in the post‑condition \(Q\); moreover
+\(|O| = j^{*}-i^{*}-1\) and each printed line coincides with the corresponding
+input line, satisfying all conjuncts of \(Q\).
+
+--------------------------------------------------------------------
+### 7.  Hoare‑logic derivation  
+
+Summarising the above reasoning in Hoare‑logic notation:
+
+\[
+\begin{array}{l}
+\{P\} \\
+\text{dentro }:=\text{False} ; \\
+\{ I(0) \} \\
+\textbf{while } \text{True } \textbf{do} \\
+\qquad\{ I(t) \} \\
+\qquad\text{linha }:=\text{input()} ; \\
+\qquad\text{(case analysis as in 4.1–4.3)} \\
+\qquad\{ I(t+1) \} \\
+\textbf{od} \\
+\text{(the loop can only leave through the } \texttt{exit()} \text{ in case 2)} \\
+\{ Q \}
+\end{array}
+\]
+
+The invariant is proved true initially, preserved by each iteration, and
+combined with the only possible exit condition yields the desired post‑condition.
+Therefore the Hoare triple \(\{P\}\,\text{program}\,\{Q\}\) is valid; the
+Python program is **correct** with respect to the given formal specification.  
+
+--------------------------------------------------------------------
+### 8.  Conclusion  
+
+* The **pre‑condition** guarantees a well‑formed input containing a unique
+  opening `<body>` line followed later by a closing `</body>` line.
+* The **loop invariant** captures precisely the relationship between the flag
+  `dentro`, the part of the input already processed, and the output produced
+  so far.
+* The invariant holds initially, is preserved by every possible execution
+  path of the loop body, and together with the guaranteed `exit()` on the
+  closing tag yields the **post‑condition** that the printed sequence is
+  exactly the lines strictly between the two tags, in the original order.
+
+Hence the program satisfies the Hoare‑logic specification and is a correct
+solution of the problem *“Imprimir o conteúdo entre `<body>` e `</body>`”*.

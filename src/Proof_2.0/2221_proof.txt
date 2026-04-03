@@ -1,0 +1,387 @@
+**Proof of correctness (Hoare‑style) of the program `Solve`**  
+(The program that appears in the question is exactly the program named **`Solve`** in the specification.)
+
+--------------------------------------------------------------------
+### 1.  Vocabulary that will be used in the proof  
+
+| Symbol | Meaning (mathematical) |
+|--------|------------------------|
+| `T` | number of test‑cases (instances) |
+| `B_k` | bonus for the *k*‑th instance (`0 ≤ B_k ≤ 100`) |
+| `A^D_k , D^D_k , L^D_k` | attack, defence and level of Dabriel’s Pomekon in instance *k* |
+| `A^G_k , D^G_k , L^G_k` | attack, defence and level of Guarte’s Pomekon in instance *k* |
+| `val(A,D,B) = (A+D)/2 + B` | value of a Pomekon (the formula given in the statement) |
+| `V^D_k = val(A^D_k , D^D_k , B_k)` | value of Dabriel’s Pomekon in instance *k* |
+| `V^G_k = val(A^G_k , D^G_k , B_k)` | value of Guarte’s Pomekon in instance *k* |
+| `out_k` | the string printed for instance *k* (`"Dabriel"`, `"Guarte"` or `"Empate"`) |
+| `inst` | the loop variable that holds the number of instances still to be processed |
+| `i` | number of instances already processed (used in the invariant) |
+| `x` | a 3‑element list that contains the three integers read for a player (`[attack, defence, level]`) |
+
+All variables are integer‑valued.  
+The division `(A+D)/2` is an **exact** integer division because the problem guarantees that `A+D` is always even.
+
+--------------------------------------------------------------------
+### 2.  Specification (already given)
+
+*Pre‑condition*  
+
+\[
+\begin{aligned}
+P \equiv &
+\;T\in\mathbb N\;\land\;T\ge 1\\
+&\land\;\forall k\in\{1,\dots ,T\}\;.\;
+\Bigl(
+   0\le B_k\le 100\\
+&\qquad\land\;1\le A^{D}_k\le 100\;\land\;1\le D^{D}_k\le 100\;\land\;1\le L^{D}_k\le 50\\
+&\qquad\land\;1\le A^{G}_k\le 100\;\land\;1\le D^{G}_k\le 100\;\land\;1\le L^{G}_k\le 50
+\Bigr)
+\end{aligned}
+\]
+
+*Post‑condition*  
+
+\[
+\begin{aligned}
+Q \equiv &
+\forall k\in\{1,\dots ,T\}\;.\;
+\bigl(
+   V^{D}_k > V^{G}_k \;\land\; out_k = \text{``Dabriel''}
+\;\lor\;
+   V^{G}_k > V^{D}_k \;\land\; out_k = \text{``Guarte''}
+\;\lor\;
+   V^{D}_k = V^{G}_k \;\land\; out_k = \text{``Empate''}
+\bigr)
+\end{aligned}
+\]
+
+The Hoare triple we must establish is  
+
+\[
+\{P\}\; \textbf{Solve}\; \{Q\}
+\]
+
+--------------------------------------------------------------------
+### 3.  Proof structure  
+
+The program consists of three parts that will be proved separately:
+
+1. **Correctness of the function `golpe`.**  
+   Show that for any list `x = [a,d,l]` and any integer `bonus`  
+
+   \[
+   \{\,\text{true}\,\}\; \texttt{golpe}(x,bonus)\; \{\,\text{result}=val(a,d,bonus)\,\}
+   \]
+
+2. **Loop invariant for the main `while` loop.**  
+   Define an invariant `Inv(i,inst)` that captures “the first *i* instances have already been processed and the printed strings are correct”.  
+   Prove the invariant holds initially, is preserved by one iteration, and together with the termination condition (`inst = 0`) yields the post‑condition `Q`.
+
+3. **Composition of the whole program** using the Hoare rules for sequencing, assignment and conditionals.
+
+--------------------------------------------------------------------
+### 4.  Correctness of `golpe`
+
+The source code of `golpe` is
+
+```python
+def golpe(x, bonus):
+    ValorGolpe = float((x[0]+x[1])/2)
+    if (x[2] % 2) == 0:
+        ValorGolpe += bonus
+    return ValorGolpe
+```
+
+*Hoare reasoning* (using the usual Hoare rule for **if‑then‑else**)
+
+*Pre‑condition* for the call:  
+
+\[
+R \equiv \exists a,d,l\in\mathbb Z.\;x=[a,d,l]
+\]
+
+1. **Assignment**  
+
+   \[
+   \{R\}\; \texttt{ValorGolpe = float((x[0]+x[1])/2)}\;
+   \{R\land \texttt{ValorGolpe}= (a+d)/2\}
+   \]
+
+   (`float` does not change the value because the division is exact.)
+
+2. **Conditional**  
+
+   The guard is ` (x[2] % 2) == 0`.  
+   By definition of the remainder operator  
+
+   \[
+   (x[2] \% 2)=0 \;\Longleftrightarrow\; l \text{ is even}
+   \]
+
+   *Branch 1* (even level):  
+
+   \[
+   \{R\land l\text{ even}\}\;\texttt{ValorGolpe += bonus}\;
+   \{R\land\texttt{ValorGolpe}= (a+d)/2 + bonus\}
+   \]
+
+   *Branch 2* (odd level):  
+
+   \[
+   \{R\land \neg(l\text{ even})\}\; \texttt{skip}\;
+   \{R\land\texttt{ValorGolpe}= (a+d)/2\}
+   \]
+
+   By the **if‑rule** we obtain  
+
+   \[
+   \{R\}\;
+   \texttt{if (x[2] % 2) == 0: ValorGolpe += bonus}\;
+   \{R\land\texttt{ValorGolpe}= (a+d)/2 +\;[l\text{ even}]\,bonus\}
+   \]
+
+   where \([l\text{ even}]\) is 1 when the level is even and 0 otherwise.
+
+3. **Return**  
+
+   The statement `return ValorGolpe` simply yields the value of the expression, therefore the post‑condition of the whole function is  
+
+   \[
+   \{\,\text{result}= (a+d)/2 +\;[l\text{ even}]\,bonus\,\}
+   \]
+
+   By the definition of `val` we have exactly  
+
+   \[
+   \text{result}= val(a,d,bonus)
+   \]
+
+Thus the Hoare triple  
+
+\[
+\{\,\text{true}\,\}\;\texttt{golpe}(x,bonus)\;
+\{\,\text{result}=val(x[0],x[1],bonus)\,\}
+\]
+
+holds.  □
+
+
+
+--------------------------------------------------------------------
+### 5.  Loop invariant for the main loop
+
+The program fragment that we analyse is
+
+```python
+instancias = int(input())          #  (1)
+
+while instancias:                  #  (2)
+    instancias -= 1                #  (3)
+
+    bonus = int(input())           #  (4)
+
+    DadosDabriel = list(map(int,input().split()))   #  (5)
+    DadosGuarte = list(map(int,input().split()))    #  (6)
+
+    ValorDabriel = golpe(DadosDabriel, bonus)       #  (7)
+    ValorGuarte  = golpe(DadosGuarte , bonus)       #  (8)
+
+    if ValorDabriel > ValorGuarte:                  #  (9)
+        print('Dabriel')
+    elif ValorGuarte > ValorDabriel:                # (10)
+        print('Guarte')
+    else:                                           # (11)
+        print('Empate')
+```
+
+--------------------------------------------------------------------
+#### 5.1  Definition of the invariant  
+
+Let  
+
+* `i` – number of instances already processed (initially `0`);
+* `inst` – current value of the loop variable `instancias`.
+
+Define  
+
+\[
+\begin{aligned}
+\text{Inv}(i,inst) \equiv\; &
+\bigl(0\le i\le T\bigr) \;\land\;
+\bigl(inst = T-i\bigr)\\
+&\land\;
+\bigl\{
+\forall k\in\{1,\dots ,i\}\;.\;
+\bigl(
+   V^{D}_k > V^{G}_k \land out_k = \text{``Dabriel''}
+   \;\lor\;
+   V^{G}_k > V^{D}_k \land out_k = \text{``Guarte''}
+   \;\lor\;
+   V^{D}_k = V^{G}_k \land out_k = \text{``Empate''}
+\bigr)
+\bigr\}
+\end{aligned}
+\]
+
+In words: after `i` iterations the program has printed the correct
+string for each of the first `i` test‑cases and the variable `inst`
+holds exactly the number of cases still to be processed.
+
+--------------------------------------------------------------------
+#### 5.2  Initialization  
+
+After statement (1) we have `inst = T` (the input satisfies `P`, therefore the
+read value is a non‑negative integer).  
+Take `i = 0`.  All three conjuncts of `Inv(0,T)` are true:
+
+* `0 ≤ 0 ≤ T` – obvious,
+* `inst = T-0` – by the assignment,
+* the universal quantifier is vacuous because the set `{1,…,0}` is empty.
+
+Hence  
+
+\[
+\{P\}\; \texttt{instancias = int(input())}\; \{\,\text{Inv}(0,inst)\,\}
+\]
+
+holds.
+
+--------------------------------------------------------------------
+#### 5.3  Preservation  
+
+Assume `Inv(i,inst)` holds at the **beginning** of the loop body and that
+the guard `inst > 0` is true (otherwise the loop would not be entered).
+We must show that after executing the whole body the invariant holds
+with `i' = i+1` and `inst' = inst-1`.
+
+The proof proceeds step‑by‑step.
+
+*Statement (3):* `instancias -= 1`  
+
+\[
+\{ \text{Inv}(i,inst) \}\; \texttt{instancias -= 1}\;
+\{ \text{Inv}(i,inst-1)\}
+\]
+
+because only the conjunct `inst = T-i` is affected, and the assignment
+makes it `inst-1 = T-i-1`.
+
+*Statement (4):* `bonus = int(input())`  
+
+The input satisfies the range `0 ≤ bonus ≤ 100` by the pre‑condition,
+so the value of `bonus` is well‑defined; the invariant does not mention
+`bonus`, therefore it is unchanged.
+
+*Statements (5)–(6):* reading the six integers of the two players.  
+Again, by `P` each of those integers lies in the required interval,
+hence the lists `DadosDabriel` and `DadosGuarte` are correctly formed.
+The invariant does not yet speak about them, so it stays true.
+
+*Statements (7)–(8):* calls to `golpe`.  
+Using the result proved in Section&nbsp;4 we obtain  
+
+\[
+\begin{aligned}
+\texttt{ValorDabriel} &= V^{D}_{i+1}\\
+\texttt{ValorGuarte}  &= V^{G}_{i+1}
+\end{aligned}
+\]
+
+(the indices are `i+1` because we are processing the next, still
+unprocessed case).
+
+*Statements (9)–(11):* the `if‑elif‑else` chain.  
+The three branches are mutually exclusive and exhaustive; each branch
+contains exactly the `print` that corresponds to the comparison of the
+two values.  By the Hoare rule for conditionals we obtain the post‑condition
+
+\[
+\bigl(
+   V^{D}_{i+1} > V^{G}_{i+1} \land out_{i+1}= \text{``Dabriel''}
+   \;\lor\;
+   V^{G}_{i+1} > V^{D}_{i+1} \land out_{i+1}= \text{``Guarte''}
+   \;\lor\;
+   V^{D}_{i+1}=V^{G}_{i+1}   \land out_{i+1}= \text{``Empate''}
+\bigr)
+\]
+
+which is exactly the missing case for `k = i+1` in the universal
+quantifier of `Inv`.
+
+Consequently after the whole body we have  
+
+\[
+\text{Inv}(i+1,inst-1)
+\]
+
+i.e. the invariant is preserved.  Formally we have shown  
+
+\[
+\{\,\text{Inv}(i,inst)\land inst>0\,\}\;
+\texttt{body}\;
+\{\,\text{Inv}(i+1,inst-1)\,\}
+\]
+
+--------------------------------------------------------------------
+#### 5.4  Termination  
+
+The loop condition is `while instancias:` which is equivalent to `inst > 0`.  
+When the loop terminates we have `inst = 0`.  
+From the invariant we also have `inst = T-i`, therefore `i = T`.  
+Instantiating the invariant with `i = T` gives
+
+\[
+\forall k\in\{1,\dots ,T\}\;.\;
+\bigl(
+   V^{D}_k > V^{G}_k \land out_k = \text{``Dabriel''}
+   \;\lor\;
+   V^{G}_k > V^{D}_k \land out_k = \text{``Guarte''}
+   \;\lor\;
+   V^{D}_k = V^{G}_k   \land out_k = \text{``Empate''}
+\bigr)
+\]
+
+which is exactly the post‑condition `Q`.  Hence  
+
+\[
+\{\,\text{Inv}(0,T)\,\}\; \texttt{while}\; \{\,Q\,\}
+\]
+
+holds.
+
+--------------------------------------------------------------------
+### 6.  Composition of the whole program
+
+Putting the pieces together, using the Hoare rule for **sequencing**:
+
+1. `{P}` → statement (1) → `{Inv(0,inst)}` (proved in 5.2);
+2. `{Inv(0,inst)}` → `while …` → `{Q}` (proved in 5.3–5.4).
+
+Therefore  
+
+\[
+\{P\}\; \textbf{Solve}\; \{Q\}
+\]
+
+is established.  The program reads exactly the data described in the
+pre‑condition, computes for each test case the two values with the
+function `golpe` (which we proved correct), compares them, and prints
+the required string.  Consequently the output of the program satisfies
+the specification `Q`.
+
+--------------------------------------------------------------------
+### 7.  Conclusion  
+
+We have exhibited a **Hoare‑logic proof** that the given Python program
+conforms to the formal specification:
+
+* The function `golpe` computes the value `val(attack,defence,bonus)` for a
+  player, adding the bonus **iff** the level is even.
+* The main loop maintains the invariant that all already processed
+  instances have produced the correct winner string.
+* When the loop finishes, the invariant yields exactly the required
+  condition for **every** instance.
+
+Hence, under the assumption that the input respects the ranges stated in
+the pre‑condition `P`, the program terminates and its output fulfills the
+post‑condition `Q`.  The Hoare triple `{P} Solve {Q}` is therefore proved.   □

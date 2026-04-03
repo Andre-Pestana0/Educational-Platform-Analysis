@@ -1,0 +1,161 @@
+## 1.  What we have to show  
+
+We must prove the Hoare‑logic triple  
+
+\[
+\{\,P(S)\,\}\;\texttt{BotHack}(S)\;\{\,Q(S,O)\,\}
+\]
+
+where  
+
+* **Pre‑condition** \(P(S) :\; S\in\Sigma^{*}\) (the input is a string over the allowed alphabet).  
+
+* **Post‑condition** \(Q(S,O) :\; O = C\) with   
+\(C =\) “`Nao se refuta ciencia com opiniao`”.  
+
+The program that we are analysing is the (very small) Python script  
+
+```python
+# Lendo a falácia na entrada
+S = input()
+
+# Imprimindo a verdade
+print(f'Nao se refuta ciencia com opiniao')
+```
+
+In Hoare‑logic terminology we treat the two statements as **commands**:
+
+* `c1 :  S := input()`                            “read a line and bind it to the variable `S`”.
+* `c2 :  O := "Nao se refuta ciencia com opiniao"`    “store the constant in the output variable `O` (the value that will be printed)”.
+
+The whole program is the sequential composition  
+
+\[
+c \;=\; c_1 ; c_2 .
+\]
+
+Our goal is to derive  
+
+\[
+\{\,S\in\Sigma^{*}\,\}\;c\;\{\,O=C\,\}
+\tag{*}
+\]
+
+using the standard Hoare‑logic inference rules.
+
+---
+
+## 2.  Hoare‑logic rules we shall use  
+
+| Rule | Shape | Comment |
+|------|-------|---------|
+| **(Skip)** | \(\{P\}\;skip\;\{P\}\) | The empty command does not change the state. |
+| **(Assign)** | \(\{P[E/x]\}\;x := E\;\{P\}\) | Substitutes the right‑hand side expression for the assigned variable in the pre‑condition. |
+| **(Seq)** | \(\{P\}\;c_1;c_2\;\{R\}\) if \(\{P\}\;c_1\;\{Q\}\) and \(\{Q\}\;c_2\;\{R\}\) | Sequential composition. |
+| **(Consequence)** | If \(P' \Rightarrow P\) and \(\{P\}\;c\;\{Q\}\) and \(Q \Rightarrow Q'\) then \(\{P'\}\;c\;\{Q'\}\) | Allows strengthening the pre‑condition or weakening the post‑condition. |
+| **(Input rule – derived)** | \(\{\,\text{True}\,\}\;x:=\text{input()}\;\{\,x\in\Sigma^{*}\,\}\) | Reading from `stdin` yields a string belonging to the allowed alphabet (by definition of the problem statement). |
+
+The *input rule* is not a primitive Hoare rule, but it follows immediately from the specification of the environment: the judge (Beecrowd) guarantees that every line fed to the program consists only of characters from \(\Sigma\). Therefore the command `S = input()` establishes \(S\in\Sigma^{*}\) no matter what the previous state was.
+
+---
+
+## 3.  Derivation of the triple  
+
+### 3.1  The first command `c1 : S := input()`
+
+Using the *input rule* we obtain directly  
+
+\[
+\{\,\text{True}\,\}\;c_1\;\{\,S\in\Sigma^{*}\,\}. \tag{1}
+\]
+
+### 3.2  The second command `c2 : O := C`
+
+Apply the **Assign** rule with the constant expression `C`:
+
+* Desired post‑condition: \(O = C\).
+* The rule tells us that a suitable pre‑condition is obtained by substituting the right‑hand side for the assigned variable in the post‑condition:
+
+\[
+P_{2} \;=\; (O=C)[C/O] \;=\; C = C,
+\]
+
+which is a *tautology* (always true). Hence we have  
+
+\[
+\{\,\text{True}\,\}\;c_2\;\{\,O = C\,\}. \tag{2}
+\]
+
+### 3.3  Sequencing the two commands  
+
+We now compose (1) and (2) with the **Seq** rule.  
+We need a *middle* assertion that bridges the two commands. The natural choice is the post‑condition of `c1`, i.e. \(S\in\Sigma^{*}\).  
+
+\[
+\begin{aligned}
+&\{\,\text{True}\,\}\;c_1\;\{\,S\in\Sigma^{*}\,\} \quad\text{(from (1))} \\
+&\{\,S\in\Sigma^{*}\,\}\;c_2\;\{\,O=C\,\} \quad\text{(we can weaken the pre‑condition of (2) from True to }S\in\Sigma^{*}\text{ by Consequence)} \\
+\Longrightarrow\;&\{\,\text{True}\,\}\;c_1;c_2\;\{\,O=C\,\}. \tag{3}
+\end{aligned}
+\]
+
+The weakening step uses **Consequence**:
+
+\[
+\text{True} \Rightarrow S\in\Sigma^{*}\qquad\text{and}\qquad O=C \Rightarrow O=C,
+\]
+
+both trivially true.
+
+### 3.4  Adding the required pre‑condition  
+
+Our specification demands the pre‑condition \(P(S) : S\in\Sigma^{*}\), not merely `True`.  
+Since `True ⇒ S∈Σ*` is false (the implication goes the opposite way), we must *strengthen* the pre‑condition, i.e. we must show that starting from a state that already satisfies \(S\in\Sigma^{*}\) we can still guarantee the post‑condition.  
+
+From (3) we have a valid triple with a weaker pre‑condition (`True`). By **Consequence** we can replace it with any stronger pre‑condition:
+
+\[
+\begin{aligned}
+& P' \;=\; S\in\Sigma^{*} \\
+& P' \Rightarrow \text{True} \quad\text{(obviously true)}\\
+&\{\,\text{True}\,\}\;c\;\{\,O=C\,\} \\
+&\Longrightarrow\; \{\,S\in\Sigma^{*}\,\}\;c\;\{\,O=C\,\}.
+\end{aligned}
+\]
+
+Thus we obtain exactly the Hoare triple we were asked to prove:
+
+\[
+\boxed{\{\,S\in\Sigma^{*}\,\}\;c_1;c_2\;\{\,O=C\,\}}.
+\]
+
+---
+
+## 4.  Termination  
+
+Both commands are **primitive** and deterministic:
+
+* `input()` reads a finite line and returns; the judge guarantees that the line is finite, therefore the command terminates.
+* `print` (or the assignment `O := C`) is a single, bounded operation.
+
+A sequential composition of terminating commands terminates as well. Hence the program **halts** for every state satisfying the pre‑condition, satisfying the implicit termination requirement of Hoare logic.
+
+---
+
+## 5.  Summary of the proof  
+
+| Step | Command | Pre‑condition | Post‑condition | Reason |
+|------|---------|----------------|----------------|--------|
+| 1 | `S = input()` | `True` | `S ∈ Σ*` | Input rule (environment guarantees alphabet) |
+| 2 | `O = C` | `True` (or any stronger) | `O = C` | Assignment rule (substituting `C` for `O`) |
+| 3 | Sequence | `True` | `O = C` | Sequence rule + Consequence (weaken pre‑condition of step 2) |
+| 4 | Strengthen pre‑condition | `S ∈ Σ*` | `O = C` | Consequence (strengthening) |
+| 5 | Termination | — | — | Both primitive commands terminate, therefore the whole program terminates. |
+
+Consequently the program **satisfies the specification**  
+
+\[
+\forall S\in\Sigma^{*}\;:\;\texttt{BotHack}(S)=\text{``Nao se refuta ciencia com opiniao''}.
+\]
+
+The Hoare triple \(\{S\in\Sigma^{*}\}\;\texttt{BotHack}(S)\;\{O=C\}\) is therefore proved correct. ∎

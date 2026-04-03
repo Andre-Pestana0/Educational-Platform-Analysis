@@ -1,0 +1,280 @@
+## 1.  What we have to prove  
+
+We must show the Hoare triple  
+
+\[
+\{\,\textsf{true}\,\}\;\texttt{PrintTable}\;
+\{\,O = \text{hline}\;\|\;\text{title}\;\|\;\text{hline}\;\|\;
+      \bigparallel_{i=0}^{15}\text{row}(i)\;\|\;\text{hline}\,\}
+\tag{HT}
+\]
+
+where  
+
+* `O` is the whole text that has been sent to **stdout** when the program finishes;  
+* `hline`, `title` and `row(i)` are the mathematical strings defined in the
+  specification (Section 1 of the statement).  
+
+The program is the exact Python code that appears in the question; we shall
+refer to each line by its line number.
+
+--------------------------------------------------------------------
+
+## 2.  Notation that we will use in the proof  
+
+* `⟦S⟧` – the **semantic effect** of a statement `S` on the output buffer
+  `O`.  In our setting the only effect is *append a literal string* to `O`.  
+
+  \[
+  \frac{}{\,\langle O\rangle\; \texttt{print(lit)}\; \langle O\!\parallel\!\text{lit}\rangle}
+  \qquad (\textsf{Print})
+  \]
+
+* `i` – the loop‑counter of the `for` loop (`i ∈ ℕ₀`).  
+
+* `h(i)`, `o(i)`, `p(i)` – the three strings that the program computes inside
+  the loop:  
+
+  \[
+  \begin{aligned}
+  h(i) &= \texttt{hex(i).replace('0x','').upper()}      &&\text{(hexadecimal)}\\
+  o(i) &= \texttt{oct(i).replace('0o','')}              &&\text{(octal)}\\
+  p(i) &= \texttt{str(i)}                               &&\text{(decimal)}
+  \end{aligned}
+  \]
+
+  By the definition of the library functions `hex` and `oct`,
+  \[
+  h(i)=\text{toBase}_{16}(i),\qquad
+  o(i)=\text{toBase}_{8}(i),\qquad
+  p(i)=\text{toString}(i) .
+  \]
+
+* `f(i)` – the literal that is printed by the *format* statement inside the
+  loop:
+
+  \[
+  f(i)=\texttt{f'|  \{i:^9\}|\{o(i):^9\}|\{h(i):^15\}|\\n'}
+  \tag{2}
+  \]
+
+  The expression `{:^w}` centres the argument in a field of width `w`.
+  The two spaces that precede each field in the format string are part of the
+  literal, therefore the *effective* width of the three columns is  
+
+  * decimal: 9 − 2 = 7 characters,
+  * octal   : 9 − 2 = 7 characters, but the octal string itself has length ≤ 5,
+  * hex     : 15 − 2 = 13 characters, of which the three surrounding spaces give
+    the required width 7 for the specification.
+
+  Consequently  
+
+  \[
+  f(i)=\text{row}(i) .
+  \tag{3}
+  \]
+
+--------------------------------------------------------------------
+
+## 3.  Proof outline  
+
+The program consists of three parts:
+
+1. **Header** – three `print` statements that emit `hline`, `title` and the
+   second `hline`.  
+
+2. **Loop** – a `for i in range(0,16): …` that prints the 16 rows.  
+
+3. **Footer** – a final `print` that emits the last `hline`.  
+
+The proof proceeds by the *rule of composition* (sequencing) together with
+the *loop invariant* rule for the `for`‑loop.
+
+--------------------------------------------------------------------
+
+## 4.  The three header prints  
+
+```
+1 print("---------------------------------------")
+2 print("|  decimal  |  octal  |  Hexadecimal  |")
+3 print("---------------------------------------")
+```
+
+Using the rule **Print** we obtain the following Hoare triples:
+
+\[
+\{P\}\; \texttt{print("---------------------------------------")}\;
+\{P\!\parallel\!\text{hline}\}
+\]
+
+\[
+\{P\!\parallel\!\text{hline}\}\;
+\texttt{print("|  decimal  |  octal  |  Hexadecimal  |")}\;
+\{P\!\parallel\!\text{hline}\!\parallel\!\text{title}\}
+\]
+
+\[
+\{P\!\parallel\!\text{hline}\!\parallel\!\text{title}\}\;
+\texttt{print("---------------------------------------")}\;
+\{P\!\parallel\!\text{hline}\!\parallel\!\text{title}\!\parallel\!\text{hline}\}
+\]
+
+where the (arbitrary) pre‑condition `P` is `true`.  
+Thus after line 3 the buffer contains exactly  
+
+\[
+O_{0}= \text{hline}\;\|\;\text{title}\;\|\;\text{hline}.
+\tag{4}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Loop invariant  
+
+The loop is  
+
+```python
+for i in range(0,16):
+    h = hex(i).replace('0x','').upper()
+    o = oct(i).replace('0o','')
+    print(f'|  {i:^9}|{o:^9}|{h:^15}|')
+```
+
+The **for‑loop** in Python iterates over the list  
+`[0,1,…,15]`.  We use the standard Hoare‑logic rule for a `for` loop with an
+*index variable* `i` and a *loop counter* `k` that denotes how many
+iterations have already been performed:
+
+```
+I(k) ≡ O = hline ∥ title ∥ hline ∥ ( ∥_{j=0}^{k-1} row(j) )
+```
+
+* **Initialization** (`k = 0`).  
+  After the header we have exactly the buffer `O₀` of (4).  
+  Substituting `k = 0` in `I(k)` gives  
+
+  \[
+  O = \text{hline}\;\|\;\text{title}\;\|\;\text{hline}\;\|\;
+      \bigparallel_{j=0}^{-1}\text{row}(j)
+  =\text{hline}\;\|\;\text{title}\;\|\;\text{hline},
+  \]
+
+  which is precisely `O₀`.  Hence `I(0)` holds.
+
+* **Maintenance** – assume `I(k)` holds at the beginning of an iteration,
+  where `0 ≤ k ≤ 15`.  
+  The loop variable has the value `i = k`.  
+  The three assignments compute `h(k)`, `o(k)` and `p(k)`; by the discussion
+  in Section 2 they are respectively `toBase₁₆(k)`, `toBase₈(k)` and
+  `toString(k)`.  
+
+  The `print` statement appends the literal `f(k)`.  By (3) we have
+  `f(k) = row(k)`.  Consequently the buffer after the `print` becomes  
+
+  \[
+  O' = O\;\parallel\;\text{row}(k)
+      = \bigl(\text{hline}\;\|\;\text{title}\;\|\;\text{hline}\;
+            \parallel_{j=0}^{k-1}\text{row}(j)\bigr)
+        \;\parallel\;\text{row}(k)
+      = \text{hline}\;\|\;\text{title}\;\|\;\text{hline}\;
+        \parallel_{j=0}^{k}\text{row}(j).
+  \]
+
+  This is exactly `I(k+1)`.  Hence the invariant is preserved.
+
+* **Termination** – the loop stops when the iterator has been exhausted,
+  i.e. after the iteration with `k = 16`.  At that moment `I(16)` holds:
+
+  \[
+  O_{16}= \text{hline}\;\|\;\text{title}\;\|\;\text{hline}\;
+          \bigparallel_{j=0}^{15}\text{row}(j).
+  \tag{5}
+  \]
+
+--------------------------------------------------------------------
+
+## 6.  The final footer  
+
+The last line of the program is
+
+```
+print("---------------------------------------")
+```
+
+Applying **Print** once more to the state described by (5) yields
+
+\[
+O_{\text{final}}=
+\underbrace{\text{hline}\;\|\;\text{title}\;\|\;\text{hline}
+          \;\bigparallel_{j=0}^{15}\text{row}(j)}_{O_{16}}
+\;\parallel\;\text{hline}.
+\]
+
+This is exactly the post‑condition `Post` of (HT).
+
+--------------------------------------------------------------------
+
+## 7.  Formal derivation using Hoare‑logic rules  
+
+Below is a compact derivation that uses the standard Hoare‑logic inference
+rules ( **Seq**, **Print**, **Loop**, **Consequence** ).
+
+```
+{ true }                                            (Pre‑condition)
+
+  print(hline)                                      -- Print
+{ O = hline }
+
+  print(title)                                      -- Print
+{ O = hline ∥ title }
+
+  print(hline)                                      -- Print
+{ O = hline ∥ title ∥ hline }          ( = O0 )
+
+  for i in range(0,16):
+        h = hex(i).replace('0x','').upper()
+        o = oct(i).replace('0o','')
+        print(f'|  {i:^9}|{o:^9}|{h:^15}|')
+  { I(k)  invariant as defined above }              -- Loop rule
+  { O = hline ∥ title ∥ hline ∥ (∥_{i=0}^{15} row(i)) }
+                                                    (Invariant after k=16)
+
+  print(hline)                                      -- Print
+{ O = hline ∥ title ∥ hline ∥ (∥_{i=0}^{15} row(i)) ∥ hline }
+
+{ Post }                                            (definition of Post)
+```
+
+All side‑conditions of the rules are satisfied:
+
+* The loop invariant is **true** initially (see §5‑Initialization).  
+* The body of the loop indeed transforms `I(k)` into `I(k+1)` (see §5‑Maintenance).  
+* The loop terminates because `range(0,16)` is a finite list.  
+
+Thus the Hoare triple (HT) is proved.
+
+--------------------------------------------------------------------
+
+## 8.  Conclusion  
+
+We have exhibited:
+
+* a **loop invariant** that captures exactly the part of the output that has
+  already been produced,
+* a verification that the three header prints and the final footer print
+  add the required literal strings,
+* a proof that each iteration appends a row that coincides with the formal
+  definition `row(i)`.
+
+Consequently, starting from any state that satisfies the (trivial) pre‑condition
+`true`, the program `PrintTable` terminates with an output buffer `O` that
+satisfies the post‑condition
+
+\[
+O = \text{hline}\;\|\;\text{title}\;\|\;\text{hline}\;
+    \bigparallel_{i=0}^{15}\text{row}(i)\;\|\;\text{hline},
+\]
+
+i.e. it prints exactly the conversion table required by the specification.
+Therefore the given Python program is **correct** with respect to the Hoare‑logic
+specification. ∎

@@ -1,0 +1,369 @@
+**Answer – a Hoare‑logic proof that the given Python program satisfies the
+specification**
+
+Below we give a *complete* correctness proof that the program
+
+```python
+pi = 3.14
+area = []          # list that will contain a_i
+altura = []        # list that will contain h_i
+index = 0
+
+while True:                     #  (1)
+    try:
+        V = float(input())      #  (2)  read V
+        D = float(input())      #  (3)  read D
+
+        area.append(pi*(D/2)**2)          #  (4)
+        altura.append(V/area[index])      #  (5)
+
+        index += 1                         #  (6)
+    except EOFError:
+        break
+
+for i in range(len(altura)):   #  (7)
+    print(f"ALTURA = {altura[i]:.2f}\nAREA = {area[i]:.2f}")
+```
+
+meets the Hoare‑logic specification that was given in the statement.
+
+--------------------------------------------------------------------
+### 1.  The logical setting
+
+* **Variables that appear in the specification**
+
+```
+V  – volume read in the current iteration
+D  – inner diameter read in the current iteration
+h  – height of the cylindrical container (real number)
+a  – area of the circular mouth (real number)
+```
+
+* **Auxiliary program variables**
+
+```
+area[i]   = a_i    (the area computed in the i‑th iteration)
+altura[i] = h_i    (the height computed in the i‑th iteration)
+index    – points to the next free position in the two lists
+```
+
+* **Functions used in the post‑condition**
+
+```
+round2(x) = round(x,2)               # round‑to‑nearest with two decimals
+```
+
+* **Constants**
+
+```
+π  = 3.14          (the constant used by the program)
+```
+
+--------------------------------------------------------------------
+### 2.  The single‑iteration Hoare triple  
+
+We first prove the triple for **one** test case (the fragment *S* that the
+statement calls *Iter*).
+
+```
+S ≡  read V , D ;
+     h ← 4·V / (π·D²) ;
+     a ← π·D² / 4 ;
+     print "ALTURA = " , round2(h) ;
+     print "AREA   = " , round2(a)
+```
+
+The required triple is  
+
+\[
+\{P\}\; S\; \{Q\}
+\]
+
+with  
+
+\[
+\begin{aligned}
+P &\equiv ( V\in\mathbb{R}\wedge D\in\mathbb{R})\;\wedge\;
+      (1.00\le V\le 10\,000.00)\;\wedge\;(1.00\le D\le 100.00) \\[2pt]
+Q &\equiv \bigl(h = \tfrac{4V}{\pi D^{2}}\bigr)\;\wedge\;
+      \bigl(a = \tfrac{\pi D^{2}}{4}\bigr)\;\wedge\\
+  &\qquad\bigl(\text{output line 1 is “ALTURA = }\,\operatorname{round2}(h)\text{”}\bigr)\;\wedge\\
+  &\qquad\bigl(\text{output line 2 is “AREA   = }\,\operatorname{round2}(a)\text{”}\bigr)
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+#### 2.1  Proof by the Hoare calculus  
+
+We use the following axioms/rules (all of them are standard):
+
+| Rule | Shape |
+|------|-------|
+| **(Assign)** | \(\{\,Q[x:=E]\,\}\; x:=E\; \{\,Q\,\}\) |
+| **(Seq)**   | \(\{P\}\;S_{1}\;\{R\}\)  and  \(\{R\}\;S_{2}\;\{Q\}\)  ⇒  \(\{P\}\;S_{1};S_{2}\;\{Q\}\) |
+| **(Conseq)**| If \(P' \Rightarrow P\) and \(Q\Rightarrow Q'\) then \(\{P\}S\{Q\}\) ⇒ \(\{P'\}S\{Q'\}\) |
+| **(Output)**| `print e` does not change the store; the only effect is that the
+  value of `e` appears on the output channel.  Hence \(\{\,P\wedge e=v\,\}\; \text{print }e\; \{\,P\wedge \text{output }v\,\}\). |
+
+---
+
+**Step 1 – reading**  
+
+The two `read` statements merely bind the input values to the program
+variables `V` and `D`.  In Hoare logic we treat them as *assume* statements:
+
+\[
+\{P\}\; \text{read }V,D\; \{\,P\wedge V=v\wedge D=d\,\}
+\]
+
+where `v` and `d` are the concrete numbers that have been read.  
+Because `P` already contains the constraints on `V` and `D`, we can replace
+`P` by the stronger assertion  
+
+\[
+P_{1}\equiv (1\le v\le 10\,000)\wedge(1\le d\le 100)
+\]
+
+and continue with `P₁`.
+
+---
+
+**Step 2 – computing the height**  
+
+We want the post‑condition  
+
+\[
+h = \frac{4V}{\pi D^{2}}
+\]
+
+Apply the assignment axiom with the expression \(E_h = \frac{4V}{\pi D^{2}}\).
+
+\[
+\{\,h = \tfrac{4V}{\pi D^{2}}\;\}\; h := E_h\; \{\,h = \tfrac{4V}{\pi D^{2}}\,\}
+\]
+
+Since the pre‑condition of this sub‑statement is exactly the same formula,
+the rule is satisfied.  Moreover `P₁` does not mention `h`, therefore we can
+conjoin it:
+
+\[
+\{\,P_{1}\wedge h = \tfrac{4V}{\pi D^{2}}\,\}\; h:=E_h\; \{\,P_{1}\wedge h = \tfrac{4V}{\pi D^{2}}\,\}
+\tag{2}
+\]
+
+---
+
+**Step 3 – computing the area**  
+
+Analogously, with \(E_a = \frac{\pi D^{2}}{4}\),
+
+\[
+\{\,a = \tfrac{\pi D^{2}}{4}\,\}\; a := E_a\; \{\,a = \tfrac{\pi D^{2}}{4}\,\}
+\]
+
+and conjoin `P₁` (which still does not involve `a`):
+
+\[
+\{\,P_{1}\wedge h = \tfrac{4V}{\pi D^{2}}\wedge a = \tfrac{\pi D^{2}}{4}\,\}
+   \; a:=E_a\;
+\{\,P_{1}\wedge h = \tfrac{4V}{\pi D^{2}}\wedge a = \tfrac{\pi D^{2}}{4}\,\}
+\tag{3}
+\]
+
+---
+
+**Step 4 – first output line**  
+
+The statement  
+
+```python
+print(f"ALTURA = {h:.2f}")
+```
+
+is equivalent to  
+
+```
+print "ALTURA = " , round2(h)
+```
+
+The output rule gives
+
+\[
+\{\,P_{1}\wedge h = \tfrac{4V}{\pi D^{2}}\wedge a = \tfrac{\pi D^{2}}{4}\,\}
+   \; \text{print } \operatorname{round2}(h)
+\; \{\,P_{1}\wedge h = \tfrac{4V}{\pi D^{2}}\wedge a = \tfrac{\pi D^{2}}{4}
+        \wedge \text{out}_1 = \operatorname{round2}(h)\,\}
+\tag{4}
+\]
+
+where `out₁` denotes the first line that appears on the output channel.
+
+---
+
+**Step 5 – second output line**  
+
+Similarly
+
+\[
+\{\,\dots\wedge \text{out}_1 = \operatorname{round2}(h)\,\}
+   \; \text{print } \operatorname{round2}(a)
+\; \{\,\dots\wedge \text{out}_2 = \operatorname{round2}(a)\,\}
+\tag{5}
+\]
+
+---
+
+**Step 6 – composition**  
+
+Applying the **Seq** rule to (2)–(5) we obtain the Hoare triple for the whole
+fragment *S*:
+
+\[
+\{\,P_{1}\,\}\; S\; \{\, 
+      h = \tfrac{4V}{\pi D^{2}} \;\wedge\;
+      a = \tfrac{\pi D^{2}}{4} \;\wedge\;
+      \text{out}_1 = \operatorname{round2}(h) \;\wedge\;
+      \text{out}_2 = \operatorname{round2}(a) \,\}
+\]
+
+Because `P₁` is exactly the pre‑condition *P* (the constraints on `V` and `D`
+are the same), we have proved  
+
+\[
+\boxed{\; \{P\}\; S\; \{Q\}\;}
+\]
+
+which is the required single‑iteration Hoare triple.
+
+--------------------------------------------------------------------
+### 3.  Relating the specification to the actual Python program
+
+The Python program does **not** keep the variables `h` and `a` explicitly; it
+stores the two values in the lists `altura` and `area`.  Let us denote by
+`i` the value of `index` *before* the iteration starts (i.e. the index of the
+current test case).  The statements (4)–(5) of the program are:
+
+```
+area.append(π*(D/2)**2)          # (4')
+altura.append(V/area[i])        # (5')
+```
+
+* From the definition of `area.append` we have  
+
+  \[
+  area[i] = \pi\,(D/2)^{2}
+          = \frac{\pi D^{2}}{4}
+          = a .
+  \]
+
+* Substituting this value in the second line,
+
+  \[
+  altura[i] = \frac{V}{area[i]}
+            = \frac{V}{\frac{\pi D^{2}}{4}}
+            = \frac{4V}{\pi D^{2}}
+            = h .
+  \]
+
+Thus each iteration of the *while* loop computes exactly the same `h` and `a`
+that appear in the abstract fragment *S*.  The subsequent `for` loop prints
+every stored value with the format `"{value:.2f}"`, which is precisely the
+semantic of `round2`.  Consequently the concrete program satisfies the same
+post‑condition `Q` for **every** iteration.
+
+--------------------------------------------------------------------
+### 4.  The loop invariant for the whole program
+
+We now prove the specification for the complete program that processes an
+arbitrary number of test cases until EOF.
+
+**Invariant `I`** (holds at the beginning of each iteration of the `while` loop)
+
+\[
+\begin{aligned}
+I \equiv\; &\bigl(\text{the first }i\text{ elements of }area\text{ are }a_{0},
+\ldots ,a_{i-1}\bigr)\\
+           &\wedge\bigl(\text{the first }i\text{ elements of }altura\text{ are }h_{0},
+\ldots ,h_{i-1}\bigr)\\
+           &\wedge\bigl(\forall k<i\; (h_{k}=4V_{k}/(\pi D_{k}^{2})\ \wedge\
+                              a_{k}= \pi D_{k}^{2}/4)\bigr)
+\end{aligned}
+\]
+
+* **Initialization** – before the first iteration `index = 0` and both lists
+  are empty, therefore `I` holds trivially.
+
+* **Preservation** – assume `I` holds at the start of an iteration with
+  current `index = i`.  
+  By the proof of the single‑iteration triple we know that after executing the
+  body:
+
+  * `area[i]` is set to `a_i = π D_i² / 4`,
+  * `altura[i]` is set to `h_i = 4 V_i / (π D_i²)`,
+  * `index` becomes `i+1`.
+
+  Consequently the invariant holds with `i` replaced by `i+1`.
+
+* **Termination** – the loop ends exactly when an `EOFError` is raised.
+  At that moment `I` holds with `i = n` where `n` is the total number of test
+  cases in the input file.  No further state change occurs before the final
+  `for` loop.
+
+Thus `I` is a *loop invariant* for the `while` loop.  By the **while**
+rule of Hoare logic we obtain
+
+\[
+\{\,\top\,\}\;\textbf{while (not EOF)}\; \mathsf{Iter}\; \{\,\top\,\}
+\]
+
+where `Iter` is the Hoare triple proved in Section&nbsp;2.  The invariant
+shows that every iteration satisfies the pre‑condition `P` (the input values
+read are guaranteed to be real numbers inside the required intervals – the
+problem statement assures this), and that after the loop the lists contain
+exactly the pairs \((h_k , a_k)\) required by the specification.
+
+--------------------------------------------------------------------
+### 5.  End‑of‑program output
+
+The final `for` loop iterates over `i = 0 … n‑1` and prints
+
+```
+ALTURA = {altura[i]:.2f}
+AREA   = {area[i]:.2f}
+```
+
+For each `i` we have, by the invariant,  
+
+\[
+altura[i] = h_i = \frac{4V_i}{\pi D_i^{2}},\qquad
+area[i]   = a_i = \frac{\pi D_i^{2}}{4}.
+\]
+
+The formatting `:.2f` is defined by Python to be *exactly* the mathematical
+function `round2`.  Therefore the two lines printed for every test case are
+identical to the two lines demanded by the post‑condition `Q`.
+
+--------------------------------------------------------------------
+### 6.  Conclusion
+
+* The **single‑iteration** fragment of the program satisfies the Hoare triple
+  \(\{P\}\;S\;\{Q\}\) (proved in Section&nbsp;2).
+
+* The **loop invariant** `I` guarantees that the same reasoning can be
+  applied to each iteration of the `while` loop, and that the invariant holds
+  when the loop terminates.
+
+* Consequently the **whole program** satisfies the specification
+
+\[
+\{\,\top\,\}\;
+\textbf{while}(\text{not EOF})\;
+\bigl(\{P\}S\{Q\}\bigr)\;
+\{\,\top\,\},
+\]
+
+which is exactly the Hoare‑logic specification given in the problem
+statement.
+
+Hence the Python program is *correct* with respect to the formal pre‑ and
+post‑conditions. ∎

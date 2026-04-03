@@ -1,0 +1,260 @@
+## 1.  What we have to show  
+
+We are given the **Hoare triple**
+
+\[
+\{\,P(N)\,\}\;\; \textbf{read } N;\; \textbf{compute }F;\; \textbf{write }F\;\; \{\,Q(N,F)\,\},
+\]
+
+with  
+
+* **Pre‑condition**  
+  \[
+  P(N)\;:\; N\in\mathbb N\;\land\;0<N<13 .
+  \]
+
+* **Post‑condition**  
+  \[
+  Q(N,F)\;:\; F\in\mathbb N\;\land\;F=N!.
+  \]
+
+The Python program that implements the “read‑\(N\), write‑\(N!\)” task is
+
+```python
+N = int(input())          # read
+F = 1                     # initialise the product
+while N != 1:             # loop
+    F = F * N
+    N = N - 1
+print(F)                  # write
+```
+
+We must **prove total correctness** of the program with respect to the Hoare triple, i.e.
+
+* **Partial correctness** – if the program terminates, the value printed is exactly \(N!\) (the post‑condition holds);
+* **Termination** – under the pre‑condition the program always reaches the `print` statement.
+
+The proof will be carried out in the style of **Hoare logic**: we exhibit a suitable loop invariant, verify the three Hoare‑logic rules (initialisation, maintenance, exit) and show that a well‑founded ranking function guarantees termination.
+
+---
+
+## 2.  Notation used in the proof  
+
+* After the `read` statement we denote the value that was read by the **constant**  
+
+  \[
+  N_{0}\;:=\;N\quad(\text{the value of }N\text{ immediately after the input}).
+  \]
+
+  Throughout the rest of the program `N` will be changed, but \(N_{0}\) never changes.
+
+* The product variable used in the program is called `F` (the original code called it `fatorial`).  
+
+* The loop condition is `N != 1`.  
+
+* Arithmetic on natural numbers is the ordinary one; we use the standard factorial definition  
+
+  \[
+  n! = \prod_{i=1}^{n} i,\qquad 0! = 1 .
+  \]
+
+---
+
+## 3.  Loop invariant  
+
+We choose the following **invariant** \(I\) for the `while` loop:
+
+\[
+\boxed{I(N,F) \;:\; 1\le N\le N_{0}\;\land\;F = \frac{N_{0}!}{N!}}
+\tag{Inv}
+\]
+
+Intuitively, at any moment the product stored in `F` is exactly the part of the factorial that has already been “taken out” of the decreasing counter `N`.  
+
+Why this invariant works:
+
+* When the loop starts we have `F = 1` and `N = N_{0}`; therefore  
+
+  \[
+  F = 1 = \frac{N_{0}!}{N_{0}!},
+  \]  
+
+  and the inequality `1 ≤ N ≤ N_{0}` holds, so \(I\) is true initially.
+
+* Each iteration multiplies `F` by the current `N` and then decrements `N`. Assuming \(I\) holds before the iteration we get  
+
+  \[
+  \begin{aligned}
+  F' &= F\cdot N                        &&\text{(assignment in the body)}\\
+     &= \frac{N_{0}!}{N!}\cdot N        &&\text{by the induction hypothesis}\\
+     &= \frac{N_{0}!}{(N-1)!}           &&\text{since }N! = N\cdot (N-1)! .
+  \end{aligned}
+  \]
+
+  After the decrement `N' = N-1`. Hence  
+
+  \[
+  F' = \frac{N_{0}!}{N'!},
+  \]  
+
+  and because \(N\ge 2\) (the loop guard guarantees that) we have  
+
+  \[
+  1\le N' = N-1 \le N_{0},
+  \]  
+
+  so the invariant is preserved.
+
+* When the loop finishes we know from the guard that `N = 1`. Substituting `N = 1` in the invariant gives  
+
+  \[
+  F = \frac{N_{0}!}{1!}=N_{0}!,
+  \]  
+
+  which is precisely the post‑condition \(Q(N_{0},F)\).
+
+Thus the invariant (Inv) is strong enough to derive the required post‑condition.
+
+---
+
+## 4.  Hoare‑logic proof steps  
+
+We write the program as a sequence of commands and apply the Hoare rules.
+
+### 4.1  Read  
+
+\[
+\{\,P(N)\,\}\; \textbf{read }N\; \{\,N=N_{0}\land P(N_{0})\,\}
+\]
+
+The rule of **consequence** lets us replace the post‑condition by the weaker statement “\(N=N_{0}\) and \(0<N_{0}<13\)”, which is true because the read statement stores exactly the input value.
+
+### 4.2  Initialise the accumulator  
+
+\[
+\{\,N=N_{0}\land 0<N_{0}<13\,\}\;F:=1\;
+\{\,N=N_{0}\land 0<N_{0}<13\land F=1\,\}
+\]
+
+Again a trivial application of the assignment axiom.
+
+### 4.3  The `while` loop  
+
+The Hoare rule for a while loop is  
+
+\[
+\frac{\{I\land B\}\;S\;\{I\}}{\{I\}\;\textbf{while }B\textbf{ do }S\;\{I\land\neg B\}}
+\]
+
+where  
+
+* \(B\) is the loop guard (`N != 1`);
+* \(S\) is the loop body (`F:=F*N; N:=N-1`);
+* \(I\) is the invariant (Inv).
+
+We have already shown in §3 that  
+
+\[
+\{\,I\land (N\neq 1)\,\}\;S\;\{\,I\,\}.
+\]
+
+Thus we obtain  
+
+\[
+\{\,I\,\}\;\textbf{while }N\neq 1\textbf{ do }S\;\{\,I\land N=1\,\}.
+\]
+
+### 4.4  Exit of the loop ⇒ post‑condition  
+
+From the invariant and the exit condition we have  
+
+\[
+I\land N=1 \;\Longrightarrow\; F = \frac{N_{0}!}{1!}=N_{0}! .
+\]
+
+Hence the state after the loop satisfies  
+
+\[
+F = N_{0}!\quad\land\quad N = 1 .
+\]
+
+Since the only variable that will be written out is `F`, we have proved  
+
+\[
+\{\,F = N_{0}!\,\}\;\textbf{print }F\;\{\,Q(N_{0},F)\,\}.
+\]
+
+### 4.5  Putting everything together  
+
+Chain the Hoare triples obtained for the individual pieces by the **sequencing rule**:
+
+\[
+\{\,P(N)\,\}\;
+\begin{array}{l}
+\textbf{read }N;\\
+F:=1;\\
+\textbf{while }N\neq 1\textbf{ do }\\
+\qquad\{F:=F*N; N:=N-1\}\\
+\textbf{print }F
+\end{array}
+\;\{\,Q(N,F)\,\}.
+\]
+
+Thus the whole program is **partially correct** with respect to the given specification.
+
+---
+
+## 5.  Termination (total correctness)
+
+To prove **total** correctness we must show that the loop cannot iterate forever.  
+
+Define the **ranking (variant) function**
+
+\[
+\theta(N) \;:=\; N-1 .
+\]
+
+* Under the pre‑condition we have \(1\le N\le 12\), so \(\theta(N)\) is a natural number.
+* The loop guard is `N != 1`. While the guard is true we have \(N\ge 2\), therefore \(\theta(N)\ge 1\).
+* The body of the loop replaces `N` by `N-1`. Consequently  
+
+  \[
+  \theta(N') = (N-1)-1 = \theta(N)-1 .
+  \]
+
+  Hence \(\theta\) **strictly decreases** at each iteration and never becomes negative.
+
+Because the natural numbers are well‑founded under the usual `<` relation, a strictly decreasing natural‑valued function must reach 0 after a finite number of steps. When \(\theta(N)=0\) we have \(N=1\) and the guard becomes false, so the loop terminates.
+
+Since the loop is the only possible source of non‑termination, the whole program always terminates for every input satisfying the pre‑condition.  
+
+Therefore we have proven **total correctness**:
+
+\[
+\boxed{\{\,N\in\mathbb N\land 0<N<13\,\}\;
+\text{program}\;
+\{\,F\in\mathbb N\land F=N!\,\}} .
+\]
+
+---
+
+## 6.  Remarks on the bound “\(N<13\)”
+
+* The invariant and the termination argument do **not** rely on the bound; they work for any \(N\ge 1\).
+* The bound appears only in the **pre‑condition** to guarantee that the computed value fits into a 32‑bit signed integer (the language used by Beecrowd/URI judges). Because the specification explicitly requires `0 < N < 13`, the proof respects the given contract.
+
+---
+
+## 7.  Summary  
+
+1. **Invariant** `I(N,F) ≡ (1 ≤ N ≤ N₀) ∧ (F = N₀! / N!)` is established before the loop, preserved by each iteration, and together with the exit condition (`N = 1`) yields `F = N₀!`.  
+2. The **ranking function** `θ(N)=N‑1` strictly decreases and is bounded below by 0, guaranteeing termination.  
+3. By sequential composition of the Hoare triples for `read`, initialization, the `while` loop, and `print`, we obtain the desired Hoare triple  
+
+   \[
+   \{\,P(N)\,\}\;\text{program}\;\{\,Q(N,F)\,\},
+   \]
+
+   i.e. the program is **totally correct** with respect to the given pre‑ and post‑conditions.  
+
+Consequently the Python program that reads an integer \(N\) (with \(0<N<13\)), computes the product `F` as shown, and prints it, is a correct implementation of the specification “read‑\(N\), write‑\(N!\)”.

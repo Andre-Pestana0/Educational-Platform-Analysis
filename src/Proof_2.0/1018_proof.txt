@@ -1,0 +1,351 @@
+**Proof of correctness of the program**  
+
+We prove the Hoare triple  
+
+\[
+\{\,P\,\}\; \texttt{main}\; \{\,Q\,\}
+\]
+
+where  
+
+\[
+P\;:\;N\in\mathbb Z\land 0<N<10^{6}
+\]
+
+and  
+
+\[
+\begin{aligned}
+Q\;:\;&\exists\mathbf c\in\mathbb N^{7}\;.\;
+\Bigl(\forall i\in\{1,\dots ,7\}\;.\;
+c_i=\Bigl\lfloor\frac{r_{i-1}}{d_i}\Bigr\rfloor\Bigr)\\
+&\land\bigl(r_7=0\bigr)\\
+&\land\Bigl(\sum_{i=1}^{7}c_i d_i=N\Bigr)\\
+&\land\Bigl(\forall\mathbf c'\in\mathbb N^{7}\;
+\bigl(\sum_{i=1}^{7}c'_i d_i=N\bigr)\Rightarrow
+\|\mathbf c\|_1\le\|\mathbf c'\|_1\Bigr)\\
+&\land\text{the program prints exactly the text }{\tt out}.
+\end{aligned}
+\]
+
+The proof proceeds in three steps:
+
+1. **Derivation of the loop invariant** – this shows that after the loop the
+   quantities `c_i` satisfy the definitions of the `c_i` and `r_i` used in \(Q\).
+
+2. **Termination and post‑condition of the loop** – we obtain \(r_7=0\) and
+   \(\sum_i c_i d_i=N\).
+
+3. **Optimality of the greedy decomposition** – we show that the computed
+   vector \(\mathbf c\) uses the minimum possible number of notes, i.e. clause
+   (3) of \(Q\).
+
+Finally we argue that the printed text coincides with the specification.
+
+---------------------------------------------------------------------
+
+## 1. Loop invariant
+
+The `for`‑loop iterates over the list  
+
+\[
+\mathbf d=(d_1,\dots ,d_7)=(100,50,20,10,5,2,1)
+\]
+
+in this order.  
+Let the loop counter be \(k\) (1‑based) – at the start of the \(k\)-th
+iteration the variable `valor` holds the amount that is still to be
+decomposed, i.e. \(r_{k-1}\).
+
+We define the following invariant \(I(k)\) (the “state” after the first
+\(k-1\) denominations have been processed):
+
+\[
+\boxed{
+\begin{aligned}
+I(k)\; \equiv\;&
+\bigl(\text{valor}=r_{k-1}\bigr)\\
+&\land\bigl(r_{k-1}=N-\sum_{i=1}^{k-1}c_i d_i\bigr)\\
+&\land\bigl(0\le r_{k-1}<d_{k-1}\;\; \text{if }k>1\bigr)\\
+&\land\bigl(\forall i<k\;.\;c_i=\bigl\lfloor\frac{r_{i-1}}{d_i}\bigr\rfloor\bigr)
+\end{aligned}}
+\]
+
+*Base case (before the first iteration, \(k=1\)).*  
+
+The program reads the input into `valor`; therefore `valor = N = r_0`.  
+All sums over an empty set are zero, so  
+
+\[
+r_0=N-\sum_{i=1}^{0}c_i d_i=N.
+\]
+
+The condition “\(0\le r_0<d_0\)” is vacuous because \(k=1\).
+Thus \(I(1)\) holds immediately after the assignment
+
+\[
+\{P\}\; \texttt{valor = int(input())}\; \{I(1)\}.
+\]
+
+*Preservation (inductive step).*  
+
+Assume \(I(k)\) holds at the beginning of the \(k\)-th iteration,
+where the loop variable `nota` equals \(d_k\).
+
+The body executes
+
+```python
+quantidade = valor // nota      # c_k
+valor      = valor %  nota      # r_k
+```
+
+Using the Hoare rule for integer division and remainder we have the well‑known
+property (proved by Euclidean division)
+
+\[
+\forall a,b\;(b>0).\; a = (a//b)\,b + (a\bmod b)
+\quad\text{and}\quad 0\le a\bmod b<b .
+\]
+
+Applying it with \(a = r_{k-1}\) and \(b = d_k\) yields
+
+\[
+\begin{aligned}
+c_k      &= r_{k-1}//d_k,\\
+r_k      &= r_{k-1}\bmod d_k,\\
+0\le r_k &< d_k .
+\end{aligned}
+\]
+
+Consequently after the two assignments we have  
+
+\[
+\begin{aligned}
+\text{valor} &= r_k,\\
+r_k &= r_{k-1} - c_k d_k,\\
+\sum_{i=1}^{k}c_i d_i &= \sum_{i=1}^{k-1}c_i d_i + c_k d_k
+                      = N - r_{k-1} + c_k d_k
+                      = N - r_k .
+\end{aligned}
+\]
+
+All four conjuncts of \(I(k+1)\) are therefore satisfied.  
+Thus the Hoare triple
+
+\[
+\{I(k)\}\;\texttt{quantidade = valor // nota;\; valor = valor \% nota}\;
+\{I(k+1)\}
+\]
+
+holds for every \(k=1,\dots ,7\).
+
+*Termination.*  
+
+The loop finishes after the seventh iteration, i.e. when \(k=8\).  
+At that point the invariant gives
+
+\[
+\begin{aligned}
+r_7 &= N-\sum_{i=1}^{7}c_i d_i,\\
+0 &\le r_7 < d_7 = 1 .
+\end{aligned}
+\]
+
+Because the only integer that is non‑negative and smaller than 1 is 0,
+we obtain **\(r_7 = 0\)** and consequently
+
+\[
+\sum_{i=1}^{7}c_i d_i = N .
+\]
+
+Both clauses (1) and (2) of the post‑condition are therefore established.
+
+---------------------------------------------------------------------
+
+## 2. Optimality of the greedy decomposition  
+
+We must show
+
+\[
+\forall\mathbf c'\in\mathbb N^{7}\;
+\bigl(\sum_{i=1}^{7}c'_i d_i = N\bigr)
+\;\Longrightarrow\;
+\|\mathbf c\|_1 \le \|\mathbf c'\|_1 .
+\tag{*}
+\]
+
+The set of denominations  
+
+\[
+\{100,50,20,10,5,2,1\}
+\]
+
+is a **canonical coin system**: each denomination is either a multiple of the
+next smaller one or, when it is not, the next smaller one is at most half of
+the larger one.  A standard exchange argument (see e.g. Korte & Vygen,
+*Combinatorial Optimization*, § 4.2) proves that for such a system the greedy
+algorithm yields a decomposition with a minimum number of coins.
+
+Below we give a concise proof that fits the Hoare‑logic style.
+
+*Lemma (exchange).*  
+Let a decomposition \(\mathbf c'\) be any solution of \(\sum_i c'_i d_i = N\).
+Consider the largest index \(j\) for which \(c'_j > c_j\) (if none exists,
+\(\mathbf c'=\mathbf c\) and (*) holds trivially).  
+Because the greedy construction satisfies  
+
+\[
+c_j = \Bigl\lfloor\frac{r_{j-1}}{d_j}\Bigr\rfloor,
+\qquad
+0\le r_{j-1} < d_j ,
+\]
+
+the excess amount  
+
+\[
+e = (c'_j-c_j)\,d_j
+\]
+
+must be compensated by using smaller denominations.  
+Since \(d_{j}\ge 2\,d_{j+1}\) for every \(j\) (the list is \(\{100,50,20,10,5,2,1\}\)),
+the smallest number of smaller notes that can replace one extra \(d_j\) is at
+least two notes of denomination \(d_{j+1}\).  Hence replacing the excess
+\(e\) with smaller notes strictly **increases** the total number of notes.
+Formally,
+
+\[
+\|\mathbf c'\|_1 \;\ge\; \|\mathbf c\|_1 + (c'_j-c_j)
+\]
+
+which implies \(\|\mathbf c'\|_1 \ge \|\mathbf c\|_1\).  Because the argument
+holds for any \(\mathbf c'\) that differs from \(\mathbf c\), (*) is proved.
+
+Thus clause (3) of the post‑condition follows from the invariant and the
+exchange lemma.
+
+---------------------------------------------------------------------
+
+## 3. Correctness of the printed output  
+
+The program prints three kinds of lines:
+
+1. **First line** – `print(valor)` is executed **before** the loop.
+   At that moment `valor` still holds the original input \(N\).  
+   Hence the first line of the output is exactly the integer \(N\).
+
+2. **Loop lines** – during the \(k\)-th iteration the program executes  
+
+   ```python
+   print(f'{quantidade} nota(s) de R$ {nota},00')
+   ```
+
+   where `quantidade` is the variable `c_k` computed as `valor // nota`
+   and `nota` is `d_k`.  
+   By the invariant we have shown that `c_k` is precisely
+   \(\bigl\lfloor r_{k-1}/d_k\bigr\rfloor\).  
+   Consequently each printed line has the exact textual form required by
+   the specification, namely  
+
+   \[
+   c_k\;\text{“nota(s) de R\$ }d_k\text{,00”}.
+   \]
+
+3. **Order and termination** – the loop iterates over `notas` in the order
+   \((100,50,20,10,5,2,1)\); after the last iteration the loop ends and the
+   program terminates.  No further output is produced.
+
+Therefore the concatenation of all printed lines is exactly the string
+`out` defined in the post‑condition \(Q\).
+
+---------------------------------------------------------------------
+
+## 4. Assembly of the Hoare proof
+
+We now combine the pieces using the Hoare rules for **sequence**, **assignment**,
+and **while** (the `for`‑loop is a syntactic sugar for a bounded `while`).
+
+1. **Input statement**  
+
+   \[
+   \{P\}\;\texttt{valor = int(input())}\;\{I(1)\}
+   \]
+
+   (proved in the base case of the invariant).
+
+2. **Print of the original amount**  
+
+   \[
+   \{I(1)\}\;\texttt{print(valor)}\;\{I(1)\}
+   \]
+
+   (printing does not modify the state).
+
+3. **Loop**  
+
+   The bounded `for`‑loop is equivalent to  
+
+   \[
+   k := 1;\;
+   \textbf{while}\;k\le 7\;\textbf{do}\;
+      \bigl\{I(k)\bigr\}
+      \texttt{quantidade = valor // notas[k-1]};
+      \texttt{valor = valor \% notas[k-1]};
+      \texttt{print(...)};\;
+      k := k+1
+   \]
+
+   Using the invariant preservation shown in § 1 we have  
+
+   \[
+   \{I(k)\}\;\textbf{body}\;\{I(k+1)\}.
+   \]
+
+   By the **while** rule we obtain  
+
+   \[
+   \{I(1)\}\;\textbf{while}\;k\le 7\;\textbf{do}\; \textbf{body}\;
+   \{I(8)\}.
+   \]
+
+   Since `I(8)` is exactly the conjunction of clauses (1) and (2) of \(Q\),
+   the loop yields those two parts of the post‑condition.
+
+4. **Optimality**  
+
+   The exchange lemma proved in § 2 establishes clause (3) of \(Q\) for the
+   vector \(\mathbf c\) that appears in the invariant.  Hence  
+
+   \[
+   \{I(8)\}\;\texttt{skip}\;\{Q\}.
+   \]
+
+5. **Composition**  
+
+   By the **sequence** rule we combine the three steps  
+
+   \[
+   \{P\}\;\texttt{valor=int(input())};\;
+   \texttt{print(valor)};\;
+   \textbf{for}\; \texttt{nota in notas}:\; \textbf{body}\;
+   \{Q\}.
+   \]
+
+Thus the Hoare triple \(\{P\}\;\texttt{main}\;\{Q\}\) is proved.
+
+---------------------------------------------------------------------
+
+## 5. Conclusion  
+
+We have shown, using a formal Hoare‑logic argument, that for every integer
+input \(N\) with \(0<N<10^{6}\) the program
+
+* reads the value,
+* prints the value,
+* computes, by the greedy rule, the unique vector \(\mathbf c\) of note
+  quantities,
+* guarantees that \(\sum_i c_i d_i = N\) and that no other decomposition uses
+  fewer notes,
+* and finally prints exactly the required lines.
+
+Consequently the program satisfies the specification \(Q\) and is
+**correct** with respect to the given pre‑condition \(P\). ∎

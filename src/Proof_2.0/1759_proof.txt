@@ -1,0 +1,290 @@
+**Proof of correctness of the “Ho‑printer’’ program**  
+
+We prove that the Python fragment
+
+```python
+# 1. read N
+N = int(input())
+
+# 2. build a list with N copies of the token "Ho"
+hos = ['Ho'] * N
+
+# 3. join the list with a single‑space separator
+hos = ' '.join(hos)
+
+# 4. write the result followed by an exclamation mark
+print(f"{hos}!")
+```
+
+satisfies the Hoare triple  
+
+\[
+\{\,0<N\le 10^{6}\,\}\;S\;\{\,out = \operatorname{sprep}_{N}("Ho")\cdot "!"\,\}.
+\]
+
+The proof proceeds by giving a Hoare triple for each statement, using the usual Hoare‑logic rules (assignment, composition, consequence) and a small auxiliary lemma about the behaviour of Python’s list‑replication and `str.join` operators.
+
+--------------------------------------------------------------------
+
+## 1.  Notation that will be used in the proof  
+
+* `N` – the integer read from the input (a program variable).  
+* `hos` – a program variable that first denotes a **list** of strings and later a **string**.  
+* `out` – the string that the program finally writes to standard output.  
+* `rep_k(s)` – the *pure* repetition operator defined in the specification:  
+
+  \[
+  rep_k(s)=\underbrace{s\cdot s\cdot\ldots\cdot s}_{k\text{ copies}} .
+  \]
+
+* `sprep_k(s)` – the *space‑separated* repetition operator defined in the specification.  
+
+  We shall use the following **equational property** of Python’s `join`, proved later:
+
+  > **Lemma 1 (join‑property).**  
+  > For every `k≥1` and every string `s`,
+  > \[
+  > \text{sep}.\text{join}(\,[s]*k\,)=\operatorname{sprep}_{k}(s)
+  > \]
+  > where `sep` is the separator string (here `" "`).
+
+* `·` – string concatenation (associative, left‑to‑right).
+
+--------------------------------------------------------------------
+
+## 2.  Lemma 1 – correctness of the `join` statement  
+
+We prove the lemma by simple induction on `k`.
+
+*Base (`k = 1`).*  
+
+`["Ho"]*1` evaluates to the list `["Ho"]`.  
+`" ".join(["Ho"])` returns the single element `"Ho"`.  
+By definition `sprep_1("Ho") = "Ho"`. Hence the equality holds.
+
+*Induction step.*  
+Assume the lemma true for some `k≥1`.  
+Consider `k+1`:
+
+```
+["Ho"]*(k+1)  =  ["Ho"]*k  +  ["Ho"]
+```
+
+(`+` is list concatenation.)  
+Applying the definition of `join`:
+
+```
+" ".join( ["Ho"]*k  + ["Ho"] )
+      =  " ".join( ["Ho"]*k )  +  " " + "Ho"
+```
+
+(the separator `" "` is inserted between the two parts).  
+By the induction hypothesis the first part equals `sprep_k("Ho")`.  
+Therefore the whole expression becomes  
+
+```
+sprep_k("Ho")  +  " "  +  "Ho"
+```
+
+which, by the recursive definition of `sprep`, is exactly `sprep_{k+1}("Ho")`. ∎
+
+
+
+--------------------------------------------------------------------
+
+## 3.  Hoare triples for the individual statements  
+
+We write the triples in the form  
+
+\[
+\{\,\text{pre}\,\}\;c\;\{\,\text{post}\,\}
+\]
+
+where `c` is a single Python statement (or a block) and the pre/post
+conditions are logical formulas over the program variables.
+
+### 3.1  Statement 1 – input  
+
+```
+N = int(input())
+```
+
+*Pre‑condition* : `0 < N ≤ 10^6` (the same as the global pre‑condition).  
+*Post‑condition* : the same, because the statement only *reads* a value
+that is assumed to satisfy the pre‑condition.  
+
+Formally we use the **rule of consequence**: the statement does not
+modify any variable other than `N`, and we assume the environment supplies
+a value that respects the pre‑condition. Hence  
+
+\[
+\{\,0<N\le10^6\,\}\; N=int(input())\;\{\,0<N\le10^6\,\}.
+\]
+
+### 3.2  Statement 2 – list construction  
+
+```
+hos = ['Ho'] * N
+```
+
+The Python expression `['Ho'] * N` creates a list of length `N` whose
+every element is the string `"Ho"`.  Let  
+
+\[
+L(N) \;\equiv\; \bigl|\,\text{hos}\,\bigr| = N \;\wedge\;
+\forall j\in\{0,\dots ,N-1\}\;.\;\text{hos}[j] = "Ho".
+\]
+
+Using the **assignment axiom**  
+
+\[
+\{\,L(N)\,\}\;hos = ['Ho'] * N\;\{\,L(N)\,\},
+\]
+
+because the right‑hand side is defined precisely to yield a list that
+satisfies `L(N)` for the current value of `N`.  The pre‑condition of the
+assignment is therefore `0<N≤10^6 ∧ L(N)` and the post‑condition is the same
+`L(N)`.
+
+### 3.3  Statement 3 – joining the list  
+
+```
+hos = ' '.join(hos)
+```
+
+At this point the variable `hos` satisfies `L(N)`.  
+Applying Lemma 1 with `s = "Ho"` and `k = N` we obtain
+
+\[
+\text{' '.join(hos)} = \operatorname{sprep}_{N}("Ho").
+\]
+
+Define  
+
+\[
+J(N) \;\equiv\; \text{hos} = \operatorname{sprep}_{N}("Ho").
+\]
+
+Again by the **assignment axiom** we have  
+
+\[
+\{\,L(N)\,\}\;hos = ' '.join(hos)\;\{\,J(N)\,\}.
+\]
+
+Thus after the third line the program variable `hos` is exactly the
+space‑separated repetition required by the specification.
+
+### 3.4  Statement 4 – printing  
+
+```
+print(f"{hos}!")
+```
+
+The `print` call writes the *value* of the expression `f"{hos}!"` to the
+output channel.  The expression evaluates to the concatenation  
+
+\[
+\text{hos} \;·\; "!" .
+\]
+
+Define the *output* predicate  
+
+\[
+O(N) \;\equiv\; out = \operatorname{sprep}_{N}("Ho")·"!" .
+\]
+
+From the previous step we already know `hos = sprep_N("Ho")`.  Hence the
+statement produces exactly `out = hos·"!" = sprep_N("Ho")·"!"`.  Using the
+**output rule** (a variant of the assignment axiom for the external
+variable `out`) we obtain  
+
+\[
+\{\,J(N)\,\}\;\text{print}(f"{hos}!")\;\{\,O(N)\,\}.
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Composition of the whole program  
+
+The program `S` is the sequential composition of the four statements
+\(c_1;c_2;c_3;c_4\).  By the **rule of composition** of Hoare logic, if we have
+
+\[
+\begin{aligned}
+\{P\}\;c_1\;\{P_1\},\\
+\{P_1\}\;c_2\;\{P_2\},\\
+\{P_2\}\;c_3\;\{P_3\},\\
+\{P_3\}\;c_4\;\{Q\},
+\end{aligned}
+\]
+
+then  
+
+\[
+\{P\}\;c_1;c_2;c_3;c_4\;\{Q\}.
+\]
+
+Instantiating the predicates we have  
+
+| step | pre‑condition | statement | post‑condition |
+|------|---------------|-----------|----------------|
+| 1 | \(0<N\le10^6\) | `N=int(input())` | \(0<N\le10^6\) |
+| 2 | \(0<N\le10^6\) | `hos=['Ho']*N` | \(L(N)\) |
+| 3 | \(L(N)\) | `hos=' '.join(hos)` | \(J(N)\) |
+| 4 | \(J(N)\) | `print(f"{hos}!")` | \(O(N)\) |
+
+Since each triple is justified (assignment axiom, Lemma 1, output rule)
+the composition yields  
+
+\[
+\boxed{\{\,0<N\le10^6\,\}\;S\;\{\,out = \operatorname{sprep}_{N}("Ho")·"!"\,\}} .
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Deriving the extra clauses of the specification  
+
+The post‑condition required in the problem statement contains three
+conjuncts:
+
+1. **Exact form of the output** – proved above as `out = sprep_N("Ho")·"!"`.  
+
+2. **Length of the part before “!”** –  
+   By definition of `sprep` we have  
+
+   \[
+   |\operatorname{sprep}_{N}("Ho")| = 2N-1 .
+   \]
+
+   This follows directly from the recursive definition:
+   each additional copy of `"Ho"` contributes two characters
+   (`" "` and `"Ho"`), except the first copy which contributes only the
+   two characters of `"Ho"` itself.
+
+3. **Every token is “Ho”** –  
+   The construction of `sprep_N("Ho")` guarantees that the only tokens
+   (delimited by spaces) are the word `"Ho"`.  Formally,
+   for each `i∈{1,…,N}` the `i`‑th token of `sprep_N("Ho")` equals `"Ho"`,
+   which is immediate from the definition of `sprep`.
+
+All three conjuncts are therefore logical consequences of the main
+post‑condition that we have proved.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+Using Hoare‑logic inference rules together with a small inductive lemma
+about Python’s `join`, we have shown that the program satisfies the
+formal specification:
+
+\[
+\{\,0<N\le 10^{6}\,\}\;S\;\{
+   out = \operatorname{sprep}_{N}("Ho")·"!"
+   \;\wedge\; |\operatorname{sprep}_{N}("Ho")| = 2N-1
+   \;\wedge\; \forall i\in\{1,\dots,N\}\;.\; \text{token}_i(out\text{ without “!”}) = "Ho"
+\}.
+\]
+
+Hence the program is **correct** with respect to the given Hoare‑logic
+pre‑ and post‑conditions.

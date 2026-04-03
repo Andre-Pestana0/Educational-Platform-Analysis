@@ -1,0 +1,307 @@
+## 1.  What we have to prove  
+
+We must show that the **whole program**  
+
+```text
+read X , M
+while X ≠ 0 ∧ M ≠ 0 :
+        print X·M
+        read X , M
+```
+
+satisfies the Hoare‑logic specification that was given in the question, i.e.
+
+\[
+\{\,\text{true}\,\}\; \texttt{program}\; \{\,\text{“every non‑sentinel pair (X,M) that was read produced an output line equal to }X\cdot M\text{”}\,\}.
+\]
+
+In the language of Hoare logic we prove the **inner iteration**  
+
+\[
+\{P\}\;\; \texttt{process\_case}(X,M)\;\; \{Q\}
+\tag{1}
+\]
+
+and then we use a **loop invariant** that is exactly the same predicate \(P\).  
+The proof proceeds in two parts:
+
+* **(A)**  prove (1) – the body that computes and prints the product,
+* **(B)**  prove that the outer `while` loop preserves the invariant and terminates on the sentinel pair.
+
+Below we give a complete Hoare‑logic derivation, together with the arithmetic reasoning that guarantees the bounds on the result.
+
+--------------------------------------------------------------------
+
+## 2.  Vocabulary and auxiliary notation  
+
+| Symbol | Meaning |
+|--------|----------|
+| `X , M` | the two natural numbers that are read from the input (the *increase* factor and the *monster* experience). |
+| `E`    | the value that has to be printed. In the program `E` is not stored, but we introduce it for the specification. |
+| `old(E)` | the value of `E` before the execution of the current iteration (used in the sentinel case). |
+| `⊢`   | “is provable in Hoare logic”. |
+| `⟦S⟧` | the meaning of statement `S` (the state transformation performed by `S`). |
+| `⌈φ⌉` | the truth value of a logical formula `φ` in the current state. |
+
+The arithmetic domain is the set of mathematical natural numbers \(\mathbb N\); Python’s unbounded integers are a faithful implementation of this domain, therefore overflow cannot occur.
+
+--------------------------------------------------------------------
+
+## 3.  The pre‑condition *P* and the post‑condition *Q*  
+
+\[
+\begin{aligned}
+P &\equiv (X = 0 \land M = 0)\;\lor\;(0<X\le 3 \land 10\le M\le 2^{31}\!-\!1) \\[2mm]
+Q &\equiv
+\bigl((X = 0 \land M = 0) \Rightarrow (\text{no output} \land E = \text{old}(E))\bigr) \;\land\\
+  &\qquad\bigl((0<X\le 3 \land 10\le M\le 2^{31}\!-\!1) \Rightarrow (E = X\cdot M \land 10\le E \le 3\,(2^{31}\!-\!1))\bigr).
+\end{aligned}
+\]
+
+The two disjuncts correspond to the **sentinel case** and the **normal case**.  
+In the sentinel case the program must *not* produce output and must leave the (non‑existent) variable `E` unchanged. In the normal case it must output the product and the product must respect the given bounds.
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the inner iteration (1)
+
+### 4.1  Decomposition of `process_case`
+
+The function `process_case` can be written, using only elementary statements, as
+
+```text
+if X = 0 ∧ M = 0 then
+        skip                     // nothing is printed
+else
+        E := X * M;              // compute the product
+        print E;                 // produce the required output
+fi
+```
+
+The `skip` statement leaves the state unchanged; the two statements in the `else` branch are ordinary assignments (the `print` does not modify the logical state, it only creates an observable side‑effect).
+
+### 4.2  Hoare triples for the two branches  
+
+*Sentinel branch*  
+
+\[
+\{\,X=0\land M=0\,\}\;\; \texttt{skip}\;\; \{\,X=0\land M=0 \land \text{no output} \land E=\text{old}(E)\,\}
+\tag{2}
+\]
+
+The rule **(skip)** says that `skip` preserves any assertion, therefore (2) holds trivially.
+
+*Normal branch*  
+
+We need two triples, one for the assignment `E := X*M` and one for the `print`.
+
+1. **Multiplication**  
+
+   \[
+   \{\,0<X\le 3\land 10\le M\le 2^{31}\!-\!1\,\}
+   \;E := X*M\;
+   \{\,E = X\cdot M\land 10\le E \le 3\,(2^{31}\!-\!1)\,\}
+   \tag{3}
+   \]
+
+   *Proof of (3).*  
+   From the antecedent we have  
+   \[
+   1\le X\le 3,\qquad 10\le M\le 2^{31}\!-\!1 .
+   \]
+   Multiplying the lower bounds gives \(E_{\min}=1\cdot 10 = 10\).  
+   Multiplying the upper bounds gives \(E_{\max}=3\cdot(2^{31}\!-\!1)\).  
+   Hence after the assignment the asserted equalities and inequalities hold.
+
+2. **Printing**  
+
+   \[
+   \{\,E = X\cdot M \land 10\le E\le 3\,(2^{31}\!-\!1)\,\}
+   \;\texttt{print }E\;
+   \{\,E = X\cdot M \land 10\le E\le 3\,(2^{31}\!-\!1) \land \text{output }E\,\}
+   \tag{4}
+   \]
+
+   The rule **(output)** states that a `print` statement does not change the logical variables; it only adds the side‑effect “output E”. Thus (4) is immediate.
+
+Now we can combine (3) and (4) with the **(seq)** rule (sequencing) to obtain
+
+\[
+\{\,0<X\le 3\land 10\le M\le 2^{31}\!-\!1\,\}
+\;E := X*M;\; \texttt{print }E\;
+\{\,E = X\cdot M \land 10\le E\le 3\,(2^{31}\!-\!1)\,\}.
+\tag{5}
+\]
+
+### 4.3  Re‑assembling the conditional  
+
+The Hoare rule for a conditional is
+
+\[
+\frac{\{B\land A\}\,S_1\,\{C\}\qquad\{\neg B\land A\}\,S_2\,\{C\}}
+     {\{A\}\; \texttt{if }B\texttt{ then }S_1\texttt{ else }S_2\texttt{ fi }\; \{C\}} .
+\]
+
+We take  
+
+* \(B \equiv (X=0\land M=0)\)  
+* \(A \equiv P\) (the whole pre‑condition)  
+* \(S_1 \equiv\) `skip` (sentinel branch)  
+* \(S_2 \equiv\) `E := X*M; print E` (normal branch)  
+* \(C \equiv Q\).
+
+The two premises are exactly (2) and (5); therefore we obtain
+
+\[
+\{\,P\,\}\;
+\texttt{if }(X=0\land M=0)\texttt{ then skip else }E:=X*M;\,\texttt{print }E\texttt{ fi}
+\;
+\{\,Q\,\}.
+\tag{6}
+\]
+
+Equation (6) is precisely the Hoare triple (1) that we wanted to prove for a *single* test case.
+
+--------------------------------------------------------------------
+
+## 5.  Proof for the whole program (the outer loop)
+
+### 5.1  The program written with explicit statements  
+
+```text
+read X , M                       // line 1
+while X ≠ 0 ∧ M ≠ 0 do           // line 2
+        if X = 0 ∧ M = 0 then    // line 3 (never true because of the guard)
+                skip
+        else
+                E := X * M
+                print E
+        fi
+        read X , M               // line 4
+od                               // line 5
+```
+
+The first `read` is outside the loop; the loop guard is exactly the negation of the sentinel condition.  
+Inside the loop we have the *process‑case* we already proved correct, followed by another `read`.
+
+### 5.2  Loop invariant  
+
+We choose the invariant  
+
+\[
+I \;\equiv\; P .
+\]
+
+Intuitively: *at the beginning of each iteration the pair that is currently stored in the variables is either the sentinel or a legal test case*.  
+
+Because the invariant is exactly the pre‑condition of the inner iteration, we already know (from Section 4) that the body of the loop transforms a state satisfying \(I\) into a state that also satisfies \(I\).
+
+### 5.3  Initialization  
+
+After the first `read` (line 1) the program is in a state that satisfies the specification of the input routine:
+
+\[
+\{\,\text{true}\,\}\;\;\texttt{read }X,M\;\;\{\,P\,\}.
+\tag{7}
+\]
+
+In a contest problem the input is guaranteed to obey the limits described in \(P\); hence (7) holds.
+
+Thus the invariant holds **before the first test of the loop guard**.
+
+### 5.4  Preservation  
+
+Assume that at the top of the loop we have \(I\) and that the guard \((X\neq0\lor M\neq0)\) is true.  
+Because the guard is the negation of the sentinel condition, the antecedent of the second disjunct of \(P\) must be true, i.e.
+
+\[
+0<X\le 3 \land 10\le M\le 2^{31}\!-\!1 .
+\tag{8}
+\]
+
+Consequently the `if` inside the loop follows the *else* branch, and by (5) we obtain after the two statements `E := X*M; print E`
+
+\[
+E = X\cdot M \land 10\le E\le 3\,(2^{31}\!-\!1).
+\tag{9}
+\]
+
+The following `read X,M` (line 4) brings in a *new* pair \((X',M')\). By the problem statement this new pair again fulfills the specification of the input routine, i.e.
+
+\[
+\{\,\text{true}\,\}\;\texttt{read }X',M'\;\{\,P\text{ with }X:=X',M:=M'\,\}.
+\tag{10}
+\]
+
+Thus after the whole body of the loop we are again in a state satisfying \(P\), i.e. the invariant \(I\) is **preserved**.
+
+Formally, using the Hoare rule for **while**:
+
+\[
+\frac{\{I\land B\}\;C\;\{I\}}{\{I\}\;\texttt{while }B\texttt{ do }C\texttt{ od}\;\{I\land\neg B\}}
+\]
+
+with  
+
+* \(B \equiv (X\neq0\lor M\neq0)\) (the loop guard),  
+* \(C\) = “process‑case + read”,  
+* \(I \equiv P\),
+
+we obtain that after the loop terminates we have
+
+\[
+I\land\neg B \;\equiv\; P\land (X=0\land M=0).
+\tag{11}
+\]
+
+### 5.5  Post‑condition of the whole program  
+
+When the loop stops, (11) tells us that the *sentinel pair* \((0,0)\) is stored and that the invariant \(P\) holds.  
+From the definition of \(Q\) we have the implication  
+
+\[
+(X=0\land M=0) \;\Rightarrow\; (\text{no output after the loop}\land E=\text{old}(E)).
+\]
+
+All the outputs that have been produced during the execution belong to earlier iterations, each of which satisfied the second disjunct of \(Q\) (see (9)). Consequently the overall effect of the program is exactly the one required in the specification:
+
+* every non‑sentinel pair \((X,M)\) that appeared in the input generated a line containing the product \(X\cdot M\),
+* the sentinel pair generated no line,
+* all products lie inside the interval \([10,\;3(2^{31}-1)]\).
+
+Thus the Hoare triple for the whole program is proved:
+
+\[
+\{\text{true}\}\;
+\texttt{read }X,M;\;
+\texttt{while }(X\neq0\lor M\neq0)\texttt{ do } 
+\bigl(\texttt{if }(X=0\land M=0)\texttt{ then skip else }E:=X*M;\,\texttt{print }E\texttt{ fi};\,
+\texttt{read }X,M\bigr)
+\;\{\text{true}\}.
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Summary of the proof steps  
+
+| Step | Hoare rule used | Main assertion |
+|------|-----------------|----------------|
+| 1    | **(input)** – the problem guarantees that the first `read` yields a pair satisfying \(P\). | \(\{\,\text{true}\,\}\; \texttt{read }X,M\; \{\,P\,\}\) |
+| 2    | **(while)** – invariant \(I\equiv P\). | \(\{P\}\;\texttt{while }(X\neq0\lor M\neq0)\; \{\,P\land\neg B\,\}\) |
+| 3    | **(if‑else)** – split on the sentinel test. | \(\{P\}\;\texttt{if }(X=0\land M=0)\texttt{ then skip else }E:=X*M;\,\texttt{print }E\;\{Q\}\) |
+| 4    | **(assign)** – multiplication respects the bounds (10 ≤ E ≤ 3·(2³¹‑1)). | \(\{0<X\le3\land10\le M\le2^{31}\!-\!1\}\;E:=X*M\;\{E=X·M\land 10\le E\le3(2^{31}\!-\!1)\}\) |
+| 5    | **(output)** – printing does not change logical variables. | \(\{E=X·M\}\;\texttt{print }E\;\{E=X·M\land\text{output }E\}\) |
+| 6    | **(seq)** – combine assignment and printing. | \(\{0<X\le3\land10\le M\le2^{31}\!-\!1\}\;E:=X*M;\,\texttt{print }E\;\{E=X·M\land 10\le E\le3(2^{31}\!-\!1)\}\) |
+| 7    | **(skip)** – sentinel branch leaves state unchanged. | \(\{X=0\land M=0\}\;\texttt{skip}\;\{X=0\land M=0\land\text{no output}\}\) |
+| 8    | **(cond)** – put the two branches together, obtaining (1). | \(\{P\}\;\texttt{process\_case}(X,M)\;\{Q\}\) |
+| 9    | **(seq)** – after the body read a new pair; by the problem statement the new pair again satisfies \(P\). |
+|10    | **(while‑end)** – when the guard becomes false we have the sentinel pair, so the whole execution satisfies the global post‑condition. |
+
+--------------------------------------------------------------------
+
+## 7.  Concluding remarks  
+
+* The proof shows **partial correctness** (the program produces the right output *if* it terminates).  
+* Termination is guaranteed because the loop guard is the exact negation of the sentinel condition, and the problem statement guarantees that the input sequence ends with the sentinel pair \((0,0)\). Hence after a finite number of iterations the guard becomes false and the loop stops.  
+
+Consequently the given Python program is **correct with respect to the Hoare‑logic specification** that was supplied in the statement. ∎

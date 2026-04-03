@@ -1,0 +1,337 @@
+**Proof of correctness (Hoare‑style)**  
+
+We prove that the program shown in the statement satisfies the two Hoare triples that were given in the specification:
+
+* `PrintMatrix(N)` – prints exactly the matrix defined by the post‑condition for a single
+  size `N` (with `3 ≤ N < 70`);
+* `ReadAndPrint` – repeatedly reads all the integers that appear in the input until EOF
+  and, for each of them, invokes `PrintMatrix` – therefore the whole output is the
+  concatenation of the required matrices.
+
+The proof is carried out in two parts.  
+First we isolate the part of the program that corresponds to `PrintMatrix(N)` and
+show that it meets its specification.  
+Second we embed this routine inside the outer `while‑try‑except` loop and show that
+the whole program meets the specification of `ReadAndPrint`.
+
+--------------------------------------------------------------------
+
+## 1.  The routine `PrintMatrix(N)`
+
+### 1.1  Source fragment
+
+```python
+#  N is already bound to an integer (the value read from input)
+matriz = []                          # 1
+for i in range(N):                  # 2   (outer loop)
+    auxiliar = []                    # 3
+    for j in range(N):              # 4   (inner loop)
+        if i + j == N - 1:           # 5
+            auxiliar.append(2)      # 6
+        elif i == j:                 # 7
+            auxiliar.append(1)      # 8
+        else:                        # 9
+            auxiliar.append(3)      #10
+    matriz.append(auxiliar)          #11
+
+#  printing
+for i in range(N):                  #12
+    for j in range(N):              #13
+        print(matriz[i][j], end='')#14
+    print()                         #15
+```
+
+(The outer `while‑try‑except` that reads the next test case is omitted; we assume that
+the variable `N` already satisfies the pre‑condition `3 ≤ N < 70`.)
+
+### 1.2  Logical variables and notation
+
+* `i, j` – loop counters (0‑based, because Python’s `range(N)` yields `0 … N‑1`);
+* `M[i][j]` – the value stored in `matriz[i][j]` after the construction phase;
+* `Out(i+1,j+1)` – the character printed at row `i+1` and column `j+1` (the specification
+  uses 1‑based indices, therefore we add `+1` when we refer to the post‑condition).
+
+The three cases of the specification are mutually exclusive, therefore we can
+use a *case‑distinction invariant* for the inner loop.
+
+### 1.3  Invariant for the inner loop (`for j in range(N)`)
+
+```
+Iinner(i,j)  ≜
+    0 ≤ j ≤ N                     ∧
+    ∀ p . 0 ≤ p < j  →  M[i][p] = 
+          2   if i + p = N-1
+          1   if i = p  ∧ i + p ≠ N-1
+          3   otherwise
+```
+
+*Explanation*  
+
+When the inner loop has already processed the first `j` columns of row `i`,
+the array `M[i][0 … j‑1]` contains exactly the digits prescribed by the
+post‑condition for those columns; the remaining columns are still uninitialised.
+
+#### 1.3.1  Initialization (`j = 0`)
+
+Before the first iteration of the inner loop we have executed `auxiliar = []`.
+Consequently `M[i][p]` is undefined for all `p`.  
+The condition `∀p . 0 ≤ p < 0 → …` is vacuously true, therefore `Iinner(i,0)` holds.
+
+#### 1.3.2  Maintenance
+
+Assume `Iinner(i,j)` holds at the beginning of an iteration where `j < N`.  
+The body of the loop executes the `if‑elif‑else` chain:
+
+* if `i + j == N-1` the program appends `2`;
+* else if `i == j` it appends `1`;
+* else it appends `3`.
+
+Thus after the `append` we have defined `M[i][j]` exactly as required by the
+case‑distinction in the post‑condition.  All earlier columns keep their correct
+value by the induction hypothesis.  Consequently `Iinner(i,j+1)` holds.
+
+#### 1.3.3  Termination
+
+The loop terminates when `j = N`.  By the invariant we obtain
+
+```
+∀ p . 0 ≤ p < N → M[i][p] = 
+        2   if i + p = N-1
+        1   if i = p ∧ i + p ≠ N-1
+        3   otherwise                (1)
+```
+
+which is precisely the specification for **row i** of the matrix.
+
+### 1.4  Invariant for the outer loop (`for i in range(N)`)
+
+```
+Iouter(i)  ≜
+    0 ≤ i ≤ N                     ∧
+    ∀ r . 0 ≤ r < i →  (∀ c . 0 ≤ c < N →
+                         M[r][c] = 2 if r + c = N-1
+                                 else 1 if r = c ∧ r + c ≠ N-1
+                                 else 3)           (2)
+```
+
+*Explanation*  
+
+When the outer loop has already finished the first `i` rows, each of those rows
+satisfies the property (1) proved above; rows `i … N‑1` are still not built.
+
+#### 1.4.1  Initialization (`i = 0`)
+
+Before the first outer iteration `matriz = []`.  Hence there are no rows yet,
+and the universally quantified statement in `Iouter(0)` is vacuously true.
+
+#### 1.4.2  Maintenance
+
+Assume `Iouter(i)` holds at the start of an iteration with `i < N`.  
+The body creates a fresh list `auxiliar`, executes the inner loop, and after it
+finishes appends `auxiliar` to `matriz`.  By the inner‑loop invariant we know that
+the newly created row satisfies (1).  Adding it to `matriz` therefore extends the
+set of rows that satisfy (2) from `0 … i‑1` to `0 … i`.  Hence `Iouter(i+1)` holds.
+
+#### 1.4.3  Termination
+
+When the outer loop ends we have `i = N`.  By `Iouter(N)` we obtain
+
+```
+∀ r . 0 ≤ r < N →  (∀ c . 0 ≤ c < N →
+                     M[r][c] = 2 if r + c = N-1
+                             else 1 if r = c ∧ r + c ≠ N-1
+                             else 3)               (3)
+```
+
+which is exactly the matrix required by the post‑condition, but expressed with
+0‑based indices.
+
+### 1.5  Printing phase
+
+The second pair of nested loops iterates over the same index ranges `i = 0 … N‑1`,
+`j = 0 … N‑1`.  Its body executes `print(matriz[i][j], end='')`.  
+Because of (3) we know that `matriz[i][j]` already holds the correct digit,
+hence the character that is sent to the output stream is precisely `Out(i+1,j+1)`.
+After each inner loop finishes, `print()` writes a line‑feed, therefore each
+row is terminated by `'\n'`.  The outer loop runs exactly `N` times, so the
+output consists of `N` lines, each containing `N` characters.
+
+### 1.6  Summary for `PrintMatrix(N)`
+
+*Pre‑condition* : `3 ≤ N < 70` (no loop uses this bound; it only guarantees that the
+input is within the problem limits).
+
+*Post‑condition* : By (3) together with the printing phase we have proved
+
+```
+∀ i,j ∈ {1,…,N} :
+    Out(i,j) = 2  if i + j = N + 1
+             = 1  if i = j ∧ i + j ≠ N + 1
+             = 3  otherwise
+and the output consists of N lines, line i being Out(i,1)…Out(i,N) followed by '\n'.
+```
+
+Thus the Hoare triple for `PrintMatrix(N)` is satisfied.
+
+--------------------------------------------------------------------
+
+## 2.  Whole program – `ReadAndPrint`
+
+### 2.1  Source fragment (outer control)
+
+```python
+while True:                     # L0
+  try:                          # L1
+    ordem = int(input())        # L2
+    # ----- call PrintMatrix(ordem) -----
+    matriz = []                 # (the code of PrintMatrix, see §1)
+    ...
+    # (printing, see §1)
+  except:                       # L3
+    break                       # L4
+```
+
+The program repeatedly executes the body of the `try` block, each time reading
+the next integer from the input stream, calling the routine proved correct in
+§1, and finally terminating when an exception (EOFError) is raised.
+
+### 2.2  Logical model of the input
+
+Let the input be a finite sequence  
+
+\[
+\mathcal I = \langle N_1 , N_2 , \dots , N_k\rangle ,\qquad k\ge 0,
+\]
+
+where each `N_t` satisfies `3 ≤ N_t < 70`.  
+The operation `int(input())` removes the first element of the remaining input
+and returns it; when the sequence is empty it raises an exception.
+
+### 2.3  Loop invariant for the outer `while True`
+
+```
+Iouter_seq(S)  ≜
+    S is the suffix of the original input still not processed   ∧
+    the output produced so far equals
+          Π_{t=1}^{r}  PrintMatrix(N_t)          for some r ≥ 0
+    (i.e. the concatenation of the matrices of the first r numbers)
+```
+
+*Explanation*  
+
+`S` denotes the part of the input that has not yet been consumed.
+The invariant states that everything that has already been read has been printed
+exactly according to `PrintMatrix`.
+
+#### 2.3.1  Initialization
+
+Before the first iteration `S = ⟨N_1,…,N_k⟩` (the whole input) and no output has
+been produced, so the invariant holds with `r = 0`.
+
+#### 2.3.2  Maintenance
+
+Assume `Iouter_seq(S)` holds at the beginning of an iteration.
+
+* The statement `ordem = int(input())` succeeds **iff** `S` is non‑empty.
+  In that case it removes the first element `N` from `S` and binds `ordem = N`.
+  The new suffix becomes `S'` = tail of `S`.
+
+* By the Hoare triple proved in §1, the subsequent code (the body of `PrintMatrix`)
+  prints exactly `PrintMatrix(N)`.  Consequently the output after the body is
+
+  ```
+  (previous output)  ◦  PrintMatrix(N)
+  ```
+
+  i.e. the concatenation of the matrices for the first `r+1` numbers.
+
+* Therefore `Iouter_seq(S')` holds with `r' = r+1`.
+
+If `S` is empty, `int(input())` raises an exception; the control jumps to the
+`except` block, the loop body is **not** executed, and the loop terminates.
+In that case the invariant still holds (with `S = ⟨⟩` and `r = k`).
+
+#### 2.3.3  Termination
+
+The loop terminates exactly when an exception is raised, i.e. when the input
+suffix `S` becomes empty.  At that moment the invariant tells us that the output
+is
+
+```
+Π_{t=1}^{k} PrintMatrix(N_t)
+```
+
+which is precisely the post‑condition required for `ReadAndPrint`.
+
+### 2.4  Exception handling
+
+The `except: break` clause is executed only when the `try` block raises any
+exception.  The only exception that can be raised by the statements inside the
+`try` block (given the pre‑condition on the input) is `EOFError`, which occurs
+exactly when the input sequence is exhausted.  No other behaviour is possible,
+hence the program cannot exit the loop prematurely or skip a test case.
+
+### 2.5  Overall Hoare triple
+
+*Pre‑condition*  
+
+```
+Input = ⟨ N1 , … , Nk ⟩   with   ∀t ( 3 ≤ Nt < 70 )
+```
+
+*Program* – the whole `while‑try‑except` construct.
+
+*Post‑condition*  
+
+```
+Output = Π_{t=1}^{k} matrix(Nt)
+```
+
+where `matrix(Nt)` is the string described in the specification (the `N_t × N_t`
+matrix with digits 2, 1 and 3 in the anti‑diagonal, main diagonal and elsewhere,
+respectively, each line terminated by '\n').
+
+Because the invariant `Iouter_seq` is established initially, preserved by one
+iteration, and implies the desired post‑condition when the loop ends, the Hoare
+triple is proved.
+
+--------------------------------------------------------------------
+
+## 3.  Concluding statement
+
+We have exhibited:
+
+1. A loop invariant for the inner construction loop and proved that it establishes
+   the correct content of each row of the matrix.
+2. A loop invariant for the outer construction loop and proved that, after the
+   outer loop finishes, the whole two‑dimensional array `matriz` coincides with the
+   matrix prescribed by the specification.
+3. A reasoning about the printing loops that shows that the exact characters are
+   emitted in the required layout.
+4. A global invariant for the outer `while‑try‑except` that ties together the
+   successive invocations of `PrintMatrix` with the sequence of integers read from
+   the input, and shows that the program terminates exactly when the input is
+   exhausted.
+
+Consequently the program satisfies the Hoare‑style specification given in the
+question:
+
+\[
+\{\,\text{input is a (possibly empty) list } \langle N_1,\dots,N_k\rangle
+   \text{ with } 3\le N_t<70\,\}
+\;\; \textbf{ReadAndPrint}
+\;\;
+\{\,\text{output} = \bigcup_{t=1}^{k}
+   \text{matrix}(N_t)\, \}
+\]
+
+and, for each individual call,
+
+\[
+\{\,3\le N<70\,\}\; \textbf{PrintMatrix(N)}\;
+\{\,\text{the printed matrix satisfies the three‑case rule and has exactly N
+   lines of N characters each}\,\}.
+\]
+
+Thus the program is **correct** with respect to the formal Hoare‑logic
+specification.  

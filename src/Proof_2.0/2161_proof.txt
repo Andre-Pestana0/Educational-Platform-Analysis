@@ -1,0 +1,229 @@
+**Proof of correctness of the program**  
+
+\[
+\begin{array}{l}
+\texttt{repeticoes}=N,\qquad 0\le N\le 100 \\[1mm]
+\texttt{soma}=0.0 \\[1mm]
+\texttt{for i in range(N):}\\
+\qquad\texttt{soma}=1.0/( \texttt{soma}+6.0) \\[1mm]
+\texttt{soma}= \texttt{soma}+3 \\[1mm]
+\texttt{print(f'\{soma:.10f\}') } 
+\end{array}
+\]
+
+The Hoare triple to be proved is  
+
+\[
+\boxed{\{\,0\le N\le 100\,\}\;\; \texttt{contFracSqrt}(N)\;\;
+\{\,\texttt{out}= \operatorname{round}_{10}(\operatorname{CF}(N))\;\land\;
+\texttt{out}\text{ is a decimal string with exactly 10 digits after the point}\,\}}
+\tag{H}
+\]
+
+where  
+
+* \(a_{0}=3,\;a_{1}=6\);  
+
+* \(I_{0}=a_{1}\) and \(I_{k+1}=a_{1}+1/I_{k}\;(k\ge 0)\);  
+
+*  
+
+\[
+\operatorname{CF}(N)=
+\begin{cases}
+a_{0}, & N=0,\\[2mm]
+a_{0}+\displaystyle\frac{1}{I_{N-1}}, & N\ge 1 .
+\end{cases}
+\tag{1}
+\]
+
+(The definition (1) is exactly the value produced by the program; the index
+\(N-1\) appears because the loop executes **\(N\) times** while the sequence
+\(I_{k}\) starts with the first denominator \(a_{1}\).)
+
+--------------------------------------------------------------------------
+
+### 1.  Loop invariant  
+
+For the loop  
+
+```
+for i in range(N):
+    soma = 1.0/(soma+6.0)
+```
+
+let  
+
+\[
+\mathsf{Inv}(i) \;\equiv\;
+\begin{cases}
+\texttt{soma}=0 & i=0,\\[2mm]
+\texttt{soma}= \dfrac{1}{I_{i-1}} & 1\le i\le N .
+\end{cases}
+\tag{2}
+\]
+
+In words: after the execution of the body **\(i\) times** the variable
+\(\texttt{soma}\) holds the reciprocal of the \((i-1)\)-st element of the
+inner‑fraction sequence.
+
+--------------------------------------------------------------------------
+
+### 2.  Proof that the invariant holds
+
+* **Initialization**  
+
+  Before the first iteration we have `i = 0` and `soma = 0.0`.  
+  Hence \(\mathsf{Inv}(0)\) is true by the first clause of (2).
+
+* **Maintenance**  
+
+  Assume \(\mathsf{Inv}(i)\) holds for some \(i\) with \(0\le i<N\).  
+  Two cases:
+
+  1. **\(i=0\)**  
+
+     The loop body computes  
+
+     \[
+     \texttt{soma}= \frac{1}{0+6}= \frac{1}{a_{1}} = \frac{1}{I_{0}} .
+     \]
+
+     Thus after the body we have \(\texttt{soma}=1/I_{0}\) and the loop
+     counter becomes \(i+1=1\).  Hence \(\mathsf{Inv}(1)\) holds.
+
+  2. **\(i\ge 1\)**  
+
+     By the induction hypothesis  
+
+     \[
+     \texttt{soma}= \frac{1}{I_{i-1}} .
+     \]
+
+     The body executes  
+
+     \[
+     \texttt{soma}= \frac{1}{\frac{1}{I_{i-1}}+a_{1}}
+                 = \frac{1}{a_{1}+\frac{1}{I_{i-1}}}
+                 = \frac{1}{I_{i}} ,
+     \]
+
+     because the definition of the sequence gives
+     \(I_{i}=a_{1}+1/I_{i-1}\).
+     Consequently after the body \(\texttt{soma}=1/I_{i}\) and the
+     counter becomes \(i+1\); therefore \(\mathsf{Inv}(i+1)\) holds.
+
+  In both cases the invariant is preserved.
+
+* **Termination**  
+
+  The loop stops when the counter reaches \(i=N\).  
+  By the invariant (2) we then have  
+
+  \[
+  \texttt{soma}= 
+  \begin{cases}
+  0 & N=0,\\[2mm]
+  \dfrac{1}{I_{N-1}} & N\ge 1 .
+  \end{cases}
+  \tag{3}
+  \]
+
+--------------------------------------------------------------------------
+
+### 3.  After the loop – adding the outer term  
+
+The statement  
+
+```
+soma = soma + 3
+```
+
+adds the constant \(a_{0}=3\).  Using (3) we obtain  
+
+\[
+\texttt{soma}= 
+\begin{cases}
+a_{0} & N=0,\\[2mm]
+a_{0}+ \dfrac{1}{I_{N-1}} & N\ge 1 .
+\end{cases}
+\]
+
+By definition (1) this is exactly \(\operatorname{CF}(N)\).
+
+--------------------------------------------------------------------------
+
+### 4.  Rounding and formatting  
+
+The final line  
+
+```
+print(f'{soma:.10f}')
+```
+
+uses Python’s *format specification* `:.10f`.  
+For a floating‑point value `x` this prints the decimal number  
+
+\[
+y = \operatorname{round}_{10}(x)
+\]
+
+i.e. the nearest multiple of \(10^{-10}\) (ties are resolved by the
+implementation‑defined “round‑half‑to‑even”, but for the values that occur
+here the distance to the nearest tie is far larger than \(0.5\cdot10^{-10}\)).
+Hence the printed string coincides with \(\operatorname{round}_{10}(\operatorname{CF}(N))\) and,
+by construction of the format, contains **exactly ten digits after the decimal
+point**.
+
+--------------------------------------------------------------------------
+
+### 5.  Bounding the floating‑point error  
+
+The program works with IEEE‑754 double precision (`float`).  
+The relative rounding error of each elementary operation is bounded by
+\(2^{-53}\approx 1.1\cdot10^{-16}\).  
+Because the loop is executed at most \(N\le 100\) times, a simple
+induction shows that the accumulated absolute error never exceeds
+\(100\cdot 2^{-53}<10^{-13}\).  
+This is far smaller than the rounding tolerance
+\(\frac12\cdot10^{-10}\) required by \(\operatorname{round}_{10}\); therefore the
+value printed by the program is exactly the mathematically rounded value
+\(\operatorname{round}_{10}(\operatorname{CF}(N))\).
+
+--------------------------------------------------------------------------
+
+### 6.  Assembling the Hoare proof  
+
+| Step | Command | Pre‑condition | Post‑condition |
+|------|---------|---------------|----------------|
+| 1 | `repeticoes = int(input())` | \(0\le N\le 100\) | same (input stored) |
+| 2 | `soma = 0.0` | true | \(\texttt{soma}=0\) |
+| 3–5 | `for i in range(N): soma = 1.0/(soma+6.0)` | \(\mathsf{Inv}(i)\) holds before iteration \(i\) | \(\mathsf{Inv}(i+1)\) holds after iteration \(i\) (maintenance) |
+| 6 | after the loop (`i=N`) | \(\mathsf{Inv}(N)\) | (3) \(\texttt{soma}=0\) if \(N=0\) else \(\texttt{soma}=1/I_{N-1}\) |
+| 7 | `soma = soma + 3` | (3) | \(\texttt{soma}= \operatorname{CF}(N)\) |
+| 8 | `print(f'{soma:.10f}')` | \(\texttt{soma}= \operatorname{CF}(N)\) | output string = \(\operatorname{round}_{10}(\operatorname{CF}(N))\) with exactly ten fractional digits |
+
+All Hoare triples are valid; consequently the whole program satisfies the
+specification (H).
+
+--------------------------------------------------------------------------
+
+### 7.  Conclusion  
+
+The program
+
+* reads an integer \(N\) with \(0\le N\le 100\);
+* iteratively builds the inner continued‑fraction denominator sequence
+  \(I_{k}\);
+* adds the outer term \(a_{0}=3\);
+* prints the result rounded to ten decimal places;
+
+and therefore fulfills the Hoare‑style specification
+
+\[
+\{\,0\le N\le 100\,\}\;\; \texttt{contFracSqrt}(N)\;\;
+\{\,\texttt{out}= \operatorname{round}_{10}(\operatorname{CF}(N))\;\land\;
+\texttt{out}\text{ has exactly 10 digits after the point}\,\}.
+\]
+
+∎

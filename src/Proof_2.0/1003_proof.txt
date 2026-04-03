@@ -1,0 +1,313 @@
+## 1.  What we have to show  
+
+We are given a **Hoare triple** that describes the whole algorithm
+
+\[
+\langle P\rangle\; C\; \langle Q\rangle
+\]
+
+with  
+
+* **Pre‑condition**  
+
+  \[
+  P\;:=\;\exists a,b\in\mathbb Z.\;
+        \bigl(\text{input stream}= [a,b]\bigr)
+  \]
+
+* **Program (command) \(C\)**  
+
+  ```text
+  A   := read() ;
+  B   := read() ;
+  SOMA:= A + B ;
+  print("SOMA = " ++ toString(SOMA) ++ nl)
+  ```
+
+* **Post‑condition**  
+
+  \[
+  Q\;:=\; \bigl(SOMA = a+b\bigr)\;\land\;
+          \bigl(\text{out}= \text{``SOMA = ''}\;
+                \Vert\;\mathit{toString}(a+b)\;
+                \Vert\;\text{nl}\bigr)
+  \]
+
+Our task is to **prove** that the program satisfies the specification, i.e. that the above Hoare triple is valid.  
+We will do this by applying the elementary Hoare‑logic inference rules:
+
+* **(Assign)**  \(\displaystyle \frac{}{ \{\,Q[x:=E]\,\}\;x:=E\;\{\,Q\,\}}\)  
+* **(Seq)**   \(\displaystyle \frac{\{P\}C_{1}\{R\}\qquad \{R\}C_{2}\{Q\}}
+                         {\{P\}C_{1};C_{2}\{Q\}}\)  
+* **(Conseq)**  \(\displaystyle \frac{P'\Rightarrow P\qquad\{P\}C\{Q\}\qquad Q\Rightarrow Q'}
+                         {\{P'\}C\{Q'\}}\)
+
+We will also use the obvious **semantic facts** about the I/O primitives:
+
+* `read()` returns the *first* integer still present in the input stream and removes it.
+* `print(s)` appends the string `s` (without an extra line‑break) to the output stream.
+
+---------------------------------------------------------------------
+
+## 2.  Proof outline
+
+We prove the triple by **induction on the sequence of statements**.  
+The proof consists of four sub‑triples, one for each statement, that we then stitch together with the sequencing rule.
+
+| statement | informal effect | Hoare triple we prove |
+|-----------|----------------|----------------------|
+| `A := read()` | consumes the first input integer and stores it in `A` | \(\{P\}\;A:=\operatorname{read}()\;\{A=a\land\text{in}=[b]\}\) |
+| `B := read()` | consumes the second input integer and stores it in `B` | \(\{A=a\land\text{in}=[b]\}\;B:=\operatorname{read}()\;\{A=a\land B=b\land\text{in}=[]\}\) |
+| `SOMA := A + B` | computes the sum | \(\{A=a\land B=b\land\text{in}=[]\}\;SOMA:=A+B\;\{SOMA=a+b\land A=a\land B=b\}\) |
+| `print("SOMA = " ++ toString(SOMA) ++ nl)` | emits the required line | \(\{SOMA=a+b\land A=a\land B=b\}\;\text{print}(\dots)\;\{out=\text{``SOMA = ''}\Vert\mathit{toString}(a+b)\Vert nl\land SOMA=a+b\}\) |
+
+After we have the four triples we apply **(Seq)** three times to obtain the desired triple for the whole program.
+
+---------------------------------------------------------------------
+
+## 3.  Detailed derivations  
+
+Below we write **\( \text{in} \)** for the current contents of the input stream and **\( \text{out} \)** for the current output stream.  
+All substitutions are performed on the post‑condition of the **assignment rule**.
+
+### 3.1 First read  
+
+**Goal**  
+
+\[
+\{P\}\;A:=\operatorname{read}()\;\{A=a\land\text{in}=[b]\}
+\]
+
+**Derivation**  
+
+1. By definition of the pre‑condition  
+
+   \[
+   P\equiv \exists a,b.\; \text{in}=[a,b]
+   \]
+
+   Choose the witnesses \(a,b\) that the existential quantifier guarantees.  
+   After the choice we have the *concrete* assertion  
+
+   \[
+   P_{0}:\; \text{in}=[a,b] .
+   \]
+
+2. The semantics of `read()` is: the value returned is the first element of the input stream and that element is removed.  
+   Hence the **strongest post‑condition** of the command `A:=read()` is  
+
+   \[
+   Q_{1}:\; A=a \;\land\; \text{in}=[b] .
+   \]
+
+3. Using the assignment axiom (Assign) with the substitution  
+
+   \[
+   Q_{1}[A:=\operatorname{read}()] = \bigl(A=a\land\text{in}=[b]\bigr)[A:=\operatorname{read}()] 
+   = A=a\land\text{in}=[b] ,
+   \]
+
+   we obtain the triple  
+
+   \[
+   \{\,Q_{1}[A:=\operatorname{read}()]\,\}\;A:=\operatorname{read}()\;\{\,Q_{1}\,\}
+   \]
+
+   i.e. \(\{P_{0}\}\;A:=\operatorname{read}()\;\{A=a\land\text{in}=[b]\}\).
+
+4. Since \(P\Rightarrow P_{0}\) (the existential quantifier is eliminated by choosing the witnesses) we may apply **(Conseq)** and get  
+
+   \[
+   \{P\}\;A:=\operatorname{read}()\;\{A=a\land\text{in}=[b]\}.
+   \]
+
+Thus the first sub‑triple is proved.
+
+---------------------------------------------------------------------
+
+### 3.2 Second read  
+
+**Goal**  
+
+\[
+\{A=a\land\text{in}=[b]\}\;B:=\operatorname{read}()\;\{A=a\land B=b\land\text{in}=[]\}
+\]
+
+**Derivation**  
+
+1. The current input stream is \([b]\).  
+   The semantics of `read()` again tells us that the value returned is the first element (here it is \(b\)) and that element is removed.  
+
+2. Consequently the strongest post‑condition of `B:=read()` is  
+
+   \[
+   Q_{2}:\; A=a \land B=b \land \text{in}=[] .
+   \]
+
+3. Apply the assignment axiom with the substitution  
+
+   \[
+   Q_{2}[B:=\operatorname{read}()] = Q_{2},
+   \]
+
+   obtaining  
+
+   \[
+   \{A=a\land\text{in}=[b]\}\;B:=\operatorname{read}()\;\{A=a\land B=b\land\text{in}=[]\}.
+   \]
+
+So the second sub‑triple holds.
+
+---------------------------------------------------------------------
+
+### 3.3 The addition  
+
+**Goal**  
+
+\[
+\{A=a\land B=b\land\text{in}=[]\}\;SOMA:=A+B\;
+   \{SOMA=a+b\land A=a\land B=b\}
+\]
+
+**Derivation**  
+
+1. The expression on the right‑hand side of the assignment is the arithmetic sum \(A+B\).  
+   Substituting the known equalities \(A=a\) and \(B=b\) we obtain the expression \(a+b\).
+
+2. The **strongest post‑condition** of the assignment is  
+
+   \[
+   Q_{3}: \; SOMA = a+b \;\land\; A=a \;\land\; B=b .
+   \]
+
+3. Using the assignment axiom with the substitution  
+
+   \[
+   Q_{3}[SOMA:=A+B] = Q_{3},
+   \]
+
+   we get the required triple directly.
+
+---------------------------------------------------------------------
+
+### 3.4 The output statement  
+
+**Goal**  
+
+\[
+\{SOMA=a+b\land A=a\land B=b\}\;
+   \text{print}\bigl(\text{``SOMA = ''}\Vert\mathit{toString}(SOMA)\Vert nl\bigr)
+   \;
+   \{\,out=\text{``SOMA = ''}\Vert\mathit{toString}(a+b)\Vert nl
+        \land SOMA=a+b\,\}
+\]
+
+**Derivation**  
+
+1. The command `print(s)` appends exactly the string `s` to the current output stream and does not modify any other variable.  
+   Hence the strongest post‑condition of the command is  
+
+   \[
+   Q_{4}: \; out = \text{``SOMA = ''}\Vert\mathit{toString}(SOMA)\Vert nl
+          \;\land\; SOMA=a+b\land A=a\land B=b .
+   \]
+
+2. Because the pre‑condition already contains the equalities `SOMA=a+b`, `A=a`, `B=b`, we can *simplify* the post‑condition by substituting `SOMA` with `a+b`.  
+   This yields exactly the right‑hand side of the goal:
+
+   \[
+   out = \text{``SOMA = ''}\Vert\mathit{toString}(a+b)\Vert nl
+   \;\land\; SOMA=a+b .
+   \]
+
+3. Again the assignment axiom (here the “assignment” is the effect of `print`) gives  
+
+   \[
+   \{SOMA=a+b\land A=a\land B=b\}\;
+      \text{print}(\dots)\;
+      \{Q_{4}\}.
+   \]
+
+4. By a trivial application of **(Conseq)** (dropping the irrelevant conjuncts `A=a` and `B=b`) we obtain the desired triple.
+
+---------------------------------------------------------------------
+
+## 4.  Assembling the whole proof  
+
+We now have the four verified triples:
+
+\[
+\begin{aligned}
+&\text{(T1)} &&\{P\}\;A:=\operatorname{read}()\;\{A=a\land\text{in}=[b]\} \\[1mm]
+&\text{(T2)} &&\{A=a\land\text{in}=[b]\}\;B:=\operatorname{read}()\;
+                 \{A=a\land B=b\land\text{in}=[]\} \\[1mm]
+&\text{(T3)} &&\{A=a\land B=b\land\text{in}=[]\}\;SOMA:=A+B\;
+                 \{SOMA=a+b\land A=a\land B=b\} \\[1mm]
+&\text{(T4)} &&\{SOMA=a+b\land A=a\land B=b\}\;
+                 \text{print}(\dots)\;
+                 \{out=\text{``SOMA = ''}\Vert\mathit{toString}(a+b)\Vert nl
+                      \land SOMA=a+b\}.
+\end{aligned}
+\]
+
+Apply the **sequencing rule (Seq)** three times:
+
+\[
+\begin{aligned}
+&\{P\}\;(A:=\operatorname{read}();\;B:=\operatorname{read}())\;
+   \{A=a\land B=b\land\text{in}=[]\} \quad\text{(by (T1) and (T2))} \\[1mm]
+&\{P\}\;(A:=\operatorname{read}();\;B:=\operatorname{read}();\;SOMA:=A+B)\;
+   \{SOMA=a+b\land A=a\land B=b\} \quad\text{(add (T3))} \\[1mm]
+&\{P\}\;(A:=\operatorname{read}();\;B:=\operatorname{read}();\;SOMA:=A+B;
+        \text{print}(\dots))\;
+   \{out=\text{``SOMA = ''}\Vert\mathit{toString}(a+b)\Vert nl
+        \land SOMA=a+b\} \quad\text{(add (T4)).}
+\end{aligned}
+\]
+
+The final post‑condition is precisely the specification \(Q\).  
+Thus we have derived
+
+\[
+\boxed{\;\langle P\rangle\;C\;\langle Q\rangle\;}
+\]
+
+where  
+
+\[
+C\;=\;A:=\operatorname{read}();\;B:=\operatorname{read}();\;
+    SOMA:=A+B;\;
+    \operatorname{print}(\text{``SOMA = ''}\Vert\mathit{toString}(SOMA)\Vert nl)
+\]
+
+which is exactly the Python program given in the statement.
+
+---------------------------------------------------------------------
+
+## 5.  Remarks on termination  
+
+*Each command* (`read`, the arithmetic addition, `print`) is a primitive that terminates after a bounded number of elementary steps.  
+The program contains only a **finite sequence** of such commands, therefore it always terminates.  
+Termination is not part of the Hoare triple itself, but it is required for the triple to be meaningful; the above reasoning implicitly assumes termination.
+
+---------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+By applying the standard Hoare‑logic rules (assignment, sequencing, consequence) and by using the semantics of the I/O primitives, we have shown that **starting from any input consisting of two integers** the program
+
+```python
+A = int(input())
+B = int(input())
+SOMA = A + B
+print(f'SOMA = {SOMA}')
+```
+
+*stores the sum in the variable `SOMA`* and *writes exactly the line*  
+
+```
+SOMA = <a+b>
+```
+
+followed by a newline.  
+Hence the program satisfies the formal specification \(\langle P\rangle\;C\;\langle Q\rangle\).

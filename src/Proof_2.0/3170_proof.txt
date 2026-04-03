@@ -1,0 +1,326 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:=\;1<B<10^{3}\ \land\ 100<G<1000\ \land\ B,G\in\mathbb Z
+\]
+
+* **Program** `S` (the Python fragment that you posted)  
+
+```python
+bolinhas_quantidade = int(input())      # B
+galhos_quantidade    = int(input())      # G
+
+# round G down to the nearest even number
+if galhos_quantidade % 2 != 0:           # (1)
+    galhos_quantidade = galhos_quantidade - 1
+
+# are the balls enough ?
+if galhos_quantidade <= bolinhas_quantidade * 2:   # (2)
+    print("Amelia tem todas bolinhas!")
+else:                                               # (3)
+    resto = (galhos_quantidade - (2*bolinhas_quantidade)) / 2
+    print(f'Faltam {resto:.0f} bolinha(s)')
+```
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+M &:=\big\lfloor\tfrac{G}{2}\big\rfloor ,\\
+\Delta &:=M-B,\\
+R &:=\max(0,\Delta) .
+\end{aligned}
+\qquad
+Q\;:=\;
+\begin{cases}
+\text{out}=``\text{Amelia tem todas bolinhas!}" &\text{if }R=0\\[1mm]
+\text{out}=``\text{Faltam }R\text{ bolinha(s)}" &\text{if }R>0 .
+\end{cases}
+\]
+
+The proof proceeds by **annotating** the program with logical assertions, then applying the Hoare‑logic inference rules (assignment, conditional, sequence, consequence).  
+All variables are integers; the division that appears in the `else` branch is exact because the numerator is always even (see below), so the result is an integer.
+
+---
+
+## 2.  Auxiliary facts that will be used
+
+| Fact | Reason |
+|------|--------|
+| **(A1)** `galhos_quantidade % 2 != 0  ⇒  galhos_quantidade – 1` is even. | Subtracting 1 from an odd integer yields an even integer. |
+| **(A2)** After statement (1) the variable `galhos_quantidade` is **even**. | If the `if`‑condition is false, `galhos_quantidade` was already even; if it is true we replace it by `galhos_quantidade‑1`, which is even by (A1). |
+| **(A3)** For any even integer `E`, `⌊E/2⌋ = E/2`. | Division of an even integer by 2 has no remainder. |
+| **(A4)** `M = ⌊G/2⌋ = galhos_quantidade/2` after (1). | By definition `M = ⌊G/2⌋`. After (1) we have replaced `G` by the greatest even number ≤ `G`. Because of (A3) the floor of half of that even number equals the half itself. |
+| **(A5)** `resto = (galhos_quantidade - 2*B)/2 = M - B = Δ`. | Substitute `galhos_quantidade = 2M` (from (A4)) and simplify. |
+| **(A6)** `galhos_quantidade <= 2*B   ⇔   Δ ≤ 0`. | From `galhos_quantidade = 2M` we have `galhos_quantidade <= 2B  ⇔ 2M ≤ 2B  ⇔  M ≤ B  ⇔  M‑B ≤ 0  ⇔  Δ ≤ 0`. |
+| **(A7)** `galhos_quantidade > 2*B   ⇔   Δ > 0`. | Negation of (A6). |
+
+All the above are pure arithmetic facts that can be proved in elementary number theory; we will invoke them whenever we need to replace a program expression by the corresponding logical expression appearing in `Q`.
+
+---
+
+## 3.  Annotated program (Hoare assertions)
+
+We write an assertion `{A}` before a statement to mean “the program state satisfies `A` just before the statement is executed”.  
+The final assertion after the last statement will be exactly `Q`.
+
+```
+{ P }                                          # 1
+bolinhas_quantidade = int(input())            # 2
+{ P ∧ B = bolinhas_quantidade }               # 3
+
+galhos_quantidade = int(input())              # 4
+{ P ∧ B = bolinhas_quantidade ∧ G = galhos_quantidade }   # 5
+
+# ---------- round G down to the nearest even ----------
+if galhos_quantidade % 2 != 0:                # (1)
+    galhos_quantidade = galhos_quantidade - 1
+{ P ∧ B = bolinhas_quantidade ∧ G' = galhos_quantidade
+      ∧ G' is even ∧ G' = ⌊G/2⌋·2 }           # 6
+else:
+    skip                                      # (the else part does nothing)
+{ P ∧ B = bolinhas_quantidade ∧ G' = galhos_quantidade
+      ∧ G' is even ∧ G' = ⌊G/2⌋·2 }           # 7
+
+# ---------- decide whether the balls are enough ----------
+if galhos_quantidade <= bolinhas_quantidade * 2:   # (2)
+    print("Amelia tem todas bolinhas!")
+    { P ∧ B = bolinhas_quantidade ∧ G' = galhos_quantidade
+          ∧ G' even ∧ G' = ⌊G/2⌋·2 ∧ Δ ≤ 0
+          ∧ out = "Amelia tem todas bolinhas!" }   # 8
+else:                                               # (3)
+    resto = (galhos_quantidade - (2*bolinhas_quantidade)) / 2
+    { P ∧ B = bolinhas_quantidade ∧ G' = galhos_quantidade
+          ∧ G' even ∧ G' = ⌊G/2⌋·2 ∧ Δ > 0
+          ∧ resto = Δ }                               # 9
+    print(f'Faltam {resto:.0f} bolinha(s)')
+    { P ∧ B = bolinhas_quantidade ∧ G' = galhos_quantidade
+          ∧ G' even ∧ G' = ⌊G/2⌋·2 ∧ Δ > 0
+          ∧ out = "Faltam Δ bolinha(s)" }          #10
+{ Q }                                                # 11
+```
+
+In the annotation we have introduced the **derived variables**
+
+* `G'` – the value of `galhos_quantidade` *after* the possible subtraction (the “evenised” G);
+* `Δ = ⌊G/2⌋ – B` (computed implicitly from the definitions above).
+
+The key steps are the implications (A6) and (A7) that connect the concrete test `galhos_quantidade <= 2*B` with the logical condition `Δ ≤ 0` or `Δ > 0`.
+
+---
+
+## 4.  Proof of each Hoare triple  
+
+We now justify each line of the annotation using the Hoare‑logic rules.
+
+### 4.1  Input statements  
+
+*Assignment rule*  
+
+\[
+\frac{}{ \{\,A[E/x]\,\}\; x := E\; \{\,A\,\}}
+\]
+
+For line 2 we take  
+
+\[
+A \equiv P \land B = x
+\]
+
+and substitute `x` by the expression `int(input())`. The rule yields  
+
+\[
+\{P\}\;\text{bolinhas\_quantidade}= \text{int(input())}\; \{P\land B = \text{bolinhas\_quantidade}\}
+\]
+
+which is exactly the transition from **1** to **3**.  
+Line 4 is analogous, giving the transition from **3** to **5**.
+
+### 4.2  Rounding `G` down to an even number  
+
+The conditional statement  
+
+```
+if G % 2 != 0:
+    G := G - 1
+else:
+    skip
+```
+
+is handled with the **conditional rule**  
+
+\[
+\frac{\{A\land b\}\;C_1\;\{B\}\qquad
+      \{A\land \lnot b\}\;C_2\;\{B\}}
+     {\{A\}\;\textbf{if }b\textbf{ then }C_1\textbf{ else }C_2\;\{B\}}
+\]
+
+Take  
+
+\[
+A \equiv P\land B = \text{bolinhas\_quantidade}\land G = \text{galhos\_quantidade}
+\]
+
+and  
+
+\[
+b \equiv (\text{galhos\_quantidade}\bmod 2 \neq 0).
+\]
+
+* **Then‑branch** (`C1`): the assignment `galhos_quantidade = galhos_quantidade - 1`.  
+  By the assignment axiom we obtain  
+
+  \[
+  \{A\land b\}\;C_1\;\{A\land b\land G' = G-1\}
+  \]
+
+  where `G'` denotes the new value of `galhos_quantidade`.  
+  Because `b` tells us that `G` is odd, `G‑1` is even, i.e.  
+
+  \[
+  G' = G-1 = 2\big\lfloor\frac{G}{2}\big\rfloor .
+  \]
+
+  Hence after the assignment we have  
+
+  \[
+  G' \text{ even } \land G' = 2\big\lfloor G/2\big\rfloor .
+  \]
+
+* **Else‑branch** (`C2`): `skip`. The state does not change, so we still have  
+
+  \[
+  A\land \lnot b \;\equiv\; P\land B = \dots \land G\text{ even } \land G = 2\big\lfloor G/2\big\rfloor .
+  \]
+
+Thus both branches establish the same post‑condition, which is exactly assertion **6** (and **7**, the same condition after the `if`).  
+Consequently  
+
+\[
+\{P\land B = \dots\land G = \text{input}\}\;
+\textbf{if }(\dots)\;\{\,P\land B = \dots\land G' \text{ even } \land G' = 2\lfloor G/2\rfloor\,\}.
+\]
+
+### 4.3  Decision whether the balls are enough  
+
+Again we use the conditional rule.  
+Let  
+
+\[
+A' \equiv P\land B = \text{bolinhas\_quantidade}\land
+       G' = \text{galhos\_quantidade}\land G' \text{ even } \land G' = 2\big\lfloor G/2\big\rfloor .
+\]
+
+The guard is  
+
+\[
+b' \equiv (G' \le 2B).
+\]
+
+From (A6) we know  
+
+\[
+b' \;\Longleftrightarrow\; \Delta \le 0 .
+\]
+
+* **Then‑branch** (`C1`): `print("Amelia tem todas bolinhas!")`.  
+  The only effect is to set `out` to the constant string.  
+  Hence  
+
+  \[
+  \{A'\land \Delta\le 0\}\;C_1\;
+  \{A'\land \Delta\le 0\land out = \text{“Amelia tem todas bolinhas!”}\},
+  \]
+
+  which is assertion **8**.
+
+* **Else‑branch** (`C2`) consists of two statements.
+
+  1. **Assignment**  
+
+     \[
+     resto := (G' - 2B)/2 .
+     \]
+
+     Using the assignment axiom and the fact that `G' = 2M` (by (A4)), we obtain  
+
+     \[
+     resto = \frac{2M-2B}{2}=M-B=\Delta .
+     \]
+
+     Hence after this line we have  
+
+     \[
+     \{A'\land \Delta>0\land resto = \Delta\} .
+     \]
+
+  2. **Print**  
+
+     The `print` statement only writes the string, therefore  
+
+     \[
+     \{A'\land \Delta>0\land resto = \Delta\}\;
+     \text{print(...)}\;
+     \{A'\land \Delta>0\land out = \text{“Faltam }\Delta\text{ bolinha(s)”}\},
+     \]
+
+     which is exactly assertion **10**.
+
+Since both branches of the outer `if` establish the post‑condition required by `Q`, the conditional rule gives us  
+
+\[
+\{A'\}\;\textbf{if }(G'\le 2B)\;\textbf{then }C_1\;\textbf{else }C_2\;\{Q\}.
+\]
+
+Together with the derivations of sections 4.1–4.3 we have the chain  
+
+\[
+\{P\}\;S\;\{Q\}.
+\]
+
+Thus the Hoare triple is proved.
+
+---
+
+## 5.  Termination  
+
+All statements are either:
+
+* a finite input operation (`int(input())`);
+* a simple arithmetic assignment;
+* a conditional whose guard is an arithmetic comparison of two **already‑computed** integers;  
+* a `print` that terminates after writing to stdout.
+
+There is no loop or recursion, so the program always reaches the final `print` statement in a **finite** number of steps. Hence termination follows trivially.
+
+---
+
+## 6.  Summary of the proof
+
+| Step | Hoare rule used | Resulting assertion |
+|------|----------------|---------------------|
+| 1‑2  | Assignment (input) | `{P} → {P ∧ B = bolinhas_quantidade}` |
+| 3‑4  | Assignment (input) | `{…} → {P ∧ B = … ∧ G = galhos_quantidade}` |
+| 5‑6  | Conditional (make G even) | `{P ∧ B = … ∧ G = …} → {P ∧ B = … ∧ G' even ∧ G' = 2⌊G/2⌋}` |
+| 7‑8  | Conditional (enough balls) – then‑branch | `{Δ ≤ 0}` leads to `out = "Amelia tem todas bolinhas!"` |
+| 9‑10 | Conditional – else‑branch (assignment + print) | `{Δ > 0}` leads to `out = "Faltam Δ bolinha(s)"` |
+| 11   | Consequence (replace `Δ` by `R = max(0,Δ)`) | `{Q}` as defined in the specification |
+
+All intermediate assertions are logically equivalent to the expressions appearing in the formal specification (the floor, the deficit `Δ`, and the required number `R`). Consequently the program satisfies the specification **exactly**:
+
+*If the number of balls `B` is at least `⌊G/2⌋`, the program prints  
+`"Amelia tem todas bolinhas!"`.  
+Otherwise it prints  
+`"Faltam (⌊G/2⌋‑B) bolinha(s)"`.*
+
+Since we have derived `{P} S {Q}` and shown that every command terminates, the program is **correct** with respect to the given Hoare‑logic specification. ∎

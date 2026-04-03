@@ -1,0 +1,391 @@
+## 1.  What we have to prove  
+
+We want to show that the program **CountEvenOddPosNeg** (the Python fragment that reads five integers, counts evens, odds, positives and negatives and prints the four lines) satisfies the Hoare triple  
+
+\[
+\{P\}\;\texttt{CountEvenOddPosNeg}\;\{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P:\;A=(a_{1},\dots ,a_{5})\in\mathbb Z^{5}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q:&\;\;ev =E(A)\quad\land\quad od =O(A)\quad\land\quad
+pos =P(A)\quad\land\quad neg =N(A)\\
+  &\;\;\land\; \text{the program prints the four lines}
+\end{aligned}
+\]
+
+The proof proceeds with the ordinary rules of Hoare logic (assignment, composition,
+conditional, and bounded‑loop).  The only non‑trivial part is to exhibit a
+**loop invariant** that is strong enough to imply the post‑condition when the
+loop finishes.
+
+--------------------------------------------------------------------
+
+## 2.  Notation that will be used in the proof  
+
+* The five input numbers are denoted  
+
+  \[
+  A = (a_{1},a_{2},a_{3},a_{4},a_{5}) .
+  \]
+
+  The statement  
+
+  ```python
+  num = int(input())
+  ```
+
+  is modelled by an *input* command that nondeterministically assigns the next
+  element of the tuple \(A\) to the program variable `num`.  Formally we write  
+
+  \[
+  \{\,\text{true}\,\}\;\texttt{num := a_{i+1}}\;\{\,\texttt{num}=a_{i+1}\,\}
+  \]
+
+  when the loop has already read the first \(i\) numbers.
+
+* The four counters used in the program are renamed for the proof
+
+  \[
+  ev\;(\text{par}),\; od\;(\text{impar}),\; pos\;(\text{positivo}),\; 
+  neg\;(\text{negativo})\in \mathbb N .
+  \]
+
+* For a natural number \(k\) with \(0\le k\le5\) we define the *partial*
+  auxiliary functions  
+
+  \[
+  \begin{aligned}
+  E_k(A) &:= \bigl|\{\,j\mid 1\le j\le k \;\wedge\; a_j\equiv 0\pmod 2\}\bigr|,\\
+  O_k(A) &:= \bigl|\{\,j\mid 1\le j\le k \;\wedge\; a_j\not\equiv 0\pmod 2\}\bigr|,\\
+  P_k(A) &:= \bigl|\{\,j\mid 1\le j\le k \;\wedge\; a_j>0\}\bigr|,\\
+  N_k(A) &:= \bigl|\{\,j\mid 1\le j\le k \;\wedge\; a_j<0\}\bigr|.
+  \end{aligned}
+  \]
+
+  Of course \(E_5(A)=E(A)\), \(O_5(A)=O(A)\), \(P_5(A)=P(A)\) and \(N_5(A)=N(A)\).
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+The program iterates with  
+
+```python
+for i in range(5):       # i = 0,1,2,3,4
+```
+
+which is equivalent to the while‑loop  
+
+```python
+i := 0;
+while i < 5:
+    …               # body
+    i := i + 1
+```
+
+Hence we can use the standard **while‑rule**.  
+The invariant \(I(i,ev,od,pos,neg)\) is:
+
+\[
+\boxed{
+\begin{aligned}
+I(i,ev,od,pos,neg) \equiv
+&\;0\le i\le 5\\[1mm]
+&\;ev = E_i(A)\\
+&\;od = O_i(A)\\
+&\;pos = P_i(A)\\
+&\;neg = N_i(A)
+\end{aligned}}
+\tag{Inv}
+\]
+
+Intuitively, after the loop has processed the first \(i\) input numbers,
+each counter equals the number of elements with the corresponding property
+among those \(i\) numbers.
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the Hoare triple  
+
+We give a structured proof that follows the program text.  
+Every step is annotated with the Hoare rule that justifies it.
+
+### 4.1  Initialisation  
+
+```python
+ev = 0; od = 0; pos = 0; neg = 0
+```
+
+*Assignment rule*  
+
+\[
+\{\,\text{true}\,\}\;
+\begin{array}{c}
+\texttt{ev := 0}\\
+\texttt{od := 0}\\
+\texttt{pos := 0}\\
+\texttt{neg := 0}
+\end{array}
+\;
+\{\,ev=0\land od=0\land pos=0\land neg=0\,\}
+\]
+
+Because the empty prefix of the input contains no elements,
+\(E_0(A)=O_0(A)=P_0(A)=N_0(A)=0\).  Consequently the post‑condition of this
+block is exactly \(I(0,ev,od,pos,neg)\).
+
+\[
+\{\,\text{true}\,\}\;\texttt{ev,od,pos,neg :=0}\;
+\{\,I(0,ev,od,pos,neg)\,\}
+\tag{1}
+\]
+
+### 4.2  The loop (while‑form)
+
+We now prove  
+
+\[
+\{\,I(i,ev,od,pos,neg)\,\}\;\texttt{Body}\;
+\{\,I(i+1,ev,od,pos,neg)\,\}
+\tag{2}
+\]
+
+where **Body** is the sequence that reads one integer and updates the four
+counters.
+
+#### 4.2.1  Reading the next number  
+
+```python
+num = int(input())
+```
+
+Formally  
+
+\[
+\{\,I(i,ev,od,pos,neg)\,\}\;
+\texttt{num := a_{i+1}}\;
+\{\,I(i,ev,od,pos,neg)\land \texttt{num}=a_{i+1}\,\}
+\tag{3}
+\]
+
+(The invariant does not involve `num`, therefore it is preserved.)
+
+#### 4.2.2  Updating the *even/odd* counters  
+
+```python
+if (num % 2) == 0:
+    ev += 1
+else:
+    od += 1
+```
+
+We reason by case analysis on the truth value of the guard.
+
+*Case 1* : \(\,a_{i+1}\equiv 0\pmod 2\).  
+The guard is true, the then‑branch is executed.
+
+\[
+\begin{aligned}
+&\{\,I(i,ev,od,pos,neg)\land a_{i+1}\equiv0\pmod2\,\}\\
+&\qquad\texttt{ev := ev+1}\\
+&\{\,ev = E_i(A)+1\land od = O_i(A)\land\ldots\,\}
+\end{aligned}
+\]
+
+Because \(a_{i+1}\) is even, \(E_{i+1}(A)=E_i(A)+1\) and
+\(O_{i+1}(A)=O_i(A)\).  Hence after the assignment we have  
+
+\[
+ev = E_{i+1}(A),\; od = O_{i+1}(A)
+\]
+
+and the other two counters are unchanged, i.e. the invariant holds for
+\(i+1\).
+
+*Case 2* : \(\,a_{i+1}\not\equiv 0\pmod 2\).  
+The else‑branch executes and we obtain analogously  
+
+\[
+od = O_{i+1}(A),\; ev = E_{i+1}(A)
+\]
+
+Thus the conditional on parity preserves the invariant.
+
+#### 4.2.3  Updating the *positive/negative* counters  
+
+```python
+if num > 0:
+    pos += 1
+elif num < 0:
+    neg += 1
+```
+
+Again we perform a case analysis.
+
+*Case 1* : \(a_{i+1}>0\).  The first guard is true, the then‑branch runs and
+`pos` is incremented.  Since a positive number is not negative,  
+
+\[
+P_{i+1}(A)=P_i(A)+1,\qquad N_{i+1}(A)=N_i(A).
+\]
+
+Consequently the invariant becomes  
+
+\[
+pos = P_{i+1}(A),\; neg = N_{i+1}(A).
+\]
+
+*Case 2* : \(a_{i+1}<0\).  The first guard fails, the second guard succeeds,
+`neg` is incremented, and we obtain  
+
+\[
+P_{i+1}(A)=P_i(A),\qquad N_{i+1}(A)=N_i(A)+1,
+\]
+
+which again restores the invariant.
+
+*Case 3* : \(a_{i+1}=0\).  Both guards are false, no counter is changed; the
+definition of the auxiliary functions gives  
+
+\[
+P_{i+1}(A)=P_i(A),\; N_{i+1}(A)=N_i(A),
+\]
+
+so the invariant is trivially preserved.
+
+Putting the three parts together we have proved (2).
+
+#### 4.2.4  Increment of the loop index  
+
+```python
+i := i + 1
+```
+
+From (2) we already have the invariant with index \(i+1\); the explicit
+increment is therefore just a syntactic artefact of the while‑translation and
+does not affect correctness.
+
+#### 4.2.5  Application of the **while‑rule**
+
+The while‑rule states
+
+\[
+\frac{\{I\land B\}\;C\;\{I\}}{\{I\}\;\texttt{while }B\texttt{ do }C\;\{I\land\neg B\}}
+\]
+
+where \(B\) is the loop guard `i < 5`.  
+Because we have shown that the body \(C\) preserves \(I\) (2), we obtain
+
+\[
+\{\,I(0,ev,od,pos,neg)\,\}\;
+\texttt{while }i<5\texttt{ do Body}\;
+\{\,I(5,ev,od,pos,neg)\,\}.
+\tag{4}
+\]
+
+But \(I(5,\dots)\) is precisely
+
+\[
+ev = E_5(A)=E(A),\qquad
+od = O_5(A)=O(A),\qquad
+pos = P_5(A)=P(A),\qquad
+neg = N_5(A)=N(A).
+\]
+
+Hence after the loop we have the four numerical equalities required by the
+post‑condition.
+
+### 4.3  The four `print` statements  
+
+The final part of the program is
+
+```python
+print(f'{ev} valor(es) par(es)')
+print(f'{od} valor(es) impar(es)')
+print(f'{pos} valor(es) positivo(s)')
+print(f'{neg} valor(es) negativo(s)')
+```
+
+For each line we can use the **output rule** (a specialization of the
+assignment rule for the primitive `print`):
+
+\[
+\frac{\{\,R\,\}}{\{\,R\land\text{output}= \text{string}(ev,\ldots)\,\}
+\;\texttt{print(...)}\;
+\{\,R\,\}}
+\]
+
+where the predicate \(R\) is the conjunction of the four equalities already
+proved in (4).  Since the strings are built exactly with the values of the four
+variables, the execution prints the four lines required by \(Q\).
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the whole proof  
+
+Collecting the pieces:
+
+1. (1) \(\{\,\text{true}\,\}\;\texttt{ev,od,pos,neg :=0}\;\{\,I(0,ev,od,pos,neg)\,\}\)
+2. (4) \(\{\,I(0,ev,od,pos,neg)\,\}\;\texttt{while }i<5\texttt{ do Body}\;
+   \{\,I(5,ev,od,pos,neg)\,\}\)
+3. From the invariant with \(i=5\) we get the numerical equalities
+   \(ev=E(A),\;od=O(A),\;pos=P(A),\;neg=N(A)\).
+4. The four `print` statements keep the same predicate and produce the
+   required output.
+
+By the **rule of consequence** we can weaken the initial pre‑condition
+\(\text{true}\) to the specification‑level pre‑condition \(P\) (which is
+exactly `true` because \(A\) may be any 5‑tuple), and we can strengthen the
+final predicate to the specification‑level post‑condition \(Q\).
+
+Thus we have established the Hoare triple  
+
+\[
+\boxed{\{P\}\;\texttt{CountEvenOddPosNeg}\;\{Q\}}
+\]
+
+i.e. *the program is correct with respect to the given formal specification*.
+
+--------------------------------------------------------------------
+
+## 6.  Summary of the proof steps (in Hoare‑logic notation)
+
+\[
+\begin{array}{ll}
+\{P\} &
+\texttt{ev := 0; od := 0; pos := 0; neg := 0} \\
+\{I(0,ev,od,pos,neg)\} &
+\texttt{i := 0;}\\
+\{I(i,ev,od,pos,neg)\} &
+\texttt{while } i<5 \texttt{ do}\\
+\qquad\{I(i,ev,od,pos,neg)\land i<5\} &
+\qquad\texttt{num := a_{i+1}}\\
+\qquad\{I(i,ev,od,pos,neg)\land \texttt{num}=a_{i+1}\} &
+\qquad\texttt{if (num\%2)==0 then ev:=ev+1 else od:=od+1}\\
+\qquad\{I(i+1,ev,od,pos,neg)\} &
+\qquad\texttt{if num>0 then pos:=pos+1 else if num<0 then neg:=neg+1}\\
+\qquad\{I(i+1,ev,od,pos,neg)\} &
+\qquad\texttt{i := i+1}\\
+\{I(5,ev,od,pos,neg)\} &
+\texttt{end while}\\[2mm]
+\{ev=E(A)\land od=O(A)\land pos=P(A)\land neg=N(A)\} &
+\texttt{print …}\\[2mm]
+\{Q\} & \text{(output format matches the specification)}
+\end{array}
+\]
+
+All the logical obligations that appear in the table have been discharged
+above (initialisation, invariant preservation, case analysis on the
+conditionals, and the output rule).  Consequently the program satisfies the
+Hoare‑style specification.

@@ -1,0 +1,312 @@
+Below we give a **complete Hoare‑logic proof** that the Python program shown in the statement satisfies the
+triple  
+
+\[
+\{P\}\;\;{\tt program}\;\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition that the input file contains a finite non‑empty list of
+positive integers terminated by a single zero,  
+
+* \(Q\) is the post‑condition that the output file contains one line
+\(\operatorname{line}(a_i)\) for each positive integer \(a_i\) read, and the program terminates.
+
+The proof proceeds in the usual way:
+
+1. **Introduce a loop index** that counts how many input numbers have already been processed.  
+2. **State an invariant** for the outer `while` loop.  
+3. **Prove** that the invariant holds initially, is preserved by one iteration, and
+   together with the negation of the loop guard gives the post‑condition.  
+4. **Show termination** by exhibiting a well‑founded variant.
+
+All statements are written in the language of Hoare triples
+\(\{\,\phi\,\}\;C\;\{\,\psi\,\}\) where \(C\) is a command, \(\phi\) a pre‑condition and
+\(\psi\) a post‑condition.
+
+--------------------------------------------------------------------
+
+## 1.  Program (re‑written with an explicit loop counter)
+
+```text
+k := 0                                    # number of already processed inputs
+while True do
+    X := int(input())                     # read next integer
+    if X = 0 then break end               # sentinel → finish
+    # print the line that corresponds to X
+    for i in range(1, X) do
+        print(i, end=" ")
+    end
+    print(X, end="")                       # last number without trailing space
+    print()                                # end‑of‑line
+    k := k+1                               # one more line has been produced
+end
+```
+
+The only observable variables are the **input stream** (a sequence of integers) and the **output stream** (a
+sequence of characters).  All other variables (`X`, `i`, `k`) are auxiliary.
+
+--------------------------------------------------------------------
+
+## 2.  The outer loop invariant
+
+Let  
+
+* \(\mathbf{In}= \langle a_1,\dots ,a_n,0\rangle\) be the input sequence promised by the
+pre‑condition \(P\).  
+
+* \(\mathbf{Out}\) be the (as‑yet‑unfinished) output stream.
+
+Define  
+
+\[
+\operatorname{line}(m)=\underbrace{1\;2\;\dots\;m}_{\text{space‑separated, no trailing space}} .
+\]
+
+\[
+\boxed{
+I(k)\;\equiv\;
+\begin{array}{l}
+\text{(i) the first }k\text{ numbers }a_1,\dots ,a_k\text{ have already been consumed from the input} \\[2pt]
+\text{(ii) the output already contains exactly the lines }\\[2pt]
+\qquad\operatorname{line}(a_1),\operatorname{line}(a_2),\dots ,\operatorname{line}(a_k)
+\text{ each terminated by ‘\(\backslash n\)’}.
+\end{array}}
+\]
+
+The invariant talks only about what the program has *already* produced; it does not
+mention the values of the auxiliary variables (`X`, `i`) because they are
+local to the current iteration.
+
+--------------------------------------------------------------------
+
+## 3.  Proof that the invariant holds
+
+### 3.1 Initialization  
+
+Before the first execution of the `while` loop we have executed the assignment  
+
+\[
+\{P\}\;k:=0\;\{k=0\land P\}.
+\]
+
+Since no input has been read yet and no output has been written,
+\(I(0)\) is true: the first \(0\) numbers have been consumed and the first
+\(0\) lines have been produced.  Hence  
+
+\[
+\{P\}\;k:=0\;\{I(0)\}.
+\]
+
+### 3.2 Preservation  
+
+Assume the invariant holds at the beginning of an iteration, i.e. we have
+\(\{I(k)\}\) as a pre‑condition.  We must show that after the body of the
+loop finishes we obtain \(\{I(k+1)\}\) (provided the loop guard does not cause a
+break).  The body consists of three parts:
+
+#### (a)  Reading the next integer  
+
+```
+X := int(input())
+```
+
+The Hoare rule for input (reading a value from the stream) is
+
+\[
+\{\,\mathbf{In}= \langle a_1,\dots ,a_k, a_{k+1},\dots\rangle\;\}
+\;X:=\text{read()}\;
+\{\,X=a_{k+1}\;\land\;
+ \mathbf{In}= \langle a_1,\dots ,a_k, a_{k+1},\dots\rangle\;\}.
+\]
+
+Together with the invariant \(I(k)\) we obtain  
+
+\[
+\{I(k)\}\;X:=\text{read()}\;\{X=a_{k+1}\land I(k)\}.
+\]
+
+#### (b)  The `if` test  
+
+```
+if X = 0 then break
+```
+
+The Hoare rule for a conditional is
+
+\[
+\frac{\{B\land\phi\}\;C_1\;\{\psi\}\qquad
+      \{\neg B\land\phi\}\;C_2\;\{\psi\}}
+     {\{\phi\}\;{\bf if}\;B\;{\bf then}\;C_1\;{\bf else}\;C_2\;{\bf end}\;\{\psi\}} .
+\]
+
+We apply it with  
+
+* \(B\equiv X=0\),  
+* \(C_1\equiv\) `break` (i.e. exit the loop),  
+* \(C_2\equiv\) the rest of the loop body.
+
+Because the pre‑condition guarantees that every *non‑sentinel* input is
+positive, we have \(a_{k+1}>0\).  Consequently the guard \(X=0\) is **false**,
+the `break` branch is never taken, and we are left with the second
+alternative:
+
+\[
+\{X=a_{k+1}\land I(k)\}\;\text{(rest of loop body)}\;\{I(k)\land X\neq0\}.
+\]
+
+In other words, after the test we still know that the next integer to be
+processed is a positive number \(a_{k+1}\).
+
+#### (c)  Printing the line for \(a_{k+1}\)
+
+The remaining commands are
+
+```
+for i in range(1, X) do
+        print(i, end=" ")
+print(X, end="")
+print()
+k := k+1
+```
+
+We prove a **nested invariant** for the inner `for` loop.
+
+*Inner invariant* \(J(j)\) (where `j` is the current value of `i`)
+
+\[
+J(j)\equiv
+\bigl(\text{the output already contains the prefix}
+      \;1\;2\;\dots\;(j-1)\;\text{followed by a single space}\bigr).
+\]
+
+*Initialization* : before the first iteration \(j=1\), the prefix is empty,
+so \(J(1)\) holds trivially.
+
+*Preservation* : assuming \(J(j)\) we execute  
+
+```
+print(j, end=" ")
+```
+
+which appends the string “\(j\) ” to the output.  Hence after the command the
+output contains the prefix \(1\;2\;\dots\;(j-1)\;j\;\) and the invariant
+\(J(j+1)\) holds.
+
+*Termination* : the loop runs for `i = 1,…,X‑1`.  When it finishes we have
+\(j = X\) and therefore the output ends with the prefix  
+
+\[
+1\;2\;\dots\;(X-1)\; .
+\]
+
+Now the two subsequent `print` statements add the final number `X` **without**
+a trailing space and then a newline.  Consequently the complete line that
+has been written is exactly  
+
+\[
+\operatorname{line}(X)=1\;2\;\dots\;(X-1)\;X .
+\]
+
+Because we already know from the guard that \(X=a_{k+1}>0\), the line that has
+just been printed is \(\operatorname{line}(a_{k+1})\).
+
+Finally the assignment `k := k+1` updates the loop counter, so the invariant
+for the outer loop becomes
+
+\[
+I(k+1) \equiv
+\begin{cases}
+\text{the first }k+1\text{ inputs have been consumed, and}\\[2pt]
+\text{the first }k+1\text{ output lines are }
+\operatorname{line}(a_1),\dots ,\operatorname{line}(a_{k+1}).
+\end{cases}
+\]
+
+Thus we have proved the Hoare triple
+
+\[
+\{I(k)\land X=a_{k+1}\}\;
+\text{body of the while‑loop (except the break)}\;
+\{I(k+1)\}.
+\]
+
+Putting together the three parts (reading, test, printing) we obtain the
+preservation rule for the whole `while` body:
+
+\[
+\boxed{\;\{I(k)\}\;\textbf{while}\;{\tt True}\;\textbf{do}\;B\;\{I(k)\}\;}
+\]
+
+where \(B\) denotes the complete body of the loop *including* the possible
+`break`.  The only way to leave the loop is the `break` executed when the
+read value is the sentinel `0`.
+
+### 3.3  Exit condition and post‑condition
+
+The loop terminates exactly when the guard `if X == 0` is satisfied.
+At that moment the invariant tells us that the first \(k\) inputs have been
+consumed, and the next value read is `0`.  By the definition of the input
+sequence we have \(k=n\) (all positive numbers have been processed) and the
+output consists of the lines  
+
+\[
+\operatorname{line}(a_1),\dots ,\operatorname{line}(a_n)
+\]
+
+each followed by a newline.  This is precisely the post‑condition \(Q\).
+
+Formally, using the rule for `while` with a **break** we have
+
+\[
+\frac{\{I(k)\}\;B\;\{I(k+1)\}\qquad
+      I(k)\land X=0\;\Rightarrow\;k=n}
+     {\{I(0)\}\;\textbf{while}\;{\tt True}\;\textbf{do}\;B\;\{Q\}} .
+\]
+
+Since we have already shown \(\{I(k)\}\;B\;\{I(k+1)\}\) and we know from the
+pre‑condition that the only occurrence of `0` is the last element of the
+input, the premise \(I(k)\land X=0\Rightarrow k=n\) holds.  Consequently the
+whole program satisfies \(\{P\}\;{\tt program}\;\{Q\}\).
+
+--------------------------------------------------------------------
+
+## 4.  Termination (variant)
+
+To argue that the program *always* terminates we exhibit a variant that
+strictly decreases at each iteration and is well‑founded.
+
+Define  
+
+\[
+V \;=\; \text{the number of unread input integers (including the sentinel)} .
+\]
+
+Initially \(V = n+1\) (all numbers are still in the input).  
+Each iteration reads exactly one integer, therefore \(V\) is reduced by one.
+Because the natural numbers are well‑ordered, the loop cannot execute
+infinitely many times; after at most \(n+1\) iterations the sentinel `0` is read
+and the `break` is taken.  Hence the program terminates.
+
+--------------------------------------------------------------------
+
+## 5.  Summary of the proof
+
+| Step | Hoare triple (informal)                                   |
+|------|-----------------------------------------------------------|
+| 1.   | \(\{P\}\;k:=0\;\{I(0)\}\)                                  |
+| 2.   | \(\{I(k)\}\) read `X` \(\{X=a_{k+1}\land I(k)\}\)          |
+| 3.   | Guard `if X==0` never taken because \(a_{k+1}>0\)         |
+| 4.   | \(\{X=a_{k+1}\land I(k)\}\) inner `for` prints exactly \(\operatorname{line}(a_{k+1})\) |
+| 5.   | `k := k+1` gives \(\{I(k+1)\}\)                           |
+| 6.   | Invariant preserved: \(\{I(k)\}\) body \(\{I(k+1)\}\)      |
+| 7.   | Variant \(V\) decreases, therefore loop terminates        |
+| 8.   | When `break` is executed we have \(k=n\) and the output
+        equals \(\langle\operatorname{line}(a_1),\dots ,\operatorname{line}(a_n)\rangle\) |
+| 9.   | Hence \(\{P\}\) program \(\{Q\}\) holds.                  |
+
+Thus the **Hoare‑logic correctness proof** is complete: under the
+pre‑condition that the input consists of a finite list of positive integers
+followed by a zero, the program terminates and produces exactly the required
+output lines, i.e. the post‑condition \(Q\).  

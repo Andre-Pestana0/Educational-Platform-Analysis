@@ -1,0 +1,335 @@
+## 1.  What has to be proved  
+
+We have to show the Hoare triple  
+
+\[
+\{\,P\,\}\;\;{\tt program}\;\;\{\,Q\,\}
+\]
+
+where  
+
+* **P** (the pre‑condition) guarantees that the input consists of a positive
+  integer \(N\) followed by exactly \(N\) pairs of integers \((X_i,Y_i)\);
+* **Q** (the post‑condition) describes the whole output sequence
+  \(\mathbf{out}=(\mathbf{out}_1,\dots ,\mathbf{out}_N)\) :
+
+  * if \(Y_i\neq0\) the *i‑th* line is the string obtained by rounding the
+    exact quotient \(X_i/Y_i\) to the nearest tenth and printing it with one
+    decimal digit;
+  * if \(Y_i=0\) the *i‑th* line is the literal string **“divisao impossivel”**.
+
+The program that we must reason about is the concrete Python fragment
+
+```python
+N = int(input())                       # 1
+for i in range(N):                     # 2 … 5
+    X, Y = map(float, input().split(' '))
+    if Y != 0:                          # 4
+        print(X/Y)                     # 5
+    else:
+        print('divisao impossivel')
+```
+
+In the proof we treat each Python statement as an elementary command of a
+simple imperative language whose semantics is the one used by the
+specification:  
+
+* `int(input())` reads the first integer of the input and stores it in the
+  program variable `N`;
+* `map(float, …)` converts the two integer tokens that are read into the
+  reals `X` and `Y` (they are exactly the integers \(X_i\) and \(Y_i\));
+* `print(e)` prints the *string* that the language defines for the value of
+  the expression `e`.  We assume the language’s printing routine is precisely
+  the function `fmt` defined in the specification, i.e. it rounds the real
+  value to the nearest tenth and then produces a one‑digit‑after‑the‑decimal
+  representation.  (If the language printed a different representation,
+  the program would have to be changed; the proof below works for the
+  intended semantics of the problem statement.)
+
+---
+
+## 2.  Proof outline  
+
+The proof follows the structure of the program:
+
+1. **Reading `N`** – an assignment that establishes the loop bound.
+2. **The `for`‑loop** – we exhibit a loop invariant that captures the
+   correctness of all output lines that have already been produced.
+3. **The body of the loop** – a conditional whose two branches correspond
+   exactly to the two cases in the post‑condition.
+
+The proof uses the standard Hoare‑logic inference rules
+(assignment, composition, conditional, while (or `for`) with invariant).
+
+---
+
+## 3.  Formal proof  
+
+### 3.1  Notation  
+
+* We write \(\underline{v}\) for the *program variable* that stores the value
+  of the logical variable \(v\).  Thus after line 1 we have
+  \(\underline{N}=N\); after the input statement of the loop we have
+  \(\underline{X}=X_i\) and \(\underline{Y}=Y_i\) (the *i‑th* pair of the
+  input).
+* The loop variable `i` (the Python iterator) will be denoted by the logical
+  variable \(k\) (the number of already processed test cases).  At the
+  beginning of an iteration we have \(k\in\{0,\dots ,N\}\).
+
+### 3.2  Assignment that reads `N`
+
+```
+N = int(input())
+```
+
+**Hoare rule (assignment)**  
+
+\[
+\{\,P\land N = \underline{N}\,\}\;N = \text{int(input())}\;\{\,P\}
+\]
+
+Because the pre‑condition \(P\) already contains the conjunct
+\(N\in\mathbb N\land N\ge 1\) and the whole input sequence,
+the assignment simply copies the first token of the input into the program
+variable `N`.  Hence after this statement we know
+
+\[
+\underline{N}=N \;\land\;
+\mathbf{in}= (N,X_1,Y_1,\dots ,X_N,Y_N) .
+\tag{A1}
+\]
+
+No other program variable is changed, therefore \(P\) still holds.
+
+---
+
+### 3.3  Loop invariant  
+
+For the `for i in range(N):` loop we propose the following invariant
+\(I(k)\) (the property that holds **after** the body of the loop has been
+executed \(k\) times, i.e. after the first \(k\) pairs have been processed).
+
+\[
+\boxed{
+\begin{aligned}
+I(k) \equiv\;&
+0\le k \le N\;\land\;
+\underline{N}=N\;\land\\
+&\bigl(\forall j\in\{1,\dots ,k\}\;.\;
+   (Y_j\neq 0\;\rightarrow\;
+      \mathbf{out}_j = \operatorname{fmt}\bigl(\operatorname{round}_{0.1}(X_j/Y_j)\bigr))
+   \;\land\\
+&\qquad\qquad\qquad\;
+   (Y_j = 0\;\rightarrow\;
+      \mathbf{out}_j = \mathbf{imposs})\bigr)
+\end{aligned}}
+\tag{Inv}
+\]
+
+Intuitively, after having processed the first \(k\) test cases, the first
+\(k\) output lines satisfy exactly the specification, and the loop bound
+\(\underline{N}=N\) is still known.
+
+---
+
+### 3.4  Initialization of the invariant  
+
+Before the first iteration we have \(k=0\).  From (A1) we obtain
+
+\[
+0\le 0\le N,\qquad \underline{N}=N,
+\]
+
+and the universal quantifier in \(I(0)\) is vacuous.  Hence
+
+\[
+\{\,P\,\}\;\texttt{for i in range(N):}\;\{\,I(0)\,\}
+\]
+
+holds (the *initialisation* step of the while‑rule).
+
+---
+
+### 3.5  Preservation of the invariant  
+
+Assume that \(I(k)\) holds at the beginning of an iteration with
+\(k<N\).  The body of the loop consists of the three statements
+
+```
+X, Y = map(float, input().split(' '))
+if Y != 0:
+    print(X/Y)
+else:
+    print('divisao impossivel')
+```
+
+We reason about them in order.
+
+#### 3.5.1  Reading the next pair  
+
+The input statement consumes the \((k+1)\)-st pair \((X_{k+1},Y_{k+1})\)
+and stores the (exact) integer values as the real numbers
+\(\underline{X}=X_{k+1}\) and \(\underline{Y}=Y_{k+1}\).  
+No other variable is affected, therefore the part of the invariant that
+talks about the already printed lines (\(j\le k\)) stays true.
+
+#### 3.5.2  Conditional  
+
+The conditional has the two branches required by the post‑condition.
+
+* **Branch 1** (`Y != 0`).  
+  The guard `Y != 0` is equivalent to the logical condition
+  \(Y_{k+1}\neq 0\).  Inside the branch the command `print(X/Y)` prints the
+  string  
+
+  \[
+  \operatorname{fmt}\bigl(\operatorname{round}_{0.1}(\underline{X}/\underline{Y})\bigr)
+  =\operatorname{fmt}\bigl(\operatorname{round}_{0.1}(X_{k+1}/Y_{k+1})\bigr)
+  \]
+
+  because \(\underline{X}=X_{k+1}\) and \(\underline{Y}=Y_{k+1}\).  
+  Hence the newly produced line \(\mathbf{out}_{k+1}\) satisfies the first
+  clause of the specification.
+
+* **Branch 2** (`else`).  
+  The guard `Y == 0` is equivalent to \(Y_{k+1}=0\).  The command
+  `print('divisao impossivel')` produces exactly the constant string
+  \(\mathbf{imposs}\), which is the second clause of the specification.
+
+Both branches preserve the universal property for all
+\(j\le k+1\).  Moreover they do **not** modify any of the earlier output
+lines or the variable `N`.  Consequently after the whole `if … else`
+statement we have
+
+\[
+I(k+1)
+\]
+
+(i.e. the invariant holds with the index increased by one).
+
+Formally, using the Hoare rule for conditionals
+
+\[
+\frac{
+   \{I(k)\land \underline{Y}\neq 0\}\; \texttt{print(X/Y)}\; \{I(k+1)\}
+   \qquad
+   \{I(k)\land \underline{Y}=0\}\; \texttt{print(...)}\; \{I(k+1)\}
+}{
+   \{I(k)\}\; \texttt{if Y != 0: … else: …}\; \{I(k+1)\}
+}
+\]
+
+and the rule for sequential composition we obtain the preservation of the
+invariant.
+
+#### 3.5.3  End of the iteration  
+
+At the end of the iteration the loop variable `i` has been increased by one,
+so the logical counter becomes \(k+1\).  The invariant \(I(k+1)\) is exactly
+the required state for the next iteration.
+
+Thus we have proved the **maintenance** condition of the while‑rule:
+
+\[
+\{I(k)\}\;\texttt{body of the loop}\;\{I(k+1)\}
+\qquad\text{for all }k<N .
+\]
+
+---
+
+### 3.6  Termination of the loop  
+
+The `for i in range(N):` loop executes exactly \(N\) times, because the
+range iterator yields the values \(0,1,\dots ,N-1\).  Consequently the loop
+terminates with the loop counter equal to \(N\).  By the **termination**
+rule of Hoare logic we obtain the invariant instantiated with \(k=N\):
+
+\[
+I(N) \equiv
+\bigl(\forall j\in\{1,\dots ,N\}\;.\;
+   (Y_j\neq 0\;\rightarrow\;
+      \mathbf{out}_j = \operatorname{fmt}(\operatorname{round}_{0.1}(X_j/Y_j)))
+   \;\land\;
+   (Y_j = 0\;\rightarrow\;
+      \mathbf{out}_j = \mathbf{imposs})\bigr)
+\]
+
+together with the facts \(\underline{N}=N\) and \(0\le N\le N\).
+
+---
+
+### 3.7  Deriving the post‑condition  
+
+The post‑condition \(Q\) is precisely the conjunction of
+
+* the definition of the whole output sequence
+  \(\mathbf{out}=(\mathbf{out}_1,\dots ,\mathbf{out}_N)\), and
+* the universal property that we have just proved in \(I(N)\).
+
+Therefore \(I(N)\) entails \(Q\).
+Formally, using the **consequence** rule we obtain
+
+\[
+\{P\}\;\texttt{program}\;\{Q\}.
+\]
+
+---
+
+## 4.  Summary of the proof steps  
+
+| Program fragment | Hoare rule used | Resulting assertion |
+|------------------|-----------------|---------------------|
+| `N = int(input())` | Assignment | \(\underline{N}=N\) and the whole input is still available |
+| before the loop | – | invariant \(I(0)\) holds |
+| loop body (reading) | Assignment | \(\underline{X}=X_{k+1},\;\underline{Y}=Y_{k+1}\) |
+| `if Y != 0: print(X/Y)` | Conditional (two branches) | \(\mathbf{out}_{k+1}\) satisfies the first clause of \(Q\) |
+| `else: print('divisao impossivel')` | Conditional (second branch) | \(\mathbf{out}_{k+1}\) satisfies the second clause of \(Q\) |
+| end of iteration | Composition + invariant maintenance | \(I(k+1)\) holds |
+| after the `for` loop ( \(k=N\) ) | Loop rule (invariant + termination) | \(I(N)\) holds |
+| \(I(N) \Rightarrow Q\) | Consequence | \(\{P\}\) program \(\{Q\}\) |
+
+All the premises of the Hoare‑logic inference rules are satisfied, hence the
+triple \(\{P\}\;{\tt program}\;\{Q\}\) is proved.
+
+---
+
+## 5.  Remarks on the rounding / printing  
+
+The specification uses the function  
+
+\[
+\operatorname{fmt}(r)=\text{the string that prints }r\text{ with exactly one
+decimal digit}.
+\]
+
+In the Python fragment the statement `print(X/Y)` prints the value of the
+expression `X/Y`.  By the semantics assumed for the language (the one that
+the problem statement employs) the printing routine is exactly `fmt`.  If
+the concrete Python interpreter printed a representation with more than one
+decimal digit, the program would have to be written as
+
+```python
+print(f"{X/Y:.1f}")
+```
+
+but this change does **not** affect the logical structure of the proof; the
+same invariant and the same Hoare‑logic reasoning would apply.
+
+---
+
+## 6.  Conclusion  
+
+We have exhibited a loop invariant that captures the required relationship
+between each input pair \((X_i,Y_i)\) and the corresponding output line
+\(\mathbf{out}_i\).  Using the standard Hoare‑logic rules for assignment,
+composition, conditional, and loop (with invariant), we have shown that
+the invariant holds initially, is preserved by every iteration, and after
+the loop finishes yields exactly the post‑condition \(Q\).  Consequently the
+Hoare triple
+
+\[
+\boxed{\{\,P\,\}\;\;{\tt program}\;\; \{\,Q\,\}}
+\]
+
+is valid, i.e. the given Python program is **correct** with respect to the
+formal specification.  

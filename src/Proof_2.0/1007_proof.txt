@@ -1,0 +1,275 @@
+**Answer – a Hoare‑logic proof that the program satisfies the given contract**
+
+Below we give a complete, step‑by‑step derivation of the Hoare triple  
+
+\[
+\{P\}\; \texttt{read};\;\Delta:=A\cdot B-C\cdot D;\;\texttt{print}\bigl("DIFERENCA = "\,\Vert\,\text{toString}(\Delta)\bigr)\; \{Q\}
+\]
+
+where  
+
+* **Pre‑condition** \(P\;:\;(A,B,C,D)\in\mathbb Z^{4}\)  
+* **Post‑condition** \(Q\;:\;\Delta = A\cdot B-C\cdot D\;\land\;
+   \text{out}= \text{“DIFERENCA = ”}\,\Vert\,\text{toString}(\Delta)\).
+
+The proof uses the standard Hoare‑logic inference rules (assignment, sequencing,
+consequence and the rule for *output*).  For readability we write the
+program as a sequence of three commands
+
+```
+C1 :  A := input();  B := input();  C := input();  D := input()
+C2 :  Δ := A*B - C*D
+C3 :  print("DIFERENCIA = " + toString(Δ))
+```
+
+The proof is presented in three layers:
+
+1. **Local verification of each command** (the *partial correctness* of each step).  
+2. **Composition of the three commands** using the sequencing rule.  
+3. **Termination** (the program is a finite deterministic sequence, therefore always terminates).
+
+---
+
+## 1.  Local verification of the three commands  
+
+### 1.1  Reading the four integers – command **C1**
+
+The command `C1` does not change the mathematical values of the four
+variables; it only *binds* the program variables `A, B, C, D` to the
+values that were supplied by the environment.  In Hoare logic we treat
+`input()` as a *nondeterministic* assignment that may yield *any*
+integer.  The rule for a nondeterministic assignment `x := any()` is
+
+\[
+\frac{\forall v\in\mathbb Z.\; \{R[x\mapsto v]\}\;x:=v\;\{R\}}{\{ \forall v\in\mathbb Z.\;R[x\mapsto v]\}\;x:=\text{any()}\;\{R\}}
+\]
+
+Applying that rule four times we obtain the following *local* triple:
+
+\[
+\{P\}\;C_{1}\;\{A\in\mathbb Z\;\land\;B\in\mathbb Z\;\land\;C\in\mathbb Z\;\land\;D\in\mathbb Z\}
+\tag{1}
+\]
+
+Because \(P\) already states exactly that the four variables are integers,
+the post‑condition of (1) is *identical* to the pre‑condition \(P\).  Hence
+
+\[
+\{P\}\;C_{1}\;\{P\}
+\tag{1′}
+\]
+
+holds trivially (the command does not modify the truth of \(P\)).
+
+---
+
+### 1.2  Computing the difference – command **C2**
+
+The command is an ordinary deterministic assignment.  The Hoare rule for
+assignment is
+
+\[
+\frac{}{ \{\,R[x\mapsto E]\,\}\;x:=E\;\{\,R\,\}}
+\tag{Assign}
+\]
+
+where \(R[x\mapsto E]\) denotes the substitution of the expression \(E\)
+for the variable \(x\) inside the assertion \(R\).
+
+Take as the *desired* post‑condition of `C2` the conjunct of `Q` that does
+not involve the output string, i.e.
+
+\[
+R_{2}\;:\; \Delta = A\cdot B - C\cdot D .
+\]
+
+To apply (Assign) we must substitute the right‑hand side of the
+assignment (`A*B - C*D`) for the variable `Δ` in \(R_{2}\):
+
+\[
+R_{2}[\,\Delta\mapsto A\cdot B-C\cdot D\,]\;=\;
+(A\cdot B-C\cdot D) = A\cdot B-C\cdot D .
+\]
+
+The substituted formula is a *tautology* (it is true in every
+state).  Consequently we obtain the strongest possible pre‑condition for
+`C2`:
+
+\[
+\{\,\text{true}\,\}\;C_{2}\;\{\,\Delta = A\cdot B-C\cdot D\,\}
+\tag{2}
+\]
+
+Since the pre‑condition “true’’ is weaker than any other condition,
+(2) also holds under the pre‑condition \(P\).  Hence we may write
+
+\[
+\{P\}\;C_{2}\;\{\,\Delta = A\cdot B-C\cdot D\,\}
+\tag{2′}
+\]
+
+which is exactly the first conjunct of the required post‑condition \(Q\).
+
+---
+
+### 1.3  Printing the result – command **C3**
+
+Printing is a *side‑effect* that does not change the program’s logical
+state except for the observable variable `out`.  In Hoare logic we model
+the command
+
+```
+print(s)
+```
+
+by the axiom
+
+\[
+\frac{}{ \{\,\text{out}=s\,\}\; \text{print}(s)\; \{\,\text{out}=s\,\}}
+\tag{Print}
+\]
+
+(the command guarantees that after execution the observable variable
+`out` equals the string that has been printed).
+
+For `C3` the string that is printed is  
+
+\[
+s\;:=\;\text{“DIFERENCIA = ”}\;\Vert\;\text{toString}(\Delta).
+\]
+
+Therefore the Hoare triple for `C3` is
+
+\[
+\{\,\text{out}=s\,\}\;C_{3}\;\{\,\text{out}=s\,\}.
+\tag{3}
+\]
+
+In the context of the whole program we will need the *antecedent* that
+`Δ` already holds the correct arithmetic value.  Consequently we strengthen
+the pre‑condition of (3) by conjoining the invariant proved for `C2`:
+
+\[
+\{\,\Delta = A\cdot B-C\cdot D\,\}\;C_{3}\;
+\{\,\text{out}=s\;\land\;\Delta = A\cdot B-C\cdot D\,\}
+\tag{3′}
+\]
+
+Because the right‑hand side of the implication in the post‑condition of
+(3′) already contains the same equality for `Δ`, (3′) is a direct
+consequence of (3) by the rule of *consequence*.
+
+---
+
+## 2.  Composition of the three commands  
+
+The program is the sequential composition  
+
+\[
+C\;=\;C_{1};\;C_{2};\;C_{3}.
+\]
+
+The Hoare *sequencing* rule states
+
+\[
+\frac{\{P\}\;C_{1}\;\{R\}\quad\{R\}\;C_{2}\;\{S\}}
+      {\{P\}\;C_{1};C_{2}\;\{S\}} .
+\tag{Seq}
+\]
+
+We apply it twice, chaining the three commands:
+
+1. From (1′) we have \(\{P\}\;C_{1}\;\{P\}\).  
+2. From (2′) we have \(\{P\}\;C_{2}\;\{ \Delta = A\cdot B-C\cdot D\}\).  
+   Using **consequence** we can replace the intermediate assertion \(P\)
+   by the stronger one \(\Delta = A\cdot B-C\cdot D\) (the rule allows
+   strengthening the post‑condition).  
+3. From (3′) we have \(\{ \Delta = A\cdot B-C\cdot D\}\;C_{3}\;
+   \{ \Delta = A\cdot B-C\cdot D \;\land\; \text{out}=s\}\).
+
+Putting the three pieces together:
+
+\[
+\begin{aligned}
+\{P\}&\;C_{1}\; \{P\}                                   &&\text{(1′)}\\
+\{P\}&\;C_{2}\; \{\Delta = A\cdot B-C\cdot D\}           &&\text{(2′)}\\
+\{\Delta = A\cdot B-C\cdot D\}&\;C_{3}\;
+   \{\Delta = A\cdot B-C\cdot D \;\land\; \text{out}=s\}
+                                                      &&\text{(3′)}\\[4pt]
+\hline
+\{P\}&\;C_{1};C_{2};C_{3}\;
+   \{\Delta = A\cdot B-C\cdot D \;\land\; \text{out}=s\}
+\end{aligned}
+\]
+
+Recall that  
+
+\[
+s = \text{“DIFERENCIA = ”}\;\Vert\;\text{toString}(\Delta)
+\]
+
+and that the post‑condition \(Q\) is precisely  
+
+\[
+Q \;:\; \Delta = A\cdot B-C\cdot D \;\land\;
+           \text{out}= \text{“DIFERENCIA = ”}\;\Vert\;\text{toString}(\Delta).
+\]
+
+Thus the derived post‑condition coincides with \(Q\).  We have therefore
+proved the **partial‑correctness Hoare triple**
+
+\[
+\boxed{\; \{P\}\;C\;\{Q\}\;}
+\]
+
+---
+
+## 3.  Termination  
+
+The program consists of a *finite* list of deterministic statements
+(`input`, arithmetic assignment, `print`).  Each statement is known to
+terminate:
+
+* `input()` returns a value after the user (or the file) supplies it – the
+  specification of the problem guarantees that the four numbers are
+  present, hence the call terminates.
+* The arithmetic assignment `Δ := A*B - C*D` is a single elementary
+  operation on integers and therefore terminates.
+* `print` writes a finite string to standard output and then returns.
+
+Because the composition of terminating commands is terminating, the
+whole program always reaches a final state.  Consequently we may add the
+explicit clause
+
+\[
+\text{Term} :\; \text{the program always terminates}.
+\]
+
+---
+
+## 4.  Summary of the proof  
+
+| Step | Hoare rule used | Assertion before the step | Assertion after the step |
+|------|----------------|--------------------------|--------------------------|
+| 1    | Input (nondet. assign) | \(P\) | \(P\) |
+| 2    | Assignment | \(P\) | \(\Delta = A\cdot B-C\cdot D\) |
+| 3    | Print (output axiom) | \(\Delta = A\cdot B-C\cdot D\) | \(\Delta = A\cdot B-C\cdot D \;\land\; \text{out}=s\) |
+
+By the **sequencing** rule the three rows combine into the single triple
+\(\{P\}\;C\;\{Q\}\).  Adding the trivial termination argument yields the
+full correctness statement required by the specification.
+
+Hence the Python program
+
+```python
+A = int(input())
+B = int(input())
+C = int(input())
+D = int(input())
+print(f'DIFERENCA = {A * B - C * D}')
+```
+
+*is correct*: for every integer quadruple \((A,B,C,D)\) it terminates
+and prints exactly the string `"DIFERENCA = "` followed by the decimal
+representation of the value \(\Delta = A\cdot B - C\cdot D\).  This
+matches the Hoare‑style specification given in the problem statement.

@@ -1,0 +1,267 @@
+**Goal**  
+Show that the Python program  
+
+```python
+c1,c2,c3,c4 = map(int, input().split(' '))
+
+if (c1 == 1):
+    print(1)
+elif (c2 == 1):
+    print(2)
+elif (c3 == 1):
+    print(3)
+elif (c4 == 1):
+    print(4)
+```  
+
+satisfies the Hoare triple  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;\equiv\;
+\Bigl(\forall i\in[1..4]\;(C_i\in\{0,1\})\Bigr)\;\land\;
+\Bigl(\sum_{i=1}^{4} C_i = 1\Bigr)
+\]
+
+* **Post‑condition**  
+
+\[
+Q\;\equiv\;
+\bigl(out\in[1..4]\bigr)\;\land\;
+\bigl(out = \sum_{i=1}^{4} i\cdot C_i\bigr)\;\land\;
+\bigl(C_{out}=1\bigr)\;\land\;
+\bigl(\forall j\neq out\;C_j=0\bigr)
+\]
+
+The proof proceeds with the standard Hoare‑logic inference rules for **assignment**, **sequence**, and **conditional** (including a chain of `elif`s).  
+For readability we write the program as a *structured* statement:
+
+```
+S ≡
+   c1,c2,c3,c4 := input() ;
+   if (c1 = 1) then   out := 1
+   else if (c2 = 1) then out := 2
+   else if (c3 = 1) then out := 3
+   else                out := 4
+```
+
+(The `print` statement is modelled as an assignment to the logical variable `out`; the actual printing does not affect the correctness proof.)
+
+--------------------------------------------------------------------
+### 1.  The input statement
+
+The statement  
+
+```
+c1,c2,c3,c4 := input()
+```
+
+does not change any logical variable; it merely *binds* the program variables to the values that already satisfy the pre‑condition \(P\).  
+Hence we can treat the state after the input as a state in which the **program variables** `c1…c4` are exactly the **mathematical variables** \(C_1…C_4\) and the invariant \(P\) holds.
+
+Formally  
+
+\[
+\{P\}\; (c1,c2,c3,c4 := input())\;\{P\}
+\tag{A1}
+\]
+
+--------------------------------------------------------------------
+### 2.  The conditional chain
+
+We prove the correctness of each branch separately, then combine them with the Hoare rule for a (nested) conditional:
+
+\[
+\frac{\{P\land B\}\;S_1\;\{Q\}\qquad
+       \{P\land \neg B\}\;S_2\;\{Q\}}
+      {\{P\}\; \textbf{if}\;B\;\textbf{then}\;S_1\;\textbf{else}\;S_2\;\{Q\}}
+\tag{COND}
+\]
+
+Because the program contains three `elif`s, we apply **COND** three times, each time nesting the “else” part.
+
+--------------------------------------------------------------------
+#### 2.1  First branch – `c1 == 1`
+
+*Guard*: \(B_1 \equiv (c1 = 1)\).
+
+*Statement*: `out := 1`.
+
+**Hoare triple for the branch**
+
+\[
+\{\,P\land B_1\,\}\; (out := 1)\; \{\,Q\,\}
+\tag{B1}
+\]
+
+*Proof of (B1)*  
+
+Assume \(P\land B_1\). By definition of \(B_1\),
+
+\[
+c1 = 1 \;\Longrightarrow\; C_1 = 1 .
+\]
+
+From the pre‑condition \(\sum_{i=1}^{4}C_i = 1\) we obtain  
+
+\[
+C_2 = C_3 = C_4 = 0 .
+\]
+
+Consequently  
+
+\[
+\sum_{i=1}^{4} i\cdot C_i = 1\cdot C_1 + 2\cdot C_2 + 3\cdot C_3 + 4\cdot C_4 = 1 .
+\]
+
+The assignment `out := 1` makes `out = 1`. Hence after the assignment
+
+* `out ∈ [1..4]` (true, because 1 ∈ {1,2,3,4}),
+* `out = Σ i·C_i` (both equal 1),
+* `C_out = C_1 = 1`,
+* all other \(C_j = 0\).
+
+Thus the post‑condition \(Q\) holds. ∎
+
+
+
+--------------------------------------------------------------------
+#### 2.2  Second branch – `c2 == 1`
+
+*Guard*: \(B_2 \equiv (c1 \neq 1) \land (c2 = 1)\).  
+(The guard is exactly the condition that reaches the second `elif`.)
+
+*Statement*: `out := 2`.
+
+**Hoare triple**
+
+\[
+\{\,P\land B_2\,\}\; (out := 2)\; \{\,Q\,\}
+\tag{B2}
+\]
+
+*Proof of (B2)*  
+
+From \(B_2\) we have \(c1 \neq 1\) and \(c2 = 1\). Because each \(C_i\) is 0 or 1, \(c1\neq1\) implies \(C_1 = 0\).  
+Together with the pre‑condition \(\sum C_i = 1\) we obtain  
+
+\[
+C_2 = 1,\qquad C_3 = C_4 = 0 .
+\]
+
+Therefore  
+
+\[
+\sum_{i=1}^{4} i\cdot C_i = 2 .
+\]
+
+The assignment sets `out = 2`, and the same four conjuncts of \(Q\) are satisfied exactly as in the previous case. ∎
+
+
+
+--------------------------------------------------------------------
+#### 2.3  Third branch – `c3 == 1`
+
+*Guard*: \(B_3 \equiv (c1\neq1)\land(c2\neq1)\land(c3=1)\).
+
+*Statement*: `out := 3`.
+
+**Hoare triple**
+
+\[
+\{\,P\land B_3\,\}\; (out := 3)\; \{\,Q\,\}
+\tag{B3}
+\]
+
+*Proof* – identical reasoning: from the guard we infer  
+
+\(C_1 = C_2 = 0,\; C_3 = 1,\; C_4 = 0\).  
+Hence the weighted sum equals 3, the assignment makes `out = 3`, and all conjuncts of \(Q\) hold. ∎
+
+
+
+--------------------------------------------------------------------
+#### 2.4  Fourth branch – `c4 == 1`
+
+*Guard*: \(B_4 \equiv (c1\neq1)\land(c2\neq1)\land(c3\neq1)\land(c4=1)\).
+
+*Statement*: `out := 4`.
+
+**Hoare triple**
+
+\[
+\{\,P\land B_4\,\}\; (out := 4)\; \{\,Q\,\}
+\tag{B4}
+\]
+
+*Proof* – again the same pattern: the guard forces  
+
+\(C_1=C_2=C_3=0,\; C_4=1\).  
+Thus the weighted sum is 4, the assignment makes `out = 4`, and \(Q\) follows. ∎
+
+
+
+--------------------------------------------------------------------
+### 3.  Combining the branches
+
+We now assemble the four triples using the conditional rule **COND** repeatedly.
+
+1. Apply **COND** to the first `if/else` pair, with  
+
+   * \(B = (c1 = 1)\),  
+
+   * \(S_1 = (out := 1)\) (proved by (B1)),  
+
+   * \(S_2 =\) the rest of the program (the three remaining `elif`s).
+
+   From (B1) and the induction hypothesis that the rest of the program satisfies \(\{P\land\neg B\}\;S_2\;\{Q\}\) we obtain  
+
+   \[
+   \{P\}\;\textbf{if}\;(c1=1)\;\textbf{then}\;(out:=1)\;\textbf{else}\;S_2\;\{Q\}.
+   \tag{C1}
+   \]
+
+2. Apply **COND** again to the `else` part (`elif (c2 == 1) …`).  
+   Guard now is \(B_2' \equiv (c2 = 1)\) (the condition that the program reaches this branch).  
+   The “then” part is (out := 2) (proved by (B2)); the “else” part is the remaining two `elif`s.  
+   Using (B2) we get  
+
+   \[
+   \{P\land\neg(c1=1)\}\;\textbf{if}\;(c2=1)\;\textbf{then}\;(out:=2)\;\textbf{else}\;S_3\;\{Q\}.
+   \tag{C2}
+   \]
+
+3. The same reasoning yields two more applications, giving (C3) for the `c3` branch and (C4) for the final `c4` branch.
+
+Because the guards are **mutually exclusive** and, by the pre‑condition \(P\), **collectively exhaustive** (exactly one of the four \(C_i\) equals 1), the nested conditionals guarantee that *exactly one* of the assignments `out := i` is executed.
+
+Consequently we have derived the Hoare triple for the whole program:
+
+\[
+\boxed{\{\,P\,\}\;S\;\{\,Q\,\}}
+\]
+
+--------------------------------------------------------------------
+### 4.  Termination
+
+Each `if/elif` test is a simple Boolean expression; the chain contains a finite number (four) of tests and a finite number of assignments.  
+Therefore the program terminates after at most four tests and one assignment, satisfying the *total correctness* requirement (partial correctness proved above + guaranteed termination).
+
+--------------------------------------------------------------------
+### 5.  Summary of the proof
+
+| Step | Reasoning | Result |
+|------|-----------|--------|
+| A1   | Input does not change the logical state | `{P}` after reading |
+| B1–B4| For each possible guard, the assignment `out := i` makes `out` equal the weighted sum `Σ i·C_i` and fulfills all conjuncts of `Q` | `{P ∧ guard_i} out := i {Q}` |
+| C1–C4| Apply the conditional rule repeatedly, nesting the `elif`s | `{P}` whole conditional `{Q}` |
+| Termination | Finite number of tests/assignments | program always finishes |
+
+Thus, under the pre‑condition that exactly one of the four input numbers is `1` and the others are `0`, the program prints the unique index of that `1`. This is precisely what the post‑condition \(Q\) demands. Hence the program is **correct** with respect to the given Hoare‑logic specification. ∎

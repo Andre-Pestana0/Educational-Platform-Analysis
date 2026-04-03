@@ -1,0 +1,274 @@
+## 1.  What we have to show  
+
+We must prove the **total‑correctness** Hoare triple  
+
+\[
+\{\,0\le N\le 100\,\}\;\;{\tt program}\;\;
+\{\,C=\mathit{conc}(N)\ \land\ C\in\{A,B,C,D,E\}\,\}.
+\]
+
+The program is a straight‑line piece of code (no loops), therefore the proof consists of a succession of applications of the **assignment rule** and the **conditional rule** of Hoare logic.
+
+Below we write the program in a compact pseudo‑code that makes the control‑flow explicit:
+
+```
+read N
+if (N = 0)               then C ← 'E'
+else if (N ≤ 35)        then C ← 'D'
+else if (N ≤ 60)        then C ← 'C'
+else if (N ≤ 85)        then C ← 'B'
+else                    C ← 'A'
+print C
+```
+
+The last `print` statement does not modify the variable `C`; it only produces a side‑effect that is irrelevant for the logical specification, so we can safely ignore it in the Hoare proof (or treat it with the *skip* rule).
+
+---
+
+## 2.  The logical building blocks  
+
+### 2.1  Assignment rule  
+
+\[
+\frac{}{\,\{\,Q[x\!\leftarrow\!E]\,\}\;x:=E\;\{\,Q\,\}}
+\]
+
+where \(Q[x\!\leftarrow\!E]\) denotes the substitution of the expression \(E\) for the variable \(x\) in the post‑condition \(Q\).
+
+### 2.2  Conditional rule  
+
+If we have a conditional  
+
+```
+if B then S1 else S2
+```
+
+the rule is  
+
+\[
+\frac{\{P\land B\}\;S_1\; \{Q\}\qquad
+      \{P\land\neg B\}\;S_2\; \{Q\}}
+     {\{P\}\; \text{if }B\text{ then }S_1\text{ else }S_2\; \{Q\}} .
+\]
+
+For a cascade of *else‑if* branches we apply the rule repeatedly, nesting the “else’’ part.
+
+### 2.3  Disjunction of guards  
+
+The guards of the cascade
+
+\[
+\begin{aligned}
+g_1 &\equiv (N = 0)\\
+g_2 &\equiv (N\neq 0\land N\le 35)\\
+g_3 &\equiv (N>35\land N\le 60)\\
+g_4 &\equiv (N>60\land N\le 85)\\
+g_5 &\equiv (N>85)
+\end{aligned}
+\]
+
+are **mutually exclusive** and their disjunction is exactly the pre‑condition  
+
+\[
+g_1\lor g_2\lor g_3\lor g_4\lor g_5\;\equiv\;0\le N\le 100 .
+\]
+
+Hence one (and only one) branch will be taken for every admissible input.
+
+---
+
+## 3.  Proof of each branch  
+
+We prove, for every guard \(g_i\), a Hoare triple of the shape  
+
+\[
+\{\,0\le N\le 100\land g_i\,\}\; C\gets \text{letter}_i\; \{\,C=\mathit{conc}(N)\,\}.
+\]
+
+Because the post‑condition of each branch already contains the conjunct
+\(C\in\{A,B,C,D,E\}\) (the letters are literals of that set), we need only show the equality with `conc`.
+
+---
+
+### 3.1  First branch  (\(g_1\equiv N=0\))
+
+\[
+\frac{}
+{\{\,C='E'\,\}\;C\gets 'E'\;\{\,C='E'\,\}}   \qquad\text{(assignment rule)}
+\]
+
+Now substitute the guard \(N=0\) into the definition of \(\mathit{conc}\):
+
+\[
+\mathit{conc}(N)=\mathit{conc}(0)=E .
+\]
+
+Thus  
+
+\[
+\{\,0\le N\le100\land N=0\,\}\;C\gets'E'\;\{\,C=\mathit{conc}(N)\,\}.
+\]
+
+---
+
+### 3.2  Second branch  (\(g_2\equiv N\neq0\land N\le35\))
+
+Again the assignment rule gives  
+
+\[
+\{\,C='D'\,\}\;C\gets'D'\;\{\,C='D'\,\}.
+\]
+
+Because the guard guarantees \(1\le N\le35\), the definition of `conc` yields  
+
+\[
+\mathit{conc}(N)=D .
+\]
+
+Hence  
+
+\[
+\{\,0\le N\le100\land N\le35\land N\neq0\,\}\;C\gets'D'\;
+\{\,C=\mathit{conc}(N)\,\}.
+\]
+
+(The conjunct \(N\neq0\) is redundant once we know \(N\le35\) and \(N\ge0\); it only separates the first guard from this one.)
+
+---
+
+### 3.3  Third branch  (\(g_3\equiv N>35\land N\le60\))
+
+\[
+\{\,C='C'\,\}\;C\gets'C'\;\{\,C='C'\,\}
+\]
+
+and the guard implies \(36\le N\le60\). By definition  
+
+\[
+\mathit{conc}(N)=C .
+\]
+
+Therefore  
+
+\[
+\{\,0\le N\le100\land 36\le N\le60\,\}\;C\gets'C'\;
+\{\,C=\mathit{conc}(N)\,\}.
+\]
+
+---
+
+### 3.4  Fourth branch  (\(g_4\equiv N>60\land N\le85\))
+
+\[
+\{\,C='B'\,\}\;C\gets'B'\;\{\,C='B'\,\}
+\]
+
+and the guard yields \(61\le N\le85\). By the piece‑wise definition  
+
+\[
+\mathit{conc}(N)=B .
+\]
+
+Thus  
+
+\[
+\{\,0\le N\le100\land 61\le N\le85\,\}\;C\gets'B'\;
+\{\,C=\mathit{conc}(N)\,\}.
+\]
+
+---
+
+### 3.5  Fifth (else) branch  (\(g_5\equiv N>85\))
+
+\[
+\{\,C='A'\,\}\;C\gets'A'\;\{\,C='A'\,\}
+\]
+
+The guard together with the global pre‑condition gives \(86\le N\le100\). Consequently  
+
+\[
+\mathit{conc}(N)=A .
+\]
+
+Hence  
+
+\[
+\{\,0\le N\le100\land 86\le N\le100\,\}\;C\gets'A'\;
+\{\,C=\mathit{conc}(N)\,\}.
+\]
+
+---
+
+## 4.  Assembling the whole conditional  
+
+We now apply the **conditional rule** repeatedly.
+
+1. First we combine the first two branches:
+
+   \[
+   \frac{
+     \{P\land g_1\}\;S_1\;\{Q\}\qquad
+     \{P\land\neg g_1\}\;(\text{rest of the cascade})\;\{Q\}
+   }{
+     \{P\}\;\text{if }g_1\text{ then }S_1\text{ else }(\text{rest})\;\{Q\}
+   }
+   \]
+
+   where  
+
+   *\(P\equiv 0\le N\le100\)*,  
+   *\(Q\equiv C=\mathit{conc}(N)\)*,  
+   *\(S_1\equiv C\gets'E'\)*,  
+   *\(\neg g_1\equiv N\neq0\)*.
+
+2. The “else’’ part is itself a conditional with guard \(N\le35\).  
+   By applying the rule again we obtain a triple that covers the first three
+   branches, and so on.
+
+Because each branch satisfies the same post‑condition \(Q\), the repeated use of the rule yields
+
+\[
+\{\,0\le N\le100\,\}\;
+\text{if }g_1\text{ then }C\gets'E'\;
+\text{elif }g_2\text{ then }C\gets'D'\;
+\text{elif }g_3\text{ then }C\gets'C'\;
+\text{elif }g_4\text{ then }C\gets'B'\;
+\text{else }C\gets'A'\;
+\{\,C=\mathit{conc}(N)\,\}.
+\]
+
+The final `print C` statement is a *skip* with respect to the logical variables, i.e.
+
+\[
+\{\,C=\mathit{conc}(N)\,\}\;\text{print }C\;\{\,C=\mathit{conc}(N)\,\},
+\]
+
+so the post‑condition is preserved.
+
+---
+
+## 5.  Termination (total correctness)
+
+The program contains no loops nor recursive calls; each conditional is evaluated in constant time and a single assignment is performed. Therefore **termination is guaranteed for every state satisfying the pre‑condition**. Consequently we have proved **total correctness**.
+
+---
+
+## 6.  Summary of the proof  
+
+| Guard (derived from the `if/elif/else`) | Interval of \(N\) | Assigned letter | Equality with \(\mathit{conc}(N)\) |
+|----------------------------------------|-------------------|------------------|--------------------------------------|
+| \(g_1 : N = 0\)                         | \(0\)             | `E`              | \(\mathit{conc}(0)=E\)                |
+| \(g_2 : N\le 35\) (and \(N\neq0\))      | \(1\le N\le35\)   | `D`              | \(\mathit{conc}(N)=D\)                |
+| \(g_3 : N\le 60\) (and \(N>35\))        | \(36\le N\le60\)  | `C`              | \(\mathit{conc}(N)=C\)                |
+| \(g_4 : N\le 85\) (and \(N>60\))        | \(61\le N\le85\)  | `B`              | \(\mathit{conc}(N)=B\)                |
+| \(g_5 : \text{else}\)                   | \(86\le N\le100\) | `A`              | \(\mathit{conc}(N)=A\)                |
+
+* The guards are mutually exclusive and collectively exhaustive over the pre‑condition domain.
+* For each guard the assignment produces exactly the value prescribed by the concept function `conc`.
+* By the conditional rule the whole cascade therefore satisfies  
+
+  \[
+  \{\,0\le N\le100\,\}\;\text{program}\;\{\,C=\mathit{conc}(N)\land C\in\{A,B,C,D,E\}\,\}.
+  \]
+
+Hence the Python program is **correct with respect to the given Hoare‑style specification**. ∎

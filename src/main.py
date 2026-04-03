@@ -129,7 +129,7 @@ def save_pre_post_conditions(code, conditions):
         f.write(conditions)
 
 def save_formal_proof(code, proof):
-    output_dir = os.path.join(BASE_DIR, "Proof")
+    output_dir = os.path.join(BASE_DIR, "Proof_2.0")
     os.makedirs(output_dir, exist_ok=True)
 
     proof_path = os.path.join(output_dir, f"{code}_proof.txt")
@@ -278,25 +278,14 @@ def formal_specification_validation_logic(code_list):
 def main():
     exercises_to_generate_solutions = [1188]
     
-    missing_conditions_group = [
-        1000, 1001, 1181, 1182, 1183, 1185, 1187, 1188, 1190, 
-        1789, 1827, 1924, 2164, 2168, 2483, 2581, 2879, 3140,
-        3157, 3161, 3174, 3252, 3256
-    ]
+    # missing_conditions_group = [
+    #     1000, 1001, 1181, 1182, 1183, 1185, 1187, 1188, 1190, 
+    #     1789, 1827, 1924, 2164, 2168, 2483, 2581, 2879, 3140,
+    #     3157, 3161, 3174, 3252, 3256
+    # ]
     
     missing_proofs_group = [
-        1002, 1003, 1004, 1006, 1007, 1010,
-        1013, 1014, 1015, 1016, 1017, 1018, 
-        1019, 1021, 1038, 1040, 1042, 1043, 
-        1046, 1047, 1048, 1050, 1051, 1052, 
-        1059, 1060, 1064, 1065, 1066, 1067, 
-        1070, 1072, 1073, 1074, 1075, 1078, 
-        1079, 1080, 1094, 1095, 1096, 1097, 
-        1098, 1099, 1101, 1113, 1114, 1115, 
-        1117, 1118, 1131, 1132, 1133, 1134, 
-        1142, 1143, 1144, 1145, 1146, 1150, 
-        1153, 1154, 1155, 1156, 1157, 1158, 
-        1159, 1164, 1165, 1172
+        2896
     ]
     
     # iniciante_codes = [
@@ -323,12 +312,11 @@ def main():
     #     3170, 3173, 3174, 3209, 3250, 3252, 3253, 3255, 3256
     # ]
 
-    code_logic(exercises_to_generate_solutions)
+    # code_logic(exercises_to_generate_solutions)
     # conditions_generation_logic(missing_conditions_group)
-    # formal_specification_validation_logic(exercises_for_formal_specification)
+    formal_specification_validation_logic(missing_proofs_group)
 
     
 if __name__ == "__main__":
     load_dotenv()
     main()
-    

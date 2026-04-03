@@ -1,0 +1,258 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**  
+
+Below we give a complete, step‑by‑step proof that the Python fragment
+
+```python
+medida = int(input())                 #  N
+rpm = list(map(int, input().split())) #  R[0] … R[N‑1]
+
+cont = 0
+
+for i in range(medida - 1):           # i = 0 … N‑2
+    if rpm[i + 1] < rpm[i]:
+        cont = i + 2                  # 1‑based index of the fall
+        break
+
+print(cont)
+```
+
+fulfills the Hoare triple  
+
+\[
+\{\,P\,\}\; \text{program}\; \{\,Q\,\}
+\]
+
+with the pre‑condition **P** and post‑condition **Q** that you wrote.  
+
+The proof follows the usual rules of Hoare logic (assignment, composition,
+conditional, while) and hinges on a suitable *loop invariant* for the
+`for`‑loop.  All the reasoning is completely mechanical – no “intuition”
+is hidden.
+
+--------------------------------------------------------------------
+
+## 1.  Notation and translation of the specification
+
+| specification symbol | program variable / expression |
+|----------------------|-------------------------------|
+| `N`                  | `medida`                      |
+| `R[1‥N]` (1‑based)   | `rpm[0] … rpm[N‑1]` (0‑based) |
+| `idx`                | `cont` (value printed)        |
+| `i` in the specification (1‑based) | `i+1` in the program (0‑based) |
+
+Thus the set of “falls” defined in the specification becomes  
+
+\[
+\text{Fall} = \{\,k \mid 2\le k\le N\;\land\; R[k] < R[k-1] \,\}
+          = \{\,i+2 \mid 0\le i\le N-2\;\land\; rpm[i+1] < rpm[i] \,\}.
+\]
+
+The required result is therefore
+
+* `cont = 0`   iff   no `i` satisfies `rpm[i+1] < rpm[i]`;
+* otherwise `cont` is the *smallest* integer `i+2` that satisfies it.
+
+--------------------------------------------------------------------
+
+## 2  The Hoare triple we prove
+
+\[
+\boxed{\;
+\{\,P\,\}\; \underbrace{\text{program}}_{\text{lines 1–10}}\; \{\,Q\,\}\;}
+\]
+
+where  
+
+* `P` is exactly the pre‑condition you gave, i.e.  
+
+  \[
+  1<N\le 100\;\land\;
+  \forall j\;(1\le j\le N\rightarrow 0\le R[j]\le 10\,000).
+  \]
+
+* `Q` is the post‑condition you gave, i.e.  
+
+  \[
+  \bigl(\text{Fall}=\varnothing\rightarrow \text{cont}=0\bigr)\;
+  \land\;
+  \bigl(\text{Fall}\neq\varnothing\rightarrow \text{cont}= \min\text{Fall}\bigr)\;
+  \land\;0\le\text{cont}\le N .
+  \]
+
+--------------------------------------------------------------------
+
+## 3  Proof outline
+
+1. **Assignments that read the input** – they merely copy the values
+   given by the environment; the Hoare rule for assignment shows that
+   `P` is preserved.
+
+2. **Loop invariant** `I(i,cont)` for the `for`‑loop (the loop variable
+   `i` is the current value of the Python loop counter).  
+
+   \[
+   \begin{aligned}
+   I(i,cont) \;\equiv\; &
+   0\le i\le N-2\;\land\\
+   &\bigl(cont=0\;\rightarrow\;
+        \forall k\;(2\le k\le i+1\;\rightarrow\;R[k]\ge R[k-1])\bigr)\\
+   &\land\bigl(cont\neq0\;\rightarrow\;
+        cont = i+2\;\land\;R[cont] < R[cont-1]\;\land\\
+   &\qquad\qquad\;\;\;\forall k\;(2\le k\le cont-1\;\rightarrow\;R[k]\ge R[k-1])\bigr).
+   \end{aligned}
+   \]
+
+   In words: after having examined the first `i+1` pairs
+   (`R[1]…R[i+2]`) we either have not yet found a fall (`cont=0`) and
+   all examined pairs are non‑decreasing, or we have already found a
+   fall and `cont` stores the *first* index where it occurs.
+
+3. **Initialization** – before the first iteration we have `i = 0`
+   (the loop has not started) and `cont = 0`.  Substituting `i = 0`,
+   `cont = 0` makes the two universal quantifiers range over an empty
+   set, so they are true.  Hence `I(0,0)` holds.
+
+4. **Maintenance** – assume `I(i,cont)` holds at the start of an
+   iteration and the loop guard `i < N‑1` is true.  Two cases:
+
+   *`rpm[i+1] < rpm[i]`* (the `if`‑condition is true)  
+
+   The body executes `cont = i+2` and then `break`.  Using the
+   assignment rule we obtain the post‑state  
+
+   \[
+   cont' = i+2,\qquad i' = i \;(\text{unchanged}).
+   \]
+
+   Because the fall condition holds for the pair `(i,i+1)`, the
+   conjuncts of `I` with `cont' ≠ 0` are satisfied, and the universal
+   quantifier over smaller indices is exactly the one already guaranteed
+   by the induction hypothesis.  Therefore `I(i,cont')` holds *and the
+   loop terminates*.
+
+   *`rpm[i+1] ≥ rpm[i]`* (the `if`‑condition is false)  
+
+   The body does nothing, the loop proceeds to the next iteration.
+   The loop counter in Python is automatically increased, i.e.
+   `i' = i+1`.  We must show `I(i+1,cont)` holds.  The part of the
+   invariant concerning `cont = 0` is preserved because we have just
+   proved another non‑decreasing pair, so the universal quantifier can
+   be extended to `k = i+2`.  The part concerning `cont ≠ 0` is unchanged,
+   because `cont` stays the same and the condition `R[cont] < R[cont‑1]`
+   was already true (the first fall has already been found).  Hence
+   `I(i+1,cont)` holds.
+
+5. **Termination** – the loop ends in one of two ways.
+
+   *a) `break` executed*: then `cont = i+2` and, by the invariant,
+   `R[cont] < R[cont‑1]` and no earlier index satisfies a fall.
+   Consequently `cont = \min\text{Fall}`.
+
+   *b) Loop runs to exhaustion*: the guard becomes false when `i = N‑2`
+   and the body never executed a `break`.  By the invariant with
+   `i = N‑2` and `cont = 0` we have  
+
+   \[
+   \forall k\;(2\le k\le N\;\rightarrow\;R[k]\ge R[k-1]).
+   \]
+
+   Hence `Fall = ∅` and `cont = 0`.
+
+   In both cases we also have `0 ≤ cont ≤ N` (the invariant guarantees
+   `cont = 0` or `2 ≤ cont ≤ N`).
+
+6. **Post‑condition** – after the loop the program executes `print(cont)`.
+   The Hoare rule for `print` does not change the state, therefore the
+   state that reaches `print` already satisfies `Q`.  Consequently the
+   whole program satisfies `{P} program {Q}`.
+
+--------------------------------------------------------------------
+
+## 4  Detailed Hoare derivation (optional)
+
+Below we write the derivation in the style of a textbook proof; each line
+is justified by a Hoare rule.
+
+```
+1  {P}                         -- pre‑condition
+2  medida := input();          -- assignment, {P} unchanged
+3  rpm    := input();          -- assignment, {P} unchanged
+4  cont   := 0;                -- {P ∧ cont=0}
+5  i := 0;                     -- initialise loop counter (implicit in for)
+6  while i < medida-1 do
+7      if rpm[i+1] < rpm[i] then
+8          cont := i+2; break
+9      else
+10         skip
+11     fi
+12     i := i+1
+13   od
+14  print(cont)
+```
+
+*Lines 2‑4* use the **assignment axiom**; the post‑condition after line 4
+is  
+
+\[
+P\land cont = 0 .
+\]
+
+*Lines 6‑13* are a `while`.  We prove that the invariant `I(i,cont)` (see
+section 3) holds:
+
+* **Initialization** – before entering the loop we have `i = 0` and
+  `cont = 0`; `I(0,0)` holds (see §3‑3).
+
+* **Preservation** – the body of the loop is a conditional.
+  Using the **conditional rule** we consider the two branches:
+
+  *Branch `rpm[i+1] < rpm[i]`* :
+
+  ```
+  { I(i,cont) ∧ rpm[i+1] < rpm[i] }
+  cont := i+2; break
+  { I(i,cont) ∧ cont = i+2 }
+  ```
+
+  The assignment rule yields the post‑state with `cont = i+2`.  
+  By definition of `I`, this satisfies the invariant for the *current*
+  value of `i` and the loop terminates.
+
+  *Branch `rpm[i+1] ≥ rpm[i]`* :
+
+  ```
+  { I(i,cont) ∧ rpm[i+1] ≥ rpm[i] }
+  skip; i := i+1
+  { I(i+1,cont) }
+  ```
+
+  The update of `i` is justified by the **assignment axiom** together
+  with the reasoning in §3‑4 (maintenance).  
+
+  Hence the invariant is preserved.
+
+* **Termination** – when the guard becomes false we have `i = medida-1`
+  (i.e. `i = N‑2`).  From `I(N‑2,cont)` we derive exactly the two cases
+  described in §3‑5, which are precisely the two disjuncts of `Q`.
+
+Finally, line 14 (`print`) does not modify any program variable, so the
+state that reaches it already satisfies `Q`.  By the **sequence rule**
+the whole program satisfies the Hoare triple.
+
+--------------------------------------------------------------------
+
+## 5  Conclusion
+
+We have exhibited a loop invariant, proved its initialization, maintenance,
+and termination, and shown that after the loop the variable `cont` fulfills
+exactly the condition `Q` demanded by the specification.  Consequently
+
+\[
+\boxed{\{\,P\,\}\; \text{program}\; \{\,Q\,\}}
+\]
+
+holds, i.e. the Python program is *correct* with respect to the given
+pre‑ and post‑conditions.  In plain words: it prints `0` when the RPM
+measurements never decrease, and otherwise it prints the (1‑based) index
+of the first decrease.  The output is always a legal index between `0`
+and `N`.  ∎

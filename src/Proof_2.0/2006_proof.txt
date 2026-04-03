@@ -1,0 +1,237 @@
+**Goal**  
+Show that the Python program  
+
+```python
+n = int(input())                                 # 1
+respostas = list(map(int, input().split(' ')))   # 2
+acertos = 0                                       # 3
+for resposta in respostas:                       # 4
+    if int(resposta) == n:                       # 5
+        acertos += 1                             # 6
+print(acertos)                                    # 7
+```  
+
+satisfies the Hoare‑logic specification that was given in the statement:
+
+*pre‑condition*  
+
+\[
+P\;:\; T\in\{1,2,3,4\}\ \land\ A,B,C,D,E\in\{1,2,3,4\}
+\]
+
+*post‑condition*  
+
+\[
+Q\;:\; R =\operatorname{cnt}(T,(A,B,C,D,E))
+      = [A=T]+[B=T]+[C=T]+[D=T]+[E=T].
+\]
+
+(Here we identify the program variables with the specification variables as  
+
+\[
+T\;:=\;n,\qquad (A,B,C,D,E)\;:=\;\text{the five elements of } respostas,
+\qquad R\;:=\;acertos .
+\])
+
+The proof proceeds by **partial correctness** (Hoare logic) and then shows **termination**, which together give total correctness.
+
+---------------------------------------------------------------------
+
+## 1.  Translation of the specification into a Hoare triple
+
+\[
+\boxed{\{P\}\; \texttt{program}\; \{Q\}}
+\]
+
+where the program consists of the seven lines (1)–(7) above.  
+The only non‑trivial part is the `for`‑loop (lines 4–6); we will treat it as a `while`‑loop with an explicit loop counter in order to be able to apply the standard Hoare rule for loops.
+
+---------------------------------------------------------------------
+
+## 2.  Introducing a loop counter and a loop invariant  
+
+Let  
+
+* `i` be the number of elements already examined (initially `0`);
+* `m = len(respostas)` – a constant that is known after line 2.
+
+We rewrite the `for`‑loop as the equivalent `while`‑loop
+
+```python
+i = 0                                 # 4a
+while i < m:                          # 4b
+    resposta = respostas[i]          # 4c
+    if int(resposta) == n:            # 5
+        acertos += 1                  # 6
+    i += 1                            # 4d
+```
+
+(The additional assignments do not change the observable behaviour of the program.)
+
+### Loop invariant  
+
+\[
+I(i) \;:\; 0\le i\le m \;\land\;
+acertos = \sum_{k=1}^{i}[ respostas[k-1] = n ] .
+\tag{Inv}
+\]
+
+The invariant says: after the first `i` elements have been processed, `acertos` equals the number of matches among exactly those `i` elements.
+
+---------------------------------------------------------------------
+
+## 3.  Proof that the invariant holds
+
+### 3.1  Initialization  
+
+Before the loop we have executed line 3 (`acertos = 0`) and line 4a (`i = 0`).  
+Therefore
+
+* `0 ≤ i = 0 ≤ m` (because `m` is the length of the list, a non‑negative integer);
+* the sum on the right‑hand side of `I(i)` is an empty sum, i.e. `0`.
+
+Thus `I(0)` holds.  
+
+Formally, using the **Assignment** rule:
+
+\[
+\{P\}\; i:=0\; \{i=0\},\qquad
+\{i=0\}\; acertos:=0\; \{acertos=0\}
+\]
+and `acertos = 0 = Σ_{k=1}^{0}[ … ]`, so `I(0)` follows by **Consequence**.
+
+---
+
+### 3.2  Maintenance  
+
+Assume `I(i)` holds at the beginning of an iteration with `i < m`.  
+We must show that after executing the body (lines 4c–4d) the invariant holds for `i+1`.
+
+*Line 4c* reads `resposta = respostas[i]`. This does not affect `acertos` or `i`, therefore `I(i)` is still true.
+
+*Line 5–6*:
+
+```
+if int(resposta) == n:
+    acertos += 1
+```
+
+Two cases:
+
+1. **Condition false** (`resposta ≠ n`).  
+   The `if` body is skipped, `acertos` stays unchanged.  
+   Because `[respostas[i]=n] = 0`, we have  
+
+   \[
+   acertos_{\text{new}} = acertos_{\text{old}}
+   = \sum_{k=1}^{i}[ respostas[k-1]=n ]
+   = \sum_{k=1}^{i+1}[ respostas[k-1]=n ] .
+   \]
+
+2. **Condition true** (`resposta = n`).  
+   `acertos` is incremented by one, i.e.  
+
+   \[
+   acertos_{\text{new}} = acertos_{\text{old}}+1
+   = \sum_{k=1}^{i}[ respostas[k-1]=n ] + 1
+   = \sum_{k=1}^{i+1}[ respostas[k-1]=n ] .
+   \]
+
+In both cases the equality required by `I(i+1)` holds.
+
+*Line 4d* (`i += 1`) makes the counter `i` become `i+1`.  
+Consequently `0 ≤ i+1 ≤ m` (the loop guard guarantees `i < m`).  
+
+Thus after the whole body we have `I(i+1)`.  
+
+Formally, the **If** rule together with the **Assignment** rule yields the preservation of the invariant.
+
+---
+
+### 3.3  Termination of the loop  
+
+The loop guard is `i < m`.  
+`i` is a non‑negative integer that is increased by exactly one on each iteration (line 4d).  
+Hence after at most `m` iterations the guard becomes false and the loop exits.  
+Since `m` is a constant known before the loop, the loop is guaranteed to terminate – this is the standard **Bounded‑While** argument.
+
+---------------------------------------------------------------------
+
+## 4.  Post‑condition after the loop
+
+When the loop ends we have the negated guard `i = m`.  
+Instantiating the invariant with `i = m` we obtain
+
+\[
+acertos = \sum_{k=1}^{m}[ respostas[k-1] = n ] .
+\tag{1}
+\]
+
+In the specification the five answers are denoted `(A,B,C,D,E)`.  
+Because the problem statement guarantees that exactly five numbers are supplied, we have `m = 5` and  
+
+\[
+\begin{aligned}
+\sum_{k=1}^{5}[ respostas[k-1] = n ] 
+   &= [A=n] + [B=n] + [C=n] + [D=n] + [E=n] \\
+   &= \operatorname{cnt}(n,(A,B,C,D,E)).
+\end{aligned}
+\]
+
+Therefore (1) can be rewritten as  
+
+\[
+acertos = \operatorname{cnt}(T,(A,B,C,D,E)) .
+\tag{2}
+\]
+
+Line 7 prints the value of `acertos`, i.e. `write(acertos)`.  
+Consequently the output `R` satisfies  
+
+\[
+R = acertos = \operatorname{cnt}(T,(A,B,C,D,E)),
+\]
+
+which is exactly the post‑condition `Q`.
+
+Formally, we use the **Consequence** rule to replace the expression `acertos` that appears in the program state by the mathematically defined term `cnt(…)`, and then apply the **Output** rule (`write`) to obtain `Q`.
+
+---------------------------------------------------------------------
+
+## 5.  Summary in Hoare‑logic notation  
+
+1. **Assignments** (lines 1–3) establish the initial state that satisfies `P`.  
+
+2. **Loop** (lines 4–6) is proved correct by the invariant `I(i)`:
+
+   \[
+   \{I(i)\}\; \texttt{body}\; \{I(i+1)\}
+   \quad\text{(maintenance)}
+   \]
+
+   together with initialization `I(0)` and termination (`i=m`).  
+
+3. **After the loop** we have `I(m)`, i.e. equation (2).  
+
+4. **Output** (line 7) yields `write(R)` with `R = cnt(T,(A,B,C,D,E))`.  
+
+Thus we have derived the Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{program}\; \{Q\}}
+\]
+
+which proves **total correctness** of the given Python program with respect to the formal specification.
+
+---------------------------------------------------------------------
+
+### Remarks  
+
+* The proof works for any length of the list `respostas`; the specification only mentions the special case `m = 5`.  
+* The invariant can also be expressed with the Iverson bracket notation used in the specification:  
+
+  \[
+  I(i) \;:\; acertos = \sum_{k=1}^{i}[ respostas[k-1] = n ] .
+  \]
+
+* The reasoning above follows exactly the standard Hoare‑logic rules (Assignment, Sequence, If, While‑Invariant, Consequence) and therefore constitutes a formal correctness proof.

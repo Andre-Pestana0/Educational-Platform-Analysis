@@ -1,0 +1,318 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,\mathsf{Pre}\,\}\;\mathtt{MjolnirLift}\;\{\,\mathsf{Post}\,\}
+\]
+
+where  
+
+* **Pre**   – the input satisfies the format described in the statement (a positive integer `C` followed by `C` pairs `(name_i , N_i)` with `1 ≤ N_i ≤ 25000`).  
+
+* **Post** – for every test case *i* the program prints  
+
+  * `'Y'`  **iff** `name_i = "Thor"` (the value of `N_i` is irrelevant), and  
+
+  * exactly one character is printed for each test case, i.e. the total length of the output string is `C`.
+
+The program is  
+
+```python
+casos = int(input())                     # 1
+for i in range(casos):                   # 2 … 5
+    nome, forca = input().split(' ')     # 3
+    if nome == "Thor":                    # 4
+        print('Y')                        # 5
+    else:                                 # 6
+        print('N')                        # 7
+```
+
+In the Hoare‑logic proof we treat each line as a command and we use the usual rules for
+
+* assignment,
+* sequential composition,
+* the `if‑else` command,
+* the `while` (or `for`) loop.
+
+Because Python’s `for i in range(casos):` is syntactic sugar for a loop that iterates `casos` times, we replace it by an equivalent `while` loop with an explicit counter. This makes the loop‑invariant reasoning completely standard.
+
+---
+
+## 2.  Translation to a canonical WHILE program  
+
+```
+1  C := int(input())                     # C = casos
+2  i := 0                                # loop counter
+3  while i < C do                        # loop header
+4      (nome, forca) := input().split(' ')
+5      if nome = "Thor" then
+6          out := 'Y'
+7      else
+8          out := 'N'
+9      fi
+10     print(out)                        # produce one output character
+11     i := i + 1
+12  od
+```
+
+*`out`* is a temporary variable that holds the character that will be printed in the current iteration.  
+The actual program prints directly, but the Hoare‑logic rule for `print` can be expressed as “the value of `out` is appended to the output string”.
+
+---
+
+## 3.  Loop invariant  
+
+Let  
+
+\[
+\mathcal I(i) \equiv
+\begin{aligned}
+&0 \le i \le C \;\wedge\\
+&\bigl(\forall k\in\{0,\dots ,i-1\}\;.\;
+\text{out}_k = \mathtt{'Y'}\;\Longleftrightarrow\;
+\text{name}_k = \mathtt{"Thor"}\bigr)\;\wedge\\
+&|\,\text{out}_0\text{out}_1\cdots\text{out}_{i-1}\,| = i
+\end{aligned}
+\]
+
+* `i` is the number of already processed test cases.  
+* For each processed case `k < i` the character that has already been printed (`out_k`) satisfies the required bi‑implication with the corresponding input name.  
+* The length of the output produced so far is exactly `i`.
+
+The invariant is precisely the “partial” version of the post‑condition: after processing the first `i` inputs we already have the correct output for those inputs and the output length matches `i`.
+
+---
+
+## 4.  Proof structure  
+
+We prove the Hoare triple by the standard **rule of consequence** and **loop rule**:
+
+```
+{Pre}   C := int(input) ; i := 0 ; while i<C do Body od   {Post}
+```
+
+The proof consists of the following steps:
+
+1. **Initialization** – show `{Pre} C := int(input) ; i := 0 { I(0) }`.  
+2. **Maintenance** – assume `{ I(i) ∧ i<C } Body { I(i+1) }`.  
+3. **Termination** – from `{ I(i) ∧ ¬(i<C) }` derive `{ Post }`.  
+
+The body `Body` is the sequence of statements 4–11.  
+Inside `Body` we also have to prove the correctness of the `if‑else` command.
+
+---
+
+## 5.  Detailed Hoare derivations  
+
+### 5.1  Initialization  
+
+*From the pre‑condition* we know that a natural number `C ≥ 1` is read from the first line, therefore after statement `C := int(input)` we have `C ∈ ℕ ∧ C ≥ 1`.  
+
+`i := 0` clearly yields `0 ≤ i ≤ C`.  
+
+No output has been produced yet, so the universal quantification over the empty set is true and the output length is `0`.  
+
+Hence  
+
+\[
+\{\,\mathsf{Pre}\,\}\; C := int(input);\; i := 0\; \{\,\mathcal I(0)\,\}
+\]
+
+holds.
+
+---
+
+### 5.2  Body – from `I(i) ∧ i<C` to `I(i+1)`
+
+Assume the invariant holds for some `i` with `i<C`.  
+We must show that after executing statements 4–11 the invariant holds with the counter increased to `i+1`.
+
+#### 5.2.1  Statement 4 – reading the pair  
+
+`(nome, forca) := input().split(' ')` reads the *i‑th* line of the input (0‑based indexing).  
+By the pre‑condition we know that this line is of the form `name_i  N_i` with `name_i ∈ Str` and `1 ≤ N_i ≤ 25000`.  
+Thus after the assignment we have the concrete values
+
+```
+nome = name_i
+forca = N_i          (the integer is not used later)
+```
+
+and the invariant’s universal part is still true for all `k < i` (the newly read pair has index `i`, which is **not** yet covered by the quantifier).
+
+#### 5.2.2  Statements 5–8 – the conditional  
+
+The command is
+
+```
+if nome = "Thor" then out := 'Y' else out := 'N' fi
+```
+
+We apply the Hoare rule for conditionals:
+
+\[
+\frac{
+   \{P \wedge B\}\;S_1\;\{Q\}\qquad
+   \{P \wedge \neg B\}\;S_2\;\{Q\}
+}{
+   \{P\}\;\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\textbf{ fi}\;\{Q\}
+}
+\]
+
+* **Guard** `B` is `nome = "Thor"`.  
+* **Pre‑condition** `P` is `\mathcal I(i) ∧ i<C ∧ nome = name_i`.  
+
+**Case 1 (B true).**  
+`nome = "Thor"` ⇒ `name_i = "Thor"`.  
+`out := 'Y'` yields `out = 'Y'`.  
+Thus after the then‑branch we have  
+
+```
+out = 'Y'   ⇔   name_i = "Thor"
+```
+
+**Case 2 (B false).**  
+`nome ≠ "Thor"` ⇒ `name_i ≠ "Thor"`.  
+`out := 'N'` yields `out = 'N'`.  
+Again we obtain  
+
+```
+out = 'Y'   ⇔   name_i = "Thor"
+```
+
+Because both branches establish the same post‑condition, we can write a single post‑condition `Q` for the whole `if`:
+
+\[
+Q \equiv \bigl(out = 'Y' \Longleftrightarrow name_i = \texttt{"Thor"}\bigr)
+\]
+
+Hence  
+
+\[
+\{\mathcal I(i) \wedge i<C\}\; \textbf{if}\; \dots\; \{Q\}
+\]
+
+holds.
+
+#### 5.2.3  Statement 10 – printing  
+
+`print(out)` appends the character stored in `out` to the output string.  
+From `Q` we know that this character satisfies the required bi‑implication for the *i‑th* test case.  
+Therefore after printing we have
+
+* the output length has increased by one,
+* the universal condition now holds for all `k ≤ i`.
+
+Formally, let `Out` be the output string *before* the print.  
+After the statement we have `Out' = Out ∘ out`.  
+Consequently  
+
+\[
+|Out'| = |Out| + 1 = i + 1
+\]
+
+and  
+
+\[
+\forall k\in\{0,\dots,i\}.\;
+\text{out}_k = 'Y' \Longleftrightarrow \text{name}_k = \texttt{"Thor"} .
+\]
+
+Thus the invariant `\mathcal I(i+1)` is established.
+
+#### 5.2.4  Statement 11 – increment the counter  
+
+`i := i + 1` simply changes the loop counter from `i` to `i+1`.  
+Because the invariant already mentions the *new* value of `i` (the bound of the universal quantifier and the length condition), the assignment preserves the invariant.
+
+Putting the four statements together we obtain
+
+\[
+\{\mathcal I(i) \wedge i<C\}\; \textbf{Body}\; \{\mathcal I(i+1)\}
+\]
+
+which is exactly the **maintenance** condition required by the WHILE rule.
+
+---
+
+### 5.3  Termination – from `I(i) ∧ ¬(i<C)` to `Post`
+
+When the loop guard becomes false we have `¬(i<C)`, i.e. `i ≥ C`.  
+Because the invariant guarantees `i ≤ C`, we get `i = C`.  
+
+From `\mathcal I(C)` we know:
+
+* For every `k ∈ {0,…,C‑1}` the printed character satisfies  
+
+  \[
+  \text{out}_k = 'Y' \Longleftrightarrow \text{name}_k = \texttt{"Thor"}
+  \]
+
+  (this is exactly the quantified part of the post‑condition, only the index set is written with 0‑based indices).
+
+* The length of the output string is `|out_0 … out_{C-1}| = C`.
+
+Renaming the indices to the 1‑based convention used in the specification (`i = k+1`) yields precisely the post‑condition stated in Section 3.
+
+Hence  
+
+\[
+\{\mathcal I(i) \wedge \neg(i<C)\}\; \textbf{skip}\; \{\mathsf{Post}\}
+\]
+
+holds.
+
+---
+
+### 5.4  Application of the WHILE rule  
+
+The WHILE rule (partial correctness) is
+
+\[
+\frac{
+   \{P\}\; S_{\text{init}}\; \{I(0)\}\qquad
+   \{I(i)\wedge B\}\; S_{\text{body}}\; \{I(i+1)\}\qquad
+   \{I(i)\wedge \neg B\}\; \{Q\}
+}{
+   \{P\}\; S_{\text{init}};\; \textbf{while }B\textbf{ do }S_{\text{body}}\textbf{ od}\; \{Q\}
+}
+\]
+
+We have identified  
+
+* `P` = `Pre`  
+* `S_init` = `C := int(input); i := 0`  
+* `B` = `i < C`  
+* `S_body` = the sequence 4–11 (the *Body*)  
+* `I` = the invariant `\mathcal I`  
+* `Q` = `Post`.
+
+All three premises have been proved in Sections 5.1, 5.2 and 5.3.  
+Therefore the rule yields the desired Hoare triple
+
+\[
+\{\,\mathsf{Pre}\,\}\; \mathtt{MjolnirLift}\; \{\,\mathsf{Post}\,\}.
+\]
+
+---
+
+## 6.  Remarks on the ignored force  
+
+The specification’s lifting predicate `Lift(name,N) ≡ (name = "Thor")` does **not** depend on `N`.  
+In the program the variable `forca` (the force) is read but never used; consequently the proof never needs any property of `N` other than the fact that it is a well‑formed integer, which is already guaranteed by `Pre`.  
+Thus the program satisfies the specification even if the force were outside the stated range – the range restriction is only there to match the problem statement, not to affect correctness.
+
+---
+
+## 7.  Conclusion  
+
+We have exhibited a **loop invariant** that captures exactly what the specification demands for the part of the output already produced, proved that the invariant holds initially, is preserved by each iteration (including the conditional that decides between `'Y'` and `'N'`), and that when the loop terminates the invariant entails the full post‑condition.  
+
+By the standard Hoare‑logic rules for assignment, sequential composition, conditional, and while‑loop we have derived the Hoare triple  
+
+\[
+\boxed{\{\,\mathsf{Pre}\,\}\;\mathtt{MjolnirLift}\;\{\,\mathsf{Post}\,\}}
+\]
+
+which means that the given Python program is **correct** with respect to the formal specification supplied in Sections 2 and 3. ∎

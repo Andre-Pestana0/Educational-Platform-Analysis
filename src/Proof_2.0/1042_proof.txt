@@ -1,0 +1,227 @@
+**Proof of correctness of the program `Read‑Sort‑Print`**  
+with respect to the Hoare‑logic specification  
+
+\[
+\{P\}\;\textsf{Read‑Sort‑Print}\;\{Q\},
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;\exists x_{1},x_{2},x_{3}\in\mathbb Z\;.\;\textsf{input}= (x_{1},x_{2},x_{3})
+\qquad(\text{equivalently }P\equiv \text{true})
+\]
+
+* **Post‑condition**  
+
+\[
+Q\;:\;\mathsf{out}= \bigl(y_{1},y_{2},y_{3},\blank ,x_{1},x_{2},x_{3}\bigr)
+\]
+
+with  
+
+\[
+(y_{1},y_{2},y_{3})=\operatorname{sort}(x_{1},x_{2},x_{3})\;,
+\qquad
+\{y_{1},y_{2},y_{3}\}= \{x_{1},x_{2},x_{3}\},
+\qquad
+y_{1}\le y_{2}\le y_{3}.
+\]
+
+The proof proceeds by decomposing the program into elementary commands,
+giving a Hoare triple for each command, and then using the Hoare
+*sequence* and *loop* rules to obtain the final triple.
+
+--------------------------------------------------------------------
+
+### 1.  Notational conventions
+
+* `numeros` and `auxNumeros` are Python lists of integers.
+* `out` denotes the (abstract) list of strings that the program prints.
+  The statement `print(e)` is modelled as the assignment  
+
+  \[
+  out := out\;{\small\mathsf{++}}\;\bigl(\text{str}(e)\bigr)
+  \]
+
+  (`++` is list concatenation).  
+  The blank line is modelled as  
+
+  \[
+  out := out\;{\small\mathsf{++}}\;(\blank).
+  \]
+
+* For a list \(L\) we write \(\operatorname{sort}(L)\) for the mathematical
+  function that returns the unique permutation of the elements of \(L\)
+  that is sorted non‑decreasingly.  
+
+  The library routine `L.sort()` satisfies the specification  
+
+  \[
+  \{L = L_{0}\}\;L.\textsf{sort()}\;\{L = \operatorname{sort}(L_{0})\}.
+  \tag{S}
+  \]
+
+* The three input numbers are denoted \((x_{1},x_{2},x_{3})\).
+
+--------------------------------------------------------------------
+
+### 2.  Individual Hoare triples
+
+| line of the program | Hoare triple (pre‑condition → post‑condition) |
+|---------------------|-----------------------------------------------|
+| **(a)** `numeros = list(map(int, input().split()))` |  
+
+\[
+\{P\}\; \textsf{numeros} := [x_{1},x_{2},x_{3}]\; \{\textsf{numeros}= [x_{1},x_{2},x_{3}]\}.
+\] |
+| **(b)** `auxNumeros = list(numeros)` |  
+
+\[
+\{\textsf{numeros}= [x_{1},x_{2},x_{3}]\}\;
+\textsf{auxNumeros}:= \textsf{numeros}\;
+\{\textsf{auxNumeros}= [x_{1},x_{2},x_{3}]\}.
+\] |
+| **(c)** `numeros.sort()` |  
+
+\[
+\{\textsf{numeros}= [x_{1},x_{2},x_{3}]\}\;
+\textsf{numeros}.\textsf{sort()}\;
+\{\textsf{numeros}= (y_{1},y_{2},y_{3})\},
+\]  
+
+where \((y_{1},y_{2},y_{3})=\operatorname{sort}(x_{1},x_{2},x_{3})\) (by (S)). |
+| **(d)** `for n in numeros: print(n)` |  
+
+We treat the `for`‑loop as a `while`‑loop with the invariant  
+
+\[
+I_{1}(k):\; 0\le k\le 3\;\land\;out = (y_{1},\dots ,y_{k}) .
+\]
+
+*Initialization* (`k=0`): after line (c) we have `out = []`, therefore
+\(I_{1}(0)\) holds.  
+
+*Preservation*: assuming \(I_{1}(k)\) and that the loop body executes
+with `n = y_{k+1}`, the command `print(n)` appends `y_{k+1}` to `out`,
+hence after the body \(out = (y_{1},\dots ,y_{k+1})\), i.e.
+\(I_{1}(k+1)\).  
+
+*Termination*: when the loop ends we have \(k=3\); thus  
+
+\[
+out = (y_{1},y_{2},y_{3}) .
+\]
+
+Consequently the Hoare triple for the whole loop is  
+
+\[
+\{\textsf{numeros}= (y_{1},y_{2},y_{3})\}\;
+\textsf{for}\; n\;\textsf{in}\;\textsf{numeros}:\;\textsf{print}(n)
+\;
+\{out = (y_{1},y_{2},y_{3})\}.
+\] |
+| **(e)** `print()` (blank line) |  
+
+\[
+\{out = (y_{1},y_{2},y_{3})\}\;
+\textsf{print}(\blank)\;
+\{out = (y_{1},y_{2},y_{3},\blank)\}.
+\] |
+| **(f)** `for n in auxNumeros: print(n)` |  
+
+Invariant  
+
+\[
+I_{2}(k):\;0\le k\le 3\;\land\;out = (y_{1},y_{2},y_{3},\blank ,x_{1},\dots ,x_{k}).
+\]
+
+*Initialization*: after (e) we have `out = (y1,y2,y3,blank)`, i.e.
+\(I_{2}(0)\).  
+
+*Preservation*: if \(I_{2}(k)\) holds and the next element of
+`auxNumeros` is `x_{k+1}`, `print(x_{k+1})` appends it, giving
+\(I_{2}(k+1)\).  
+
+*Termination*: when the loop finishes \(k=3\) and  
+
+\[
+out = (y_{1},y_{2},y_{3},\blank ,x_{1},x_{2},x_{3}).
+\]
+
+Hence  
+
+\[
+\{\textsf{auxNumeros}= [x_{1},x_{2},x_{3}]\;\land\;out=(y_{1},y_{2},y_{3},\blank)\}\;
+\textsf{for}\; n\;\textsf{in}\;\textsf{auxNumeros}:\;\textsf{print}(n)
+\;
+\{out = (y_{1},y_{2},y_{3},\blank ,x_{1},x_{2},x_{3})\}.
+\] |
+
+--------------------------------------------------------------------
+
+### 3.  Composition of the triples
+
+The Hoare **sequence rule**  
+
+\[
+\frac{\{A\}\;S_{1}\;\{B\}\qquad\{B\}\;S_{2}\;\{C\}}{\{A\}\;S_{1};S_{2}\;\{C\}}
+\]
+
+allows us to glue the triples obtained above.  
+Starting from the pre‑condition \(P\) we apply the triples in the order
+the program is written:
+
+1. (a) gives `numeros = [x1,x2,x3]`.
+2. (b) gives `auxNumeros = [x1,x2,x3]`.
+3. (c) gives `numeros = (y1,y2,y3)` with the sorting properties.
+4. (d) yields `out = (y1,y2,y3)`.
+5. (e) yields `out = (y1,y2,y3,blank)`.
+6. (f) yields `out = (y1,y2,y3,blank ,x1,x2,x3)`.
+
+The post‑condition of the last step is exactly the specification \(Q\).
+
+Formally we obtain  
+
+\[
+\{P\}\;
+\textsf{Read‑Sort‑Print}
+\;
+\{out = (y_{1},y_{2},y_{3},\blank ,x_{1},x_{2},x_{3})\}
+\;=\; Q .
+\]
+
+Thus the Hoare triple \(\{P\}\;\textsf{Read‑Sort‑Print}\;\{Q\}\) is
+proved.
+
+--------------------------------------------------------------------
+
+### 4.  Remarks
+
+* The proof uses the *library specification* (S) for the built‑in method
+  `list.sort()`.  This is a standard primitive in Hoare‑logic treatments
+  of high‑level languages: the method is assumed to terminate and to
+  produce a sorted permutation of its argument.
+* The two `for`‑loops are treated as `while`‑loops with explicit loop
+  invariants \(I_{1}\) and \(I_{2}\).  The invariants are exactly the
+  “partial output” that has been printed so far; they are strong enough
+  to guarantee the desired final output when the loop counter reaches
+  the list length (3).
+* If the specification does **not** require the blank line, the step (e)
+  can be omitted; the same reasoning then yields  
+
+  \[
+  out = (y_{1},y_{2},y_{3},x_{1},x_{2},x_{3}),
+  \]
+
+  which matches the alternative formulation of the post‑condition.
+
+--------------------------------------------------------------------
+
+**Conclusion.**  
+Starting from any three integers supplied on the input, the program
+`Read‑Sort‑Print` terminates and prints first the three numbers in
+non‑decreasing order, then a blank line, and finally the three numbers
+in the original order.  Hence the Hoare triple \(\{P\}\;\textsf{Read‑Sort‑Print}\;\{Q\}\) holds, i.e. the program is correct with respect to the given formal specification.

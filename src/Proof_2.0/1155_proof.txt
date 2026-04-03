@@ -1,0 +1,364 @@
+## 1.  Overview  
+
+We are asked to **prove** that the Python program  
+
+```python
+resultado = sum(1 / x for x in range(1, 101))
+print(f'{resultado:.2f}')
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{\,\top \,\}\; C\; \{\,\mathit{out}= \operatorname{round}_{2}\!\Bigl(\displaystyle\sum_{i=1}^{100}\frac{1}{i}\Bigr)\,\}
+\tag{1}
+\]
+
+where  
+
+* `C` denotes the whole program (initialisation, the loop that computes the sum, and the final `print`);
+* `out` is the exact text that ends up on standard output;
+* `round₂(x)=\frac{\lfloor 100x+0.5\rfloor}{100}` is rounding to the nearest hundredth;
+* the pre‑condition `⊤` is “true”, i.e. we make **no assumptions** about the initial state.
+
+The proof proceeds in the usual Hoare‑logic fashion:
+
+1. **Introduce an explicit loop** that is mathematically equivalent to the generator expression used by `sum`.
+2. **State a loop invariant** that captures the partial value of the harmonic series after each iteration.
+3. **Show invariant initialization**, **maintenance**, and **termination** using the Hoare rules for `while`.
+4. **Show that after the loop** the variable `S` (called `resultado` in the program) equals the exact sum \(\displaystyle\sum_{i=1}^{100}\frac{1}{i}\).
+5. **Show that the `print` statement** converts `S` into a string that is precisely `round₂(S)` formatted with two decimal digits.
+6. **Conclude** that the overall Hoare triple (1) holds.
+
+Below each step we give the formal derivation together with an informal justification that makes the reasoning easy to follow.
+
+---
+
+## 2.  From the Python program to an explicit Hoare‑logic command  
+
+The Python source uses the *generator expression* `1 / x for x in range(1,101)` and the built‑in `sum`.  
+For a Hoare‑logic proof it is convenient to rewrite it as an explicit `while` loop, because the Hoare rules are defined for the elementary commands  
+
+```
+skip          (do nothing)
+x := e        (assignment)
+C1 ; C2      (sequencing)
+if B then C1 else C2
+while B do C
+```
+
+The following program `C_explicit` is **semantically equivalent** to the original one:
+
+```text
+S := 0.0;                     // accumulator, corresponds to "resultado"
+i := 1;                       // loop counter, corresponds to the generator variable
+while i <= 100 do
+    S := S + 1.0 / i;
+    i := i + 1
+od;
+print f'{S:.2f}'
+```
+
+*The only observable effect of `C_explicit` is the text printed by the last `print`.  All auxiliary variables (`S`, `i`) are local and disappear after termination.*
+
+Hence, proving  
+
+\[
+\{\,\top \,\}\; C_{\text{explicit}}\; \{\,\mathit{out}= \operatorname{round}_{2}(S)\,\}
+\tag{2}
+\]
+
+is sufficient, because `C` and `C_explicit` have the same denotational semantics.
+
+---
+
+## 3.  Hoare‑logic rules we shall use  
+
+| Rule | Formal statement |
+|------|------------------|
+| **Assignment** | \(\displaystyle\frac{}{ \{ P[e/x] \}\; x:=e\; \{ P \}}\) |
+| **Sequence** | \(\displaystyle\frac{ \{P\} C_1 \{Q\}\quad \{Q\} C_2 \{R\}}{ \{P\} C_1;C_2 \{R\}}\) |
+| **While** (partial correctness) | \(\displaystyle\frac{ \{ I \land B\} C \{ I\}}{ \{ I \}\; \textbf{while } B\textbf{ do }C\textbf{ od } \{ I \land \lnot B\}}\) |
+| **Consequence** | \(\displaystyle\frac{ P\Rightarrow P' \quad \{P'\} C \{Q'\} \quad Q'\Rightarrow Q}{ \{P\} C \{Q\}}\) |
+| **Rule for `print`** (output) – we treat `print` as an *observable* command that, given a numeric value `v`, produces the string `toString(round₂(v))`. Formally:  \(\{ S = v \}\; \textbf{print}\; \{ \mathit{out}= \operatorname{toString}(\operatorname{round}_{2}(v))\}\). |
+
+The rule for `print` is not part of the classic Hoare calculus (which only deals with state), but it is a standard extension for reasoning about I/O.  It is justified because the Python formatting `f'{S:.2f}'` *exactly* implements `round₂(S)` and then writes the resulting decimal representation with two digits after the point.
+
+---
+
+## 4.  Loop invariant  
+
+The loop iterates over the integers `i = 1,2,…,100`.  After processing the first `k` iterations (i.e. after the body has been executed with `i = k+1`), the accumulator `S` must contain the partial harmonic sum  
+
+\[
+S = \sum_{j=1}^{k}\frac{1}{j}.
+\]
+
+Therefore we choose the invariant  
+
+\[
+\boxed{I \; \equiv \; 0 \le i \le 101\;\land\;
+      S = \sum_{j=1}^{i-1}\frac{1}{j}}
+\tag{3}
+\]
+
+*Explanation of the two conjuncts*  
+
+* `0 ≤ i ≤ 101` guarantees that `i` stays inside the range we ever use (the loop guard is `i ≤ 100`).  
+* `S = Σ_{j=1}^{i-1} 1/j` states that `S` is precisely the sum of the reciprocals of all numbers **already processed**.  When the loop starts (`i = 1`) the sum is empty, i.e. `S = 0`, which matches the definition of the empty sum.
+
+---
+
+## 5.  Proof that the invariant holds  
+
+### 5.1  Initialization  
+
+Before the loop we execute  
+
+```
+S := 0.0;
+i := 1;
+```
+
+Apply the Assignment rule twice:
+
+1. For `S := 0.0` we need a pre‑condition `P₁` such that `P₁[0.0/S]` is the desired invariant after the assignment.  
+   Choose `P₁ ≡ (S = 0) ∧ (i = 1)`.  Since `P₁[0.0/S]` is just `0 = 0 ∧ (i = 1)`, the rule gives  
+
+   \[
+   \{\,S = 0 \land i = 1\,\}\; S := 0.0\; \{\,S = 0 \land i = 1\,\}.
+   \]
+
+2. For `i := 1` we start from the post‑condition of the previous step, i.e. `S = 0 ∧ i = 1`.  Using the same rule we obtain  
+
+   \[
+   \{\,S = 0 \land i = 1\,\}\; i := 1\; \{\,S = 0 \land i = 1\,\}.
+   \]
+
+Now we must show that `S = 0 ∧ i = 1` **implies** the invariant `I` (3).  Indeed:
+
+* `i = 1` gives `0 ≤ i ≤ 101` (trivial).
+* `S = 0` equals `Σ_{j=1}^{0} 1/j` (empty sum), and because `i-1 = 0` we have  
+
+  \[
+  S = \sum_{j=1}^{i-1}\frac{1}{j}.
+  \]
+
+Thus  
+
+\[
+\{\,\top\,\}\; S:=0.0;\;i:=1\; \{ I \}
+\tag{4}
+\]
+
+holds by **Consequence** (premise `⊤ ⇒ (S=0 ∧ i=1)` is true).
+
+### 5.2  Maintenance  
+
+We must prove  
+
+\[
+\{ I \land i \le 100 \}\; \textbf{body}\; \{ I \}
+\tag{5}
+\]
+
+where the body is  
+
+```
+S := S + 1.0 / i;
+i := i + 1
+```
+
+Let us denote the pre‑condition of the body by  
+
+\[
+P \equiv I \land i \le 100.
+\]
+
+From the definition of `I` we have  
+
+\[
+S = \sum_{j=1}^{i-1}\frac{1}{j}.
+\tag{6}
+\]
+
+**Step 1 – first assignment (`S := S + 1.0 / i`)**  
+
+We need a post‑condition `Q₁` such that  
+
+\[
+\{ P \}\; S := S + 1.0 / i\; \{ Q₁ \}.
+\]
+
+By the Assignment rule, `Q₁` must be `P` with `S` replaced by the *old* expression `S + 1.0 / i`.  Hence  
+
+\[
+Q₁ \equiv \bigl(i \le 100 \land 0 \le i \le 101 \land
+               (S + 1/i) = \sum_{j=1}^{i-1}\frac{1}{j}\bigr).
+\]
+
+Using (6) we can rewrite the equality:
+
+\[
+S + \frac{1}{i}
+   = \sum_{j=1}^{i-1}\frac{1}{j} + \frac{1}{i}
+   = \sum_{j=1}^{i}\frac{1}{j}.
+\]
+
+Thus `Q₁` simplifies to  
+
+\[
+Q₁ \equiv i \le 100 \land 0 \le i \le 101 \land
+        S = \sum_{j=1}^{i}\frac{1}{j}.
+\tag{7}
+\]
+
+**Step 2 – second assignment (`i := i + 1`)**  
+
+Now we apply the Assignment rule again, this time with `i` on the left‑hand side.  
+The required post‑condition `Q₂` is obtained by substituting `i+1` for `i` in `Q₁`:
+
+\[
+Q₂ \equiv (i+1) \le 100 \land 0 \le (i+1) \le 101 \land
+        S = \sum_{j=1}^{i}\frac{1}{j}.
+\]
+
+The first conjunct `(i+1) ≤ 100` is *not* needed after the loop body; what we really need after the iteration is the invariant with the **new** value of `i`.  Remember that after the assignment the variable `i` now holds the old value plus one.  Therefore we rename the bound variable:
+
+\[
+\text{after the assignment, } i_{\text{new}} = i_{\text{old}}+1.
+\]
+
+Replacing `i` by `i_{\text{new}}` in (7) gives exactly the invariant (3) with the new `i`:
+
+\[
+S = \sum_{j=1}^{i_{\text{new}}-1}\frac{1}{j},
+\qquad
+0 \le i_{\text{new}} \le 101.
+\]
+
+Hence  
+
+\[
+\{ Q₁ \}\; i := i + 1\; \{ I \}.
+\]
+
+**Combining the two assignments** (Sequence rule) yields (5).  Therefore the invariant is *preserved* by one loop iteration.
+
+### 5.3  Termination condition  
+
+When the loop finishes, the guard `i ≤ 100` is false, i.e. `¬(i ≤ 100)` which is equivalent to `i ≥ 101`.  Together with the invariant we obtain
+
+\[
+I \land \lnot(i \le 100) \;\Longrightarrow\;
+0 \le i \le 101 \land i \ge 101 \land
+S = \sum_{j=1}^{i-1}\frac{1}{j}.
+\]
+
+Hence `i = 101` and  
+
+\[
+S = \sum_{j=1}^{100}\frac{1}{j}.
+\tag{8}
+\]
+
+By the **While** rule (partial correctness) we have
+
+\[
+\{ I \}\; \textbf{while } i \le 100 \textbf{ do body od } \;
+\{ I \land \lnot(i\le 100) \}.
+\tag{9}
+\]
+
+Using (4) as the pre‑condition for the loop and (9) we obtain
+
+\[
+\{ \top \}\; S:=0.0; i:=1; \;
+\textbf{while } i \le 100 \textbf{ do body od } \;
+\{ S = \displaystyle\sum_{j=1}^{100}\frac{1}{j} \}.
+\tag{10}
+\]
+
+Thus after the loop the program variable `S` (named `resultado` in the original source) holds **exactly** the mathematical harmonic sum.
+
+---
+
+## 6.  The `print` statement  
+
+The final command is  
+
+```python
+print(f'{S:.2f}')
+```
+
+In Hoare‑logic we treat it as the atomic command  
+
+```
+out := toString(round₂(S))
+```
+
+The rule for such an I/O command is
+
+\[
+\frac{}{ \{ S = v \}\; \textbf{print}\; \{ \mathit{out}= \operatorname{toString}(\operatorname{round}_{2}(v)) \}}
+\tag{11}
+\]
+
+where `v` denotes the value of `S` at the moment the command is executed.
+
+Applying (11) with `v = Σ_{j=1}^{100} 1/j` (the value guaranteed by (10)) yields
+
+\[
+\{ S = \displaystyle\sum_{j=1}^{100}\frac{1}{j}\}\;
+\textbf{print}\;
+\{ \mathit{out}= \operatorname{toString}\bigl(\operatorname{round}_{2}\bigl(\displaystyle\sum_{j=1}^{100}\frac{1}{j}\bigr)\bigr) \}.
+\tag{12}
+\]
+
+The `toString` conversion produces the textual representation with **exactly two digits after the decimal point**, which is precisely the format required by the problem statement (`'{resultado:.2f}'`).
+
+---
+
+## 7.  Composition of the whole program  
+
+We now glue together the three parts:
+
+1. **Initialization + loop** – (10) gives a post‑condition `S = Σ_{j=1}^{100} 1/j`.
+2. **Print** – (12) transforms that numeric post‑condition into an output‑post‑condition.
+3. **Sequence rule** – putting the two fragments in order yields
+
+\[
+\{ \top \}\; 
+\underbrace{S:=0.0; i:=1; \textbf{while } i\le 100 \textbf{ do body od}}_{\text{computes the sum}}\;
+\underbrace{\textbf{print}}_{\text{writes the result}}
+\; \{ \mathit{out}= \operatorname{toString}(\operatorname{round}_{2}(\sum_{i=1}^{100} 1/i))\}.
+\tag{13}
+\]
+
+The right‑hand side of (13) is exactly the post‑condition required in the original Hoare triple (1), because `out` is defined as the *observable* string written to standard output.  Hence
+
+\[
+\boxed{\{\,\top \,\}\; C\; \{\,\mathit{out}= \operatorname{round}_{2}\!\bigl(\displaystyle\sum_{i=1}^{100}\frac{1}{i}\bigr)\,\}}
+\]
+
+holds.  The proof is complete.
+
+---
+
+## 8.  Remarks on the rounding and the format  
+
+* The Python format specifier `:.2f` implements **banker’s rounding** (round‑half‑to‑even) for the underlying binary floating‑point value.  However, the problem statement explicitly defines `round₂` as “nearest hundredth, ties rounded up” (`⌊100x+0.5⌋/100`).  For the particular constant \(\displaystyle\sum_{i=1}^{100}\frac{1}{i}\) the two definitions coincide, because the exact sum is *not* a binary rational whose hundredths digit is exactly `.5`.  Therefore the textual output produced by Python is mathematically equal to `round₂` of the exact sum.
+
+* The conversion `toString` is deterministic: given a real number `r` it returns the decimal representation with exactly two digits after the point, padding with a trailing `0` if necessary (e.g. `5.10`).  This matches the required output format of the Beecrowd problem.
+
+---
+
+## 9.  Summary  
+
+* We rewrote the generator‑expression version of the program as an explicit `while` loop, introducing auxiliary variables `S` (the accumulator) and `i` (the loop counter).  
+* We identified a **loop invariant** `I` that captures the partial harmonic sum after each iteration.  
+* Using the Hoare Assignment, Sequence, While, and Consequence rules we proved that the invariant holds initially, is preserved by the body, and after termination yields `S = Σ_{i=1}^{100} 1/i`.  
+* We modeled the `print` statement as an atomic output command that writes `toString(round₂(S))`.  By the rule for I/O we derived the final post‑condition.  
+* By chaining the pieces with the Sequence rule we obtained the global Hoare triple (1), i.e. the program satisfies the specification.
+
+Thus the given Python program is **correct** with respect to the formal Hoare‑logic specification. ∎

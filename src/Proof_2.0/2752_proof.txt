@@ -1,0 +1,218 @@
+**Answer – a Hoare‑logic proof that the program produces exactly the eight lines required**
+
+-----------------------------------------------------------------------
+
+### 1.  What we have to show  
+
+*Pre‑condition*  
+
+\[
+\{\,\top \,\}
+\]
+
+(no input, the initial state is arbitrary).
+
+*Post‑condition*  
+
+\[
+\{\,\mathsf{post}(out)\,\}\qquad\text{where}
+\]
+
+\[
+\begin{aligned}
+\mathsf{post}(out)\;\equiv\;&out=
+\ell _1\;\newline\;
+\ell _2\;\newline\;
+\ell _3\;\newline\;
+\ell _4\;\newline\;
+\ell _5\;\newline\;
+\ell _6\;\newline\;
+\ell _7\;\newline\;
+\ell _8
+\end{aligned}
+\]
+
+with the eight line definitions given in the statement (Section 2 of the
+specification).
+
+Thus we must prove the Hoare triple  
+
+\[
+\boxed{\;\{\,\top \,\}\;\; \text{Program}\;\; \{\,\mathsf{post}(out)\,\}\;}
+\tag{1}
+\]
+
+-----------------------------------------------------------------------
+
+### 2.  Modelling the output command  
+
+In Python the statement  
+
+```python
+print(expr)
+```  
+
+writes the value of `expr` followed by a line‑break (`\n`).  
+For the proof we introduce a *ghost variable* `out` that stores the whole
+output produced so far.  
+
+The Hoare rule for a `print` is therefore  
+
+\[
+\frac{\{P\}\; \;out:=out\;\&\;(expr\;\&\;\text{`\newline`})\; \{Q\}}
+     {\{P\}\;\texttt{print(expr)}\;\{Q\}} \tag{Print}
+\]
+
+(we treat the command as an assignment to `out`).  
+
+All eight `print` statements are executed **sequentially**, so we can apply
+the rule of *sequence* repeatedly:
+
+\[
+\frac{\{P\}\;c_1\;\{P_1\}\qquad
+      \{P_1\}\;c_2\;\{P_2\}\qquad\cdots\qquad
+      \{P_{7}\}\;c_{8}\;\{Q\}}
+     {\{P\}\;c_1;c_2;\dots;c_{8}\;\{Q\}} \tag{Seq}
+\]
+
+-----------------------------------------------------------------------
+
+### 3.  Useful facts about the concrete program  
+
+* The constant used in the program is  
+
+  \[
+  \texttt{frase} = S =\text{``AMO FAZER EXERCICIO NO URI''}.
+  \]
+
+* `frase[0:20]` extracts the first 20 characters of `S`, which is  
+
+  \[
+  T =\text{``AMO FAZER EXERCICIO''}.
+  \]
+
+* The *width* format specifier `:>30` right‑aligns a string inside a field
+  of length 30, filling the left side with blanks.  
+  Since `|S| = 26`, the number of blanks inserted is `30‑26 = 4`.  
+  Hence  
+
+  \[
+  \texttt{f'<{frase:>30}>'}= \; \text{``<''}\;\operatorname{pad}(4)\;S\;\text{``>''}
+  =\ell_2 .
+  \]
+
+* Similarly `:<30` left‑aligns, producing `\ell_5`.  
+
+* `:>30` applied to the slice `frase[0:20]` (length 20) inserts `30‑20 = 10`
+  blanks on the left, giving `\ell_7`.  
+
+* `:<30` applied to the slice inserts `30‑20 = 10` blanks on the right;
+  together with the single blank that already follows the slice in the
+  original string we obtain `\ell_8`.
+
+All these equalities are pure **string‑algebraic identities**; they can be
+proved by a short calculation on the lengths of the strings and the
+definition of the formatting operator.  They will be used as *axioms*
+inside the proof.
+
+-----------------------------------------------------------------------
+
+### 4.  Hoare triples for the individual `print`s  
+
+We write `out_i` for the value of `out` **after** the *i‑th* `print`.  
+The initial value is `out_0 = ε` (the empty string).
+
+| # | Python statement | derived line `ℓ_i` | Hoare triple (using rule *Print*) |
+|---|------------------|-------------------|-----------------------------------|
+| 1 | `print(f'<{frase}>')` | `ℓ₁ = \text{``<''}S\text{``>''}` | \(\{ \top\}\; out:=out\;\&\;(ℓ₁\;\&\;\newline)\; \{out = ℓ₁\;\&\;\newline\}\) |
+| 2 | `print(f'<{frase:>30}>')` | `ℓ₂ = \text{``<''}\operatorname{pad}(4)S\text{``>''}` | \(\{out=ℓ₁\;\&\;\newline\}\; out:=out\;\&\;(ℓ₂\;\&\;\newline)\; \{out = ℓ₁\;\&\;\newline\;\&\;ℓ₂\;\&\;\newline\}\) |
+| 3 | `print(f'<{frase[0:20]}>')` | `ℓ₃ = \text{``<''}T\operatorname{pad}(1)\text{``>''}` | \(\{out=ℓ₁\;\&\;\newline\;\&\;ℓ₂\;\&\;\newline\}\; … \{out = ℓ₁\;\&\;\newline\;\&\;ℓ₂\;\&\;\newline\;\&\;ℓ₃\;\&\;\newline\}\) |
+| 4 | `print(f'<{frase}>')` | `ℓ₄ = ℓ₁` | analogous, adds another `ℓ₁` |
+| 5 | `print(f'<{frase:<30}>')` | `ℓ₅ = \text{``<''}S\operatorname{pad}(4)\text{``>''}` | analogous, adds `ℓ₅` |
+| 6 | `print(f'<{frase}>')` | `ℓ₆ = ℓ₁` | analogous, adds another `ℓ₁` |
+| 7 | `print(f'<{frase[0:20]:>30}>')` | `ℓ₇ = \text{``<''}\operatorname{pad}(10)T\operatorname{pad}(1)\text{``>''}` | analogous, adds `ℓ₇` |
+| 8 | `print(f'<{frase[0:20]:<30}>')` | `ℓ₈ = \text{``<''}T\operatorname{pad}(11)\text{``>''}` | analogous, adds `ℓ₈` |
+
+Each triple is an instance of rule **Print**; the pre‑condition of the
+*i‑th* triple is precisely the post‑condition of the *(i‑1)*‑st triple,
+so the *sequence* rule can be applied.
+
+-----------------------------------------------------------------------
+
+### 5.  Building the whole proof  
+
+Apply the **Sequence** rule to the eight triples above:
+
+\[
+\begin{aligned}
+&\{ \top\}\;c_1\;\{P_1\}\\
+&\{P_1\}\;c_2\;\{P_2\}\\
+&\qquad\vdots\\
+&\{P_7\}\;c_8\;\{P_8\}
+\end{aligned}
+\Longrightarrow
+\{ \top\}\;c_1;c_2;\dots;c_8\;\{P_8\}
+\]
+
+where  
+
+\[
+\begin{aligned}
+P_8 \equiv\;&out = 
+ℓ_1\;\newline\;
+ℓ_2\;\newline\;
+ℓ_3\;\newline\;
+ℓ_4\;\newline\;
+ℓ_5\;\newline\;
+ℓ_6\;\newline\;
+ℓ_7\;\newline\;
+ℓ_8 .
+\end{aligned}
+\]
+
+But `P_8` is exactly the predicate `\mathsf{post}(out)` defined in the
+specification (Section 3).  Hence we have derived the Hoare triple (1).
+
+-----------------------------------------------------------------------
+
+### 6.  Formal statement of the proved theorem  
+
+\[
+\boxed{\;
+\{\,\top \,\}\;
+\underbrace{
+\begin{array}{l}
+\texttt{frase = "AMO FAZER EXERCICIO NO URI"}\\[1mm]
+\texttt{print(f'<{frase}>')}\\
+\texttt{print(f'<{frase:>30}>')}\\
+\texttt{print(f'<{frase[0:20]}>')}\\
+\texttt{print(f'<{frase}>')}\\
+\texttt{print(f'<{frase:<30}>')}\\
+\texttt{print(f'<{frase}>')}\\
+\texttt{print(f'<{frase[0:20]:>30}>')}\\
+\texttt{print(f'<{frase[0:20]:<30}>')}\\
+\end{array}
+}_{\text{Program}}
+\;
+\{\,\mathsf{post}(out)\,\}\;}
+\]
+
+Thus the program is **correct** with respect to the given Hoare‑logic
+specification: starting from any state (no input) it terminates and the
+produced output consists of the eight lines \(\ell_1,\dots,\ell_8\) exactly
+as required.  
+
+-----------------------------------------------------------------------
+
+### 7.  Intuition (plain English)
+
+* The program never reads data; the only thing it does is write eight
+  strings.
+* Each f‑string can be reduced, using the definition of the formatting
+  operators, to the concrete line \(\ell_i\) listed in the specification.
+* Concatenating the eight lines with a newline after every line yields the
+  exact string described by `post(out)`.
+* Because the pre‑condition is trivially true, the Hoare triple holds,
+  which is precisely the formal statement of “the program is correct”.
+
+∎

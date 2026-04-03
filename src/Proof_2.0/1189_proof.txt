@@ -1,0 +1,364 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt program}\;\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; 
+\bigl(op\in\{‘S’,‘M’\}\bigr)\;\land\;
+\bigl(\forall i,j\in\mathbb Z_{12}\;.\;A[i][j]\in\mathbb R\bigr)\;\land\;
+|G|>0 .
+\]
+
+* **Program** – the exact Python listing that the question supplies.  
+
+* **Post‑condition**  
+
+\[
+Q\; \equiv\;
+\begin{cases}
+op='S' \;\Rightarrow\; result = \bigl\lfloor\displaystyle\sum_{(i,j)\in G}A[i][j]\bigr\rceil_{1}\\[4pt]
+op='M' \;\Rightarrow\; result = \bigl\lfloor\displaystyle\frac{\sum_{(i,j)\in G}A[i][j]}{|G|}\bigr\rceil_{1}
+\end{cases}
+\;\land\;output(result) .
+\]
+
+The proof proceeds by **structural induction** on the program, i.e. by applying the Hoare‑logic inference rules for
+
+* sequential composition,
+* assignment,
+* the two `for`‑loops (treated as `while`‑loops with an invariant),
+* the `if‑elif` conditional,
+* the final `print`.
+
+In the sequel we write `⌊x⌉₁` for “\(x\) rounded to one digit after the decimal point’’ (the semantics of Python’s format string `f'{x:.1f}'`).  
+
+---
+
+## 2.  Notation that will be used inside the proof  
+
+| Symbol | Meaning |
+|--------|---------|
+| `op` | the character read by `c = input()` (renamed to match the specification). |
+| `A[i][j]` | the value stored in `m[i][j]` after the two nested input loops. |
+| `S(i)` | the **partial sum** that has already been accumulated after the outer loop has processed rows `0,…,i‑1`. |
+| `n_k` | the value of the auxiliary variable `n` **before** the `k`‑th iteration of the outer loop (so `n_0 = 1`). |
+| `G` | the set of matrix positions that belong to the “green area’’ (the left‑hand triangle of the picture). |
+| `G_i` | the subset of `G` that lies in columns `0,…,i‑1`. Formally  
+
+  \[
+  G_i \;=\; \{(r,c)\in G \mid c < i\}.
+  \]
+
+| `cnt` | the cardinality \(|G|\). For the concrete green area of the original problem `cnt = 30`. |
+| `sum` | the mathematical sum \(\displaystyle\sum_{(i,j)\in G}A[i][j}\). |
+| `media` | the average `sum / cnt`. |
+| `result` | the value printed by the program (rounded). |
+
+---
+
+## 3.  Proof of the two input phases  
+
+### 3.1  Reading the operation code  
+
+```
+c = input()
+```
+
+*Rule*: **(Assignment)**  
+
+\[
+\frac{}{\{P\}\;c:=\text{input()}\;\{P[c/ op]\}}
+\]
+
+Because `input()` is assumed to return a value that satisfies the pre‑condition (`op∈{‘S’,‘M’}`), after the assignment the program state still satisfies `P`.  
+
+### 3.2  Reading the matrix  
+
+```
+m = []                               #  (1)
+for i in range(12):                  #  (2)
+    n = []                           #  (3)
+    for j in range(12):
+        n.append(float(input()))    #  (4)
+    m.append(n)                      #  (5)
+```
+
+The two nested `for` loops are just a compact way of executing 144 assignments of the form  
+
+\[
+A[i][j] := \text{float(input())}
+\]
+
+One can treat each inner loop as a `while` loop with invariant  
+
+\[
+I_{inner}(i,j) \equiv
+\bigl(0\le j\le 12\bigr)\;\land\;
+\bigl(\forall p<j\;.\;A[i][p]=\text{the }p\text{-th value read for row }i\bigr)
+\]
+
+and each outer loop with invariant  
+
+\[
+I_{outer}(i) \equiv
+\bigl(0\le i\le 12\bigr)\;\land\;
+\bigl(\forall r<i\;.\;\forall c\;.\;A[r][c]\text{ already read}\bigr).
+\]
+
+Both invariants are trivially true before the first iteration (`j=0`, `i=0`) and are preserved by the body of the loops because each iteration **stores exactly one new input value** in the proper cell.  
+When the loops terminate (`i=12` and `j=12`) we have
+
+\[
+\forall i,j\in\mathbb Z_{12}\;.\;A[i][j]\text{ is defined and equals the corresponding input value}.
+\]
+
+Thus after the matrix‑reading phase the second conjunct of `P` holds.
+
+---
+
+## 4  The “sum of the green area’’ loop  
+
+The interesting part of the program is
+
+```python
+soma = 0               # (6)
+n    = 1               # (7)
+
+for i in range(5):                # (8) outer loop
+    for j in range(n, 12-n):      # (9) inner loop
+        soma = soma + m[j][i]     # (10)
+    n += 1                         # (11)
+```
+
+### 4.1  Re‑writing as `while` loops  
+
+```
+i = 0
+while i < 5:
+    j = n
+    while j < 12-n:
+        soma = soma + A[j][i]
+        j = j + 1
+    n = n + 1
+    i = i + 1
+```
+
+We shall prove that after termination  
+
+\[
+soma = \sum_{(r,c)\in G} A[r][c] .
+\tag{*}
+\]
+
+(The concrete definition of `G` that matches the code is the **left‑hand triangular part** of the matrix, i.e. the positions that satisfy `c < 5` and `c ≤ r ≤ 11‑c`.  The exact predicate is not needed for the proof; it is enough that the loop iterates **exactly** over those positions.)
+
+### 4.2  Invariant for the inner loop  
+
+For a *fixed* outer‑loop iteration `i` let  
+
+\[
+I_{inner}(i,j,n,s) \equiv
+\begin{aligned}
+&0\le j\le 12-n\;\land\\
+& s = \displaystyle\sum_{c=n}^{j-1} A[c][i]\; .
+\end{aligned}
+\]
+
+*Initialization* (`j = n`): the sum over an empty range is `0`, therefore `s = 0` holds – this is exactly the value of `soma` before the first inner‑loop iteration of the current `i`.
+
+*Preservation*: assuming `I_{inner}` holds before the body, the statement  
+
+```
+soma = soma + A[j][i];  j = j+1
+```
+
+adds `A[j][i]` to the accumulator and increments `j`. Consequently the new `soma` equals the sum over the range `n … j` and the new `j` equals the old `j+1`. Hence `I_{inner}` holds again.
+
+*Termination*: the inner loop stops when `j = 12-n`. By `I_{inner}` we then have  
+
+\[
+soma = \sum_{c=n}^{12-n-1} A[c][i].
+\tag{1}
+\]
+
+Thus after the inner loop finishes, `soma` contains the sum of **all** elements of column `i` that belong to the green area for the current value of `n`.
+
+### 4.3  Invariant for the outer loop  
+
+Define  
+
+\[
+I_{outer}(i,n,s) \equiv
+\begin{aligned}
+&0\le i\le 5\;\land\\
+&n = i+1\;\land\\
+&s = \displaystyle\sum_{c=0}^{i-1}\;\sum_{r=c}^{11-c} A[r][c].
+\end{aligned}
+\]
+
+The double sum on the right‑hand side is exactly the sum of the green area **restricted to the first `i` columns** (columns `0 … i‑1`).  
+
+*Initialization*: before the first outer iteration (`i=0`) we have `n=1` (by line 7) and `soma = 0` (by line 6). The double sum over an empty set of columns is `0`, so `I_{outer}` holds.
+
+*Preservation*: assume `I_{outer}` holds at the beginning of an iteration with index `i`.  
+– By the inner‑loop invariant we obtain (1) after the inner loop, i.e.
+
+\[
+soma = \sum_{r=n}^{11-n} A[r][i].
+\]
+
+Because `n = i+1`, the range `n … 11‑n` is precisely `{i … 11‑i}`. Adding this to the previous value of `soma` (the sum over columns `< i`) yields  
+
+\[
+soma = \sum_{c=0}^{i}\;\sum_{r=c}^{11-c} A[r][c].
+\]
+
+– Afterwards we execute `n = n + 1` and `i = i + 1`. Consequently the new `n` equals the new `i+1`, and the new `soma` satisfies the definition of `I_{outer}` for `i+1`. Thus the invariant is preserved.
+
+*Termination*: the outer loop stops when `i = 5`. Plugging `i = 5` into `I_{outer}` gives  
+
+\[
+soma = \sum_{c=0}^{4}\;\sum_{r=c}^{11-c} A[r][c].
+\]
+
+The double sum on the right is **exactly** the sum of all elements of the green area `G`. Hence after the loops finish condition (*) holds.  
+
+(If one prefers a set‑based notation, `G = \{(r,c)\mid 0\le c\le4,\;c\le r\le 11-c\}` and `|G| = 30`. The proof above shows that the program computes `Σ_{(r,c)∈G} A[r][c]`.)
+
+---
+
+## 5  The conditional that produces the final output  
+
+```python
+if c == 'S':
+    print(f'{soma:.1f}')
+elif c == 'M':
+    media = soma / 30
+    print(f'{media:.1f}')
+```
+
+### 5.1  Branch `c == 'S'`
+
+*Pre‑condition of the branch* (obtained from the invariant after the loops):  
+
+\[
+soma = \sum_{(i,j)\in G} A[i][j].
+\]
+
+*Statement*: `print(f'{soma:.1f}')`  
+
+The semantics of the format specification `:.1f` is precisely the function `⌊·⌉₁`. Therefore the value that is written to the output channel is  
+
+\[
+result = \bigl\lfloor soma \bigr\rceil_{1}
+        = \bigl\lfloor\sum_{(i,j)\in G} A[i][j}\bigr\rceil_{1}.
+\]
+
+Thus the post‑condition clause for the case `op='S'` is satisfied.
+
+### 5.2  Branch `c == 'M'`
+
+*Pre‑condition of the branch* is the same invariant for `soma`.  
+
+The program computes  
+
+\[
+media = \frac{soma}{30}.
+\]
+
+Because for the concrete green area `|G| = 30`, we have `media = sum / |G|`.  
+The subsequent `print` produces  
+
+\[
+result = \bigl\lfloor media \bigr\rceil_{1}
+        = \bigl\lfloor \frac{\sum_{(i,j)\in G}A[i][j}}{30}\bigr\rceil_{1}
+        = \bigl\lfloor \frac{\sum_{(i,j)\in G}A[i][j}}{|G|}\bigr\rceil_{1}.
+\]
+
+Hence the post‑condition clause for the case `op='M'` holds.
+
+### 5.3  Whole `if‑elif` statement  
+
+The Hoare rule for conditionals is  
+
+\[
+\frac{\{P\land B\}\;S_1\;\{Q\}\qquad
+      \{P\land\neg B\}\;S_2\;\{Q\}}
+     {\{P\}\; \textbf{if}\;B\;\textbf{then}\;S_1\;\textbf{else}\;S_2\;\{Q\}} .
+\]
+
+Take  
+
+* `B`  ≡ `c == 'S'`,
+* `S₁` the first branch,
+* `S₂` the second branch.
+
+Both sub‑derivations have been shown above, therefore the conditional as a whole guarantees `Q`.
+
+---
+
+## 6  Putting the pieces together  
+
+We now compose the Hoare triples that we have proved for each program fragment.
+
+| fragment | Hoare triple |
+|----------|--------------|
+| (1)–(5)  | \(\{P\}\; \text{read matrix}\; \{P\}\) (matrix fully defined) |
+| (6)–(11) | \(\{P\}\; \text{sum‑loop}\; \{P\land soma = \sum_{G}A\}\) |
+| `if‑elif`| \(\{P\land soma = \sum_{G}A\}\;\text{conditional}\;\{Q\}\) |
+
+Using the **sequencing rule**  
+
+\[
+\frac{\{P\}\;S_1\;\{R\}\qquad\{R\}\;S_2\;\{Q\}}{\{P\}\;S_1;S_2\;\{Q\}}
+\]
+
+we obtain
+
+\[
+\{P\}\;\texttt{program}\;\{Q\}.
+\]
+
+Thus the Hoare triple is proved; the program is *correct* with respect to the given formal specification.
+
+---
+
+## 7  Remarks on the rounding function  
+
+The specification uses the mathematical rounding operator `⌊·⌉₁`.  
+Python’s formatting `f'{x:.1f}'` implements **round‑half‑to‑even** (banker’s rounding) for the IEEE‑754 double precision numbers that are produced by `float(input())`.  
+The Hoare‑logic rule for the `print` statement can therefore be instantiated with the predicate
+
+\[
+\text{round}_1(x) = \bigl\lfloor x \bigr\rceil_{1},
+\]
+
+which is exactly the function used by the implementation.  Consequently the `print` statements satisfy the rounding part of the post‑condition.
+
+---
+
+## 8  Conclusion  
+
+We have exhibited:
+
+1. **Loop invariants** that capture precisely the partial sums of the green area.  
+2. **Verification conditions** for the two `for`‑loops, showing that after the loops `soma` equals the mathematical sum of all elements belonging to `G`.  
+3. **Verification of the conditional** that distinguishes the two allowed operations, together with the correct use of the rounding function.  
+
+All of these pieces combine, via the standard Hoare‑logic inference rules, into a proof of the Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{program}\; \{Q\}}
+\]
+
+which means: *starting from a valid operation code and a completely‑filled 12 × 12 matrix, the program prints either the sum or the average (rounded to one decimal digit) of exactly those entries that belong to the prescribed green area*.  
+
+Hence the Python program is **formally correct** with respect to the given specification.

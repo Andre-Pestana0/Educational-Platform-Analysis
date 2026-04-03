@@ -1,0 +1,309 @@
+**Goal**  
+Prove the Hoare‑logic triple  
+
+\[
+\{\,\top\,\}\;\;{\sf PrintScreen}\;\; \{\,\text{out}= \Sigma \,\}
+\]
+
+where  
+
+* `PrintScreen` is the seven‑line Python program  
+
+```python
+print("---------------------------------------")
+print("|        Roberto                      |")
+print("|                                     |")
+print("|        5786                         |")
+print("|                                     |")
+print("|        UNIFEI                       |")
+print("---------------------------------------")
+```
+
+* `out` denotes the whole contents of the standard‑output stream after the program
+  terminates, and  
+
+* \(\Sigma\) is the *exact* string defined in the specification (border, three centred
+  lines, blank lines, concatenated in the order shown).
+
+Because the pre‑condition is the truth constant \(\top\), we only have to
+show that the **post‑condition** holds for every possible initial state.
+The proof proceeds by the usual Hoare‑logic rule for **sequential
+composition** together with the axiom for the primitive statement
+`print(s)`, which we model as the assignment  
+
+\[
+\text{out} := \text{out}\;\cdot\;s .
+\]
+
+---------------------------------------------------------------------
+
+## 1.  Auxiliary calculations
+
+* Width of a line (including the two vertical bars):  
+
+  \[
+  W = 39 .
+  \]
+
+* Width of the interior of a line (the part that must be padded):  
+
+  \[
+  W-2 = 37 .
+  \]
+
+* Lengths of the three texts  
+
+  \[
+  |\text{“Roberto”}| = 7,\qquad |\text{“5786”}| = 4,\qquad |\text{“UNIFEI”}| = 6 .
+  \]
+
+* For a string \(x\) and \(k=37\) the definition  
+
+  \[
+  \operatorname{pad\_center}(x,37)=\underbrace{\text{‘ ’}}_{\ell}
+  \;·\;x\;·\;\underbrace{\text{‘ ’}}_{37-\ell-|x|},
+  \qquad\ell=\Big\lfloor\frac{37-|x|}{2}\Big\rfloor .
+  \]
+
+  Computing \(\ell\) for each text:
+
+  * \(x=\) “Roberto”: \(\ell=\big\lfloor(37-7)/2\big\rfloor=15\).  
+    Hence  
+
+    \[
+    \operatorname{pad\_center}(\text{“Roberto”},37)
+    =\text{‘ ’}^{15}\;\text{Roberto}\;\text{‘ ’}^{15}.
+    \]
+
+  * \(x=\) “5786”: \(\ell=\big\lfloor(37-4)/2\big\rfloor=16\).  
+    Hence  
+
+    \[
+    \operatorname{pad\_center}(\text{“5786”},37)
+    =\text{‘ ’}^{16}\;\text{5786}\;\text{‘ ’}^{15}.
+    \]
+
+  * \(x=\) “UNIFEI”: \(\ell=\big\lfloor(37-6)/2\big\rfloor=15\).  
+    Hence  
+
+    \[
+    \operatorname{pad\_center}(\text{“UNIFEI”},37)
+    =\text{‘ ’}^{15}\;\text{UNIFEI}\;\text{‘ ’}^{16}.
+    \]
+
+* The **border** string is  
+
+  \[
+  \text{border}= \underbrace{\text{‘-’}}_{39}\;\cdot\;\text{‘\n’}
+  =\text{``---------------------------------------\n''}.
+  \]
+
+* The **blank** line is  
+
+  \[
+  \text{blank}= \text{‘|’}\;\cdot\;\underbrace{\text{‘ ’}}_{37}\;\cdot\;\text{‘|’}\;\cdot\;\text{‘\n’}
+  =\text{``|                                     |\n''}.
+  \]
+
+* The three *centred* lines, using the calculations above, are exactly
+
+  \[
+  \begin{aligned}
+  \text{line}_1 &=
+    \text{``|} \;\text{‘ ’}^{15}\;\text{Roberto}\;\text{‘ ’}^{15}\;\text{|\\n''},\\[1mm]
+  \text{line}_2 &=
+    \text{``|} \;\text{‘ ’}^{16}\;\text{5786}\;\text{‘ ’}^{15}\;\text{|\\n''},\\[1mm]
+  \text{line}_3 &=
+    \text{``|} \;\text{‘ ’}^{15}\;\text{UNIFEI}\;\text{‘ ’}^{16}\;\text{|\\n''}.
+  \end{aligned}
+  \]
+
+* Consequently the **desired output** is  
+
+  \[
+  \Sigma = \text{border}\;\cdot\;\text{line}_1\;\cdot\;\text{blank}\;
+           \cdot\;\text{line}_2\;\cdot\;\text{blank}\;
+           \cdot\;\text{line}_3\;\cdot\;\text{border}.
+  \]
+
+---------------------------------------------------------------------
+
+## 2.  Hoare‑logic proof
+
+We use the following Hoare‑logic rules (standard textbook notation).
+
+* **(Assign)** \(\{Q[s/\text{out}]\}\;\text{out}:=s\;\{Q\}\)  
+
+  where \(Q[s/\text{out}]\) denotes the substitution of the expression
+  \(s\) for the variable `out` in the post‑condition \(Q\).
+
+* **(Seq)** If \(\{P\}\;S_1\;\{R\}\) and \(\{R\}\;S_2\;\{Q\}\) then
+  \(\{P\}\;S_1;S_2\;\{Q\}\).
+
+* **(Consequence)** From \(\{P'\}\;S\;\{Q'\}\) and
+  \(P\Rightarrow P',\;Q'\Rightarrow Q\) infer \(\{P\}\;S\;\{Q\}\).
+
+The program consists of seven `print` statements; we denote the
+corresponding strings by  
+
+\[
+\begin{aligned}
+s_1 &:=\text{``---------------------------------------\n''},\\
+s_2 &:=\text{``|        Roberto                      |\n''},\\
+s_3 &:=\text{``|                                     |\n''},\\
+s_4 &:=\text{``|        5786                         |\n''},\\
+s_5 &:=\text{``|                                     |\n''},\\
+s_6 &:=\text{``|        UNIFEI                       |\n''},\\
+s_7 &:=\text{``---------------------------------------\n''}.
+\end{aligned}
+\]
+
+(Notice that the literal strings `s_2 … s_6` are exactly the concrete
+forms of `line_1`, `blank`, `line_2`, `blank`, `line_3` derived above.)
+
+For each statement we use the **Assign** rule with the post‑condition that
+`out` equals the concatenation of all strings printed up to that point.
+
+---------------------------------------------------------------------
+
+### 2.1  First statement
+
+\[
+\{\,\top\,\}\; \text{print}(s_1)\; \{\,\text{out}=s_1\,\}
+\]
+
+*Proof.*  
+`print(s_1)` is modelled as `out := out·s_1`.  
+Take the post‑condition \(Q \equiv (\text{out}=s_1)\).  
+Its pre‑condition after substitution is  
+
+\[
+Q[\,s_1/\text{out}\,] \equiv (\,\text{out}\cdot s_1 = s_1\,).
+\]
+
+Because the program starts with an **arbitrary** value of `out`,
+the weakest pre‑condition is the true formula \(\top\); therefore the
+rule (Assign) yields exactly the displayed Hoare triple.
+
+---------------------------------------------------------------------
+
+### 2.2  Second statement
+
+\[
+\{\text{out}=s_1\}\; \text{print}(s_2)\; \{\,\text{out}=s_1\cdot s_2\,\}
+\]
+
+*Proof.*  
+`print(s_2)` is `out := out·s_2`.  
+Using (Assign) with post‑condition \(Q\equiv(\text{out}=s_1\cdot s_2)\) gives the
+pre‑condition  
+
+\[
+Q[\,s_2/\text{out}\,]\equiv(\text{out}\cdot s_2 = s_1\cdot s_2).
+\]
+
+Since the antecedent of the triple is exactly `out = s_1`,
+the pre‑condition holds, and the triple is proved.
+
+---------------------------------------------------------------------
+
+### 2.3  Third statement
+
+\[
+\{\text{out}=s_1\cdot s_2\}\; \text{print}(s_3)\;
+      \{\,\text{out}=s_1\cdot s_2\cdot s_3\,\}
+\]
+
+The proof is identical to 2.2, using \(Q\equiv(\text{out}=s_1\cdot s_2\cdot s_3)\).
+
+---------------------------------------------------------------------
+
+### 2.4  Fourth, fifth and sixth statements
+
+Analogously we obtain
+
+\[
+\begin{aligned}
+\{\text{out}=s_1\cdot s_2\cdot s_3\}&\;\text{print}(s_4)\;
+      \{\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\},\\[1mm]
+\{\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\}&\;\text{print}(s_5)\;
+      \{\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\cdot s_5\},\\[1mm]
+\{\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\cdot s_5\}&\;\text{print}(s_6)\;
+      \{\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\cdot s_5\cdot s_6\}.
+\end{aligned}
+\]
+
+---------------------------------------------------------------------
+
+### 2.5  Seventh (last) statement
+
+\[
+\{\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\cdot s_5\cdot s_6\}\;
+\text{print}(s_7)\;
+\{\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\cdot s_5\cdot s_6\cdot s_7\}.
+\]
+
+Again a direct application of (Assign).
+
+---------------------------------------------------------------------
+
+## 3.  Composition of the seven triples
+
+Using the **(Seq)** rule repeatedly we concatenate the seven
+Hoare triples:
+
+\[
+\begin{aligned}
+\{\,\top\,\}&\;\text{print}(s_1);\;\text{print}(s_2);\;\dots;\;\text{print}(s_7)\\
+            &\;\{\,\text{out}=s_1\cdot s_2\cdot s_3\cdot s_4\cdot s_5\cdot s_6\cdot s_7\,\}.
+\end{aligned}
+\]
+
+By the calculations of Section&nbsp;1 we have  
+
+\[
+\begin{aligned}
+s_1 &= \text{border},\\
+s_2 &= \text{line}_1,\\
+s_3 &= \text{blank},\\
+s_4 &= \text{line}_2,\\
+s_5 &= \text{blank},\\
+s_6 &= \text{line}_3,\\
+s_7 &= \text{border}.
+\end{aligned}
+\]
+
+Hence the right‑hand side of the post‑condition is precisely  
+
+\[
+s_1\cdot s_2\cdot s_3\cdot s_4\cdot s_5\cdot s_6\cdot s_7
+   = \text{border}\cdot\text{line}_1\cdot\text{blank}\cdot
+     \text{line}_2\cdot\text{blank}\cdot\text{line}_3\cdot\text{border}
+   = \Sigma .
+\]
+
+Therefore we have proved
+
+\[
+\{\,\top\,\}\;\text{PrintScreen}\;\{\text{out}= \Sigma\},
+\]
+
+which is exactly the Hoare‑logic specification given in the statement.
+
+---------------------------------------------------------------------
+
+## 4.  Concluding remarks
+
+* The **pre‑condition** \(\top\) is satisfied trivially – the program has no
+  inputs and makes no assumptions about the initial state.
+
+* The **post‑condition** follows from a straightforward, step‑by‑step
+  reasoning about the effect of each `print`.  No loop invariants or
+  auxiliary lemmas are needed because the program consists only of a
+  finite sequence of primitive output statements.
+
+* The proof uses only the elementary Hoare‑logic inference rules
+  (assignment, sequential composition, consequence).  Consequently the
+  program is *correct* with respect to the formal specification: after
+  termination its observable output is exactly the picture \(\Sigma\) that
+  the problem statement requires. ∎

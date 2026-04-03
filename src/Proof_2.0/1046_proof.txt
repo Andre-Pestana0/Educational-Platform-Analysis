@@ -1,0 +1,279 @@
+**Hoare‑logic proof that the program satisfies the specification**
+
+--------------------------------------------------------------------
+
+### 1.  Notation  
+
+*The program variables*  
+
+```
+inicio  ≡ s          # start hour
+fim     ≡ e          # end   hour
+```
+
+All arithmetic is performed on the integers ℤ.  
+`mod24(x)` denotes the remainder of the division of `x` by 24, i.e.  
+
+\[
+\operatorname{mod}_{24}(x)=x-24\Big\lfloor \frac{x}{24}\Big\rfloor\in\{0,\dots ,23\}.
+\]
+
+The *duration* demanded by the specification is  
+
+\[
+d\;:=\;
+\begin{cases}
+\operatorname{mod}_{24}(e-s) & \text{if }\operatorname{mod}_{24}(e-s)\neq 0,\\[2mm]
+24 & \text{if }\operatorname{mod}_{24}(e-s)=0 .
+\end{cases}\tag{1}
+\]
+
+The required output string is  
+
+\[
+\texttt{"O JOGO DUROU "}~\Vert~\text{toString}(d)~\Vert~\texttt{" HORA(S)"} .\tag{2}
+\]
+
+--------------------------------------------------------------------
+
+### 2.  The Hoare triple that has to be proved  
+
+\[
+\boxed{\;\{P\}\; \text{Program}\; \{Q\}\;}
+\]
+
+with  
+
+\[
+P\; \equiv\; 0\le s\le 23\;\land\;0\le e\le 23,
+\qquad
+Q\; \equiv\; \text{the string printed is (2)}\;\land\;1\le d\le 24 .
+\]
+
+The *Program* consists of the three lines shown in the statement:
+
+```python
+inicio, fim = map(int, input().split())
+if inicio >= fim:
+    print(f"O JOGO DUROU {(24 - inicio + fim)} HORA(S)")
+else:
+    print(f"O JOGO DUROU {(fim - inicio)} HORA(S)")
+```
+
+--------------------------------------------------------------------
+
+### 3.  Proof structure  
+
+There is no loop, therefore the proof is a simple application of the
+**conditional rule** of Hoare logic:
+
+\[
+\frac{\{P\land B\}\;C_{1}\;\{Q\}\qquad \{P\land\neg B\}\;C_{2}\;\{Q\}}
+     {\{P\}\; \textbf{if }B\textbf{ then }C_{1}\textbf{ else }C_{2}\;\{Q\}}
+\]
+
+Here  
+
+* \(B\)   is the Boolean expression `inicio >= fim`,
+* \(C_{1}\) is the *then* branch,
+* \(C_{2}\) is the *else* branch.
+
+Consequently we have to prove two sub‑triples:
+
+```
+{ P ∧ s ≥ e }  C1  { Q }
+{ P ∧ s < e }  C2  { Q }
+```
+
+The only statement inside each branch is a `print`.  
+The rule for an assignment (or, in our case, the evaluation of an
+expression) tells us that we may replace the expression that is printed
+by a fresh logical variable, say `dur`, and prove the post‑condition
+with `dur` substituted for the printed value.
+
+--------------------------------------------------------------------
+
+### 4.  Lemmas about the arithmetic expression  
+
+We shall use the following elementary facts that hold for any
+\(s,e\in\{0,\dots ,23\}\).
+
+| case | hypothesis                              | value of the expression            | relation with (1) |
+|------|------------------------------------------|------------------------------------|-------------------|
+| **A**| \(s\ge e\)                               | \(24-s+e\)                         | \(24-s+e = \begin{cases}\operatorname{mod}_{24}(e-s) & (s>e)\\ 24 & (s=e)\end{cases}\) |
+| **B**| \(s<e\)                                  | \(e-s\)                            | \(e-s = \operatorname{mod}_{24}(e-s)\) (non‑zero) |
+
+*Proof of Lemma A*  
+
+If \(s>e\) put \(k=s-e\;(1\le k\le 23)\).  
+Then  
+
+\[
+24-s+e = 24-(e+k)+e = 24-k .
+\]
+
+Since \(k\in[1,23]\),
+
+\[
+\operatorname{mod}_{24}(e-s)=\operatorname{mod}_{24}(-k)=24-k .
+\]
+
+If \(s=e\) we obtain \(24-s+e=24\) and \(\operatorname{mod}_{24}(e-s)=0\); by
+definition (1) the duration is 24. ∎
+
+*Proof of Lemma B*  
+
+If \(s<e\) then \(e-s\in[1,23]\). Hence  
+
+\[
+\operatorname{mod}_{24}(e-s)=e-s\neq 0,
+\]
+
+and by (1) the duration equals exactly \(e-s\). ∎
+
+From the lemmas we immediately obtain the crucial property
+
+\[
+1\le\text{dur}\le 24 .\tag{3}
+\]
+
+--------------------------------------------------------------------
+
+### 5.  Proof of the *then* branch  
+
+**Goal**
+
+\[
+\{P\land s\ge e\}\; \text{print}(24-s+e)\; \{Q\}.
+\]
+
+*Step 1 – introduce a logical variable*  
+
+Let  
+
+\[
+\text{dur}\;:=\;24-s+e .
+\]
+
+By the **print rule** it suffices to prove  
+
+\[
+\{P\land s\ge e\}\; \{\,\text{dur}=24-s+e\,\}\; \{\,\text{out}= \texttt{"O JOGO DUROU "} \Vert \text{toString}(\text{dur}) \Vert \texttt{" HORA(S)"}\;\land\;1\le\text{dur}\le 24\,\}.
+\]
+
+*Step 2 – arithmetic reasoning*  
+
+From Lemma A we have
+
+\[
+\text{dur}= 
+\begin{cases}
+\operatorname{mod}_{24}(e-s) & (s>e),\\
+24                           & (s=e).
+\end{cases}
+\]
+
+Thus `dur` coincides with the definition (1) of the required duration `d`.  
+Consequently `dur` satisfies (2) and, by (3), also \(1\le\text{dur}\le 24\).
+
+*Step 3 – conclusion*  
+
+Because `out` is built exactly as prescribed in (2) with `dur`
+instead of `d`, the post‑condition `Q` holds. ∎
+
+
+
+--------------------------------------------------------------------
+
+### 6.  Proof of the *else* branch  
+
+**Goal**
+
+\[
+\{P\land s<e\}\; \text{print}(e-s)\; \{Q\}.
+\]
+
+*Step 1 – introduce a logical variable*  
+
+\[
+\text{dur}\;:=\;e-s .
+\]
+
+Again the print rule reduces the task to showing that the string built
+with `dur` satisfies `Q`.
+
+*Step 2 – arithmetic reasoning*  
+
+Because \(s<e\) we are in case **B** of the table, therefore  
+
+\[
+\text{dur}=e-s=\operatorname{mod}_{24}(e-s)\neq 0 .
+\]
+
+Hence `dur` equals the duration `d` given by (1).  
+From the range of `e-s` (it is an integer between 1 and 23) we obtain
+\(1\le\text{dur}\le 23\), which certainly implies (3).
+
+*Step 3 – conclusion*  
+
+`out` is exactly the concatenation demanded in (2) with `dur` = `d`,
+so the post‑condition `Q` holds. ∎
+
+
+
+--------------------------------------------------------------------
+
+### 7.  Assembling the whole proof  
+
+We have proved the two required sub‑triples:
+
+\[
+\{P\land s\ge e\}\;C_{1}\;\{Q\},\qquad
+\{P\land s< e\}\;C_{2}\;\{Q\}.
+\]
+
+By the **conditional rule** we obtain
+
+\[
+\{P\}\;\textbf{if }(s\ge e)\textbf{ then }C_{1}\textbf{ else }C_{2}\;\{Q\}.
+\]
+
+The first line of the program (`inicio, fim = …`) only reads the two
+integers; it does not change their values, therefore it preserves the
+pre‑condition `P`.  Consequently the complete program satisfies
+
+\[
+\boxed{\;\{P\}\;\text{Program}\;\{Q\}\;}
+\]
+
+which is exactly the Hoare triple that was to be established.
+
+--------------------------------------------------------------------
+
+### 8.  Remarks on termination  
+
+Both branches consist of a single `print` statement, which always
+terminates.  Hence the program terminates for every pair \((s,e)\) that
+satisfies the pre‑condition \(0\le s,e\le 23\).
+
+--------------------------------------------------------------------
+
+##  Conclusion  
+
+For every admissible start hour `s` and end hour `e` (both in the range
+0 … 23) the program prints the Portuguese sentence  
+
+```
+O JOGO DUROU <d> HORA(S)
+```
+
+where `d` is the elapsed time of the game, interpreted modulo 24 and
+with the convention that a zero remainder corresponds to a full 24‑hour
+duration.  Moreover `1 ≤ d ≤ 24`.  Thus the Hoare triple  
+
+\[
+\{P\}\;\text{Program}\;\{Q\}
+\]
+
+holds, i.e. the program is **correct** with respect to the given formal
+pre‑ and post‑conditions. ∎

@@ -1,0 +1,308 @@
+## 1.  What we have to show  
+
+We are given the Hoare‑logic specification  
+
+\[
+\{\,1<I\le 10^{4}\,\}\;\; \textbf{read}(I);\; \textbf{print}(msg(I))\;\; \{\,out = msg(I)\land\text{terminates}\,\}
+\]
+
+and the concrete Python program (the “implementation”)
+
+```python
+felicidade = int(input())          # C1
+print('Feliz nat', end='')         # C2
+for i in range(felicidade):        # C3
+    print('a', end='')             # C4
+print('l!')                        # C5
+```
+
+Our goal is to prove the Hoare triple  
+
+\[
+\{\,1<I\le 10^{4}\,\}\; C_{1};C_{2};C_{3};C_{4};C_{5}\; \{\,out = msg(I)\land\text{terminates}\,\}
+\]
+
+by using the usual inference rules of Hoare logic (assignment, sequencing,
+consequence, while‑loop rule, etc.).  
+The only “loop’’ in the program is the `for`‑statement, which we treat as a
+`while`‑loop with the standard invariant.
+
+---------------------------------------------------------------------
+
+## 2.  Notation that will be used in the proof  
+
+| Symbol | Meaning |
+|--------|---------|
+| `I` | logical variable that stores the integer read from the input. |
+| `felicidade` | program variable that receives the same value (`I`). |
+| `out_k` | the exact contents of the output stream **after** the first `k` commands have been executed. |
+| `a^k` | the string consisting of the character `a` repeated `k` times (for `k≥0`). |
+| `msg(i) = "Feliz nat" ⧺ a^{\,i} ⧺ "l!\n"` | the required final output. |
+| `⌊C⌋` | the deterministic effect of command `C`. |
+
+The command `print(s, end='')` writes the string `s` without appending a line
+break; `print(s)` writes `s` followed by the newline character `\n`.
+
+---------------------------------------------------------------------
+
+## 3.  Proof structure  
+
+```
+{P}   C1 ; C2 ; C3 ; C4 ; C5   {Q}
+   └─►  (C1)   ──►  (C2)   ──►  (C3–C4)   ──►  (C5)
+```
+
+* **C1** – reading the input (assignment).  
+* **C2** – printing the fixed prefix `Feliz nat`.  
+* **C3–C4** – the loop that prints the `a`‑characters.  
+* **C5** – printing the suffix `l!\n`.  
+
+We shall prove each step, then combine them by the **sequencing rule**.
+
+---------------------------------------------------------------------
+
+## 4.  The individual Hoare triples  
+
+### 4.1  Reading the input – command `C1`
+
+```
+C1 : felicidade = int(input())
+```
+
+*Logical meaning*: `read(I)` stores the input integer into the logical variable
+`I` and also copies it into the program variable `felicidade`.
+
+The Hoare rule for assignment (with a “read” side‑effect) gives  
+
+\[
+\{\,P\land 1<I\le 10^{4}\,\}\; C1\; \{\,\text{felicidade}=I\land 1<I\le 10^{4}\,\}
+\tag{A1}
+\]
+
+where  
+
+\[
+P \;:=\; 1<I\le 10^{4}
+\]
+
+is exactly the pre‑condition of the whole specification.  
+Thus after `C1` we know that the program variable `felicidade` holds the same
+value as the logical variable `I` and that the bound on `I` still holds.
+
+---------------------------------------------------------------------
+
+### 4.2  Printing the prefix – command `C2`
+
+```
+C2 : print('Feliz nat', end='')
+```
+
+The effect of `C2` is deterministic: it appends the string `"Feliz nat"` to the
+output stream, **without** a line break.  Using the *output‑assignment* rule
+
+\[
+\{\,R\land out = s\,\}\; \text{print}(t, end='')\;
+\{\,out = s\;⧺\;t\,\}
+\]
+
+with `s = ""` and `t = "Feliz nat"` we obtain  
+
+\[
+\{\,\text{felicidade}=I\land 1<I\le 10^{4}\,\}
+\; C2\;
+\{\,out = "Feliz nat"\,\}
+\tag{A2}
+\]
+
+---------------------------------------------------------------------
+
+### 4.3  Loop that prints the `a`‑characters – commands `C3` and `C4`
+
+The Python `for i in range(felicidade):` loop is equivalent to the following
+while‑loop (the standard transformation used in Hoare‑logic textbooks):
+
+```python
+i = 0                                   # (L0)
+while i < felicidade:                  # (L1)
+    print('a', end='')                 # (L2)
+    i = i + 1                          # (L3)
+```
+
+We therefore prove a Hoare triple for the **while** construct.  
+
+#### Loop invariant  
+
+\[
+\boxed{ \; Inv(i) \;:=\; out = "Feliz nat" ⧺ a^{\,i}\; \land\; 0\le i\le felicidade \;}
+\tag{Inv}
+\]
+
+Intuitively, after `i` iterations the output consists of the prefix followed by
+exactly `i` copies of `a`.
+
+#### 4.3.1  Initialization (`L0`)  
+
+From (A2) we have `out = "Feliz nat"` and `felicidade = I`.  
+Assign `i := 0`.  By the assignment rule:
+
+\[
+\{\,out = "Feliz nat"\,\}\; i:=0\; \{\,Inv(0)\,\}
+\tag{L0}
+\]
+
+(Indeed, `a^{0}` is the empty string, so `Inv(0)` holds.)
+
+#### 4.3.2  Preservation (`L1`–`L3`)  
+
+We must show  
+
+\[
+\{\,Inv(i) \land i < felicidade\,\}\; \text{body}\; \{\,Inv(i+1)\,\}
+\tag{Pres}
+\]
+
+The body consists of `print('a', end='')` followed by `i = i+1`.
+
+*Printing*:  
+
+\[
+\{\,out = "Feliz nat" ⧺ a^{\,i}\,\}
+\; \text{print('a', end='')}\;
+\{\,out = "Feliz nat" ⧺ a^{\,i}⧺'a' = "Feliz nat" ⧺ a^{\,i+1}\,\}
+\tag{Print}
+\]
+
+*Increment*:  
+
+\[
+\{\,out = "Feliz nat" ⧺ a^{\,i+1}\,\}
+\; i:=i+1\;
+\{\,out = "Feliz nat" ⧺ a^{\,i+1} \land i = i_{old}+1\,\}
+\tag{Inc}
+\]
+
+Since the guard `i < felicidade` guarantees that after the increment we still
+have `i ≤ felicidade`, the conjunction of the two steps yields `Inv(i+1)`.  
+Thus (Pres) is proved.
+
+#### 4.3.3  Termination  
+
+The loop variable `i` starts at `0` and is increased by exactly `1` each
+iteration, while the guard is `i < felicidade`.  Because the pre‑condition
+ensures `felicidade = I ≤ 10^{4}`, the number of iterations is bounded by a
+finite constant; therefore the loop **must** terminate (standard
+well‑foundedness argument).  In Hoare logic this is expressed by the rule
+
+\[
+\frac{Inv\land \neg B \;\Rightarrow\; Q}{\{Inv\}\; \textbf{while}\;B\;\textbf{do}\;S\; \{Q\}}
+\]
+
+with `B` = `i < felicidade`.  When the loop ends we have `¬B`, i.e.
+`i = felicidade`.  Substituting `i = felicidade` in the invariant gives
+
+\[
+out = "Feliz nat" ⧺ a^{\,felicidade}
+\tag{Lexit}
+\]
+
+---------------------------------------------------------------------
+
+### 4.4  Printing the suffix – command `C5`
+
+```
+C5 : print('l!')
+```
+
+Recall that `print` without `end=''` appends a newline after the argument.
+Thus the effect is to concatenate the string `"l!\n"` to the current output.
+Using the same output‑assignment rule as before:
+
+\[
+\{\,out = "Feliz nat" ⧺ a^{\,felicidade}\,\}
+\; \text{print('l!')}\;
+\{\,out = "Feliz nat" ⧺ a^{\,felicidade} ⧺ "l!\n"\,\}
+\tag{A5}
+\]
+
+---------------------------------------------------------------------
+
+## 5.  Putting the pieces together  
+
+We now compose the triples obtained for the individual parts.
+
+1. **C1**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ――
+
+### 5.  Full derivation  
+
+1. **Pre‑condition**  
+   \[
+   \{\,1<I\le 10^{4}\,\}
+   \]
+
+2. **Read input** (`C1`) – Assignment rule  
+
+   \[
+   \frac{}{\,\{\,1<I\le 10^{4}\,\}\;C_{1}\;\{\,\text{felicidade}=I\land 1<I\le 10^{4}\,\}}
+   \tag{R1}
+   \]
+
+3. **Print prefix** (`C2`) – Output rule  
+
+   \[
+   \frac{\{\,\text{felicidade}=I\land 1<I\le 10^{4}\,\}}{C_{2}}{\{\,out = \text{``Feliz nat''}\,\}}
+   \tag{R2}
+   \]
+
+4. **Loop** (`C3–C4`) – While‑rule with invariant `Inv(i)`  
+
+   *Invariant* : \(Inv(i) \equiv out = \text{``Feliz nat''} ⧺ a^{\,i}\land 0\le i\le I\).
+
+   *Initialization* (`i:=0`) gives `Inv(0)`.  
+   *Preservation* was proved in §4.3.2.  
+   *Termination* follows because `i` increases by 1 and the guard `i<I` can be true at most `I` times, and `I` is bounded by the pre‑condition.
+
+   Hence  
+
+   \[
+   \{\,\text{felicidade}=I\land out = \text{``Feliz nat''}\,\}
+   \;C_{3};C_{4}\;
+   \{\,out = \text{``Feliz nat''} ⧺ a^{\,I}\,\}
+   \tag{R3}
+   \]
+
+5. **Print suffix** (`C5`) – Output rule  
+
+   \[
+   \frac{\{\,out = \text{``Feliz nat''} ⧺ a^{\,I}\,\}}{C_{5}}{\{\,out = \text{``Feliz nat''} ⧺ a^{\,I} ⧺ \text{``l!\n''}\,\}}
+   \tag{R4}
+   \]
+
+6. **Composition**  
+
+   Using the sequencing rule repeatedly on (R1)–(R4) we obtain  
+
+   \[
+   \{\,1<I\le 10^{4}\,\}\; C_{1};C_{2};C_{3};C_{4};C_{5}\;
+   \{\,out = \text{``Feliz nat''} ⧺ a^{\,I} ⧺ \text{``l!\n''}\,\}
+   \]
+
+   The right‑hand side of the post‑condition is precisely `msg(I)`.  
+   All commands are total (the loop terminates), therefore the program terminates.
+
+---------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have derived, using the standard Hoare‑logic inference rules, that the
+Python program satisfies the specification
+
+\[
+\boxed{\;
+\{\,1<I\le 10^{4}\,\}
+\;\; \textbf{read}(I); \; \textbf{print}\bigl(\operatorname{msg}(I)\bigr) \;
+\{\, out = \operatorname{msg}(I) \;\land\; \text{program terminates} \,\}
+\;}
+\]
+
+Hence the program is **correct** with respect to the given pre‑condition and
+post‑condition. ∎

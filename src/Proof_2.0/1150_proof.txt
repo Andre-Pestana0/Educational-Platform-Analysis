@@ -1,0 +1,288 @@
+**Proof of the Hoare triple**  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in the statement,  
+
+* \(Q\) is the post‑condition that the program must satisfy,  
+
+* the program is the Python fragment reproduced below (comments are kept only for
+  readability)
+
+```text
+X = int(input())                # 1
+while Z <= X:                   # 2
+    Z = int(input())            # 3
+soma = X                        # 4
+i = 1                           # 5
+while soma <= Z:                # 6
+    soma += X + i               # 7
+    i += 1                      # 8
+print(i)                        # 9
+```
+
+The proof is carried out in the usual Hoare‑logic style: we give a **loop
+invariant** for each `while`, we show that the invariant is established,
+preserved and that together with the loop guard it yields the required
+information after the loop, and finally we argue that both loops terminate.
+All the reasoning is done on the abstract logical variables
+\(X,Z,i,\text{soma}\) that appear in the specification; the concrete Python
+variables are identified with them in the obvious way.
+
+--------------------------------------------------------------------
+### 1.  The input model
+
+The infinite sequence  
+
+\[
+\mathbf{in}= (a_0,a_1,a_2,\dots ),\qquad a_k\in\mathbb Z
+\]
+
+is the stream from which the program reads.  
+The first read statement stores \(a_0\) in the logical variable \(X\); every
+subsequent call of `int(input())` returns the next element of the stream.
+
+The pre‑condition \(P\) states that such a stream contains at least one element
+greater than the first one and that the **first** element that is greater than
+\(X\) occurs at a finite position
+
+\[
+j = \operatorname{firstGT}(X,\mathbf{in}) \;=\;
+   \min\{\,t>0\mid a_t > X\,\}.
+\]
+
+--------------------------------------------------------------------
+### 2.  First loop – reading the first integer larger than `X`
+
+--------------------------------------------------------------------
+#### 2.1 Invariant
+
+\[
+\boxed{I_1\;:\; X = a_0\;\wedge\;
+          Z = a_m\;\wedge\;
+          (0<m\le j)\;\wedge\;
+          \forall\,k\;(0<k<m\Rightarrow a_k\le X)}
+\]
+
+* `m` is the index of the last value read into `Z`.  
+* The invariant says that `Z` always holds the *latest* element read after the
+  initial `X`, that this element is still **not** larger than `X` (unless we are
+  already at the first larger one), and that all elements that have been read
+  before `Z` are \(\le X\).
+
+--------------------------------------------------------------------
+#### 2.2 Establishment (initialisation)
+
+After line 1 we have `X = a_0`.  
+The first execution of the loop body reads the element `a_1` and stores it in
+`Z`.  Consequently `m = 1` and the conjunct
+\(\forall k\;(0<k<m\Rightarrow a_k\le X)\) is vacuously true.  
+Thus \(\{X=a_0\}\;Z:=\text{int(input())}\;\{I_1\}\) holds.
+
+--------------------------------------------------------------------
+#### 2.3 Preservation
+
+Assume \(I_1\) holds at the beginning of an iteration and that the guard
+`Z <= X` is true, i.e. \(a_m\le X\).  
+The body reads the next element \(a_{m+1}\) and stores it in `Z`.  
+After the assignment we have
+
+* `Z = a_{m+1}`,
+* the new index is \(m' = m+1\) and \(m' \le j\) because the first index
+  larger than \(X\) is \(j\) by definition,
+* for every \(k\) with \(0<k<m'\) we have either \(k<m\) (hence
+  \(a_k\le X\) by the induction hypothesis) or \(k=m\) (and we already know
+  \(a_m\le X\) from the guard).
+
+Hence \(I_1\) is re‑established.  Formally
+
+\[
+\{I_1\wedge Z\le X\}\;Z:=\text{int(input())}\;\{I_1\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.4 Exit condition
+
+When the guard becomes false we have \(\neg(Z\le X)\), i.e. \(Z > X\).  
+Together with the invariant we obtain
+
+\[
+X = a_0\;\wedge\;Z = a_j\;\wedge\;j = \operatorname{firstGT}(X,\mathbf{in}),
+\]
+
+which is exactly the part of the post‑condition concerning `X` and `Z`.
+
+--------------------------------------------------------------------
+#### 2.5 Termination of the first loop
+
+Define the variant  
+
+\[
+v_1 = j - m \in \mathbb N .
+\]
+
+* Initially \(v_1 = j-1\ge 0\) (because the first read after `X` puts \(m=1\)).
+* Each execution of the body increments `m` by one, therefore
+  \(v_1\) strictly decreases.
+* The variant is bounded below by \(0\).
+
+Since the pre‑condition guarantees that \(j\) exists, the variant can be
+decreased only a finite number of times; consequently the loop terminates.
+The Hoare rule for `while` with a variant yields the total‑correctness triple
+
+\[
+\{P\}\;\text{first loop}\;\{X = a_0\wedge Z = a_j\}.
+\]
+
+--------------------------------------------------------------------
+### 3.  Second loop – counting the smallest `k` such that `S(k) > Z`
+
+Recall the arithmetic function  
+
+\[
+S(k)=\sum_{t=0}^{k-1}(X+t)=k\cdot X+\frac{k(k-1)}2 .
+\]
+
+--------------------------------------------------------------------
+#### 3.1 Invariant
+
+\[
+\boxed{I_2\;:\; X = a_0\;\wedge\; Z = a_j\;\wedge\;
+          \text{soma}=S(i)\;\wedge\; i\ge 1}
+\]
+
+* `i` is the number of summands that have already been added,
+* `soma` holds exactly the partial sum of the first `i` terms of the
+  arithmetic progression that starts at `X`.
+
+--------------------------------------------------------------------
+#### 3.2 Establishment
+
+Before the second loop we execute
+
+```text
+soma = X          # line 4
+i    = 1          # line 5
+```
+
+Since \(S(1)=X\) we have `soma = S(i)` and `i=1`.  
+Thus \(\{X=a_0\wedge Z=a_j\}\;\) (lines 4‑5) \(\;\{I_2\}\).
+
+--------------------------------------------------------------------
+#### 3.3 Preservation
+
+Assume \(I_2\) holds at the start of an iteration and that the guard
+`soma <= Z` is true, i.e. \(S(i)\le Z\).  
+The body executes
+
+```text
+soma += X + i     # line 7
+i    += 1         # line 8
+```
+
+Because \(X+i = (X+i-1)+(1) =\) the next addend of the progression, we have
+
+\[
+\begin{aligned}
+\text{soma}' &= S(i) + (X+i) = S(i+1),\\
+i'           &= i+1 .
+\end{aligned}
+\]
+
+Consequently the invariant \(I_2\) holds again:
+
+\[
+\{I_2\wedge \text{soma}\le Z\}\;
+\text{body}\;
+\{I_2\}.
+\]
+
+--------------------------------------------------------------------
+#### 3.4 Exit condition
+
+When the guard becomes false we have \(\neg(\text{soma}\le Z)\), i.e.
+\(\text{soma}>Z\).  By the invariant this is \(S(i)>Z\).  
+Because the loop continued **while** \(S(i)\le Z\), the first value of `i`
+that makes the guard false is the **minimal** positive integer satisfying the
+inequality.  Therefore
+
+\[
+i = \min\{k\in\mathbb N_{>0}\mid S(k)>Z\}.
+\]
+
+Together with the already established equalities for `X` and `Z` we obtain
+the whole post‑condition \(Q\).
+
+--------------------------------------------------------------------
+#### 3.5 Termination of the second loop
+
+Define the variant  
+
+\[
+v_2 = Z - \text{soma} \in \mathbb Z .
+\]
+
+* Initially \(v_2 = Z - X\) (non‑negative because the loop is entered only
+  after the first loop, which guarantees \(Z > X\)).
+* Each iteration adds a strictly positive quantity \(X+i\) to `soma`,
+  therefore \(v_2\) strictly decreases.
+* As soon as `soma` exceeds `Z` the variant becomes negative and the guard
+  fails.
+
+Since `Z` is a fixed integer, after at most \(|Z-X|+1\) iterations the variant
+must become negative; hence the loop terminates.  The while‑rule with the
+variant gives total correctness for the second loop.
+
+--------------------------------------------------------------------
+### 4.  Composition of the two parts
+
+We have proved the following Hoare triples
+
+1. **First loop** (total correctness)
+
+   \[
+   \{P\}\;\text{first loop}\;\{X=a_0\wedge Z=a_j\}.
+   \]
+
+2. **Second loop** (total correctness, assuming the invariant of the first
+   loop)
+
+   \[
+   \{X=a_0\wedge Z=a_j\}\;\text{second loop}\;
+   \{X=a_0\wedge Z=a_j\wedge
+     i = \min\{k>0\mid S(k)>Z\}\}.
+   \]
+
+3. The final statement `print(i)` does not change the state; it merely
+   outputs the value of `i`.
+
+By the rule of **sequencing** we obtain the total‑correctness triple for the
+whole program
+
+\[
+\boxed{\{P\}\;\text{program}\;\{Q\}} .
+\]
+
+--------------------------------------------------------------------
+### 5.  Concluding remarks
+
+* The invariant `I1` guarantees that the value stored in `Z` after the first
+  loop is precisely the first element of the input stream that is greater
+  than the initial element `X`.  
+
+* The invariant `I2` captures the exact arithmetic relation between the
+  counter `i` and the accumulated sum `soma`.  Because the loop guard is
+  `soma <= Z`, the moment the guard fails we have the *smallest* `i` for which
+  the sum exceeds `Z`.  By the definition of the auxiliary function `S`,
+  this `i` is exactly the `n` required in the post‑condition.
+
+* Both loops are shown to terminate by explicit variants that decrease
+  monotonically and are bounded below, using the existence of a first larger
+  input element (pre‑condition) and the monotonic growth of the arithmetic sum.
+
+Hence the Python program satisfies the specification
+\(\{P\}\;{\tt program}\;\{Q\}\) in the sense of Hoare logic. ∎

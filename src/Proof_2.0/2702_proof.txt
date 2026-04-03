@@ -1,0 +1,286 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{\,\mathbf{Pre}\,\}\;\; \texttt{solve}\;\; \{\,\mathbf{Post}\,\}
+\]
+
+where  
+
+* \(\mathbf{Pre}\) is the conjunction of the six range constraints on the six input
+  numbers (all are natural numbers between 0 and 100), and  
+
+* \(\mathbf{Post}\) is  
+
+\[
+N = (C_r-C_a)^{+}+(B_r-B_a)^{+}+(P_r-P_a)^{+},
+\qquad\text{with }x^{+}\;:=\max(0,x).
+\]
+
+The program `solve` is modelled as a single command consisting of a sequence of
+primitive statements; we prove the triple by applying the Hoare‑logic rules for
+*assignment*, *sequencing* and *output*.
+
+--------------------------------------------------------------------
+
+### 1.  Notation and auxiliary definitions  
+
+* Let the six input variables be denoted after the two `input` statements by  
+
+  \[
+  (C_a,B_a,P_a)\;,\;(C_r,B_r,P_r)\in\mathbb N^{3}.
+  \]
+
+* Define the three **shortage** expressions (the positive part)  
+
+  \[
+  \begin{aligned}
+  \operatorname{shc}&:= (C_r-C_a)^{+},\\
+  \operatorname{shb}&:= (B_r-B_a)^{+},\\
+  \operatorname{shp}&:= (P_r-P_a)^{+}.
+  \end{aligned}
+  \]
+
+* The program introduces three auxiliary variables  
+
+  \[
+  Cf,\;Bf,\;Pf\in\mathbb N .
+  \]
+
+* Finally the program prints  
+
+  \[
+  N := Cf + Bf + Pf .
+  \]
+
+--------------------------------------------------------------------
+
+### 2.  Hoare triples for each statement  
+
+We write \(\{Q\}\;S\;\{R\}\) for a Hoare triple.  
+All assignments are of the form `x = e`; the assignment rule gives  
+
+\[
+\{R[x\!:=\!e]\}\;x=e\;\{R\},
+\]
+
+where \(R[x\!:=\!e]\) denotes the substitution of the expression \(e\) for the
+occurrence of the variable \(x\) in the post‑condition \(R\).
+
+--------------------------------------------------------------------
+#### 2.1  Reading the first line  
+
+```
+Ca, Ba, Pa = map(int, input().split(' '))
+```
+
+In Hoare logic we model a *read* as an **assume** of the pre‑condition that
+the values supplied satisfy the range constraints.  
+Thus we have the triple  
+
+\[
+\{\mathbf{Pre}\}\;\texttt{read‑1}\;\{\mathbf{Pre}\},
+\]
+
+because the statement does not change any variable – it merely binds the
+already‑existing values \(C_a,B_a,P_a\) to the program’s identifiers.
+
+--------------------------------------------------------------------
+#### 2.2  Reading the second line  
+
+Exactly the same argument gives  
+
+\[
+\{\mathbf{Pre}\}\;\texttt{read‑2}\;\{\mathbf{Pre}\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.3  Computing `Cf`  
+
+```
+Cf = max(0, Cr - Ca)
+```
+
+The post‑condition we want after this assignment is  
+
+\[
+R_{Cf}\;:\; Cf = (C_r-C_a)^{+}.
+\]
+
+Applying the assignment rule we must prove  
+
+\[
+\{R_{Cf}[Cf\!:=\! \max(0,Cr-Ca)]\}\;Cf=\max(0,Cr-Ca)\;\{R_{Cf}\}.
+\]
+
+The substituted pre‑condition is exactly  
+
+\[
+Cf = \max(0,Cr-Ca)
+\]
+
+which is true after the assignment, therefore the triple holds.  
+Because the substitution does not involve any of the other variables,
+the remaining part of the pre‑condition is unchanged; we can write the full
+triple as  
+
+\[
+\{\mathbf{Pre}\}\;Cf=\max(0,Cr-Ca)\;\{\,\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\,\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.4  Computing `Bf`  
+
+Analogously, with  
+
+\[
+R_{Bf}\;:\; Bf = (B_r-B_a)^{+},
+\]
+
+we obtain  
+
+\[
+\{\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\}\;
+Bf=\max(0,Br-Ba)\;
+\{\,\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\land Bf=(B_r-B_a)^{+}\,\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.5  Computing `Pf`  
+
+Again, with  
+
+\[
+R_{Pf}\;:\; Pf = (P_r-P_a)^{+},
+\]
+
+the assignment yields  
+
+\[
+\{\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\land Bf=(B_r-B_a)^{+}\}\;
+Pf=\max(0,Pr-Pa)\;
+\{\,\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\land Bf=(B_r-B_a)^{+}\land Pf=(P_r-P_a)^{+}\,\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.6  Printing the result  
+
+```
+print(Cf + Bf + Pf)
+```
+
+The program does not modify any variable; it merely observes the current
+state and outputs an integer.  The Hoare rule for “output e” is  
+
+\[
+\{\,Q\,\}\;\texttt{output }e\;\{\,Q\land N=e\,\},
+\]
+
+where \(N\) denotes the value that the environment receives.  
+Using the invariant that we have just proved after the three assignments,
+the pre‑condition for the `print` statement is  
+
+\[
+Q\;:=\;\mathbf{Pre}
+\land Cf=(C_r-C_a)^{+}
+\land Bf=(B_r-B_a)^{+}
+\land Pf=(P_r-P_a)^{+}.
+\]
+
+Therefore we obtain  
+
+\[
+\{Q\}\;\texttt{print}(Cf+Bf+Pf)\;
+\{\,Q\land N = Cf+Bf+Pf\,\}.
+\]
+
+Substituting the definitions of the three auxiliary variables gives  
+
+\[
+N = (C_r-C_a)^{+}+(B_r-B_a)^{+}+(P_r-P_a)^{+},
+\]
+
+which is exactly the required post‑condition \(\mathbf{Post}\).
+
+--------------------------------------------------------------------
+
+### 3.  Composition (sequencing)  
+
+The Hoare rule for sequencing says that if  
+
+\[
+\{P\}\;S_1\;\{R\}\qquad\text{and}\qquad\{R\}\;S_2\;\{Q\},
+\]
+
+then  
+
+\[
+\{P\}\;S_1;S_2\;\{Q\}.
+\]
+
+Applying this rule repeatedly to the six statements of `solve` we obtain the
+following chain of triples:
+
+\[
+\begin{aligned}
+\{\mathbf{Pre}\} &\;\texttt{read‑1}\; \{ \mathbf{Pre}\}\\
+\{\mathbf{Pre}\} &\;\texttt{read‑2}\; \{ \mathbf{Pre}\}\\
+\{\mathbf{Pre}\} &\;Cf=\max(0,Cr-Ca)\;
+   \{ \mathbf{Pre}\land Cf=(C_r-C_a)^{+}\}\\
+\{\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\} &\;Bf=\max(0,Br-Ba)\;
+   \{ \mathbf{Pre}\land Cf=(C_r-C_a)^{+}\land Bf=(B_r-B_a)^{+}\}\\
+\{\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\land Bf=(B_r-B_a)^{+}\}
+   &\;Pf=\max(0,Pr-Pa)\;
+   \{ \mathbf{Pre}\land Cf=(C_r-C_a)^{+}\land Bf=(B_r-B_a)^{+}\land Pf=(P_r-P_a)^{+}\}\\
+\{\mathbf{Pre}\land Cf=(C_r-C_a)^{+}\land Bf=(B_r-B_a)^{+}\land Pf=(P_r-P_a)^{+}\}
+   &\;\texttt{print}(Cf+Bf+Pf)\;
+   \{ \mathbf{Post}\}.
+\end{aligned}
+\]
+
+By successive application of the sequencing rule we finally obtain  
+
+\[
+\{\mathbf{Pre}\}\;\texttt{solve}\;\{\mathbf{Post}\},
+\]
+
+which is precisely the Hoare triple we wanted to prove.
+
+--------------------------------------------------------------------
+
+### 4.  Consequences  
+
+* **Total correctness** – the program terminates (it consists of a finite
+  number of deterministic statements) and the value printed satisfies the
+  post‑condition.
+
+* **Bound on the output** – from the definition of the positive part we have
+  \(0\le (R_t-A_t)^{+}\le R_t\) for each meal type \(t\).  Summing the three
+  inequalities yields  
+
+  \[
+  0\le N \le C_r+B_r+P_r,
+  \]
+
+  which matches the “obvious bounds” mentioned in the specification.
+
+* **Interpretation** – the computed number \(N\) is exactly the number of
+  passengers that *surely* will not receive the meal they requested, because
+  for each type we count only the excess of requests over the available
+  portions and ignore any surplus of meals (the `max(0, …)`).
+
+--------------------------------------------------------------------
+
+### 5.  Conclusion  
+
+Using the Hoare‑logic inference rules we have shown that, under the stated
+pre‑condition (all six input numbers lie between 0 and 100), the program
+`solve` terminates and prints a value that satisfies the post‑condition
+
+\[
+N = (C_r-C_a)^{+}+(B_r-B_a)^{+}+(P_r-P_a)^{+}.
+\]
+
+Hence the program is **correct** with respect to the given formal
+specification. ∎

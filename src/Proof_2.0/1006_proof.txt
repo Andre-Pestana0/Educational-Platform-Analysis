@@ -1,0 +1,263 @@
+**Answer – a Hoare‑logic proof that the program satisfies the given specification**
+
+Below we treat the whole program as the command  
+
+```
+S ≡  A = input();          # read first number
+      B = input();          # read second number
+      C = input();          # read third number
+      rawAvg = (2*A + 3*B + 5*C)/10;
+      avg    = round1(rawAvg);      # rounding to one decimal place
+      out    = "MEDIA = " + fmt1(avg)
+```
+
+(The last line is the effect of the `print` statement.)  
+We have to show  
+
+\[
+\langle P\rangle\;S\;\langle Q\rangle
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;A\in[0,10]\cap\mathbb Q_{1}\;\land\;B\in[0,10]\cap\mathbb Q_{1}
+\;\land\;C\in[0,10]\cap\mathbb Q_{1}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:\;&\exists\;{\rm avg}\in\mathbb Q_{1}\;.\;
+      {\rm avg}= \big\lfloor\tfrac{2A+3B+5C}{10}\big\rceil_{1}
+\\[1mm]
+     &\land\;out = \text{“MEDIA = ”}\;\Vert\; \operatorname{fmt}_{1}({\rm avg})
+\end{aligned}
+\]
+
+The proof proceeds by the **standard Hoare rules** (assignment, sequence, consequence).  
+For readability we write the Hoare triples for the individual statements and then compose them.
+
+---------------------------------------------------------------------
+
+### 1.  Input statements  
+
+The three calls to `input()` are abstracted as *atomic* statements that read a value that already satisfies the part of `P` that refers to the variable being read.  Formally we use the **axiom of input**:
+
+\[
+\frac{\; \{\,\phi(v)\,\}\; v:=\text{input}()\; \{\,\phi(v)\,\}}{}
+\]
+
+where `φ(v)` is any predicate that the environment guarantees about the value read.  
+Because the problem statement tells us that the *only* inputs are three numbers in  
+\([0,10]\cap\mathbb Q_{1}\), we may instantiate `φ` with  
+
+\[
+\phi_A(v) \equiv v\in[0,10]\cap\mathbb Q_{1}.
+\]
+
+Thus we obtain the three triples
+
+\[
+\begin{aligned}
+\{P\}&\;A:=\text{input}()\;\{A\in[0,10]\cap\mathbb Q_{1}\}\\
+\{P\}&\;B:=\text{input}()\;\{B\in[0,10]\cap\mathbb Q_{1}\}\\
+\{P\}&\;C:=\text{input}()\;\{C\in[0,10]\cap\mathbb Q_{1}\}
+\end{aligned}
+\]
+
+and, by successive application of the **sequence rule**, we obtain after the three reads
+
+\[
+\{P\}\;A:=\text{input}();\,B:=\text{input}();\,C:=\text{input}()\;
+\{A\in[0,10]\cap\mathbb Q_{1}\;\land\;B\in[0,10]\cap\mathbb Q_{1}\;\land\;C\in[0,10]\cap\mathbb Q_{1}\}
+\tag{1}
+\]
+
+which is exactly the same condition as `P`.  Hence the state after the reads still satisfies `P`.
+
+---------------------------------------------------------------------
+
+### 2.  Computing `rawAvg`
+
+We use the **assignment axiom**:
+
+\[
+\frac{\; \{\,\psi[\,E/x\,]\}\;x:=E\;\{\psi\}\;}{}
+\]
+
+with  
+
+* `x` = `rawAvg`  
+* `E` = \((2*A+3*B+5*C)/10\)  
+* `ψ` = `rawAvg = (2*A+3*B+5*C)/10`.
+
+The pre‑condition required by the axiom is therefore  
+
+\[
+\psi[\,E/rawAvg\,] \equiv
+(2*A+3*B+5*C)/10 = (2*A+3*B+5*C)/10,
+\]
+
+which is a tautology.  Hence we obtain
+
+\[
+\{A\in[0,10]\cap\mathbb Q_{1}\land B\in[0,10]\cap\mathbb Q_{1}\land C\in[0,10]\cap\mathbb Q_{1}\}
+\;rawAvg := (2*A+3*B+5*C)/10\;
+\{rawAvg = (2*A+3*B+5*C)/10\}
+\tag{2}
+\]
+
+**Property of `rawAvg`.**  
+Because each of `A`, `B`, `C` is a *tenths* rational (i.e. an integer multiple of 0.1), the linear combination  
+
+\[
+2A + 3B + 5C
+\]
+
+is also a multiple of 0.1.  Dividing by 10 yields a multiple of 0.01, **but** the denominator 10 cancels the factor 0.1, leaving again a multiple of 0.1:
+
+\[
+\frac{2A+3B+5C}{10}
+  = \frac{k}{10}\qquad\text{for some }k\in\mathbb Z,
+\]
+
+so `rawAvg ∈ \mathbb Q_{1}`.  This fact will be used in the next step.
+
+---------------------------------------------------------------------
+
+### 3.  Rounding to one decimal place  
+
+The statement  
+
+```
+avg = round1(rawAvg)
+```
+
+is interpreted as  
+
+\[
+avg := \big\lfloor rawAvg \big\rceil_{1}.
+\]
+
+Again we apply the assignment axiom with  
+
+* `x` = `avg`  
+* `E` = \(\big\lfloor rawAvg \big\rceil_{1}\)  
+* `ψ` = `avg = ⌊rawAvg⌉₁`.
+
+The required pre‑condition is simply `ψ[ E/avg ]`, i.e. a tautology, so we get
+
+\[
+\{rawAvg = (2*A+3*B+5*C)/10\}
+\;avg := ⌊rawAvg⌉₁\;
+\{avg = ⌊rawAvg⌉₁\}
+\tag{3}
+\]
+
+Now we prove the **verification condition** that links `avg` with the expression required in `Q`.
+
+> **VC₁** If `rawAvg ∈ \mathbb Q_{1}` then `⌊rawAvg⌉₁ = rawAvg`.
+
+*Proof.*  By definition `rawAvg = k/10` for some integer `k`.  The rounding operator `⌊·⌉₁` maps any rational of the form `k/10` to itself, because it is already exactly one‑decimal‑place accurate.  Hence the equality holds. ∎
+
+Since we have already shown (in the previous section) that `rawAvg ∈\mathbb Q_{1}`, VC₁ applies and we can strengthen (3) to
+
+\[
+\{rawAvg = (2*A+3*B+5*C)/10\}
+\;avg := ⌊rawAvg⌉₁\;
+\{avg = (2*A+3*B+5*C)/10\}
+\tag{3′}
+\]
+
+Thus `avg` is exactly the value prescribed in the post‑condition:
+
+\[
+avg = \big\lfloor \tfrac{2A+3B+5C}{10}\big\rceil_{1}.
+\tag{4}
+\]
+
+---------------------------------------------------------------------
+
+### 4.  Producing the output  
+
+The `print` statement is modelled as the assignment  
+
+\[
+out := "MEDIA = " \; \Vert\; fmt_{1}(avg)
+\]
+
+where `fmt₁` converts a tenths rational into its decimal representation with exactly one digit after the point (e.g. `7.5`).  The assignment axiom gives
+
+\[
+\{avg\in\mathbb Q_{1}\}
+\;out := "MEDIA = " \Vert fmt_{1}(avg)\;
+\{out = "MEDIA = " \Vert fmt_{1}(avg)\}
+\tag{5}
+\]
+
+Because of (4) we already know that `avg` satisfies the definition required in `Q`.  Consequently the post‑condition (5) is **identical** to the second conjunct of `Q`.
+
+---------------------------------------------------------------------
+
+### 5.  Composition of the whole program  
+
+We now combine the four fragments (1)–(5) using the **sequence rule**
+
+\[
+\frac{\{P\}\;S_{1}\;\{R_{1}\}\qquad\{R_{1}\}\;S_{2}\;\{R_{2}\}\qquad\cdots\qquad\{R_{n-1}\}\;S_{n}\;\{Q\}}
+     {\{P\}\;(S_{1};S_{2};\dots;S_{n})\;\{Q\}}
+\]
+
+with  
+
+\[
+\begin{aligned}
+S_{1}&\equiv A:=\text{input}();\;B:=\text{input}();\;C:=\text{input}()\\
+S_{2}&\equiv rawAvg := (2*A+3*B+5*C)/10\\
+S_{3}&\equiv avg    := ⌊rawAvg⌉_{1}\\
+S_{4}&\equiv out    := "MEDIA = " \Vert fmt_{1}(avg)
+\end{aligned}
+\]
+
+The intermediate assertions are exactly the right‑hand sides of (1)–(5).  
+Because each step has been proved correct, the composed triple holds:
+
+\[
+\boxed{\;\langle P\rangle\;S\;\langle Q\rangle\;}
+\]
+
+---------------------------------------------------------------------
+
+### 6.  Remarks on the Python implementation  
+
+* **Floating‑point representation.**  
+  The program uses Python’s `float`, which stores numbers in binary IEEE‑754 format.  
+  The expression  
+
+  ```python
+  media = (A*2 + B*3 + C*5)/10
+  ```
+
+  may therefore produce a value that is *very* close to, but not exactly, the rational `(2A+3B+5C)/10`.  
+  The final `print(f"MEDIA = {media:.1f}")` invokes the standard rounding mode *round‑to‑nearest‑even* on the *decimal* representation with one fractional digit.  This is precisely the operation denoted by `⌊·⌉₁` in the specification, so the observable output coincides with the mathematically defined `avg`.  
+
+* **Input format.**  
+  The problem statement guarantees that the user supplies three numbers each having exactly one decimal digit and belonging to `[0,10]`.  Consequently the hypothesis of `P` is satisfied, and the verification condition VC₁ is applicable.
+
+---------------------------------------------------------------------
+
+## Conclusion  
+
+By applying the Hoare‑logic rules of **assignment**, **sequence**, and **consequence**, and by establishing the auxiliary verification condition that rounding a tenths‑rational does not change its value, we have shown that every step of the Python program preserves the required invariant and that, after termination, the variable `out` (the printed line) satisfies the post‑condition `Q`.  
+
+Hence the Hoare triple  
+
+\[
+\langle P\rangle\;S\;\langle Q\rangle
+\]
+
+is valid, i.e. the program is *correct* with respect to the formal specification given in the question.

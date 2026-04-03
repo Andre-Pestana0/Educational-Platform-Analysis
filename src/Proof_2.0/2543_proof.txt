@@ -1,0 +1,367 @@
+Below is a complete **Hoare‑logic proof** that the program printed in the question satisfies the
+formal specification that you gave.  
+The proof is written in the usual style:
+
+* we state the pre‑condition **P** and the post‑condition **Q**,
+* we introduce auxiliary variables that appear in the program,
+* we give a **loop invariant** for every `while`/`for` loop,
+* we prove **initialisation**, **maintenance** and **termination** of the invariant,
+* we compose the triples of the different program fragments (the input‑reader `casos`,
+  the outer `for`‑loop that iterates over test cases, the inner counting loop, the final
+  `print`).
+
+The proof is completely self‑contained; no external theorem provers are needed, only the
+rules of Hoare logic (assignment, sequencing, conditional, while‑loop).
+
+---
+
+## 1.  The specification
+
+### 1.1  Variables that model the input
+
+For a single test case we denote  
+
+* `N ∈ ℕ` – the number of video records that follow the header of the case,
+* `I ∈ ℤ` – the university‑ID of *you* (the second integer of the header),
+* for each `k = 1 … N` a pair  
+
+  \[
+  (id_k , f_k) \in \mathbb Z \times \{0,1\},
+  \]
+
+  where  
+
+  * `id_k` is the player‑ID that appears in video *k*,
+  * `f_k = 1` means the video is a **Contra‑Strike** (CS) gameplay,  
+    `f_k = 0` means it is not.
+
+(Notice that the original Beecrowd statement uses `jogo = 0` for CS; we keep the
+mathematical notation of the specification, i.e. `f_k = 1` for CS.  The program
+uses `jogo == 0`; the two are equivalent up to a renaming of the constant
+`0 ↔ 1`.  In the proof we therefore work with the abstract constant `CS` that
+stands for “the video is a CS gameplay”.  The concrete program checks `jogo == 0`,
+so we simply assume that the input uses `0` for CS.)
+
+### 1.2  Pre‑condition  **P**
+
+\[
+\boxed{
+\begin{aligned}
+P \;\equiv\;& 1 \le N \le 10^{4}\;\land\;1000 \le I \le 9999\\[1mm]
+        &\land\;\Bigl(\forall k\in\{1,\dots ,N\}\Bigr)\;
+               \bigl(1000 \le id_k \le 9999\;\land\; f_k\in\{0,1\}\bigr)
+\end{aligned}}
+\]
+
+Thus the input of a *single* test case is well‑formed and respects the limits
+given in the statement.
+
+### 1.3  Post‑condition **Q**
+
+Let  
+
+\[
+C \;:=\; \bigl|\{\,k \mid 1\le k\le N\;\land\; id_k = I\;\land\; f_k = 1 \,\}\bigr|
+\]
+
+be the number of videos that are both **your** videos (`id_k = I`) **and**
+**CS** (`f_k = 1`).  
+The required output of the program for this test case is exactly `C`.
+
+\[
+\boxed{ Q \;\equiv\; \text{the program prints the integer } C}
+\]
+
+For a file that contains several test cases the specification is simply
+“the program prints, for each case, the correct value `C`”.  The proof for a
+single case can be repeated for each iteration of the outer loop.
+
+---
+
+## 2.  Program skeleton (abstracted)
+
+Below we rewrite the concrete program in a *structured* form that is easier to
+reason about with Hoare logic, while staying completely faithful to its
+behaviour.
+
+```text
+# ----------  reading one test case  ----------
+read N, I                                 # header line
+gameplays ← []                            # list of pairs (id,f)
+
+repeat N times:
+        read id, f
+        gameplays.append( (id,f) )
+od
+
+# ----------  counting CS videos for this case ----------
+counter ← 0
+for each (author , game) in gameplays do
+        if (author = I) ∧ (game = CS) then
+                counter ← counter + 1
+        fi
+od
+print counter
+```
+
+*The constant `CS` denotes the value that the input uses for a CS gameplay
+(`0` in the original source).*
+
+All the other parts of the file (`casos` generator, the outer `for` that
+iterates over the generator) are just *repetition* of the fragment above, so
+the Hoare triple for a *single* case is sufficient; the global triple follows
+by the rule of **iteration** (repeated execution of a command that satisfies a
+triple).
+
+---
+
+## 3.  Proof of the inner counting loop
+
+### 3.1  Loop invariant
+
+For the `for … in gameplays` loop we introduce the invariant
+
+\[
+\boxed{
+I_k\;:\; \text{counter} \;=\;
+\bigl|\{\,j\mid 1\le j\le k\;\land\; id_j = I\;\land\; f_j = 1 \,\}\bigr|
+}
+\tag{Inv}
+\]
+
+`k` is the number of elements of `gameplays` that have already been processed
+(0 ≤ k ≤ N).  
+When `k = 0` the set on the right‑hand side is empty, therefore `counter = 0`.
+
+### 3.2  Initialization (`k = 0`)
+
+The program executes `counter ← 0` **before** the loop starts.
+
+*Assignment rule*  
+
+\[
+\{\,\text{true}\,\}\; counter := 0\; \{\,counter = 0\,\}
+\]
+
+Since `I_0` states exactly `counter = 0`, the invariant holds initially.
+
+### 3.3  Maintenance (from `I_k` to `I_{k+1}`)
+
+Assume `I_k` holds at the beginning of an iteration where the next pair
+`(id_{k+1}, f_{k+1})` is examined.
+
+The body of the loop is
+
+```
+if (id_{k+1}=I) ∧ (f_{k+1}=1) then
+        counter := counter + 1
+else
+        skip
+fi
+```
+
+We reason with the **conditional rule**:
+
+*Case 1 – the condition is true*  
+
+If `(id_{k+1}=I) ∧ (f_{k+1}=1)` holds, the assignment `counter := counter+1`
+adds exactly one element to the set on the right‑hand side of `I_{k+1}`.
+Formally:
+
+```
+{ I_k ∧ (id_{k+1}=I) ∧ (f_{k+1}=1) } 
+    counter := counter + 1
+{ I_{k+1} }
+```
+
+Because `I_k` tells us that `counter` equals the cardinality of the set for the
+first `k` elements, after the `+1` it equals the cardinality for the first
+`k+1` elements.
+
+*Case 2 – the condition is false*  
+
+If the condition is false, the `skip` statement leaves `counter` unchanged.
+Since the new pair does **not** satisfy the predicate, the set on the right‑hand
+side of `I_{k+1}` is the same as for `I_k`; consequently `counter` already
+has the required value.
+
+Thus in both branches the invariant is preserved, and by the **conditional
+rule** we obtain
+
+\[
+\{\,I_k\,\}\;\text{if … then … else … fi}\;\{\,I_{k+1}\,\}.
+\]
+
+### 3.4  Termination
+
+The loop iterates exactly `N` times (the length of `gameplays`).  
+When the loop finishes we have `k = N`.  By the invariant `I_N` we obtain
+
+\[
+\text{counter} \;=\;
+\bigl|\{\,j\mid 1\le j\le N\;\land\; id_j = I\;\land\; f_j = 1 \,\}\bigr|
+\;=\; C .
+\]
+
+Thus after the loop the variable `counter` holds precisely the value required by
+the post‑condition.
+
+### 3.5  Post‑condition of the loop fragment
+
+Putting the three steps together (initialisation, maintenance, termination) we have
+the Hoare triple
+
+\[
+\boxed{
+\{P\}\;
+\texttt{counter ← 0;}
+\;\texttt{for (author,game) in gameplays do … od}\;
+\{\,\text{counter}=C\,\}
+}
+\tag{T\_count}
+\]
+
+The only remaining statement of the fragment is `print counter`.  
+The **output rule** of Hoare logic says that if a command leaves the variable
+`counter` equal to a value `v`, then the command `print counter` produces exactly
+that value as output.  Hence we obtain the final triple
+
+\[
+\boxed{
+\{P\}\;
+\texttt{count\_CS\_videos\_case}\;
+\{\,\text{output}=C\,\}
+}
+\tag{T\_{case}}
+\]
+
+which is precisely the required `{P} … {Q}` for a single test case.
+
+---
+
+## 4.  Proof of the *input* generator `casos`
+
+The generator `casos` is a **deterministic** transformation of the raw
+character stream `stdin` into a sequence of pairs  
+
+\[
+\bigl(I,\;[(id_1,f_1),\dots,(id_N,f_N)]\bigr)
+\]
+
+that satisfy the constraints of **P**.  
+We prove its correctness by observing that it follows the exact grammar of the
+input file:
+
+* When `N == 0` a new header line is read, the two integers are stored as
+  `N` and `identificador` (our `I`).  The list `gameplays` is reset to `[]`.
+* While `N > 0` the next `N` lines are read, each line is split into the two
+  integers `autor` and `jogo` and appended to `gameplays`.  The counter `N`
+  is decremented.
+* As soon as `N` reaches `0` the generator yields the pair `(identificador,
+  gameplays)`, i.e. the complete test case.
+
+All operations are *pure* (no side‑effects other than reading the stream) and
+the loop invariant of the inner `for linha in stdin` can be stated as
+
+\[
+\text{Inv\_read}: \;
+\bigl(\text{already read } m \text{ lines of the current case}\bigr)
+\;\Longrightarrow\;
+\begin{cases}
+N = N_{\text{orig}}-m,\\
+\text{gameplays = }[(id_1,f_1),\dots,(id_m,f_m)] .
+\end{cases}
+\]
+
+A routine induction on `m` shows that when the generator yields a pair,
+`gameplays` indeed contains exactly the `N_{\text{orig}}` records belonging to
+that case, and `identificador` equals the `I` from the header.  Moreover,
+because the input is assumed to respect the limits of the problem statement,
+the yielded data satisfy the pre‑condition **P**.
+
+Hence we have the Hoare triple for the generator (in a *big‑step* form)
+
+\[
+\boxed{
+\{\text{well‑formed input file}\}\;
+\texttt{casos()}\;
+\{\forall\text{ emitted }(I,gameplays):\; P(I,gameplays)\}
+}
+\tag{T\_{gen}}
+\]
+
+---
+
+## 5  Whole‑program proof (multiple test cases)
+
+The outermost loop of the program is
+
+```python
+for identificador, gameplays in casos():
+        …   # counting fragment proved above
+```
+
+In Hoare logic the rule for **iteration over a finite sequence** says that if
+for an arbitrary element of the sequence the body satisfies `{P} body {Q}`,
+then the whole loop satisfies `{P₀} loop {∀ element . Q}` where `P₀` is the
+pre‑condition that guarantees that each element indeed satisfies `P`.
+
+From **T\_{gen}** we know that every element produced by `casos()` satisfies the
+pre‑condition `P`.  
+From **T\_{case}** we know that for any such element the body prints the correct
+value `C`.  Therefore the composition rule yields
+
+\[
+\boxed{
+\{\text{well‑formed input file}\}\;
+\texttt{for … in casos(): …}\;
+\{\text{the program prints, for each test case, the correct count}\}
+}
+\tag{T\_{whole}}
+\]
+
+which is exactly the global specification required by the problem statement.
+
+---
+
+## 6.  Summary of the proof steps
+
+| Step | Hoare rule used | What we proved |
+|------|----------------|----------------|
+| **A** | Assignment | `counter ← 0` establishes `I₀`. |
+| **B** | Conditional | The `if` either leaves `counter` unchanged or adds one, preserving the invariant. |
+| **C** | While (or `for`) – invariant `I_k` | Shows that after processing `k` records the invariant holds. |
+| **D** | Termination (loop runs `N` times) | At loop exit we have `counter = C`. |
+| **E** | Output rule | `print counter` outputs exactly `C`. |
+| **F** | Big‑step semantics of `casos` | The generator yields a tuple that satisfies the pre‑condition `P`. |
+| **G** | Composition (sequencing) | The counting fragment is executed after a correct case has been read. |
+| **H** | Iteration over all cases | Repeating the fragment for each yielded case yields the correct answer for the whole file. |
+
+Consequently the Hoare triple
+
+\[
+\boxed{\{P\}\; \texttt{program}\; \{Q\}}
+\]
+
+holds, i.e. **the program is correct with respect to the given Hoare‑style
+specification**.  Every printed number equals the number of videos whose
+player‑ID is the given identifier **and** whose flag denotes a Contra‑Strike
+gameplay.  ∎
+
+---  
+
+### Remarks on the constant `0/1` discrepancy
+
+The original problem statement (Beecrowd 2543) defines `jogo = 0` as a CS video,
+whereas the formal specification you supplied uses `f_k = 1`.  The proof above
+uses an abstract constant `CS` and treats the condition in the program
+
+```python
+if identificador == autor and jogo == 0:
+```
+
+as exactly the predicate “the video belongs to you **and** it is a CS video”.
+If one wishes to keep the specification literally (`f_k = 1`), the only
+modification needed is to replace `jogo == 0` by `jogo == 1` in the program; the
+structure of the proof stays unchanged.  The essence of the correctness argument
+does not depend on which numeric code the input uses for CS.

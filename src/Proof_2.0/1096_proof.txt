@@ -1,0 +1,297 @@
+**Proof of the Hoare‑logic triple**  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\qquad\qquad 
+P\equiv \text{true},\;
+Q\equiv\text{“the output buffer contains exactly the 15 lines
+\(\operatorname{line}(i_k,j_k)\) listed in the statement’’}
+\]
+
+The program that must be proved is the Python fragment
+
+```text
+i = 1
+j = 7
+for contador1 in range(5):          # 5 iterations, contador1 = 0,…,4
+    for contador2 in range(3):      # 3 iterations, contador2 = 0,…,2
+        print(f'I={i} J={j}')
+        j = j-1
+    i = i+2
+    j = 7
+```
+
+For the Hoare‑logic proof we rewrite the two *for* loops as *while* loops,
+because the Hoare rules are given for `while`.  
+(The transformation is semantics‑preserving; the auxiliary loop counters are
+never used inside the body.)
+
+```
+i := 1;                     (* outer initialisation *)
+j := 7;
+c1 := 0;                    (* c1 is the outer counter, 0 ≤ c1 < 5 *)
+while c1 < 5 do
+    c2 := 0;                (* inner counter, 0 ≤ c2 < 3 *)
+    while c2 < 3 do
+        out := out ⧺ ⟨ line(i,j) ⟩;   (* print *)
+        j := j-1;
+        c2 := c2+1
+    od;
+    i := i+2;
+    j := 7;
+    c1 := c1+1
+od
+```
+
+(Here `⧺` denotes list concatenation, `out` is the output buffer, and
+`line(i,j) = "I="‖i‖" J="‖j‖"\n"`.)
+
+--------------------------------------------------------------------
+### 1.  Loop invariants
+
+*Outer loop invariant* (holds at the **beginning** of each outer iteration,
+i.e. just after the test `c1 < 5` has succeeded)
+
+\[
+\begin{aligned}
+\mathsf{INV}_{\mathrm{out}} \; \equiv\;
+& 0\le c1 \le 5                                   \\
+&\land\; i = 1+2c1                                 \\
+&\land\; j = 7                                      \\
+&\land\; |out| = 3c1                               \\
+&\land\; \forall k\;(0\le k < 3c1)\;
+          \bigl(out[k]=\operatorname{line}(i_k,j_k)\bigr)   \\
+&\qquad\text{where } (i_0,j_0),\dots,(i_{3c1-1},j_{3c1-1})
+        =\bigl\langle (1,7),(1,6),(1,5),\dots,
+                     (i-2,7),(i-2,6),(i-2,5) \bigr\rangle .
+\end{aligned}
+\]
+
+Thus after `c1` outer iterations the buffer already contains the 3·c1 lines
+corresponding to the first `c1` values of `I` (1,3,…,i‑2) together with all three
+values of `J`.
+
+*Inner loop invariant* (holds at the **beginning** of each inner iteration,
+i.e. just after the test `c2 < 3` has succeeded)
+
+\[
+\begin{aligned}
+\mathsf{INV}_{\mathrm{in}} \; \equiv\;
+& 0\le c2 \le 3                                   \\
+&\land\; j = 7-c2                                 \\
+&\land\; |out| = 3c1 + c2                         \\
+&\land\; \forall k\;(0\le k < 3c1+c2)\;
+          \bigl(out[k]=\operatorname{line}(i_k,j_k)\bigr)   \\
+&\qquad\text{where the first }3c1\text{ pairs are as in }
+        \mathsf{INV}_{\mathrm{out}} \\
+&\qquad\text{and the next }c2\text{ pairs are }
+        (i,7),(i,6),\dots,(i,7-c2+1).
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+### 2.  Proof that the invariants are established and preserved  
+
+We use the Hoare rules for **assignment**, **sequence**, **while**, and the
+**consequence** rule.  The proof is presented in three parts.
+
+--------------------------------------------------------------------
+#### 2.1  Establishing the outer invariant  
+
+```
+i := 1;  j := 7;  c1 := 0;
+```
+
+* Assignment rule  
+
+\[
+\{\,\text{true}\,\}\;i:=1\;\{i=1\},\qquad
+\{\,i=1\,\}\;j:=7\;\{i=1\land j=7\},\qquad
+\{\,i=1\land j=7\,\}\;c1:=0\;\{i=1\land j=7\land c1=0\}
+\]
+
+From the definition of `\mathsf{INV}_{\mathrm{out}}` we see that the last
+post‑condition **implies** the invariant with `c1=0` (the three first conjuncts
+are satisfied, the fourth gives `|out| = 0`, and the fifth is vacuous).  
+Thus
+
+\[
+\{\,\text{true}\,\}\;i:=1; j:=7; c1:=0\;\{\mathsf{INV}_{\mathrm{out}}\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.2  Preservation of the inner invariant  
+
+Assume `\mathsf{INV}_{\mathrm{in}}` holds at the top of the inner loop.
+We must show that after the body the invariant holds again with `c2` increased
+by one.
+
+The body is
+
+```
+out := out ⧺ ⟨line(i,j)⟩;
+j   := j-1;
+c2  := c2+1
+```
+
+* **Print statement**  
+  Using the assignment axiom with the functional update of a list we obtain  
+
+\[
+\{\,\mathsf{INV}_{\mathrm{in}}\;\}\;
+out := out ⧺ ⟨line(i,j)⟩\;
+\{\,\mathsf{INV}_{\mathrm{in}} \land |out| = 3c1 + c2 + 1
+     \land out[3c1+c2]=\operatorname{line}(i,j)\,\}.
+\]
+
+* **Decrement `j`**  
+  From `j = 7-c2` we get after `j:=j-1` the equality `j = 7-(c2+1)`.  
+
+* **Increment `c2`**  
+  After `c2:=c2+1` we have `c2' = c2+1`.  Substituting the three equalities
+  obtained above we obtain exactly the formula that defines
+  `\mathsf{INV}_{\mathrm{in}}` with `c2` replaced by `c2'`.
+
+Hence  
+
+\[
+\{\mathsf{INV}_{\mathrm{in}}\}\;
+\text{inner‑body}\;
+\{\mathsf{INV}_{\mathrm{in}}\;[c2:=c2+1]\}.
+\]
+
+--------------------------------------------------------------------
+#### 2.3  Preservation of the outer invariant  
+
+Assume `\mathsf{INV}_{\mathrm{out}}` holds at the top of an outer iteration.
+The outer body consists of  
+
+```
+c2 := 0;
+while c2 < 3 do … od;   (* inner loop *)
+i := i+2;
+j := 7;
+c1 := c1+1
+```
+
+* **Initialisation of the inner counter**  
+  From `\mathsf{INV}_{\mathrm{out}}` we have `j = 7`.  Setting `c2:=0` yields
+  `j = 7-c2`, i.e. the inner invariant with `c2 = 0`.  
+  Thus  
+
+  \[
+  \{\mathsf{INV}_{\mathrm{out}}\}\;c2:=0\;
+  \{\mathsf{INV}_{\mathrm{in}}\;\text{with }c2=0\}.
+  \]
+
+* **Inner loop**  
+  By the **while‑rule** we need a loop invariant that is true before the first
+  test, preserved by the body, and implies the desired post‑condition when the
+  guard becomes false.  The invariant we proved in 2.2 (`\mathsf{INV}_{\mathrm{in}}`)
+  satisfies exactly these conditions, and when the guard `c2 < 3` finally
+  fails we have `c2 = 3`.  Substituting `c2 = 3` in `\mathsf{INV}_{\mathrm{in}}`
+  yields  
+
+  \[
+  i = 1+2c1,\qquad j = 7-3 = 4,\qquad |out| = 3c1+3,
+  \]
+  together with the fact that the three lines
+  `(i,7) , (i,6) , (i,5)` have been appended to `out`.  
+  Because `j` will be overwritten later, the value `4` is irrelevant; the
+  important part is that exactly three new lines have been produced.
+
+* **Post‑inner‑loop statements**  
+
+  - `i := i+2` changes `i` from `1+2c1` to `1+2(c1+1)`.  
+  - `j := 7` restores `j` to the value required by the outer invariant.  
+  - `c1 := c1+1` increments the outer counter.
+
+  Using the assignment axiom we obtain, after the three assignments,
+
+  \[
+  i = 1+2(c1+1),\; j = 7,\; c1' = c1+1,\;
+  |out| = 3c1' .
+  \]
+
+  This is precisely the formula that defines `\mathsf{INV}_{\mathrm{out}}`
+  with `c1` replaced by `c1'`.  Hence the outer invariant is re‑established.
+
+Consequently
+
+\[
+\{\mathsf{INV}_{\mathrm{out}}\}\;
+\text{outer‑body}\;
+\{\mathsf{INV}_{\mathrm{out}}\;[c1:=c1+1]\}.
+\]
+
+--------------------------------------------------------------------
+### 3.  Termination of the outer loop and derivation of the post‑condition  
+
+The outer loop guard is `c1 < 5`.  By the while rule, from the invariant we know
+that when the guard finally becomes false we have `c1 = 5`.  Substituting `c1=5`
+in `\mathsf{INV}_{\mathrm{out}}` gives
+
+\[
+\begin{aligned}
+i &= 1+2\cdot5 = 11 \quad(\text{unused after termination})\\
+j &= 7\\
+|out| &= 3\cdot5 = 15\\[1mm]
+\forall k\;(0\le k<15)\;&\;out[k]=\operatorname{line}(i_k,j_k),
+\end{aligned}
+\]
+
+where the sequence \((i_k,j_k)_{k=0}^{14}\) is exactly the lexicographic
+product of  
+
+\[
+\mathcal I = \{1,3,5,7,9\},\qquad
+\mathcal J = \{7,6,5\}.
+\]
+
+Thus the state after the outer loop satisfies the post‑condition `Q`.
+
+--------------------------------------------------------------------
+### 4.  Whole‑program Hoare triple  
+
+Putting together the three parts proved above:
+
+1. **Initialization** `{true}  i:=1; j:=7; c1:=0  { \mathsf{INV}_{\mathrm{out}} }`
+2. **Outer loop** `{ \mathsf{INV}_{\mathrm{out}} }  while c1<5 do … od  { \mathsf{INV}_{\mathrm{out}}[c1:=5] }`
+3. **Exit condition** `{ \mathsf{INV}_{\mathrm{out}}[c1:=5] }  (c1<5\;\text{false})  { Q }`
+
+By the **sequence rule** we obtain
+
+\[
+\{\,\text{true}\,\}\;{\tt program}\;\{\,Q\,\}.
+\]
+
+--------------------------------------------------------------------
+### 5.  Correspondence with the original Python code  
+
+The transformation from the Python `for` loops to the `while` version only
+introduces the auxiliary counters `c1` and `c2`.  These counters never appear
+in the printed lines and are discarded after the loops finish, therefore they
+do not affect the observable behaviour (`out`).  Consequently the proof above
+establishes the correctness of the original Python fragment as well.
+
+--------------------------------------------------------------------
+## Conclusion  
+
+We have exhibited explicit loop invariants, proved their initialization,
+preservation, and termination using the Hoare‑logic rules, and shown that the
+final state of the program satisfies the specification `Q`.  Hence the Hoare
+triple
+
+\[
+\boxed{\{\,\text{true}\,\}\;\text{program}\;\{\,Q\,\}}
+\]
+
+holds, i.e. the program prints **exactly** the fifteen lines  
+
+\[
+\operatorname{line}(1,7),\operatorname{line}(1,6),\operatorname{line}(1,5),\;
+\operatorname{line}(3,7),\dots ,\operatorname{line}(9,5)
+\]
+
+in the order required by the lexicographic product
+\(\mathcal I\times\mathcal J\).  ∎

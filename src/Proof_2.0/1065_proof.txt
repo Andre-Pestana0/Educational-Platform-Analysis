@@ -1,0 +1,458 @@
+## 1.  What has to be proved  
+
+We have a Hoare‑logic triple  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+  \[
+  P\;:=\;\forall i\in\{1,\dots ,5\}\;.\;x_i\in\mathbb Z
+  \]
+
+  (the program receives exactly five integers).
+
+* **Program** `S` (the Python fragment)  
+
+```text
+par = 0
+for i in range(5):          # i = 0,…,4  (we shall use 1‑based i in the proof)
+    num = int(input())      # reads x_{i+1}
+    if (num % 2) == 0:
+        par += 1
+print(f'{par} valores pares')
+```
+
+* **Post‑condition**  
+
+  \[
+  Q\;:=\;
+  \begin{cases}
+  \text{out}= \bigl\lfloor c\bigr\rfloor\; “ valores pares ” \\[2mm]
+  c = \displaystyle\sum_{i=1}^{5}\operatorname{even}(x_i)\\[2mm]
+  \text{the program terminates}
+  \end{cases}
+  \]
+
+with  
+
+\[
+\operatorname{even}(x)=\begin{cases}
+1 & x\bmod 2 =0\\
+0 & \text{otherwise}
+\end{cases},
+\qquad
+c\;:=\;\sum_{i=1}^{5}\operatorname{even}(x_i).
+\]
+
+The goal is to **derive** the triple from the Hoare‑logic inference rules, i.e. to exhibit a loop invariant, prove its initialization, preservation and termination, and then apply the assignment and output rules.
+
+--------------------------------------------------------------------
+
+## 2.  Re‑writing the program in a Hoare‑logic friendly form  
+
+For the proof we use a *structured* version of the program that makes the loop counter explicit and that uses the same names as the specification.
+
+```
+par ← 0                         (1)
+i   ← 1                         (2)
+while i ≤ 5 do                 (3)
+      if (x_i mod 2 = 0) then
+            par ← par + 1      (4)
+      else skip
+      fi
+      i ← i + 1                (5)
+od
+print ⟦par⟧·" valores pares"    (6)
+```
+
+*The statements (1)…(6) are the atomic commands that will be treated with the assignment rule, the `if` rule and the `while` rule.*  
+The input values `x_1,…,x_5` are assumed to be already stored in the program’s environment (the `input()` calls in the original Python program simply *read* them; we treat them as given constants for the sake of the Hoare proof).
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+The crucial part of a Hoare proof for a counting loop is the invariant that relates the current counter `i` and the accumulator `par`.
+
+\[
+\boxed{I\;:=\;
+      1\le i\le 6\;\land\;
+      par = \sum_{k=1}^{i-1}\operatorname{even}(x_k)
+      }
+\]
+
+Explanation  
+
+* When `i = 1`, the sum has an empty range, therefore `par = 0`.  
+* After the body of the loop has processed the element `x_i`, `i` is incremented, and the invariant states that `par` now equals the number of even inputs among the *already processed* elements `x_1,…,x_i`.
+
+When the loop finishes we have `i = 6`; the invariant then gives  
+
+\[
+par = \sum_{k=1}^{5}\operatorname{even}(x_k) = c .
+\]
+
+Thus the invariant is exactly what we need to obtain the post‑condition.
+
+--------------------------------------------------------------------
+
+## 4.  Proof that the invariant holds  
+
+We prove the three usual obligations:
+
+### 4.1  **Initialization**  
+
+We must show  
+
+\[
+\{P\}\;(1);\;(2)\;\{I\}
+\]
+
+that is, after executing `par ← 0; i ← 1` the invariant holds.
+
+* From the **assignment axiom**  
+
+  \[
+  \{I[par:=0]\}\;par←0\;\{I\}
+  \]
+
+  we need to compute \(I[par:=0]\) (the invariant with `par` replaced by `0`):
+
+  \[
+  I[par:=0]\;=\;1\le i\le 6\;\land\;0 = \sum_{k=1}^{i-1}\operatorname{even}(x_k).
+  \]
+
+* The next assignment `i←1` uses the same rule:
+
+  \[
+  \{I[par:=0][i:=1]\}\;i←1\;\{I[par:=0]\}
+  \]
+
+  where  
+
+  \[
+  I[par:=0][i:=1]\;=\;1\le 1\le 6\;\land\;0 = \sum_{k=1}^{0}\operatorname{even}(x_k).
+  \]
+
+  The sum over an empty index set is defined to be `0`, so the right‑hand side is **true**.  
+
+Thus the pre‑condition `P` (which only says the five inputs are integers) trivially implies the required pre‑condition for the two assignments, and after the two assignments the invariant `I` holds.
+
+--------------------------------------------------------------------
+
+### 4.2  **Preservation**  
+
+We must prove  
+
+\[
+\{I\land i\le5\}\;(3\text{‑body})\;\{I\}
+\]
+
+where “(3‑body)” denotes the statements inside the `while`:
+
+```
+if (x_i mod 2 = 0) then par ← par + 1 else skip fi;
+i ← i + 1
+```
+
+We split the proof into two parts, one for the `if`, one for the increment of `i`.
+
+#### 4.2.1  The `if` statement  
+
+Let  
+
+\[
+B\;:=\;(x_i\; \bmod\;2 =0).
+\]
+
+The Hoare rule for a conditional is  
+
+\[
+\frac{\{I\land B\}\;C_1\;\{I'\}\qquad
+      \{I\land\neg B\}\;C_2\;\{I'\}}
+     {\{I\}\;\textbf{if }B\textbf{ then }C_1\textbf{ else }C_2\textbf{ fi}\;\{I'\}} .
+\]
+
+* **Then‑branch** (`C_1` = `par ← par + 1`)  
+
+  We need  
+
+  \[
+  \{I\land B\}\;par←par+1\;\{I'\}
+  \]
+
+  with  
+
+  \[
+  I' := 1\le i\le 6\;\land\;
+        par = \sum_{k=1}^{i}\operatorname{even}(x_k) .
+  \]
+
+  Apply the assignment axiom:
+
+  \[
+  \{I'[par:=par+1]\}\;par←par+1\;\{I'\}.
+  \]
+
+  Compute the substitution:
+
+  \[
+  I'[par:=par+1] \;=\; 1\le i\le 6\;\land\;
+        (par+1)=\sum_{k=1}^{i}\operatorname{even}(x_k).
+  \]
+
+  Using the hypothesis `B` (i.e. `even(x_i)=1`) we have  
+
+  \[
+  \sum_{k=1}^{i}\operatorname{even}(x_k)
+    = \Bigl(\sum_{k=1}^{i-1}\operatorname{even}(x_k)\Bigr)+1 .
+  \]
+
+  Because the invariant `I` tells us  
+
+  \[
+  par = \sum_{k=1}^{i-1}\operatorname{even}(x_k),
+  \]
+
+  the right‑hand side becomes `par+1`. Hence the whole conjunct is exactly `I`.  
+  Therefore `I∧B` entails `I'[par:=par+1]`, and the then‑branch is proved.
+
+* **Else‑branch** (`C_2` = `skip`)  
+
+  We must show  
+
+  \[
+  \{I\land\neg B\}\;skip\;\{I'\}.
+  \]
+
+  `skip` preserves any assertion, so we only need to check that `I∧¬B` implies `I'`.  
+  When `¬B` holds we have `even(x_i)=0`. Consequently  
+
+  \[
+  \sum_{k=1}^{i}\operatorname{even}(x_k)
+    = \Bigl(\sum_{k=1}^{i-1}\operatorname{even}(x_k)\Bigr)+0
+    = \sum_{k=1}^{i-1}\operatorname{even}(x_k)
+    = par \quad\text{(by }I\text{)} .
+  \]
+
+  Hence `par = Σ_{k=1}^{i} even(x_k)`, which is precisely the second conjunct of `I'`.  
+  The bound `1≤i≤6` is unchanged, therefore `I∧¬B ⇒ I'`.
+
+Thus the whole conditional yields `I'`:
+
+\[
+\{I\}\;\textbf{if }B\textbf{ then }par←par+1\textbf{ else }skip\textbf{ fi}\;
+   \{I'\}.
+\]
+
+Note that `I'` is identical to `I` except that the summation index in the right‑hand side has been increased from `i-1` to `i`.  
+
+#### 4.2.2  Increment of the loop counter  
+
+Now we apply the assignment rule to `i ← i+1`:
+
+\[
+\{I'[i:=i+1]\}\;i←i+1\;\{I'\}.
+\]
+
+Compute the substitution:
+
+\[
+I'[i:=i+1] \;=\;
+   1\le i+1\le 6\;\land\;
+   par = \sum_{k=1}^{(i+1)-1}\operatorname{even}(x_k)
+   \;=\;
+   1\le i+1\le 6\;\land\;
+   par = \sum_{k=1}^{i}\operatorname{even}(x_k).
+\]
+
+But this is exactly the invariant `I` with the **new** value of `i`.  
+Since the loop guard guarantees `i≤5`, after the increment we have `i+1 ≤ 6`.  
+Therefore the pre‑condition of the assignment is satisfied, and after the increment the invariant `I` holds again.
+
+#### 4.2.3  Putting preservation together  
+
+The preservation proof is the composition of the two parts:
+
+\[
+\{I\land i\le5\}\;
+   \bigl(\textbf{if }B\textbf{ then }par←par+1\textbf{ else }skip\textbf{ fi}\;
+   ;\; i←i+1\bigr)
+   \{I\}.
+\]
+
+Thus the invariant `I` is maintained by one loop iteration.
+
+--------------------------------------------------------------------
+
+### 4.3  **Termination**  
+
+The `while` loop is of the form  
+
+\[
+\textbf{while } i\le5 \textbf{ do } C \textbf{ od}.
+\]
+
+A standard *variant* (ranking function) for this loop is  
+
+\[
+V(i) = 6 - i .
+\]
+
+* `V(i)` is a natural number for every state that satisfies the invariant (`1≤i≤6`).  
+* When the guard `i≤5` is true, we have `i ≤ 5 ⇒ V(i) ≥ 1`.  
+* The body of the loop ends with `i ← i+1`, therefore  
+
+  \[
+  V(i_{\text{new}}) = 6-(i+1) = V(i)-1 .
+  \]
+
+Hence `V` strictly decreases with each iteration and can never become negative; consequently the loop must terminate.  
+In Hoare logic this is expressed by the **while‑rule with a variant**:
+
+\[
+\frac{
+   \{I\land B\}\;C\;\{I\}\qquad
+   \forall s\;(I(s)\land B(s) \rightarrow V(s)>0)\qquad
+   \forall s\;(I(s)\land B(s) \rightarrow V(C(s))<V(s))
+}{
+   \{I\}\;\textbf{while }B\textbf{ do }C\textbf{ od}\;\{I\land\neg B\}
+}
+\]
+
+where `B` is the guard `i≤5`. All premises have been shown, therefore after the loop we obtain
+
+\[
+\{I\land\neg (i\le5)\}\; \text{(i.e. } i=6\text{)} .
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Consequences of the loop  
+
+From the termination rule we have the **post‑loop state**:
+
+\[
+i = 6\quad\land\quad
+par = \sum_{k=1}^{5}\operatorname{even}(x_k) .
+\]
+
+Define  
+
+\[
+c \;:=\; \sum_{k=1}^{5}\operatorname{even}(x_k).
+\]
+
+Thus after the loop we know
+
+\[
+par = c .
+\]
+
+--------------------------------------------------------------------
+
+## 6.  The final `print` statement  
+
+The last command (6) is
+
+```
+print ⟦par⟧·" valores pares"
+```
+
+The Hoare rule for output (in a language with a single output command) is
+
+\[
+\frac{\{\,P\,\}\; \text{print } e\; \{\,\text{out}= \llbracket e\rrbracket\,\}}{ }
+\]
+
+where `⟦e⟧` denotes the *value* of the expression `e` converted to a string.  
+
+Applying the rule with `e = ⟦par⟧·" valores pares"` and using the fact that `par = c` we obtain
+
+\[
+\{par = c\}\;\text{print }⟦par⟧·" valores pares"
+   \;\{\,\text{out}=⟦c⟧·" valores pares"\,\}.
+\]
+
+Because `par = c` is already guaranteed by the invariant after the loop, the pre‑condition of the output rule is satisfied.
+
+--------------------------------------------------------------------
+
+## 7.  Assembling the whole proof  
+
+We now concatenate the derived triples, using the **sequencing rule** (`{P} C1 {R} , {R} C2 {Q}  ⇒  {P} C1;C2 {Q}`) repeatedly:
+
+1. **Initialization**  
+
+   \[
+   \{P\}\;(1);\;(2)\;\{I\}
+   \]
+
+2. **Loop** (while‑rule with invariant `I` and variant `V`)  
+
+   \[
+   \{I\}\;\textbf{while }i\le5\textbf{ do }C\textbf{ od}\;
+        \{I\land \neg(i\le5)\}
+   \]
+
+   which simplifies to  
+
+   \[
+   \{I\}\;\textbf{while }i\le5\textbf{ do }C\textbf{ od}\;
+        \{i=6\land par = c\}.
+   \]
+
+3. **Print**  
+
+   \[
+   \{par = c\}\;\text{print }⟦par⟧·" valores pares"\;
+        \{\text{out}=⟦c⟧·" valores pares"\}.
+   \]
+
+4. **Composition**  
+
+   By chaining (1) → (2) → (3) we obtain the overall Hoare triple
+
+   \[
+   \boxed{
+   \{P\}\;S\;\{
+       \text{out}=⟦c⟧·" valores pares"
+       \;\land\;
+       c = \sum_{i=1}^{5}\operatorname{even}(x_i)
+       \;\land\;
+       \text{termination}
+   \}}
+   \]
+
+which is exactly the specification `Q`.
+
+--------------------------------------------------------------------
+
+## 8.  Summary of the proof steps  
+
+| Step | Statement | Reasoning rule |
+|------|-----------|----------------|
+| 0 | `P : ∀i∈{1..5}. x_i∈ℤ` | given |
+| 1 | `par←0 ; i←1` | assignment + substitution → invariant `I` holds |
+| 2 | Loop invariant `I : 1≤i≤6 ∧ par = Σ_{k=1}^{i‑1} even(x_k)` | definition |
+| 3 | Preservation of `I` through the body (if‑then‑else + `i←i+1`) | conditional rule + assignment rule, using `even(x_i)=1` when condition true, `0` otherwise |
+| 4 | Variant `V = 6‑i` strictly decreases while guard true | ensures termination |
+| 5 | After loop: `i=6 ∧ par = Σ_{k=1}^{5} even(x_k) = c` | while‑rule with invariant & termination |
+| 6 | `print ⟦par⟧·" valores pares"` → `out = ⟦c⟧·" valores pares"` | output rule, using `par=c` |
+| 7 | Combine steps 1‑6 by sequencing | sequencing rule |
+| 8 | Obtain `{P} S {Q}` | final Hoare triple matches the specification |
+
+--------------------------------------------------------------------
+
+## 9.  Conclusion  
+
+We have exhibited a **formal Hoare‑logic proof** that the given Python program satisfies the specification:
+
+*If the program receives exactly five integer inputs, then it terminates and prints the decimal representation of the number of even inputs followed by a single space and the literal text “valores pares”.*
+
+All the required proof obligations – invariant initialization, preservation, termination, and correct output – have been discharged using the standard Hoare‑logic inference rules. Hence the program is **correct** with respect to the given pre‑ and post‑conditions.

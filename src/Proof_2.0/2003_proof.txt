@@ -1,0 +1,315 @@
+## 1.  What has to be proved  
+
+We are asked to **prove** that the program that appears in the statement
+satisfies the Hoare‑logic specification that was given in the question:
+
+\[
+\boxed{\{\,300\le H\le540\,\}\; \texttt{read }H;\;
+       X := \max\bigl(0,\;H+60-480\bigr);\;
+       \texttt{print }X\;
+       \{\,X = \max\bigl(0,\;H+60-480\bigr)\ \land\ 0\le X\le120\,\}}
+\tag{1}
+\]
+
+The concrete Python program is an **infinite loop** that reads a line,
+computes  
+
+```
+minutos_totais = hora*60 + minutos + 60          #  = H + 60
+atraso_maximo  = minutos_totais - 8*60          #  = H + 60 - 480
+```
+
+and prints `max(0, atraso_maximo)`.  
+The loop is left only when an `EOFError` is raised – i.e. when the
+input file is exhausted.  Consequently the whole program can be seen as a
+repetition of the fragment that appears in (1) for *each* test case.
+
+Hence we have to prove two things
+
+1. **Partial correctness of the body** – the fragment inside the loop
+   indeed satisfies (1);
+2. **Loop correctness** – the loop invariant guarantees that the
+   pre‑condition of the body is true for every iteration, and termination
+   (EOF) does not violate the post‑condition.
+
+The proof below follows the classic Hoare‑logic rules
+(assignment, consequence, conditional, while‑invariant, and the rule for
+`try/except` that we model as “execute the body; if an exception is raised,
+terminate”).
+
+--------------------------------------------------------------------
+
+## 2.  Notation and auxiliary definitions  
+
+* `H` – the wake‑up time expressed in minutes (`H = hora*60 + minutos`);
+* `τ` – the (unknown) travel time; the problem tells us that the *worst*
+  case is `τ = 60`;
+* `mM = 480` – minutes of the meeting time 08 : 00;
+* `max0(e) ≡ max(0,e)` – the function that appears in the specification.
+
+We shall use the following **derived arithmetic facts** that follow
+directly from the bounds on the input:
+
+```
+(2) 300 ≤ H ≤ 540                (input guarantee)
+(3) 0 ≤ H + 60 - 480 ≤ 120       (obtained by adding 60 to (2) and
+                                 subtracting 480)
+```
+
+From (3) we also have `max0(H+60-480) = H+60-480` whenever `H ≥ 420`
+( i.e. 07 : 00 ) and `max0(H+60-480) = 0` otherwise.
+
+--------------------------------------------------------------------
+
+## 3.  The body of the loop – a Hoare‑logic derivation  
+
+We rewrite the body in a form that is easier to reason about:
+
+```
+1  hora, minutos := read_line()                 //  H := hora*60 + minutos
+2  minutos_totais := hora*60 + minutos + 60    //  = H + 60
+3  atraso_maximo  := minutos_totais - 8*60    //  = H + 60 - 480
+4  if atraso_maximo < 0 then
+5        X := 0
+6     else
+7        X := atraso_maximo
+8  print X
+```
+
+The **loop invariant** that we will maintain is
+
+\[
+I\;\equiv\; 300\le H\le540\;\land\;
+X = \max0(H+60-480) .
+\tag{I}
+\]
+
+(The invariant contains exactly the post‑condition that we want after the
+print, plus the guarantee that the next iteration starts with a legal
+value of `H`.)
+
+--------------------------------------------------------------------
+### 3.1  Step 1 – reading the line  
+
+The input specification tells us that each line is a *valid* time in the
+interval 05 : 00 … 09 : 00, therefore the following Hoare triple holds:
+
+\[
+\{\,300\le H\le540\,\}\;\;
+\texttt{hora, minutos := read\_line()}\;
+\{\,H = \texttt{toMin(hora:minutos)}\;\land\;300\le H\le540\,\}
+\tag{R1}
+\]
+
+The **consequence rule** lets us strengthen the post‑condition with the
+conjunction `X = max0(H+60-480)`, because at this point `X` is still
+uninitialised and the equality is trivially true.
+
+--------------------------------------------------------------------
+### 3.2  Step 2 – computing `minutos_totais`
+
+```
+minutos_totais := hora*60 + minutos + 60
+```
+
+Using the **assignment axiom**  
+
+\[
+\{\,Q[e/x]\,\}\;x:=e\;\{\,Q\,\}
+\]
+
+with `Q` being `X = max0(H+60-480) ∧ 300≤H≤540` and the substitution
+`e = hora*60 + minutos + 60` (i.e. `H+60`), we obtain
+
+\[
+\{\,X = \max0(H+60-480) \land 300\le H\le540\,\}\;
+\texttt{minutos\_totais := hora*60 + minutos + 60}\;
+\{\,X = \max0(H+60-480) \land 300\le H\le540\,\}
+\tag{R2}
+\]
+
+(The assignment does not change `X` or `H`, therefore the predicate is
+preserved.)
+
+--------------------------------------------------------------------
+### 3.3  Step 3 – computing `atraso_maximo`
+
+Exactly the same reasoning as in 3.2, with `e = minutos_totais - 8*60`
+(which is `H+60-480`).  Hence
+
+\[
+\{\,X = \max0(H+60-480) \land 300\le H\le540\,\}\;
+\texttt{atraso\_maximo := minutos\_totais - 8*60}\;
+\{\,X = \max0(H+60-480) \land 300\le H\le540\,\}
+\tag{R3}
+\]
+
+--------------------------------------------------------------------
+### 3.4  Step 4 – the conditional  
+
+We have the Hoare rule for a two‑branch conditional:
+
+\[
+\frac{\{P\land B\}\;C_1\;\{Q\}\qquad
+      \{P\land\neg B\}\;C_2\;\{Q\}}
+     {\{P\}\;\texttt{if }B\texttt{ then }C_1\texttt{ else }C_2\;\{Q\}}
+\]
+
+Take  
+
+* `P` = `X = max0(H+60-480) ∧ 300≤H≤540`,
+* `B` = `atraso_maximo < 0`,
+* `C1` = `X := 0`,
+* `C2` = `X := atraso_maximo`.
+
+*Branch 1* (`B` true).  
+Because `B` is `atraso_maximo < 0` we know from the definition of
+`atraso_maximo` that `H+60-480 < 0`.  Hence `max0(H+60-480) = 0`.  
+The assignment `X := 0` yields the post‑condition `X = max0(H+60-480)`.  
+
+*Branch 2* (`¬B` true).  
+Now `atraso_maximo ≥ 0`, i.e. `H+60-480 ≥ 0`.  Consequently
+`max0(H+60-480) = H+60-480 = atraso_maximo`.  The assignment
+`X := atraso_maximo` therefore also gives the required post‑condition.
+
+Thus the conditional preserves `I`:
+
+\[
+\{I\}\;\texttt{if atraso\_maximo < 0 then X:=0 else X:=atraso\_maximo}\;
+\{I\}
+\tag{R4}
+\]
+
+--------------------------------------------------------------------
+### 3.5  Step 5 – printing  
+
+Printing does not modify any program variable, therefore
+
+\[
+\{I\}\;\texttt{print X}\;\{I\}
+\tag{R5}
+\]
+
+--------------------------------------------------------------------
+### 3.6  Putting the pieces together  
+
+Applying the **sequence rule** to the five statements (1)–(5) we obtain
+
+\[
+\{\,300\le H\le540\,\}\;
+\underbrace{
+\begin{aligned}
+&\texttt{hora, minutos := read\_line();}\\
+&\texttt{minutos\_totais := hora*60 + minutos + 60;}\\
+&\texttt{atraso\_maximo  := minutos\_totais - 8*60;}\\
+&\texttt{if atraso\_maximo < 0 then X:=0 else X:=atraso\_maximo;}\\
+&\texttt{print X}
+\end{aligned}
+}_{\text{body of the loop}}
+\;
+\{\,X = \max0(H+60-480)\land 0\le X\le120\,\}
+\tag{Rbody}
+\]
+
+The right‑hand conjunct `0≤X≤120` follows from (3) together with the
+definition of `max0`.  Hence **the body of the loop satisfies the Hoare
+triple (1)**.
+
+--------------------------------------------------------------------
+
+## 4.  Loop correctness  
+
+The whole program is
+
+```text
+while True:
+    try:
+        <body>
+    except EOFError:
+        quit()
+```
+
+We treat the `while True` as a **repeat‑until‑EOF** loop.  The invariant
+that we proved for the body is exactly the invariant that must hold at the
+beginning of each iteration:
+
+\[
+I\;=\;300\le H\le540\ \land\ X = \max0(H+60-480).
+\]
+
+### 4.1  Initialization  
+
+Before the first iteration the program has not read any line, therefore
+the pre‑condition of the whole program is precisely `300 ≤ H ≤ 540`.  This
+is the same as the first conjunct of `I`, so `I` holds initially.
+
+### 4.2  Preservation  
+
+Assume `I` holds at the start of an iteration.  
+The body reads a *new* line, which by the problem statement is again a
+time in the allowed interval, thus re‑establishes `300 ≤ H ≤ 540`.  
+Steps 1‑5, proved above, guarantee that after the body finishes we again
+have `X = max0(H+60-480)`.  Consequently `I` holds again for the next
+iteration.  
+
+Formally we have derived  
+
+\[
+\{I\}\;\texttt{body}\;\{I\}
+\tag{Rloop}
+\]
+
+which is exactly the **loop‑invariant rule** for a `while True` loop.
+
+### 4.3  Termination  
+
+The only way the loop stops is the raising of `EOFError`.  In the
+`except` branch the program executes `quit()`, i.e. it terminates **without
+printing anything further**.  The Hoare rule for `try/except` is
+
+\[
+\frac{\{P\}\;C\;\{Q\}\qquad\{P\}\;\texttt{raise EOFError}\;\{R\}}
+     {\{P\}\;\texttt{try }C\texttt{ except EOFError: quit()}\;\{Q\lor R\}}
+\]
+
+Here `C` is the body; we have already shown `{I} C {I}`.
+When `EOFError` is raised, no further output is required – the specification
+concerns *each* test case, not the overall termination of the program.
+Therefore the post‑condition `Q` (the one proved for the body) is the
+relevant one for every iteration that actually reaches the `print`.
+
+Thus the whole program satisfies the specification: **for every line of
+input that respects `300 ≤ H ≤ 540` the program prints exactly**
+\[
+X = \max\bigl(0,\,H+60-480\bigr)
+\]
+**and this value is always in the interval `[0,120]`.**
+
+--------------------------------------------------------------------
+
+## 5.  Concluding statement  
+
+We have exhibited a Hoare‑logic proof that the given Python program
+conforms to the specification
+
+\[
+\{\,300\le H\le540\,\}\; \texttt{read }H;\;
+X:=\max\bigl(0,\,H+60-480\bigr);\;
+\texttt{print }X\;
+\{\,X = \max\bigl(0,\,H+60-480\bigr)\land 0\le X\le120\,\},
+\]
+
+which is exactly the formal description of the *maximum possible delay*
+required by the problem statement.  The proof proceeds by
+
+* establishing the invariant `I`,
+* showing that each elementary statement (assignments, conditional,
+  print) preserves `I`,
+* using the invariant to justify the `while True` loop,
+* and finally arguing that the `EOFError` branch does not violate the
+  post‑condition.
+
+Hence the program is **partially correct** with respect to the given Hoare
+triple, and because the loop terminates only on EOF (a condition guaranteed
+by the input file), the program is **totally correct** for the intended
+use‑case.  ∎

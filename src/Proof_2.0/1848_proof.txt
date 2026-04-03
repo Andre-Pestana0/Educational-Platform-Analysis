@@ -1,0 +1,379 @@
+## 1.  Overview  
+
+We prove that the Python program satisfies the Hoare‑logic specification  
+
+\[
+\{\,\text{Pre}\,\}\;\;{\tt Program}\;\;\{\,\text{Post}\,\}
+\]
+
+where  
+
+* **Pre** says that the whole input is a finite sequence `L = ⟨l₁,…,lₙ⟩` of tokens and each token is either a *blink* `b∈B` (three characters ‘‑’ or ‘*’) or the unique *scream* token `“caw caw”`.  
+
+* **Post** says that the three numbers printed, `R₁,R₂,R₃`, are exactly the sums of the numeric values of the blinks that belong to the first, second and third *group* (the groups are delimited by the screams).  
+
+The proof is carried out in the usual Hoare‑logic style:
+
+* we give a **loop invariant** for the outer `while` loop,
+* a **loop invariant** for the inner `for` loop that evaluates a blink,
+* we prove that the invariants are established, preserved and together imply the post‑condition when the loops terminate,
+* we also use the Hoare rule for the `if` statement that distinguishes a scream from a blink.
+
+All auxiliary variables (`grito_cont`, `valor_previsto`, `valor_olho`) are quantified in the post‑condition, therefore they may be used freely inside the proof.
+
+--------------------------------------------------------------------
+
+## 2.  Notation  
+
+* `input()` reads the next token of `L`.  
+* `print(x)` writes the integer `x` on the output (followed by a newline).  
+* `val(b)` is the numeric value of a blink `b = b₁b₂b₃ ∈ B` as defined in the specification:
+
+\[
+\text{val}(b)=\mathbf 1_{b₁='*'}\;4+\mathbf 1_{b₂='*'}\;2+\mathbf 1_{b₃='*'}\;1 .
+\]
+
+* `g(i) = |\{j\le i\mid l_j\in S\}|` counts the screams that have already appeared up to position `i` in the input.  
+* `R₁,R₂,R₃` denote the three numbers printed by the program (the order of printing is the same as the order of the screams).  
+
+We also use the Iverson bracket `[P]`, which is 1 when the predicate `P` is true and 0 otherwise.
+
+--------------------------------------------------------------------
+
+## 3.  The program (re‑written with explicit block structure)
+
+```text
+grito_cont := 0;
+valor_previsto := 0;
+while grito_cont < 3 do
+    entrada := input();                     -- l_i
+    if entrada = "caw caw" then
+        print(valor_previsto);              -- prints R_{grito_cont+1}
+        grito_cont := grito_cont + 1;
+        valor_previsto := 0;
+    else                                   -- entrada is a blink b∈B
+        valor_olho := 4;
+        for olho in entrada do            -- three iterations
+            if olho = '*' then
+                valor_previsto := valor_previsto + valor_olho;
+            fi;
+            valor_olho := valor_olho // 2;   -- integer division by 2
+        od
+    fi
+od
+```
+
+--------------------------------------------------------------------
+
+## 4.  Invariant for the **inner** `for` loop  
+
+The loop iterates over the three characters of a blink token `b = b₁b₂b₃`.  
+Let `i` be the number of characters already processed (0 ≤ i ≤ 3).  
+
+### 4.1  Invariant  
+
+\[
+\boxed{
+\begin{aligned}
+I_{\text{for}}(i) \equiv\;
+& 0\le i\le 3 \\
+&\land\; \text{valor\_olho}= \left\lfloor\frac{4}{2^{\,i}}\right\rfloor \\
+&\land\; \text{valor\_previsto}= \sum_{j=1}^{i}
+      \bigl[ b_j = '*' \bigr]\; \frac{4}{2^{\,j-1}}
+\end{aligned}}
+\]
+
+The third conjunct states that `valor_previsto` already contains the contribution
+of the first `i` characters of the blink, exactly the definition of `val` restricted to the processed prefix.
+
+### 4.2  Proof that `I_for` is a loop invariant  
+
+| Step | Hoare rule | Reason |
+|------|------------|--------|
+| **Initialization** (`i = 0`) | Assignment axiom | After `valor_olho := 4` we have `valor_olho = ⌊4/2⁰⌋`. `valor_previsto` is unchanged, therefore the sum over an empty prefix is 0. Hence `I_for(0)` holds. |
+| **Preservation** (body) | Composition of `if` + assignment | Assume `I_for(i)` holds at the start of an iteration with `0 ≤ i < 3`. Two cases: |
+| – `olho = '*'` | `valor_previsto := valor_previsto + valor_olho` adds `⌊4/2^{i}⌋` to the sum, which is exactly the contribution of the `(i+1)`‑st character because its weight is `4/2^{i}`. |
+| – `olho = '-'` | The assignment is skipped, leaving the sum unchanged – also correct because the contribution of `'-'` is 0. |
+| – In both cases `valor_olho := valor_olho // 2` makes `valor_olho = ⌊4/2^{i+1}⌋`. Thus after the body we have `I_for(i+1)`. |
+| **Termination** (`i = 3`) | When the loop finishes (`i = 3`) we obtain from the invariant: |
+| – `valor_olho = ⌊4/2³⌋ = 0` (irrelevant afterwards). |
+| – `valor_previsto = \sum_{j=1}^{3}[b_j='*']·4/2^{j-1} = \text{val}(b)`. |  
+
+Hence after the `for` loop finishes we know
+
+\[
+\boxed{\text{valor\_previsto\;new}= \text{valor\_previsto\;old}+ \text{val}(entrada)}\tag{1}
+\]
+
+which is precisely the intended effect of processing a blink.
+
+--------------------------------------------------------------------
+
+## 5.  Invariant for the **outer** `while` loop  
+
+Let `k` be the number of screams that have already been processed (`k = grito_cont`).  
+Let `p` be the index in the input sequence `L` of the token that will be read next
+(`p` starts at 1 and grows by 1 each iteration).  
+
+### 5.1  Invariant  
+
+\[
+\boxed{
+\begin{aligned}
+I_{\text{while}}(k,p) \equiv\;
+& 0\le k\le 3 \\
+&\land\; p-1 = |\{j\mid 1\le j < p \land l_j\in B\cup S\}| \\
+&\land\; \bigl(\forall r\in\{1,2,3\}\; (r\le k \Rightarrow
+      \text{the }r\text{‑th printed value }R_r
+      = \!\!\sum_{i=1}^{p-1}
+        [\,l_i\in B\land g(i)=r-1\,]\;\text{val}(l_i) )\bigr)\\
+&\land\; \bigl(k<3 \Rightarrow
+      \text{valor\_previsto}= \!\!\sum_{i=1}^{p-1}
+        [\,l_i\in B\land g(i)=k\,]\;\text{val}(l_i) \bigr)
+\end{aligned}}
+\]
+
+Explanation  
+
+* The first line is the obvious bound on the scream counter.  
+* The second line says that `p` is exactly the position of the next unread token.  
+* The third line records that for every scream already printed (`r ≤ k`) the printed value equals the sum of the blinks that belong to the `r`‑th group.  
+* The fourth line (relevant while `k<3`) states that `valor_previsto` holds the sum of the *current* group, i.e. of all blinks seen **after** the last scream and **before** the next one.
+
+### 5.2  Establishing the invariant  
+
+* **Before the loop** (`k = 0`, `p = 1`):  
+
+  * `grito_cont = 0`, `valor_previsto = 0`.  
+  * No scream has been printed, therefore the universal condition in the third line is vacuously true.  
+  * The fourth line holds because the sum over an empty set is 0.  
+
+  Hence `I_while(0,1)` holds.
+
+* **Preservation** – we show that one iteration of the loop, assuming `I_while(k,p)` and `k<3`, yields `I_while(k',p')` with  
+
+  * `p' = p+1` (one token consumed),  
+  * `k' = k` if the token is a blink, otherwise `k' = k+1`.  
+
+  The body has two cases, handled by the `if`.
+
+  --------------------------------------------------------------------
+  ### 5.2.1  Case `entrada = "caw caw"` (a scream)
+
+  * By the `if`‑branch we execute  
+
+    ```
+    print(valor_previsto);
+    grito_cont := grito_cont + 1;
+    valor_previsto := 0;
+    ```
+
+  * From the fourth line of `I_while(k,p)` we already know  
+
+    \[
+    \text{valor\_previsto}= \sum_{i=1}^{p-1}
+      [\,l_i\in B\land g(i)=k\,]\;\text{val}(l_i) .
+    \]
+
+    This is exactly the sum of the *k‑th* group (remember that groups are numbered
+    starting from 0, i.e. the first group corresponds to `k = 0`).  
+    Therefore the printed value equals the required `R_{k+1}`.
+
+  * After the three assignments we have  
+
+    * `grito_cont = k+1` → `k' = k+1`.  
+    * `valor_previsto = 0`.  
+
+    The fourth line of the invariant must now talk about the **new** current group,
+    which is the group whose index is `k'`.  
+    Since no blink has been read after the scream, the sum over that group is empty,
+    and `valor_previsto = 0` satisfies the fourth line.
+
+  * The third line of the invariant is also updated: the clause for `r = k+1`
+    becomes true because we have just printed the correct sum.
+
+  * Finally `p' = p+1` because we consumed one token.
+
+  Consequently `I_while(k+1,p+1)` holds.
+
+  --------------------------------------------------------------------
+  ### 5.2.2  Case `entrada` is a blink `b∈B`
+
+  * The `else` branch executes the inner `for` loop, whose invariant we proved
+    in Section&nbsp;4.  
+    By (1) we obtain after the loop  
+
+    \[
+    \text{valor\_previsto}_{\text{new}}
+    =\text{valor\_previsto}_{\text{old}}+ \text{val}(b) .
+    \]
+
+  * No scream counter is changed, therefore `k' = k`.  
+
+  * The fourth line of `I_while` after the iteration becomes  
+
+    \[
+    \text{valor\_previsto}_{\text{new}}=
+      \!\!\sum_{i=1}^{p}
+        [\,l_i\in B\land g(i)=k\,]\;\text{val}(l_i) .
+    \]
+
+    The right‑hand side differs from the old one only by the additional term
+    `val(b)`, exactly what the `for` loop added. Hence the fourth line is preserved.
+
+  * The third line (already printed groups) is untouched because `k` did not change.
+
+  * The index becomes `p' = p+1`.
+
+  Hence `I_while(k,p+1)` holds.
+
+  --------------------------------------------------------------------
+  Since both branches preserve the invariant, `I_while` is indeed a loop invariant.
+
+### 5.3  Termination of the outer loop  
+
+The loop condition is `grito_cont < 3`.  
+`grito_cont` is a non‑negative integer that is increased **exactly once**
+whenever a scream token is read (the only way to leave the loop is when
+`grito_cont = 3`).  
+Because the input is finite, at most three screams can be read, therefore the
+loop must eventually reach `grito_cont = 3` and stop.  Formally we can use the
+variant `V = 3 - grito_cont`, which is a natural number that strictly decreases
+in the scream‑branch and never increases elsewhere.
+
+### 5.4  Deriving the post‑condition  
+
+When the loop terminates we have `grito_cont = 3`.  
+Instantiating the invariant `I_while(3,p_f)` (where `p_f = n+1` because all
+tokens have been consumed) we obtain:
+
+* For every `r ∈ {1,2,3}` the third conjunct tells us  
+
+  \[
+  R_r = \sum_{i=1}^{n}
+        [\,l_i\in B\land g(i)=r-1\,]\;\text{val}(l_i) .
+  \]
+
+* The fourth conjunct is not needed any more (its antecedent `k<3` is false).
+
+Thus the three numbers printed by the program satisfy exactly the definition
+given in the **Post** condition.  No other variables appear in the post‑condition,
+so the final state of the program satisfies `Post`.
+
+--------------------------------------------------------------------
+
+## 6.  Formal Hoare‑logic derivation  
+
+Below we sketch the derivation using the standard Hoare rules.  
+For brevity we write `A := e` for the assignment axiom  
+
+\[
+\{\,e\!\mid_{x}\,\}\; x := e\; \{\,e\!\mid_{x}\,\},
+\]
+
+where `e|_x` denotes the substitution of `e` for `x` in the surrounding
+assertion.
+
+### 6.1  The outer loop  
+
+\[
+\frac{
+   \{\,I_{\text{while}}(k,p)\,\}\;
+   \text{body}
+   \;\{\,I_{\text{while}}(k',p')\,\}
+}{
+   \{\,I_{\text{while}}(k,p)\wedge k<3\,\}\;
+   \text{while }k<3\text{ do body od}
+   \;\{\,I_{\text{while}}(k,p)\wedge \neg(k<3)\,\}
+}
+\tag{WH}
+\]
+
+The body consists of the `if … then … else … fi`.  
+We apply the **if‑rule**:
+
+\[
+\frac{
+   \{\,I\land \text{entrada} = "caw caw"\,\}\;C_1\;\{\,I'\,\}
+   \qquad
+   \{\,I\land \text{entrada}\neq "caw caw"\,\}\;C_2\;\{\,I'\,\}
+}{
+   \{\,I\,\}\;
+   \text{if entrada = "caw caw" then }C_1\text{ else }C_2\text{ fi}
+   \;\{\,I'\,\}
+}
+\tag{IF}
+\]
+
+* In the **then‑branch** (`C₁`) we have the sequence  
+
+  `print(valor_previsto); grito_cont := grito_cont+1; valor_previsto := 0`.  
+
+  The first command does not change the state, therefore it can be omitted
+  from the logical reasoning (it only produces an observable output, which is
+  captured by the invariant).  
+  Using the assignment axiom twice we obtain the transformation  
+
+  \[
+  I_{\text{while}}(k,p) \land \text{entrada}=S
+  \;\Longrightarrow\;
+  I_{\text{while}}(k+1,p+1)
+  \]
+
+  because the definitions of `R_{k+1}` and the reset of `valor_previsto` are
+  exactly the consequences of the fourth and third conjuncts of the invariant.
+
+* In the **else‑branch** (`C₂`) we first execute `valor_olho := 4` (which
+  establishes the entry condition of the inner loop invariant) and then the
+  `for` loop.  By the **for‑rule** (derived from the while‑rule) together with
+  the invariant proved in Section&nbsp;4 we get  
+
+  \[
+  I_{\text{while}}(k,p) \land \text{entrada}\neq S
+  \;\Longrightarrow\;
+  I_{\text{while}}(k,p+1)
+  \]
+
+  (the only change is the addition of `val(entrada)` to `valor_previsto`,
+  exactly as expressed by the fourth conjunct).
+
+Thus both branches satisfy the premises of the `IF` rule, and the whole
+`if` statement preserves `I_while`.  Consequently the `WH` rule yields
+
+\[
+\{\,I_{\text{while}}(0,1)\,\}\;
+\text{while }grito_cont<3\text{ do … od}
+\;\{\,I_{\text{while}}(3,n+1)\,\}.
+\]
+
+### 6.2  From invariant to post‑condition  
+
+Instantiating `I_while` with `k = 3` and `p = n+1` eliminates the fourth conjunct
+(because its antecedent `k<3` is false) and leaves exactly the three equalities
+required by `Post`.  The printed values are precisely `R₁,R₂,R₃`.  Hence
+
+\[
+\{\,\text{Pre}\,\}\; \text{Program}\; \{\,\text{Post}\,\}
+\]
+
+holds, completing the Hoare‑logic proof.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have exhibited:
+
+* a **loop invariant** for the inner `for` loop that proves the correct
+  conversion of a blink token into its numeric value,
+* a **loop invariant** for the outer `while` loop that relates the program
+  variables (`grito_cont`, `valor_previsto`) to the mathematical quantities
+  (`g(i)`, `val`) appearing in the specification,
+* a termination argument (variant `3‑grito_cont`),
+* a step‑by‑step Hoare‑logic derivation that shows the invariant is established,
+  preserved by each command, and finally entails the required post‑condition.
+
+Therefore the given Python program is **correct** with respect to the
+Hoare‑logic specification: it prints exactly the three sums `R₁,R₂,R₃`
+described in the post‑condition, for every admissible input sequence
+that satisfies the pre‑condition.  

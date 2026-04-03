@@ -1,0 +1,349 @@
+## 1.  Overview  
+
+We prove the Hoare‑logic triple  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}
+\]
+
+where  
+
+* **\(P\)** is the pre‑condition given in § 4, i.e. the input respects the numeric limits and the length limits for every fruit name *\(q_i\)* and every list line *\(\ell_j\)*.  
+* **\(Q\)** is the post‑condition given in § 5, i.e. the produced output lines *\(o_i\)* are exactly the sentences required by the predicate  
+
+\[
+\text{Likes}(q_i,L)\; \stackrel{\text{def}}{=}\;
+\exists j\;(1\le j\le M)\;
+\bigl(
+   \text{lower}(q_i)\;\sqsubseteq\;\text{lower}(\ell_j)
+   \;\lor\;
+   \text{lower}(\text{rev}(q_i))\;\sqsubseteq\;\text{lower}(\ell_j)
+\bigr) .
+\]
+
+The proof proceeds by **structural induction on the three `for`‑loops** that constitute the whole program.  
+For each loop we exhibit a **loop invariant** that is strong enough to imply the required part of the post‑condition when the loop terminates.  
+All auxiliary reasoning uses the elementary Hoare rules for assignment, sequencing, conditionals and loops.
+
+The program (rewritten with explicit loop counters) is
+
+```text
+1   read N, M
+2   vetor_frutas  := [""]^N
+3   vetor_linhas  := [""]^M
+
+4   for i = 0 … N‑1 do
+5        vetor_frutas[i] := lower( input() )
+6   od
+
+7   for i = 0 … M‑1 do
+8        vetor_linhas[i] := lower( input() )
+9   od
+
+10  for p = 0 … N‑1 do                // outer loop (over the queries)
+11        Come := false
+12        fruta_inversa := rev( vetor_frutas[p] )
+13        for q = 0 … M‑1 do          // inner loop (over the list)
+14              if ( vetor_frutas[p] ⊑ vetor_linhas[q] )
+15                 or ( fruta_inversa ⊑ vetor_linhas[q] )
+16                 then Come := true ; break
+17              fi
+18        od
+19        if Come
+20           then print "Sheldon come a fruta "  · vetor_frutas[p]
+21           else print "Sheldon detesta a fruta "· vetor_frutas[p]
+22        fi
+23  od
+```
+
+All variables are understood to be part of the program state; the only *observable* part of the final state is the sequence of printed strings, which we denote by  
+
+\[
+O = (o_1,\dots ,o_N).
+\]
+
+--------------------------------------------------------------------
+
+## 2.  Proof of the first two input loops  
+
+### 2.1.  Loop 1 (reading the fruit names)
+
+**Invariant** \(I_1(k)\) – after the first *k* iterations (\(0\le k\le N\)):
+
+\[
+\forall i\;(0\le i<k)\;.\;
+\text{vetor\_frutas}[i] = \text{lower}(q_{i+1})
+\;\land\;
+\forall i\;(k\le i<N)\;.\;
+\text{vetor\_frutas}[i] = "" .
+\tag{I\(_1\)k}
+\]
+
+*Initialization* (\(k=0\)): the vector was created in line 2 as `[""]*N`; thus every entry equals the empty string, which satisfies the second conjunct of (I\(_1\)0).  
+
+*Preservation*: assume (I\(_1\)k) holds before iteration *k*.  
+Line 5 reads the \((k+1)^{\text{st}}\) fruit name from the input, converts it to lower case and stores it at index *k*. Consequently after the assignment
+
+\[
+\text{vetor\_frutas}[k] = \text{lower}(q_{k+1})
+\]
+
+the first conjunct of (I\(_1\)(k+1)) holds, while the untouched entries keep their previous values, preserving the second conjunct.  
+
+*Termination*: when the loop finishes we have \(k=N\). Instantiating (I\(_1\)N) yields  
+
+\[
+\forall i\;(0\le i<N)\;.\;
+\text{vetor\_frutas}[i] = \text{lower}(q_{i+1}) .
+\tag{1}
+\]
+
+Thus the vector `vetor_frutas` contains exactly the lower‑cased query strings.
+
+### 2.2.  Loop 2 (reading the scrambled list)
+
+**Invariant** \(I_2(k)\) – after the first *k* iterations (\(0\le k\le M\)):
+
+\[
+\forall j\;(0\le j<k)\;.\;
+\text{vetor\_linhas}[j] = \text{lower}(\ell_{j+1})
+\;\land\;
+\forall j\;(k\le j<M)\;.\;
+\text{vetor\_linhas}[j] = "" .
+\tag{I\(_2\)k}
+\]
+
+The proof is identical to the one for \(I_1\); the only difference is that the source of the input is the list lines.  
+When the loop terminates (\(k=M\)) we obtain
+
+\[
+\forall j\;(0\le j<M)\;.\;
+\text{vetor\_linhas}[j] = \text{lower}(\ell_{j+1}) .
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Proof of the inner search loop  
+
+The inner loop (lines 13‑18) decides, for a *fixed* fruit `q = vetor_frutas[p]`, whether the predicate `Likes(q, L)` holds.  
+Recall that after the first two loops we already have (1) and (2).
+
+### 3.1.  Invariant for the inner loop
+
+Let  
+
+\[
+q := \text{vetor\_frutas}[p]          \qquad\text{(already lower‑cased)}\\
+r := \text{rev}(q)                     \qquad\text{(line 12)} .
+\]
+
+Define the invariant \(J(p,k)\) (holds after the first *k* iterations of the inner loop, \(0\le k\le M\)):
+
+\[
+\begin{aligned}
+J(p,k) \;\stackrel{\text{def}}{=}\;
+&\bigl(\text{Come}= \text{true}\bigr) \;\Longrightarrow\;
+      \exists j\;(0\le j<k)\;
+          \bigl( q \sqsubseteq \text{vetor\_linhas}[j] \;\lor\;
+                 r \sqsubseteq \text{vetor\_linhas}[j] \bigr) \\[1mm]
+&\land\;
+\bigl(\text{Come}= \text{false}\bigr) \;\Longrightarrow\;
+      \forall j\;(0\le j<k)\;
+          \bigl( q \not\sqsubseteq \text{vetor\_linhas}[j] \;\land\;
+                 r \not\sqsubseteq \text{vetor\_linhas}[j] \bigr) .
+\end{aligned}
+\tag{J(p,k)}
+\]
+
+Intuitively, **if** `Come` has already become `true`, then a suitable line has been found among the first *k* examined lines; **if** it is still `false`, then none of those *k* lines contains `q` nor its reversal.
+
+### 3.2.  Initialization  
+
+Before the first iteration we have `Come := false` (line 11) and `k = 0`.  
+Thus the second implication of (J(p,0)) holds vacuously because the universal quantifier ranges over an empty set; the first implication is also vacuously true because its antecedent (`Come = true`) is false. Hence \(J(p,0)\) holds.
+
+### 3.3.  Preservation  
+
+Assume \(J(p,k)\) holds at the beginning of iteration *k* (the loop guard guarantees \(k<M\)).  
+
+*Case 1 – the `if` condition succeeds.*  
+
+The condition is  
+
+\[
+(q \sqsubseteq \text{vetor\_linhas}[k])\;\lor\;
+(r \sqsubseteq \text{vetor\_linhas}[k]).
+\]
+
+If it is true, line 16 executes `Come := true` and `break`.  
+Consequently after the body we have `Come = true` and the *found* line index is exactly *k*.  
+Therefore the first implication of (J(p,k+1)) holds (choose \(j=k\) as the witness).  
+The second implication is irrelevant because its antecedent (`Come = false`) is false.  
+
+*Case 2 – the `if` condition fails.*  
+
+Then neither `q` nor `r` is a substring of `vetor_linhas[k]`.  
+`Come` is left unchanged (still `false`).  
+Hence the second implication of (J(p,k+1)) remains true, because for every \(j<k+1\) (i.e. for the former indices and for the newly examined index *k*) we have shown that the substring test fails.  
+The first implication stays true trivially because `Come` is still `false`.  
+
+Thus \(J(p,k) \Rightarrow J(p,k+1)\).
+
+### 3.4.  Termination  
+
+When the inner loop terminates we have \(k=M\).  
+Two possibilities:
+
+* **`Come = true`** – by the first implication of (J(p,M)) there exists a
+  \(j\) with \(0\le j<M\) such that  
+
+  \[
+  q \sqsubseteq \text{vetor\_linhas}[j] \;\lor\;
+  r \sqsubseteq \text{vetor\_linhas}[j].
+  \]
+
+* **`Come = false`** – by the second implication of (J(p,M)) we have  
+
+  \[
+  \forall j\;(0\le j<M).\;
+      q \not\sqsubseteq \text{vetor\_linhas}[j] \;\land\;
+      r \not\sqsubseteq \text{vetor\_linhas}[j].
+  \]
+
+Using (1) and (2) we can replace `q` by `lower(q_{p+1})` and
+`\text{vetor\_linhas}[j]` by `lower(\ell_{j+1})`.  
+Consequently the final value of `Come` is **exactly** the truth value of the predicate  
+
+\[
+\text{Likes}(q_{p+1},L) .
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the outer loop (producing the output)
+
+### 4.1.  Invariant for the outer loop  
+
+Let  
+
+\[
+O_k = (o_1,\dots ,o_k)
+\]
+
+be the list of lines already printed after processing the first *k* fruits
+(\(0\le k\le N\)).  
+The invariant \(K(k)\) is:
+
+\[
+\forall i\;(1\le i\le k)\;.\;
+\bigl(\text{Likes}(q_i,L) \;\Longrightarrow\;
+        o_i = \text{“Sheldon come a fruta ”}\;\cdot\; \text{lower}(q_i) \bigr)
+\;\land\;
+\bigl(\neg\text{Likes}(q_i,L) \;\Longrightarrow\;
+        o_i = \text{“Sheldon detesta a fruta ”}\;\cdot\; \text{lower}(q_i) \bigr).
+\tag{K(k)}
+\]
+
+Thus after *k* iterations the first *k* output lines satisfy the post‑condition.
+
+### 4.2.  Initialization  
+
+Before the first iteration no line has been printed, i.e. \(k=0\); the
+universal quantifier in (K(0)) ranges over the empty set, so the invariant holds trivially.
+
+### 4.3.  Preservation  
+
+Assume \(K(p)\) holds at the beginning of the iteration that processes fruit
+\(q_{p+1}\) (the loop variable `p` in the program).  
+
+* The inner loop (proved in § 3) computes `Come` such that  
+
+  \[
+  \text{Come} \iff \text{Likes}(q_{p+1},L) .
+  \tag{4}
+  \]
+
+* The conditional (lines 19‑22) prints  
+
+  * `"Sheldon come a fruta "· lower(q_{p+1})` if `Come` is true,  
+  * `"Sheldon detesta a fruta "· lower(q_{p+1})` otherwise.
+
+  By (4) the printed line is exactly the one required by the definition of \(Q\) for index \(i=p+1\).
+
+Hence after the iteration we have  
+
+\[
+K(p+1)
+\]
+
+because the newly appended line satisfies the required clause and the
+previous *p* lines are unchanged and still satisfy \(K(p)\).
+
+### 4.4.  Termination  
+
+When the outer loop finishes we have \(k=N\).  
+Instantiating (K(N)) yields precisely the post‑condition \(Q\).
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the three parts  
+
+We have shown:
+
+1. **After the first two input loops** the vectors contain the lower‑cased
+   sequences \((\text{lower}(q_1),\dots ,\text{lower}(q_N))\) and
+   \((\text{lower}(\ell_1),\dots ,\text{lower}(\ell_M))\).  
+   This follows from invariants \(I_1\) and \(I_2\).
+
+2. **For each fruit** the inner loop sets the Boolean variable `Come`
+   to the truth value of \(\text{Likes}(q_i,L)\).  
+   This follows from invariant \(J(p,k)\) and its termination argument.
+
+3. **The outer loop** prints exactly the strings prescribed by \(Q\).  
+   This follows from invariant \(K(k)\) and the relationship (4).
+
+By the **rule of composition** of Hoare triples, the three sequential
+parts together establish the Hoare triple  
+
+\[
+\{P\}\;\texttt{program}\;\{Q\}.
+\]
+
+All the side‑conditions required by the Hoare rules (e.g. that loop
+guards are boolean expressions, that the variables used in the invariants
+are not modified elsewhere, etc.) are trivially satisfied by the Python
+code.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+Under the pre‑condition  
+
+\[
+P:\; 1\le N\le 100,\; 15\le M\le 500,\;
+\forall i\;(4\le|q_i|\le 100),\;
+\forall j\;(4\le|\ell_j|\le 100),
+\]
+
+the program terminates and produces an output sequence  
+
+\[
+O=(o_1,\dots ,o_N)
+\]
+
+that satisfies the post‑condition  
+
+\[
+Q:\; \forall i\;(1\le i\le N).\;
+\bigl(\text{Likes}(q_i,L) \Rightarrow
+      o_i = \text{“Sheldon come a fruta ”}\cdot\text{lower}(q_i)\bigr)
+\;\land\;
+\bigl(\neg\text{Likes}(q_i,L) \Rightarrow
+      o_i = \text{“Sheldon detesta a fruta ”}\cdot\text{lower}(q_i)\bigr).
+\]
+
+Hence the program is **correct** with respect to the given Hoare‑logic
+specification. ∎

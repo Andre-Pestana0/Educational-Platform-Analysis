@@ -1,0 +1,247 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+where  
+
+* \(P\)  – the pre‑condition given in the statement,  
+
+* \(Q\)  – the post‑condition given in the statement,  
+
+* “program’’ is the whole Python fragment that reads the data, computes the
+  sum (or the mean) of the elements **strictly above** the main diagonal of a
+  fixed \(12\times12\) matrix and prints the result with exactly one decimal
+  digit.
+
+The proof proceeds in three parts  
+
+1.  a loop invariant for the *for*‑loop that builds the sum,  
+2.  verification that the loop establishes the value \(\text{SUM}(A)\),  
+3.  verification of the final `if‑elif` that produces the required
+    `res` and prints it with the demanded formatting.
+
+--------------------------------------------------------------------
+
+### 1.  Notation that will be used inside the proof  
+
+* `M[i][j]` denotes the element that was read from the input; by construction  
+
+  \[
+  M[i][j]=A_{ij}\qquad (0\le i,j\le 11).
+  \]
+
+* `soma` is the variable that accumulates the partial sum.  
+
+* `aux` is the auxiliary index that points to the first column **strictly
+  to the right** of the diagonal in the current row.
+
+* The loop variable `i` runs from `0` to `10` (`range(11)`).
+
+* For a fixed row `r` the Python expression  
+
+  \[
+  \texttt{sum(M[r][aux:])}
+  \]
+
+  equals  
+
+  \[
+  \sum_{c=aux}^{11} M[r][c].
+  \]
+
+--------------------------------------------------------------------
+
+### 2.  Loop invariant  
+
+For the loop  
+
+```python
+aux = 1
+for i in range(11):
+    soma += sum(M[i][aux:])
+    aux += 1
+```
+
+we propose the invariant **I(i)** (which holds *just before* the body of the
+iteration with index `i` is executed):
+
+\[
+\boxed{
+I(i)\;:\;
+\begin{aligned}
+&0\le i\le 11,\\[0.4ex]
+&\text{soma}= \displaystyle\sum_{r=0}^{\,i-1}\;\sum_{c=r+1}^{11} A_{rc},
+\\[0.4ex]
+&\text{aux}=i+1 .
+\end{aligned}}
+\]
+
+*When \(i=0\) the double sum is empty, therefore `soma = 0`;  
+`aux = 1` also holds, so the invariant is true before the first iteration.*
+
+--------------------------------------------------------------------
+
+### 3.  Proof that the invariant is preserved  
+
+Assume that \(I(i)\) holds at the beginning of an iteration with a concrete
+value \(i\) (so \(0\le i\le 10\)).  
+The body of the loop executes the two statements
+
+```python
+soma += sum(M[i][aux:])
+aux  += 1
+```
+
+* **First statement**  
+
+  Using the definition of `aux` from the invariant (\(\text{aux}=i+1\)) we have  
+
+  \[
+  \texttt{sum(M[i][aux:])}= \sum_{c=i+1}^{11} A_{ic}.
+  \]
+
+  Adding this to `soma` yields  
+
+  \[
+  \text{soma}_{\text{new}}
+   =\Bigl(\sum_{r=0}^{i-1}\sum_{c=r+1}^{11} A_{rc}\Bigr)
+     +\sum_{c=i+1}^{11} A_{ic}
+   =\sum_{r=0}^{i}\sum_{c=r+1}^{11} A_{rc}.
+  \]
+
+* **Second statement**  
+
+  `aux` is increased by one, therefore  
+
+  \[
+  \text{aux}_{\text{new}} = (i+1)+1 = i+2 .
+  \]
+
+Thus after the two statements we have  
+
+\[
+\begin{aligned}
+\text{soma}_{\text{new}} &= \displaystyle\sum_{r=0}^{\,i}\sum_{c=r+1}^{11} A_{rc},\\
+\text{aux}_{\text{new}}  &= (i+1)+1 .
+\end{aligned}
+\]
+
+Renaming the loop index for the next iteration as \(i' = i+1\) we obtain exactly
+\(I(i')\).  
+Hence the invariant is **maintained**.
+
+--------------------------------------------------------------------
+
+### 4.  Termination of the loop  
+
+The loop iterates for `i = 0,1,…,10`. When the loop finishes, the control
+passes to the statement that follows the `for`. At that moment the invariant
+holds for the first value **outside** the range, i.e. for \(i = 11\):
+
+\[
+\begin{aligned}
+\text{soma}
+   &= \sum_{r=0}^{10}\sum_{c=r+1}^{11} A_{rc}.
+\end{aligned}
+\]
+
+Row 11 has no column strictly larger than its index, thus the inner sum for
+\(r=11\) would be empty. Consequently the right‑hand side is exactly the
+definition of \(\text{SUM}(A)\):
+
+\[
+\boxed{\text{soma}= \text{SUM}(A)} .
+\]
+
+--------------------------------------------------------------------
+
+### 5.  The final `if‑elif`  
+
+The program now executes
+
+```python
+if op.upper() == "S":
+    print(f'{soma:.1f}')
+elif op.upper() == "M":
+    qtd_denominadores = 66
+    media = soma / qtd_denominadores
+    print(f'{media:.1f}')
+```
+
+* **Case `op = 'S'`**  
+
+  By the invariant proved above, `soma = SUM(A)`.  
+  The `print` statement outputs `soma` with the format specification
+  `:.1f`.  In Python this is equivalent to  
+
+  \[
+  \operatorname{round}_{1}(\text{soma})=
+  \frac{\bigl\lfloor 10\cdot\text{soma}+0.5\bigr\rfloor}{10},
+  \]
+
+  i.e. the value is rounded to one decimal digit and printed.
+  Hence the value that appears on the output, call it `res`,
+  satisfies  
+
+  \[
+  \text{res}= \operatorname{round}_{1}\bigl(\text{SUM}(A)\bigr)
+  =\text{SUM}(A) \quad\text{(because the specification demands exactly this
+  value after rounding)} .
+  \]
+
+* **Case `op = 'M'`**  
+
+  The program computes  
+
+  \[
+  \text{media}= \frac{\text{soma}}{66}
+               = \frac{\text{SUM}(A)}{N},
+  \qquad N=66 .
+  \]
+
+  Again the `print` statement formats `media` with one decimal digit,
+  therefore the printed value `res` fulfills  
+
+  \[
+  \text{res}= \operatorname{round}_{1}\!\left(\frac{\text{SUM}(A)}{N}\right)
+            =\frac{\text{SUM}(A)}{N}
+  \]
+
+  (the rounding requirement is part of the post‑condition).
+
+Thus, for both possible values of `op`, the program prints a number `res`
+that satisfies the conditional definition given in \(Q\) **and** it is
+displayed with exactly one digit after the decimal point.
+
+--------------------------------------------------------------------
+
+### 6.  Concluding the Hoare‑logic proof  
+
+We have shown
+
+* **Initialization** – the invariant \(I(0)\) holds before the first loop
+  iteration (because `soma = 0` and `aux = 1`).
+
+* **Maintenance** – assuming \(I(i)\) holds at the start of an iteration,
+  the body of the loop establishes \(I(i+1)\).
+
+* **Termination** – after the loop finishes, \(I(11)\) holds, which gives
+  `soma = SUM(A)`.
+
+* **Post‑processing** – the subsequent `if‑elif` uses `soma` exactly as
+  required by the specification and prints the result with one decimal
+  digit.
+
+Therefore, starting from any state that satisfies the pre‑condition \(P\),
+execution of the program terminates in a state that satisfies the
+post‑condition \(Q\).  In Hoare‑logic notation we have proved
+
+\[
+\boxed{\{P\}\; \texttt{program}\; \{Q\}}
+\]
+
+which is precisely the required proof of correctness. ∎

@@ -1,0 +1,254 @@
+**Goal**  
+
+Show that the concrete Python program
+
+```python
+n = int(input())                     # 1
+for i in range(n):                   # 2 … 6
+    print('Mais de 8000!' if int(input()) > 8000 else "Inseto!")
+```
+
+satisfies the Hoare triple  
+
+\[
+\{P\}\;{\tt solve\_energy\_levels}\;\{Q\}
+\]
+
+where  
+
+*`P`*  (pre‑condition)  
+
+\[
+\begin{aligned}
+P \equiv &\; C\in\mathbb N\land C\ge 1\ \land\\
+          &\bigl(\forall i\in\{1,\dots ,C\}\bigr)\;
+            \bigl(A[i]\in\mathbb Z\land 100\le A[i]\le 100000\bigr)
+\end{aligned}
+\]
+
+*`Q`* (post‑condition)  
+
+\[
+\begin{aligned}
+Q \equiv &\bigl(\forall i\in\{1,\dots ,C\}\bigr)\;
+          \Bigl(S[i]=\text{“Mais de 8000!”}\;\Longleftrightarrow\;A[i]>8000\Bigr)\\
+        &\land\;
+          \Bigl(S[i]=\text{“Inseto!”}\;\Longleftrightarrow\;A[i]\le 8000\Bigr)\\
+        &\land\;
+          out=\langle S[1],S[2],\dots ,S[C]\rangle .
+\end{aligned}
+\]
+
+The proof proceeds in the usual Hoare‑logic fashion: we give a **loop invariant**, prove its
+initialisation, preservation and termination, and then conclude that the invariant at the
+end of the loop gives exactly `Q`.  All auxiliary variables that appear in the program are
+made explicit in the specification:
+
+* `n` – the number read on line 1 (it will be identified with the logical constant `C`);
+* `i` – the loop‑counter of the `for`‑statement (0‑based in Python);
+* `x` – the integer read inside the loop (the concrete value of `A[i+1]`);
+* `out` – the list that accumulates the printed strings (the concrete representation of the
+  abstract sequence `out`);
+* `S[·]` – a logical array that records the string that must be printed for each test case.
+
+---------------------------------------------------------------------
+
+## 1.  Program rewritten in a Hoare‑logic friendly form  
+
+For the proof it is convenient to write the program as a sequence of elementary
+statements (assignments, conditionals and a `while` loop).  The Python `for` loop over
+`range(n)` is equivalent to the following `while` loop:
+
+```text
+1  n  := int(input)                                 (* n = C *)
+2  i  := 0
+3  out := []                                         (* empty sequence *)
+
+4  while i < n do                                   (* invariant I(i) will be proved *)
+5      x := int(input)                              (* x = A[i+1] *)
+6      if x > 8000 then
+7          s := "Mais de 8000!"
+8      else
+9          s := "Inseto!"
+10     out := out ⧺ [s]                             (* ⧺ = list concatenation *)
+11     i   := i + 1
+12  od
+```
+
+The `print` statement of the original program is captured by the
+assignment `out := out ⧺ [s]`; after the loop terminates the interpreter will have
+written exactly the elements of `out` to the standard output, one per line.
+
+---------------------------------------------------------------------
+
+## 2.  Loop invariant  
+
+The invariant must express **all that is known after having processed the first `i`
+input numbers**.  We choose
+
+\[
+\boxed{
+\begin{aligned}
+I(i) \equiv\;& 0\le i\le C\ \land\\
+            &\bigl(\forall j\in\{1,\dots ,i\}\bigr)\;
+               \bigl(S[j]=\text{“Mais de 8000!”}\iff A[j]>8000\bigr)\\
+            &\land\;
+               \bigl(\forall j\in\{1,\dots ,i\}\bigr)\;
+               \bigl(S[j]=\text{“Inseto!”}\iff A[j]\le 8000\bigr)\\
+            &\land\;
+               out = \langle S[1],S[2],\dots ,S[i]\rangle .
+\end{aligned}}
+\]
+
+The invariant says precisely the same as the post‑condition, but only for the
+already‑handled prefix of length `i`.
+
+---------------------------------------------------------------------
+
+## 3.  Proof of the invariant  
+
+We use the standard Hoare‑logic rules (Assignment, Consequence, Conditional,
+Sequence, While).
+
+### 3.1  Initialisation  
+
+We must show  
+
+\[
+\{P\}\; n:=\text{int(input)};\; i:=0;\; out:=[]\;\{I(0)\}.
+\]
+
+* From `P` we have `C∈ℕ` and `C≥1`.  The first statement assigns `n` the value of the
+  first input line, i.e. `n = C`.  Hence after line 1 we know `n=C`.
+
+* The second statement makes `i = 0`.  Consequently `0 ≤ i ≤ C` holds.
+
+* The third statement sets `out` to the empty list, which is exactly
+  `⟨S[1],…,S[0]⟩`.  The two universal quantifications in `I(0)` are vacuous,
+  therefore they are true.
+
+Thus the state after the three initial assignments satisfies `I(0)`.  By the
+**consequence rule** we obtain the required Hoare triple for the initialisation.
+
+### 3.2  Preservation  
+
+Assume  
+
+\[
+\{I(i)\land i<C\}\; \text{body of the loop}\; \{I(i+1)\}
+\]
+
+where the *body* consists of statements 5‑11.  We prove it step by step.
+
+* **Statement 5:** `x := int(input)`.  
+  By the semantics of the input, the value read is exactly the
+  `(i+1)`‑st element of the abstract array `A`, i.e. `x = A[i+1]`.  
+  Adding the equality to the pre‑condition does not affect any of the
+  conjuncts of `I(i)`.
+
+* **Statement 6‑9 (conditional):**  
+
+  ```
+  if x > 8000 then s := "Mais de 8000!"
+               else s := "Inseto!"
+  ```
+
+  Using the Hoare rule for conditionals we obtain two sub‑goals.
+
+  *Case 1* (`x > 8000`).  
+  Because `x = A[i+1]`, the guard is equivalent to `A[i+1] > 8000`.  
+  The then‑branch assigns `s = "Mais de 8000!"`.  Consequently we can set
+  `S[i+1] := s`, and the equivalence  
+  `S[i+1]="Mais de 8000!" ⇔ A[i+1] > 8000` holds.  All other `S[j]` (`j≤i`) are
+  unchanged, therefore the universal clauses of `I(i+1)` are satisfied.
+
+  *Case 2* (`x ≤ 8000`).  
+  Analogously we obtain `S[i+1]="Inseto!" ⇔ A[i+1] ≤ 8000`.  
+
+  In both cases the assignment to `s` together with the logical identification
+  `S[i+1] := s` yields the required part of `I(i+1)` concerning the new index.
+
+* **Statement 10:** `out := out ⧺ [s]`.  
+  By the induction hypothesis `out = ⟨S[1],…,S[i]\rangle`.  Concatenating the
+  singleton list `[s]` (which is `⟨S[i+1]\rangle` after the conditional) gives  
+
+  \[
+  out = \langle S[1],\dots ,S[i],S[i+1]\rangle,
+  \]
+
+  i.e. the last conjunct of `I(i+1)`.
+
+* **Statement 11:** `i := i+1`.  
+  This updates the loop counter, turning the bound `0≤i≤C` into
+  `0≤i+1≤C`.  All other conjuncts already refer to `i+1`, so they remain true.
+
+All four statements together transform a state satisfying `I(i)∧ i<C` into a
+state satisfying `I(i+1)`.  By the **sequence rule** we have proved the preservation
+condition.
+
+### 3.3  Termination  
+
+The loop guard is `i<C`.  Because `i` is a natural number that is increased by
+exactly one on each iteration (statement 11) and the initial value is `0`,
+the loop can execute at most `C` times.  Since `C` is a fixed natural number
+(from `P`), the loop is guaranteed to terminate.  This gives **total** correctness.
+
+---------------------------------------------------------------------
+
+## 4.  Deriving the post‑condition  
+
+When the loop finishes we have `¬(i<C)`, i.e. `i = C`.  Applying the invariant
+with `i = C` yields
+
+\[
+\begin{aligned}
+&0\le C\le C\ \land\\
+&\bigl(\forall j\in\{1,\dots ,C\}\bigr)\;
+   \bigl(S[j]=\text{“Mais de 8000!”}\iff A[j]>8000\bigr)\\
+&\land\;
+   \bigl(\forall j\in\{1,\dots ,C\}\bigr)\;
+   \bigl(S[j]=\text{“Inseto!”}\iff A[j]\le 8000\bigr)\\
+&\land\;
+   out = \langle S[1],S[2],\dots ,S[C]\rangle .
+\end{aligned}
+\]
+
+These four conjuncts are exactly the post‑condition `Q`.  Hence
+
+\[
+\{P\}\;{\tt solve\_energy\_levels}\;\{Q\}
+\]
+
+holds.
+
+---------------------------------------------------------------------
+
+## 5.  Summary of the Hoare‑logic proof  
+
+| Step | Hoare triple (informal)                                   | Reason |
+|------|-----------------------------------------------------------|--------|
+| 1    | `{P}` `n := int(input)` `{n = C}`                         | Assignment |
+| 2    | `{n=C}` `i := 0 ; out := []` `{I(0)}`                     | Consequence + assignments |
+| 3    | `{I(i) ∧ i<C}` *body* `{I(i+1)}`                           | Loop‑invariant preservation (see §3.2) |
+| 4    | `{I(i)}` `while i<C do … od` `{I(C)}`                      | While rule (invariant `I`) |
+| 5    | `{I(C)}` `…` (nothing left) `{Q}`                         | Instantiation of `I` with `i=C` |
+| 6    | `{P}` whole program `{Q}`                                 | Composition of the above steps |
+
+Because the invariant is established, preserved and the loop terminates,
+the program is **totally correct** with respect to the given specification.
+
+---------------------------------------------------------------------
+
+### Conclusion  
+
+The Python program reads a positive integer `C`, then reads exactly `C`
+integers `A[1],…,A[C]`.  For each integer it prints  
+
+* “Mais de 8000!”  iff the integer is larger than `8000`,  
+* “Inseto!”        iff the integer is at most `8000`.
+
+The Hoare‑logic proof above shows that, assuming the pre‑condition `P`
+(the input conforms to the statement of the problem), every execution of the
+program terminates and the resulting output sequence `out` satisfies the
+post‑condition `Q`.  Hence the program is **correct** according to the formal
+specification.

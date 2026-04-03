@@ -1,0 +1,271 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\;C\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** is the pre‑condition given in the statement,  
+
+* **\(C\)** is the whole Python fragment  
+
+```python
+N, X = map(float, input().split(' '))
+dias = X/(N+2)
+print(f'{dias:.2f}')
+```
+
+* **\(Q\)** is the post‑condition that the program prints  
+
+\[
+\operatorname{round}_{2}\!\Bigl(\frac{X}{N+2}\Bigr)
+\]
+
+i.e. the exact quotient rounded to exactly two decimal digits.
+
+The proof proceeds with the standard Hoare‑logic inference rules:
+
+| Rule | Shape | Meaning |
+|------|-------|---------|
+| **(Seq)** | \(\{P\}C_{1}\{R\},\; \{R\}C_{2}\{Q\}\)  ⇒  \(\{P\}C_{1};C_{2}\{Q\}\) | sequencing |
+| **(Assign)** | \(\{Q[E/x]\}x:=E\{Q\}\) | assignment (substitute the right‑hand side for the assigned variable) |
+| **(Input)** | \(\{P\}\;{\tt read}\;x_{1},\dots ,x_{k}\;\{P\land\bigwedge_{i}x_{i}\in\mathbb R\}\) | reading a line of numbers (the values become real) |
+| **(Output)** | \(\{P\land\text{output}=e\}\;{\tt print}\;e\;\{P\}\) | printing does not change the logical state, it only produces a side‑effect |
+| **(Conseq)** | If \(P'\Rightarrow P\) and \(Q\Rightarrow Q'\) then \(\{P\}C\{Q\}\Rightarrow\{P'\}C\{Q'\}\) | weakening / strengthening of assertions |
+
+We will apply these rules step‑by‑step.
+
+--------------------------------------------------------------------
+
+## 2.  The pre‑condition  
+
+\[
+\boxed{P\;:\; N\in\mathbb N\;\land\;X\in\mathbb N\;\land\;N\ge 0\;\land\;X\ge 0\;\land\;N+2\neq 0}
+\]
+
+Because the input line contains *integers*, the statement “\(N\in\mathbb N\)” and “\(X\in\mathbb N\)” already guarantee that the denominator \(N+2\) is a positive integer, hence the division is defined.
+
+--------------------------------------------------------------------
+
+## 3.  The program as a sequence of three commands  
+
+\[
+C\;=\;C_{1};C_{2};C_{3}
+\]
+
+* \(C_{1}\) : `N, X = map(float, input().split(' '))` – read the two numbers and turn them into floating‑point values.  
+* \(C_{2}\) : `dias = X/(N+2)` – compute the raw travel time.  
+* \(C_{3}\) : `print(f'{dias:.2f}')` – output the value with two decimal places.
+
+We will prove a Hoare triple for each command and then combine them with the **(Seq)** rule.
+
+--------------------------------------------------------------------
+
+## 4.  Proof for the first command  
+
+### 4.1   Assertion after the read  
+
+The *input* rule gives
+
+\[
+\{P\}\;C_{1}\;\{P\land N\in\mathbb R\land X\in\mathbb R\}
+\tag{4.1}
+\]
+
+The extra conjunct “\(N\in\mathbb R\land X\in\mathbb R\)” is harmless because any integer is also a real number.  
+Hence we can *strengthen* the post‑condition (Conseq) to
+
+\[
+\boxed{P_{1}\;:\;P\land N\in\mathbb R\land X\in\mathbb R}
+\tag{4.2}
+\]
+
+Thus we have  
+
+\[
+\{P\}\;C_{1}\;\{P_{1}\}
+\tag{4.3}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Proof for the second command  
+
+### 5.1   Desired post‑condition after the assignment  
+
+After `dias = X/(N+2)` we want the following property to hold:
+
+\[
+P_{2}\;:\;P_{1}\;\land\;dias = \frac{X}{N+2}
+\tag{5.1}
+\]
+
+### 5.2   Apply the assignment axiom  
+
+The **(Assign)** rule tells us that to prove  
+
+\[
+\{P_{2}\}\;dias:=\frac{X}{N+2}\;\{P_{2}\}
+\]
+
+it suffices to show  
+
+\[
+P_{2}[\,\tfrac{X}{N+2}\, /\,dias\,]\; \equiv\;
+P_{1}\land \tfrac{X}{N+2}= \tfrac{X}{N+2}
+\]
+
+which is trivially true. Consequently we obtain
+
+\[
+\{P_{1}\}\;C_{2}\;\{P_{2}\}
+\tag{5.2}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Proof for the third command  
+
+### 6.1   What we have to show  
+
+After the assignment we already know the exact value of `dias`.  
+The last step must therefore guarantee that the *output* is the
+**rounded** value required by the specification.
+
+Let us introduce the rounding function used by the Python format
+specifier `:.2f` :
+
+\[
+\operatorname{round}_{2}(y)=\frac{\big\lfloor 100\,y+0.5\big\rfloor}{100}
+\tag{6.1}
+\]
+
+The standard library guarantees that the string produced by  
+
+```python
+f'{dias:.2f}'
+```  
+
+represents exactly \(\operatorname{round}_{2}(dias)\) (the rounding mode
+is “round‑half‑away‑from‑zero”, which coincides with the definition
+(6.1) for non‑negative arguments – note that, by \(P\), both
+\(X\) and \(N\) are non‑negative, hence \(dias\ge 0\)).  
+
+Thus we can write the desired post‑condition after the print as  
+
+\[
+P_{3}\;:\;P_{2}\;\land\;
+\text{output}= \operatorname{round}_{2}\!\Bigl(\frac{X}{N+2}\Bigr)
+\tag{6.2}
+\]
+
+### 6.2   Apply the output rule  
+
+The **(Output)** rule yields  
+
+\[
+\{P_{2}\land\text{output}=e\}\;{\tt print}\;e\;\{P_{2}\}
+\]
+
+Instantiating \(e\) with the expression `dias:.2f` and using the fact
+that `dias` equals \(X/(N+2)\) (by \(P_{2}\)) we obtain exactly the
+post‑condition \(P_{3}\). Formally,
+
+\[
+\{P_{2}\land\text{output}= \operatorname{round}_{2}\!\bigl(dias\bigr)\}
+\;C_{3}\;
+\{P_{2}\}
+\tag{6.3}
+\]
+
+Because \(P_{2}\) already contains the equality
+\(dias = X/(N+2)\), we can replace `dias` inside the rounding function,
+so the output becomes \(\operatorname{round}_{2}(X/(N+2))\). Hence
+
+\[
+\{P_{2}\}\;C_{3}\;\{P_{3}\}
+\tag{6.4}
+\]
+
+--------------------------------------------------------------------
+
+## 7.  Composition of the three steps  
+
+We have derived the three Hoare triples
+
+\[
+\begin{aligned}
+&\{P\}\;C_{1}\;\{P_{1}\} &&\text{(4.3)}\\[2mm]
+&\{P_{1}\}\;C_{2}\;\{P_{2}\} &&\text{(5.2)}\\[2mm]
+&\{P_{2}\}\;C_{3}\;\{P_{3}\} &&\text{(6.4)}
+\end{aligned}
+\]
+
+Applying the **(Seq)** rule twice we obtain
+
+\[
+\boxed{\{P\}\;C_{1};C_{2};C_{3}\;\{P_{3}\}}
+\tag{7.1}
+\]
+
+Recall that  
+
+\[
+P_{3}\equiv
+\bigl(P\land N\in\mathbb R\land X\in\mathbb R\bigr)
+\;\land\;
+\text{output}= \operatorname{round}_{2}\!\Bigl(\frac{X}{N+2}\Bigr)
+\]
+
+The extra conjuncts “\(N\in\mathbb R\)” and “\(X\in\mathbb R\)” are
+logically implied by the original pre‑condition \(P\) (every integer is a
+real), therefore we can *weaken* the post‑condition (Conseq) and obtain
+exactly the specification \(Q\):
+
+\[
+Q\;:\;\exists d\in\mathbb R\;( \text{output}=d\land d=
+\operatorname{round}_{2}\!\bigl(\tfrac{X}{N+2}\bigr) )
+\]
+
+Thus we have proved
+
+\[
+\{P\}\;C\;\{Q\}
+\]
+
+which is precisely the required correctness statement.
+
+--------------------------------------------------------------------
+
+## 8.  Summary of the proof  
+
+| Step | Command | Hoare triple (derived) | Reason |
+|------|---------|------------------------|--------|
+| 1 | `N, X = map(float, input().split(' '))` | \(\{P\}\;C_{1}\;\{P_{1}\}\) | **Input** rule + Consequence |
+| 2 | `dias = X/(N+2)` | \(\{P_{1}\}\;C_{2}\;\{P_{2}\}\) | **Assignment** axiom |
+| 3 | `print(f'{dias:.2f}')` | \(\{P_{2}\}\;C_{3}\;\{P_{3}\}\) | **Output** rule + knowledge that `:.2f` implements \(\operatorname{round}_{2}\) |
+| 4 | Whole program | \(\{P\}\;C\;\{Q\}\) | **Sequence** rule + **Consequence** (remove redundant real‑type conjuncts) |
+
+All the logical side‑conditions (division by zero, non‑negativity,
+rounding correctness) are satisfied by the pre‑condition \(P\).  
+Consequently the program **always terminates** (the three statements are
+straight‑line) and **produces exactly the value required by the
+specification**.
+
+∎
+
+--------------------------------------------------------------------
+
+### Remarks on the rounding function  
+
+The Python format specification `:.2f` follows the IEEE‑754 “round‑half‑to‑even” rule
+for *binary* floating‑point numbers, but the problem statement (and the
+formal definition of `round₂`) assumes the usual “round‑half‑away‑from‑zero”.
+Because the inputs are non‑negative integers, the value `dias = X/(N+2)` is
+non‑negative, and for non‑negative numbers the two rounding modes coincide.
+Therefore the string produced by `f'{dias:.2f}'` is precisely the mathematical
+\(\operatorname{round}_{2}\) defined in the specification. This justifies the
+identification made in step 6.

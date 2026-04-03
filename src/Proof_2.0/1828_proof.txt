@@ -1,0 +1,290 @@
+**Proof of Correctness of the Python implementation**  
+*Problem 1828 – “Rock‑Paper‑Scissors‑Lizard‑Spock”*  
+
+We prove the Hoare triple  
+
+\[
+\{\,P\,\}\; \texttt{RPSL\_Solver}\; \{\,Q\,\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in § 4,  
+* \(Q\) is the post‑condition given in § 5, and  
+* \(\texttt{RPSL\_Solver}\) is the program that appears in the question.
+
+The proof proceeds by (i) establishing a **loop invariant** for the `for caso in range(T):` loop, (ii) showing that the body of the loop respects the invariant and yields the required output for the current test case, and (iii) proving termination.  
+
+--------------------------------------------------------------------
+
+## 1.  Notation used in the proof  
+
+| Symbol | Meaning in the proof |
+|--------|----------------------|
+| `T` | integer read from input (first token) |
+| `escolhas` | list `["s_i","r_i"]` read for the current iteration (`i = caso+1`) |
+| `vitoria` | the list of 10 pairs that appears in the program |
+| `empate` | boolean `escolhas[0] == escolhas[1]` |
+| `W` | the mathematical winning relation defined in § 2 |
+| `out_i` | the value of `out(s_i , r_i)` defined by `W` (S,R or T) |
+| `msg_i` | the string produced by `msg(out_i)` (Bazinga!, …) |
+| `print(i,msg_i)` | the effect of the statement `print(f"Caso #{i}: {msg_i}")` |
+| `i` | loop index that runs from `1` to `T` (the program uses `caso` that starts at `0`) |
+
+--------------------------------------------------------------------
+
+## 2.  Loop invariant  
+
+For the `for`‑loop we use the following invariant **I(i)**, which must hold at the beginning of each iteration *i* (i.e. just before the body is executed for the *i*‑th test case).
+
+\[
+\begin{aligned}
+I(i) \equiv\;&
+\bigl(1\le i \le T+1\bigr) \\
+&\land\;
+\bigl(\forall k\in\{1,\dots ,i-1\}\;.\;
+\texttt{print}(k, msg_k)\bigr) \\
+&\land\;
+\bigl(\forall k\in\{1,\dots ,i-1\}\;.\;
+out_k = out(s_k , r_k)\bigr) \\
+&\land\;
+\bigl(\forall k\in\{1,\dots ,i-1\}\;.\;
+msg_k = msg(out_k)\bigr)
+\end{aligned}
+\]
+
+In words:  
+
+* all test cases already processed (`1 … i‑1`) have been printed with the correct message, and  
+* the values `out_k` and `msg_k` used for those prints are exactly those prescribed by the formal definitions of `out` and `msg`.  
+
+The invariant also records that `i` is always a legal loop index (`1 ≤ i ≤ T+1`).  
+
+--------------------------------------------------------------------
+
+## 3.  Proof that the invariant holds  
+
+### 3.1  Initialization (`i = 1`)  
+
+Before the first iteration the loop has not processed any test case, therefore the universal quantifications over the empty set are true.  
+The program has already read `T` (the first token) and stored it in the variable `T`.  
+Thus `I(1)` holds:
+
+* `1 ≤ 1 ≤ T+1` is true because `T ≥ 1` by the pre‑condition.  
+* No `print` statements have been executed yet, so the second conjunct is vacuously true.  
+* No `out_k` or `msg_k` have been defined, so the third and fourth conjuncts are also vacuous.
+
+Hence the invariant is established before the loop starts.
+
+### 3.2  Preservation (`I(i) ⇒ I(i+1)`)  
+
+Assume that `I(i)` holds at the beginning of iteration `i` (`1 ≤ i ≤ T`).  
+We must show that after executing the body of the loop the invariant holds for `i+1`.
+
+The body of the loop consists of the following steps (written in a more mathematical style):
+
+1. **Read the two tokens**  
+   ```python
+   escolhas = [x for x in input().split(" ")]
+   ```  
+   By the pre‑condition the next two tokens are exactly `s_i` and `r_i`.  
+   Consequently after this line we have  
+
+   \[
+   escolhas[0] = s_i,\qquad escolhas[1] = r_i .
+   \]
+
+2. **Compute the “victory” predicate**  
+
+   The constant `vitoria` is a list of the ten ordered pairs  
+
+   \[
+   \bigl\{(\text{tesoura},\text{papel}),(\text{papel},\text{pedra}),\dots,(\text{pedra},\text{tesoura})\bigr\},
+   \]  
+
+   which is **exactly** the set \(W\) defined in § 2 (the order of the pairs is irrelevant for the membership test).  
+
+   The test  
+
+   ```python
+   if escolhas in vitoria:
+   ```  
+
+   is therefore equivalent to the logical condition  
+
+   \[
+   (s_i,r_i) \in W .
+   \]
+
+3. **Compute the tie predicate**  
+
+   ```python
+   empate = escolhas[0] == escolhas[1]
+   ```  
+
+   This is precisely the condition `s_i = r_i`.
+
+4. **Select the message and print**  
+
+   The three branches of the `if/elif/else` are:
+
+   * **Branch 1** (`escolhas in vitoria`) → print `"Bazinga!"`  
+     By the equivalence above this branch is taken iff \((s_i,r_i)\in W\).  
+     According to the definition of `out` we have `out_i = S`.  
+     The mapping `msg` gives `msg_i = "Bazinga!"`.  
+     The program executes  
+
+     \[
+     \texttt{print}(i,\; "Bazinga!")
+     \]
+
+     which is exactly `print(i, msg_i)`.
+
+   * **Branch 2** (`empate`) → print `"De novo!"`  
+     This branch is taken iff `s_i = r_i`.  
+     By the definition of `out` we obtain `out_i = T`.  
+     `msg(out_i)` is `"De novo!"`.  
+     Again the program prints `print(i, msg_i)`.
+
+   * **Branch 3** (the `else`) → print `"Raj trapaceou!"`  
+     This branch occurs when the first two tests are false, i.e.  
+
+     \[
+     (s_i,r_i)\notin W\ \land\ s_i\neq r_i .
+     \]  
+
+     Because `W` is antisymmetric, the only remaining possibility is  
+
+     \[
+     (r_i,s_i)\in W .
+     \]  
+
+     Hence `out_i = R` and `msg_i = "Raj trapaceou!"`.  
+     The program prints `print(i, msg_i)`.
+
+   In every case the printed line is exactly  
+
+   \[
+   \texttt{Caso \#}i\!:\;\texttt{msg}_i
+   \]
+
+   and no other output is produced inside the iteration.
+
+5. **Update of the loop index**  
+
+   The `for`‑loop automatically increments `caso` (and therefore `i = caso+1`) by one.
+
+Having examined the three possible branches we can summarise the effect of the body as the following logical implication:
+
+\[
+\bigl((s_i,r_i)\in W\bigr) \;\lor\; \bigl(s_i=r_i\bigr) \;\lor\; \bigl((r_i,s_i)\in W\bigr)
+\Longrightarrow
+\bigl[\;out_i = out(s_i,r_i)\;\land\;msg_i = msg(out_i)\;\land\;
+\mathbf{print}(i,msg_i)\;\bigr].
+\]
+
+Now we combine this with the induction hypothesis `I(i)`:
+
+* By `I(i)` we already know that all previous test cases `1 … i‑1` have been printed correctly.
+* The body adds the correct printing for case `i` (the three conjuncts above).
+* No other side‑effects occur.
+
+Consequently after the body finishes we have
+
+\[
+\bigl(\forall k\in\{1,\dots ,i\}\;.\;\mathbf{print}(k,msg_k)\bigr)
+\land
+\bigl(\forall k\in\{1,\dots ,i\}\;.\;out_k = out(s_k,r_k)\bigr)
+\land
+\bigl(\forall k\in\{1,\dots ,i\}\;.\;msg_k = msg(out_k)\bigr),
+\]
+
+and the loop index satisfies `1 ≤ i+1 ≤ T+1`.  
+Thus `I(i+1)` holds. ∎
+
+### 3.3  Termination  
+
+The loop is a Python `for` over `range(T)`.  
+`range(T)` contains exactly `T` integers (`0 … T‑1`).  
+Therefore the loop executes a finite number of iterations (`T ≤ 100` by the pre‑condition) and then stops.  
+Since the body itself contains no unbounded loops, the whole program terminates for every input satisfying `P`.
+
+--------------------------------------------------------------------
+
+## 4.  Deriving the post‑condition  
+
+When the loop terminates we have `i = T+1`.  
+Instantiating the invariant `I(i)` with `i = T+1` yields
+
+\[
+\begin{aligned}
+&\bigl(\forall k\in\{1,\dots ,T\}\;.\;
+   \mathbf{print}(k,msg_k)\bigr) \\
+&\land\;
+\bigl(\forall k\in\{1,\dots ,T\}\;.\;
+   out_k = out(s_k,r_k)\bigr) \\
+&\land\;
+\bigl(\forall k\in\{1,\dots ,T\}\;.\;
+   msg_k = msg(out_k)\bigr) .
+\end{aligned}
+\]
+
+These three conjuncts are **exactly** the first three lines of the post‑condition `Q`.  
+The fourth line of `Q` (“no other output is produced”) follows because:
+
+* The only `print` statements in the program are the three inside the `if/elif/else`.
+* The loop iterates exactly `T` times, therefore exactly `T` lines are emitted.
+* No `print` appears before the loop, after it, or inside any other branch.
+
+Hence the whole post‑condition `Q` holds after termination.
+
+--------------------------------------------------------------------
+
+## 5.  Formal Hoare‑logic derivation (outline)
+
+Below is a compact Hoare‑logic sketch that mirrors the informal proof above.
+
+```
+{ P }                                   // pre‑condition
+T := int(input())                       // reads T, 1 ≤ T ≤ 100
+i := 1
+while i ≤ T do                          // loop guard
+  { I(i) }                              // invariant holds at entry
+  escolhas := input().split()           // yields [s_i, r_i]
+  empate := escolhas[0] = escolhas[1]  // tie test
+  if escolhas in vitoria then          // (s_i,r_i) ∈ W
+       msg_i := "Bazinga!"
+  elif empate then                     // s_i = r_i
+       msg_i := "De novo!"
+  else                                 // (r_i,s_i) ∈ W
+       msg_i := "Raj trapaceou!"
+  print(f"Caso #{i}: {msg_i}")          // print(i,msg_i)
+  i := i + 1
+od
+{ Q }                                   // post‑condition
+```
+
+* **Rule of consequence** is used to replace the concrete tests by the abstract predicates `(s_i,r_i)∈W`, `s_i=r_i`, `(r_i,s_i)∈W`.  
+* **Rule of composition** links the three branches to the definition of `out` and `msg`.  
+* **Loop rule**: `I(i)` is the invariant proved in § 3.2; the guard `i ≤ T` guarantees that the loop terminates after the `T`‑th iteration because `i` is increased by `1` each time and `T` is a natural number.  
+
+Thus the Hoare triple  
+
+\[
+\{\,P\,\}\; \texttt{RPSL\_Solver}\; \{\,Q\,\}
+\]
+
+is derived, establishing **total correctness** of the program.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have shown, by induction on the loop index, that:
+
+* every iteration computes the correct outcome `out_i` according to the winning relation `W`,
+* the appropriate message `msg_i` is selected,
+* the line `Caso #i: msg_i` is printed, and
+* after the last iteration exactly `T` lines have been produced.
+
+Together with the obvious termination argument, this constitutes a complete Hoare‑logic proof that the given Python program satisfies the formal specification described in Sections 1‑5. ∎

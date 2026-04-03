@@ -1,0 +1,257 @@
+## 1.  What has to be proved  
+
+We have to show the Hoare triple  
+
+\[
+\{\,P\,\}\;{\sf Program}\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;n\in \mathbb N                         \qquad\text{(the distance read from the input is a non‑negative integer)}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q &\equiv 
+   \bigl(m = 2n \bigr)                                    \;\land\\
+  &\qquad\bigl(\text{output}= 
+          \operatorname{concat}\bigl(\operatorname{toString}(m),\;{\tt " minutos"}\bigr)\bigr)
+\end{aligned}
+\]
+
+(The physical derivation \(m = \frac{n}{\Delta v}\,c = 2n\) is already built into the
+right‑hand side of \(Q\).)
+
+The program that is given in the statement is
+
+```python
+# reads the distance, multiplies by 2 and stores it
+minutos = 2 * int(input())
+
+# prints the result
+print(f'{minutos} minutos')
+```
+
+For a clean Hoare‑logic proof we rewrite it *without* the “hidden” read:
+
+```python
+n = int(input())          # line 1
+m = 2 * n                 # line 2
+print(f'{m} minutos')     # line 3
+```
+
+(The variable names have been changed only for the sake of the proof; the
+behaviour of the program is exactly the same.)
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules that will be used  
+
+| Rule | Form |
+|------|------|
+| **Assignment axiom** | \(\displaystyle\frac{}{ \{\,\psi[e/x]\,\}\;x:=e\;\{\,\psi\,\}}\) |
+| **Composition** | \(\displaystyle\frac{\{P\}S_1\{R\}\qquad\{R\}S_2\{Q\}}{\{P\}S_1;S_2\{Q\}}\) |
+| **Consequence** | \(\displaystyle\frac{P\Rightarrow P'\qquad\{P'\}S\{Q'\}\qquad Q'\Rightarrow Q}{\{P\}S\{Q\}}\) |
+
+We shall also use the obvious logical facts  
+
+* \(n\in\mathbb N \Longrightarrow 2n\in\mathbb N\) (closure of the naturals under
+  multiplication by a natural constant), and  
+
+* \(e\) denotes the *value* returned by `int(input())`; the pre‑condition guarantees that this value is a natural number, i.e. \(e\in\mathbb N\).
+
+--------------------------------------------------------------------
+
+## 3.  Proof for each line  
+
+### 3.1  Line 1 – reading the distance  
+
+Let  
+
+\[
+R_1 \;:=\; n\in\mathbb N .
+\]
+
+The assignment axiom with the expression `int(input())` gives
+
+\[
+\frac{}{ \{\,R_1\,\}\;n:=\operatorname{int}(\operatorname{input}())\;\{\,R_1\,\}}
+\tag{1}
+\]
+
+because \(R_1\) does **not** contain the variable that is being assigned
+(`n` appears in it, but after the substitution \(R_1[n/e]\) we obtain the same
+formula, since `e` is exactly the value read from the input).
+
+Thus  
+
+\[
+\{P\}\;n:=\operatorname{int}(\operatorname{input}())\;\{R_1\}
+\tag{1a}
+\]
+
+holds, because \(P\equiv n\in\mathbb N\) and \(P\Rightarrow R_1\) is trivially
+true.
+
+--------------------------------------------------------------------
+
+### 3.2  Line 2 – computing the time in minutes  
+
+Define  
+
+\[
+R_2 \;:=\; (m = 2n)\;\land\;(n\in\mathbb N).
+\]
+
+Apply the assignment axiom to the statement `m := 2 * n` :
+
+\[
+\frac{}{ \{\,R_2[m/2*n]\,\}\;m:=2*n\;\{\,R_2\,\}}
+\tag{2}
+\]
+
+The substitution \(R_2[m/2*n]\) replaces the occurrence of `m` in \(R_2\) by
+`2*n`:
+
+\[
+R_2[m/2*n] \equiv (2*n = 2*n)\;\land\;(n\in\mathbb N)
+               \equiv \text{true}\;\land\;(n\in\mathbb N)
+               \equiv n\in\mathbb N .
+\]
+
+Hence (2) becomes  
+
+\[
+\{\,n\in\mathbb N\,\}\;m:=2*n\;\{\,m = 2n\;\land\;n\in\mathbb N\,\}.
+\tag{2a}
+\]
+
+Because the post‑condition of line 1 is exactly \(n\in\mathbb N\), we can
+compose (1a) and (2a) with the **Composition** rule:
+
+\[
+\{P\}\;n:=\operatorname{int}(\operatorname{input}());\;m:=2*n\;
+\{\,m = 2n\;\land\;n\in\mathbb N\,\}.
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+
+### 3.3  Line 3 – printing the result  
+
+Let  
+
+\[
+R_3 \;:=\; \text{output}= \operatorname{concat}\bigl(\operatorname{toString}(m),\;{\tt " minutos"}\bigr).
+\]
+
+The statement `print(f'{m} minutos')` does not modify any program variable;
+its effect is only to produce the described output.  In Hoare logic the rule
+for a **skip‑like** command that only produces an observable effect is
+
+\[
+\frac{}{ \{\,R_2\;\land\;R_3\,\}\;
+          \texttt{print(...)}\;
+          \{\,R_2\;\land\;R_3\,\}} .
+\tag{4}
+\]
+
+Thus, assuming that before the `print` we already know \(m = 2n\) and
+\(n\in\mathbb N\) (i.e. \(R_2\)), after the `print` we additionally know that
+the output string is exactly the concatenation demanded by \(R_3\).
+
+--------------------------------------------------------------------
+
+## 4.  Putting the three parts together  
+
+From (3) we have  
+
+\[
+\{P\}\; S_1;S_2\; \{\,m = 2n\;\land\;n\in\mathbb N\,\},
+\]
+
+where  
+
+* \(S_1\) is `n := int(input())` and  
+* \(S_2\) is `m := 2*n`.
+
+From (4) we have  
+
+\[
+\{\,m = 2n\;\land\;n\in\mathbb N\,\}\; S_3\;
+\{\,m = 2n\;\land\;n\in\mathbb N\;\land\;
+   \text{output}= \operatorname{concat}(\operatorname{toString}(m),\;{\tt " minutos"})\},
+\]
+
+with \(S_3\) the `print` command.
+
+Applying **Composition** once more to the triple  
+\(\{P\} S_1;S_2 \{R_2\}\) and the triple \(\{R_2\} S_3 \{R_2\land R_3\}\) we obtain
+
+\[
+\boxed{
+\{P\}\;
+   n:=\operatorname{int}(\operatorname{input()});\;
+   m:=2*n;\;
+   \texttt{print}(f'\{m\} minutos')
+\;
+\{\,m = 2n\;\land\;
+   \text{output}= \operatorname{concat}(\operatorname{toString}(m),\;{\tt " minutos"})\}
+}
+\tag{5}
+\]
+
+The right‑hand side of (5) is exactly the post‑condition \(Q\) that we wanted
+to guarantee.  Consequently the Hoare triple  
+
+\[
+\{P\}\;\textbf{Program}\;\{Q\}
+\]
+
+is **valid**.
+
+--------------------------------------------------------------------
+
+## 5.  Relation with the physical formula  
+
+Recall the constants given in the statement:
+
+* \(\Delta v = v_Y - v_X = 30\;\text{km/h}\),
+* \(c = 60\;\text{min/h}\).
+
+The catching‑up time in minutes is  
+
+\[
+m = \frac{n}{\Delta v}\;c
+  = \frac{n}{30}\times 60
+  = 2n .
+\]
+
+Thus the logical condition \(m = 2n\) that appears in \(Q\) is *exactly* the
+mathematical result derived from the physics of the problem.  The program,
+by computing `m = 2*n`, implements that formula, and the Hoare‑logic proof
+above shows that it does so **correctly** for every non‑negative integer
+input \(n\).
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+Using the assignment axiom, the composition rule and a simple consequence
+step we have proved the Hoare triple  
+
+\[
+\{\,n\in\mathbb N\,\}\; \texttt{minutos = 2 * int(input());\; print(f'\{minutos\} minutos')} \;
+\{\,m = 2n\;\land\;
+   \text{output}= \operatorname{concat}(\operatorname{toString}(m),\;{\tt " minutos"})\,\}.
+\]
+
+Therefore the Python program satisfies the specification: for every
+non‑negative integer distance \(n\) it prints the string “\(2n\) minutos”, which
+is precisely the required catching‑up time in minutes. ∎

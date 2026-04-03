@@ -1,0 +1,282 @@
+**Proof of partial correctness of the program with respect to the Hoare‑style specification**  
+
+\[
+\{P\}\;\texttt{BattleOfFiveArmies}\;\{Q\}
+\]
+
+where  
+
+* \(P\equiv H\!\ge\!0\land E\!\ge\!0\land A\!\ge\!0\land O\!\ge\!0\land W\!\ge\!0\land X\!\ge\!0\)  
+
+* \(G:=H+E+A,\;B:=O+W,\;
+   \Delta:=\begin{cases}X &\text{if }G\le B\\0 &\text{if }G>B\end{cases},
+   \;G':=G+\Delta\)
+
+* \(Q\equiv\bigl(out=\text{“Middle‑earth is safe.”}\bigr)\!\Leftrightarrow\! G'\!\ge\! B
+      \;\land\;
+      \bigl(out=\text{“Sauron has returned.”}\bigr)\!\Leftrightarrow\! G'<B\)
+
+The program (Python‑style) is
+
+```python
+H,E,A,O,W,X = map(int, input().split(' '))
+if (H+E+A+X) >= (O+W):
+    print('Middle-earth is safe.')
+else:
+    print('Sauron has returned.')
+```
+
+We shall prove that **every terminating execution that starts in a state satisfying
+\(P\) ends in a state satisfying \(Q\)**.  
+The proof uses the standard Hoare‑logic inference rules:
+
+* **(Assign)**                                                                                   \(\{\,Q[x:=e]\,\}\;x:=e\;\{\,Q\,\}\)
+
+* **(If‑Then‑Else)**                                                            \(\dfrac{\{P\}\;S_{1}\;\{Q\}\qquad\{P\}\;S_{2}\;\{Q\}}{\{P\}\;\textbf{if }b\textbf{ then }S_{1}\textbf{ else }S_{2}\;\{Q\}}\)
+
+* **(Consequence)**                                                                           \(\dfrac{P'\Rightarrow P\quad\{P\}\;S\;\{Q\}\quad Q\Rightarrow Q'}{ \{P'\}\;S\;\{Q'\}}\)
+
+---
+
+### 1.  The input statement
+
+The line  
+
+```python
+H,E,A,O,W,X = map(int, input().split(' '))
+```  
+
+is modelled by six consecutive assignments (the order is irrelevant because the
+right‑hand side expressions do not contain any of the left‑hand side variables).
+
+Using the **Assign** rule we obtain the following Hoare triples, one for each
+variable:
+
+\[
+\{P\}\;H:=\text{input}_H\;\{P\},\qquad
+\{P\}\;E:=\text{input}_E\;\{P\},\;\dots,\;
+\{P\}\;X:=\text{input}_X\;\{P\}.
+\]
+
+Since the pre‑condition \(P\) only asserts non‑negativity of the six variables,
+and the input is assumed to be a non‑negative integer (the problem statement
+guarantees it), each assignment preserves \(P\).  
+Hence after the six assignments we still have
+
+\[
+\{P\}\;\text{(input)}\;\{P\}.
+\]
+
+---
+
+### 2.  Introducing the auxiliary expressions  
+
+For the proof we introduce the *derived* expressions
+
+\[
+G\;:=\;H+E+A,\qquad B\;:=\;O+W .
+\]
+
+These are **pure** (side‑effect‑free) expressions, therefore we may replace them
+by **abbreviations** inside the Hoare logic without affecting correctness.
+Formally we use the *consequence* rule with the tautologies
+
+\[
+P \;\Rightarrow\; P\land G=H+E+A\land B=O+W ,
+\qquad
+P\land G=H+E+A\land B=O+W \;\Rightarrow\; P .
+\]
+
+Consequently we may assume, from now on, that the state also satisfies
+
+\[
+G=H+E+A\quad\text{and}\quad B=O+W .
+\]
+
+---
+
+### 3.  The conditional statement
+
+The program tests the Boolean expression  
+
+\[
+c\;:=\;(H+E+A+X) \ge (O+W)
+\]
+
+which, using the abbreviations, is simply  
+
+\[
+c\;:=\; G+X \ge B .
+\]
+
+The two branches are
+
+* **then‑branch**  
+
+  ```python
+  print('Middle-earth is safe.')
+  ```
+
+* **else‑branch**  
+
+  ```python
+  print('Sauron has returned.')
+  ```
+
+We must show that each branch, when executed under the appropriate guard,
+establishes the post‑condition \(Q\).
+
+---
+
+#### 3.1  The *then* branch  
+
+Assume the guard \(c\) holds, i.e. \(G+X \ge B\).  
+The branch prints the string  
+
+\[
+\text{out} := \text{“Middle‑earth is safe.”}
+\]
+
+We have to prove  
+
+\[
+\bigl(\text{out}= \text{“Middle‑earth is safe.”}\bigr) \Leftrightarrow G' \ge B .
+\]
+
+Recall the definition of \(\Delta\) and \(G'\):
+
+\[
+\Delta = \begin{cases}
+X & \text{if } G \le B\\
+0 & \text{if } G > B
+\end{cases},
+\qquad
+G' = G + \Delta .
+\]
+
+We reason by a **case analysis** on the relation between \(G\) and \(B\).
+
+* **Case 1 – \(G > B\).**  
+  Then \(\Delta = 0\) and \(G' = G\).  
+  Because \(G > B\) we certainly have \(G+X \ge B\) (the guard is true).  
+  Hence \(G' = G \ge B\).  
+  Consequently the printed message *“Middle‑earth is safe.”* is correct,
+  i.e. the right‑hand side of the equivalence holds.
+
+* **Case 2 – \(G \le B\).**  
+  Here \(\Delta = X\) and \(G' = G+X\).  
+  The guard \(G+X \ge B\) is precisely the condition \(G' \ge B\).  
+  Therefore the message printed in the then‑branch is correct exactly when
+  \(G' \ge B\).
+
+Thus, under the assumption \(c\) (the guard of the then‑branch), the post‑condition
+\(Q\) holds. In Hoare‑logic notation we have
+
+\[
+\{\,P\land c\land G=H+E+A\land B=O+W\,\}\;
+\textbf{print}(\text{“Middle‑earth is safe.”})\;
+\{\,Q\,\}.
+\tag{T}
+\]
+
+---
+
+#### 3.2  The *else* branch  
+
+Assume the guard \(c\) is false, i.e. \(G+X < B\).  
+The branch prints  
+
+\[
+\text{out} := \text{“Sauron has returned.”}
+\]
+
+Again we must show  
+
+\[
+\bigl(\text{out}= \text{“Sauron has returned.”}\bigr) \Leftrightarrow G' < B .
+\]
+
+The same case analysis on \(G\) versus \(B\) yields:
+
+* **Case 1 – \(G > B\).**  
+  Then \(\Delta =0\) and \(G' = G > B\).  
+  Consequently the guard \(c\) would be true (because \(G+X \ge G > B\)),
+  which contradicts the assumption of the else‑branch.  
+  Hence this case cannot occur when we are inside the else‑branch.
+
+* **Case 2 – \(G \le B\).**  
+  Here \(\Delta = X\) and \(G' = G+X\).  
+  The falsity of the guard gives \(G+X < B\), i.e. \(G' < B\).  
+  Therefore the printed message *“Sauron has returned.”* is exactly the one
+  required by the post‑condition.
+
+Thus, assuming \(\lnot c\) we also obtain \(Q\):
+
+\[
+\{\,P\land \lnot c\land G=H+E+A\land B=O+W\,\}\;
+\textbf{print}(\text{“Sauron has returned.”})\;
+\{\,Q\,\}.
+\tag{E}
+\]
+
+---
+
+### 4.  Assembling the whole program
+
+We have derived the following Hoare triples:
+
+* After the input statements  
+
+  \[
+  \{P\}\;\text{input}\;\{P\land G=H+E+A\land B=O+W\}.
+  \tag{I}
+  \]
+
+* The conditional statement, using the **If‑Then‑Else** rule together with
+  (T) and (E), yields  
+
+  \[
+  \{P\land G=H+E+A\land B=O+W\}\;
+  \textbf{if }(G+X\ge B)\textbf{ then }S_{1}\textbf{ else }S_{2}\;
+  \{Q\},
+  \]
+
+  where \(S_{1}\) and \(S_{2}\) are the two `print` statements.
+
+* By the **Consequence** rule we can drop the auxiliary conjunct
+  \(G=H+E+A\land B=O+W\) from the pre‑condition because it follows from \(P\).
+
+Hence we obtain the desired Hoare triple for the whole program:
+
+\[
+\boxed{\;\{P\}\;\texttt{BattleOfFiveArmies}\;\{Q\}\;}
+\]
+
+---
+
+### 5.  Informal summary matching the specification  
+
+* Let  
+
+  \[
+  G = H+E+A,\qquad B = O+W,\qquad
+  \Delta = \begin{cases}
+            X & \text{if } G\le B\\[2pt]
+            0 & \text{if } G>B
+            \end{cases},
+  \qquad G' = G+\Delta .
+  \]
+
+* The program evaluates the Boolean condition \(G+X\ge B\).
+
+  * If \(G>B\) then automatically \(G+X\ge B\) is true, the program prints
+    *“Middle‑earth is safe.”* and, because \(\Delta=0\), we have \(G'=G\ge B\).
+
+  * If \(G\le B\) then the condition is exactly \(G+X\ge B\), i.e. \(G'\ge B\).
+    The program prints *“Middle‑earth is safe.”* precisely when this holds,
+    otherwise it prints *“Sauron has returned.”*.
+
+Thus the output string coincides with the logical specification \(Q\).  
+The pre‑condition \(P\) (non‑negative inputs) is never violated, and the program
+always terminates after evaluating the `if` statement and printing one line.
+

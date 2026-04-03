@@ -1,0 +1,362 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the concrete Python program implements the Hoare triple  
+
+\[
+\{\,X\in\mathbb Z\land Y\in\mathbb Z\,\}\;{\tt program}\;
+\{\,S = \displaystyle\sum_{k=\min (X,Y)}^{\max (X,Y)} k\,[k\bmod 13\neq 0] \,\}.
+\]
+
+For the proof we rename the program variables so that they match the
+specification:
+
+| specification | program |
+|---------------|---------|
+| `X`           | `num_1` |
+| `Y`           | `num_2` |
+| `S`           | `soma`  |
+| `i` (loop index) | `i`   |
+
+All other identifiers are auxiliary (the temporary variable `i` that is used
+for swapping is also called `i` in the program; the two uses are disjoint).
+
+--------------------------------------------------------------------
+### 1.  Preliminary facts (logic rules we shall use)
+
+* **Assignment axiom**  
+
+  \[
+  \{\,P[E/x]\,\}\;x:=E\;\{\,P\,\}
+  \]
+
+  where \(P[E/x]\) is the formula obtained from \(P\) by substituting
+  every free occurrence of \(x\) with the expression \(E\).
+
+* **If‑rule**  
+
+  \[
+  \frac{\{P\land B\}\;C_1\;\{Q\}\quad
+        \{P\land\neg B\}\;C_2\;\{Q\}}
+       {\{P\}\;\mathbf{if}\;B\;\mathbf{then}\;C_1\;\mathbf{else}\;C_2\;\{Q\}}
+  \]
+
+* **While‑rule (partial correctness)**  
+
+  If \(I\) is a loop invariant, then  
+
+  \[
+  \frac{\{I\land B\}\;C\;\{I\}}
+       {\{I\}\;\mathbf{while}\;B\;\mathbf{do}\;C\;\{I\land\neg B\}}
+  \]
+
+* **Consequence rule** – we may strengthen the pre‑condition or weaken the
+  post‑condition by logical implication.
+
+--------------------------------------------------------------------
+### 2.  Program annotated with Hoare triples  
+
+We write each statement together with the assertion that is known to hold
+*just before* it executes.
+
+--------------------------------------------------------------------
+#### 2.1  Input
+
+```python
+num_1 = int(input())
+num_2 = int(input())
+```
+
+After the two assignments we have  
+
+\[
+\{\,X = num_1 \land Y = num_2 \,\}
+\tag{A0}
+\]
+
+because the input statements are exactly the assignments `num_1 := X`,
+`num_2 := Y`.  (The “read” command is treated as an assignment in Hoare
+logic.)
+
+--------------------------------------------------------------------
+#### 2.2  Swapping block  
+
+```python
+if (num_2 < num_1):
+    i = num_2
+    num_2 = num_1
+    num_1 = i
+```
+
+The goal of the block is to guarantee that after it executes  
+
+\[
+\begin{aligned}
+a &:= \min (X,Y) = num_1,\\
+b &:= \max (X,Y) = num_2 .
+\end{aligned}
+\tag{A1}
+\]
+
+We prove this with the **if‑rule**.
+
+*Guard* :  \(B \equiv (num_2 < num_1)\).
+
+*Branch 1* (`B` true) :
+
+```
+i = num_2
+num_2 = num_1
+num_1 = i
+```
+
+Take the invariant candidate  
+
+\[
+I_1 \;:=\; (a = num_1 \land b = num_2 \land a\le b).
+\]
+
+Before the first assignment of the branch we have, from (A0) and the guard,
+\(num_2 < num_1\); therefore \(a = num_2\) and \(b = num_1\) are true.
+Applying the assignment axiom three times we obtain after the three
+assignments exactly the assertion (A1).  Hence  
+
+\[
+\{\,a = num_1\land b = num_2\land a\le b\land B\,\}\;
+\text{branch}_1\;
+\{\,a = num_1\land b = num_2\land a\le b\,\}.
+\tag{B1}
+\]
+
+*Branch 2* (`B` false) :
+
+When the guard is false we already have `num_2 >= num_1`; consequently
+\(a = num_1\) and \(b = num_2\) already hold, and the branch body is empty.
+Thus  
+
+\[
+\{\,a = num_1\land b = num_2\land a\le b\land\neg B\,\}\;
+\text{skip}\;
+\{\,a = num_1\land b = num_2\land a\le b\,\}.
+\tag{B2}
+\]
+
+Applying the **if‑rule** with the common post‑condition
+\(a = num_1\land b = num_2\land a\le b\) yields
+
+\[
+\{\,a = X\land b = Y\land a\le b\;\}\;
+\mathbf{if}\;(num_2<num_1)\;\mathbf{then}\;\dots\;\mathbf{else}\;\dots\;
+\{\,a = num_1\land b = num_2\land a\le b\,\}.
+\tag{A2}
+\]
+
+Because \(a\) and \(b\) are defined as \(\min (X,Y)\) and \(\max (X,Y)\),
+the assertion (A2) is exactly (A1).
+
+--------------------------------------------------------------------
+#### 2.3  Initialisation of the loop variables  
+
+```python
+soma = 0
+i    = num_1
+```
+
+Using the assignment axiom we obtain  
+
+\[
+\{\,a = num_1\land b = num_2\land a\le b\land
+   \underbrace{soma = 0}_{\text{init}} \land
+   \underbrace{i = a}_{\text{init}}\,\}
+\tag{A3}
+\]
+
+which we rewrite as  
+
+\[
+\{\,I_{loop}\,\}
+\]
+
+where the **loop invariant** \(I_{loop}\) is defined below.
+
+--------------------------------------------------------------------
+#### 2.4  Loop invariant  
+
+We claim that the following statement is an invariant of the `while` loop
+
+\[
+\boxed{
+I_{loop}\;:\;
+\begin{aligned}
+& a = num_1 \land b = num_2 \land a\le b \\
+&\land\; i\in\mathbb Z \land a\le i\le b+1 \\
+&\land\; soma = \displaystyle\sum_{k=a}^{\,i-1} k\,[k\bmod 13\neq 0].
+\end{aligned}}
+\tag{Inv}
+\]
+
+*Why is it true initially?*  
+When the loop is entered we have `i = a` (by (A3)) and `soma = 0`.  
+The sum from \(k=a\) to \(i-1 = a-1\) is an empty sum, whose value is 0,
+so the third conjunct holds.  The other conjuncts are exactly (A2).  Hence
+\(\{\,I_{loop}\,\}\) holds before the first test of the loop.
+
+*Preservation* – we must show  
+
+\[
+\{\,I_{loop}\land i\le b\,\}\;C\;\{\,I_{loop}\,\},
+\]
+
+where  
+
+```python
+if (i % 13 != 0):
+    soma += i
+i += 1
+```
+
+Let us split the body into two statements and reason about each.
+
+1. **Conditional addition**
+
+   The Hoare triple for the inner `if` with the invariant as post‑condition
+   is proved by case analysis on the guard `i % 13 != 0`.
+
+   *Case 1* (`i % 13 != 0` true).  
+   The command `soma += i` changes `soma` to  
+   \(\displaystyle\sum_{k=a}^{i-1} k\,[k\bmod 13\neq 0] + i\).  
+   Because the guard guarantees that \(i\bmod 13\neq 0\), the indicator for
+   \(i\) equals 1, therefore the new value of `soma` equals  
+
+   \[
+   \sum_{k=a}^{i} k\,[k\bmod 13\neq 0] .
+   \]
+
+   The other parts of the invariant are untouched, so after the `if`
+   (still inside the loop body) we have  
+
+   \[
+   soma = \sum_{k=a}^{i} k\,[k\bmod 13\neq 0].
+   \tag{C1}
+   \]
+
+   *Case 2* (`i % 13 != 0` false).  
+   The `if` body is skipped, thus `soma` stays unchanged.
+   Since the indicator of \(i\) is 0, we also have  
+
+   \[
+   \sum_{k=a}^{i} k\,[k\bmod 13\neq 0] = 
+   \sum_{k=a}^{i-1} k\,[k\bmod 13\neq 0],
+   \]
+
+   i.e. (C1) holds again.
+
+   Consequently, after the whole `if` statement we have
+
+   \[
+   \{\,I_{loop}\land i\le b\}\;
+   \text{if}(i\%13\neq 0)\; \{\,soma:=soma+i\}\;
+   \{\,soma = \sum_{k=a}^{i} k\,[k\bmod 13\neq 0]\ \land\ \dots \,\}.
+   \tag{C2}
+   \]
+
+2. **Increment of the index**
+
+   The command `i += 1` replaces `i` by `i+1`.  Substituting `i+1` for `i`
+   in (C2) we obtain  
+
+   \[
+   soma = \sum_{k=a}^{(i+1)-1} k\,[k\bmod 13\neq 0]\;,
+   \qquad
+   a\le i+1\le b+1 .
+   \]
+
+   Hence the invariant (Inv) holds again after the whole loop body.
+
+Therefore the **while‑rule** with invariant (Inv) yields
+
+\[
+\{\,I_{loop}\,\}\;
+\mathbf{while}\;(i\le b)\;\mathbf{do}\;C\;
+\{\,I_{loop}\land\neg(i\le b)\,\}.
+\tag{A4}
+\]
+
+--------------------------------------------------------------------
+#### 2.5  Loop exit  
+
+The negation of the guard is `i > b`.  Together with the invariant we obtain
+
+\[
+\begin{aligned}
+& a = num_1 \land b = num_2 \land a\le b\\
+&\land\; i = b+1 \\
+&\land\; soma = \sum_{k=a}^{\,i-1} k\,[k\bmod 13\neq 0]
+   = \sum_{k=a}^{\,b}   k\,[k\bmod 13\neq 0].
+\end{aligned}
+\tag{A5}
+\]
+
+Thus after the loop finishes we have exactly the desired value for `soma`.
+
+--------------------------------------------------------------------
+#### 2.6  Output  
+
+```python
+print(soma)
+```
+
+The `print` statement does not modify any program variable, therefore the
+assertion (A5) is preserved and becomes the final post‑condition of the
+whole program.
+
+--------------------------------------------------------------------
+### 3.  Putting the pieces together  
+
+We chain the Hoare triples obtained in the previous sections:
+
+1. (A0) – after the two input statements.
+2. (A2) – after the swapping `if`.
+3. (A3) – after the initialisations of `soma` and `i`.
+4. (A4) – after the `while` loop (using invariant (Inv)).
+5. (A5) – the concrete form of the post‑condition after the loop.
+6. `print` does not change the state.
+
+By the **consequence rule** we can replace the auxiliary variables `a` and
+`b` with their definitions `a = min(X,Y)`, `b = max(X,Y)`.  Consequently we
+obtain the exact post‑condition required by the specification:
+
+\[
+\boxed{
+S = \sum_{k=\min (X,Y)}^{\max (X,Y)} k\,[k\bmod 13\neq 0]
+}
+\]
+
+where `S` is the value stored in `soma`.  The pre‑condition `X,Y∈\mathbb Z`
+is obviously satisfied before the first input statement.
+
+--------------------------------------------------------------------
+### 4.  Termination argument  
+
+The loop variable `i` is an integer that is increased by 1 at each iteration.
+The invariant guarantees `i ≤ b+1`.  Because `b` is a fixed integer (the
+larger of the two inputs), the value `i` can be increased only a finite
+number of times before the guard `i ≤ b` becomes false.  Hence the loop
+terminates, and the whole program terminates.
+
+--------------------------------------------------------------------
+### 5.  Conclusion  
+
+By annotating each command with appropriate Hoare assertions, exhibiting a
+loop invariant that is (i) true before the first iteration, (ii) preserved
+by the loop body, and (iii) strong enough to yield the required result when
+the guard becomes false, we have shown the **partial correctness** of the
+program.  The monotone increase of the loop index proves **termination**.
+Therefore the Python program satisfies the Hoare triple
+
+\[
+\{\,X\in\mathbb Z\land Y\in\mathbb Z\,\}\;
+\texttt{program}\;
+\{\,S = \displaystyle\sum_{k=\min (X,Y)}^{\max (X,Y)} k\,[k\bmod 13\neq 0]\,\},
+\]
+
+which is exactly the formal specification given in the statement. ∎

@@ -1,0 +1,386 @@
+### Overview  
+
+We are asked to **prove** that the concrete Python program  
+
+```python
+i = 0.0
+while i <= 2:
+    for j in range(3):
+        respostaJ = i + (j + 1)
+
+        if i.is_integer():
+            print(f"I={int(i)} J={int(respostaJ)}")
+        else:
+            print(f"I={i} J={respostaJ}")
+
+    i *= 10
+    i += 2
+    i /= 10
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{\,\texttt{true}\,\}\; \texttt{PrintSequence}\; \{\,Q\,\}
+\]
+
+where  
+
+* \(\Delta = 0.2\)  
+* \(I_i = 0 + i\Delta\) for \(i\in\{0,\dots ,10\}\) (so \(I_{10}=2\))  
+* \(K = \{1,2,3\}\)  
+* \(J_{i,k}=k+I_i\) for \(k\in K\)  
+
+and  
+
+\[
+Q\;:\; \operatorname{output}= \big\Vert_{i=0}^{10}\;\big\Vert_{k\in K}\;
+\bigl(\texttt{"I="}\,\Vert\,\operatorname{str}(I_i)\,\Vert\,
+\texttt{" J="}\,\Vert\,\operatorname{str}(J_{i,k})\,
+\texttt{"\n"}\bigr) .
+\]
+
+The proof proceeds by giving **loop invariants** for the two loops, showing that they are
+established initially, preserved by the body, and imply the required part of the
+post‑condition when the loops terminate.  Finally we argue termination and the
+correct handling of the integer‑vs‑decimal printing.
+
+---------------------------------------------------------------------
+
+## 1.  Notation for the proof  
+
+* We write \(\llbracket S\rrbracket\) for the *effect* of a statement \(S\) on the
+  program state (variables and the output buffer).  
+* `out` denotes the current contents of the output buffer.  
+* `i` and `j` denote the program variables; `respostaJ` denotes the temporary
+  variable that holds the value of \(J\).  
+* For a real number \(x\) we write  
+
+  \[
+  \operatorname{repr}(x) :=
+  \begin{cases}
+      \operatorname{str}(\lfloor x\rfloor) & \text{if }x\in\mathbb{Z},\\[2mm]
+      \operatorname{str}(x)               & \text{otherwise},
+  \end{cases}
+  \]
+
+  which is exactly the string produced by the `if … else …` block of the program
+  (the `int()` conversion removes the trailing “.0” when the value is integral).
+
+* For a pair \((i,k)\) we denote the **desired line** by  
+
+  \[
+  \ell_{i,k}:= \texttt{"I="}\,\Vert\,\operatorname{repr}(I_i)\,\Vert\,
+            \texttt{" J="}\,\Vert\,\operatorname{repr}(J_{i,k})\,\Vert\,
+            \texttt{"\n"} .
+  \]
+
+---------------------------------------------------------------------
+
+## 2.  Outer‑loop invariant  
+
+The outer loop is  
+
+```python
+while i <= 2:
+    …body…
+    i ← (i*10+2)/10
+```
+
+Define the **outer invariant** \(I_{\text{out}}\) as
+
+\[
+\begin{aligned}
+I_{\text{out}} \equiv\;&
+\exists\,n\in\mathbb{N}\;.\;0\le n\le 10\;\wedge\; i = n\Delta \\
+&\;\wedge\;
+\operatorname{out}= \big\Vert_{p=0}^{n-1}\;\big\Vert_{k\in K}\;\ell_{p,k}.
+\end{aligned}
+\tag{Inv\(_{\text{out}}\)}
+\]
+
+*The meaning*: after finishing the \(n\)-th iteration (i.e. after the body has
+executed \(n\) times) the variable `i` holds exactly the arithmetic progression
+value \(I_n\) and the output already contains **all** lines for the pairs
+\((p,k)\) with \(0\le p<n\) (the “already printed” part).
+
+### 2.1  Initialization  
+
+Before the loop we have `i = 0.0`.  Choose \(n=0\).  Then
+
+* \(i = 0 = 0\Delta\) (true)  
+* The output is still empty, i.e. \(\operatorname{out}= \big\Vert_{p=0}^{-1}\dots\)
+  which is the empty concatenation, also true.
+
+Thus the invariant holds before the first test of the loop.
+
+### 2.2  Preservation  
+
+Assume the invariant holds at the beginning of an iteration with some
+\(n\) such that \(0\le n\le 10\) and \(i = n\Delta\).  
+The loop condition `i <= 2` guarantees \(n\le 10\) (because \(10\Delta = 2\)).
+
+**Inner‑for loop** (proved later, §3) appends exactly the three lines  
+
+\[
+\ell_{n,1}\,\Vert\,\ell_{n,2}\,\Vert\,\ell_{n,3}
+\]
+
+to `out`.  Consequently after the `for` finishes we have
+
+\[
+\operatorname{out}= \big\Vert_{p=0}^{n}\;\big\Vert_{k\in K}\;\ell_{p,k}.
+\tag{1}
+\]
+
+Now the update of `i` is performed:
+
+```
+i ← (i*10 + 2) / 10
+```
+
+Because `i = nΔ` and \(\Delta = 0.2 = \frac{2}{10}\),
+
+\[
+\begin{aligned}
+i_{\text{new}}
+   &= \frac{ (n\Delta)\cdot 10 + 2}{10}
+    = \frac{ n\cdot 2 + 2}{10}
+    = \frac{2(n+1)}{10}
+    = (n+1)\Delta .
+\end{aligned}
+\]
+
+Thus after the update `i` equals \((n+1)\Delta\).  Setting \(n' = n+1\) we obtain
+exactly the invariant \(I_{\text{out}}\) again, now with the larger index
+\(n'\).  Hence the invariant is preserved.
+
+### 2.3  Termination condition  
+
+The loop stops when the guard `i <= 2` becomes false.
+Because the invariant guarantees \(i = n\Delta\) with \(0\le n\le 10\),
+the guard fails precisely when \(n = 11\) (i.e. \(i = 11\Delta = 2.2\)).
+Consequently the loop terminates **after** the iteration with \(n=10\)
+has finished.  At that moment the invariant gives
+
+\[
+\operatorname{out}= \big\Vert_{p=0}^{10}\;\big\Vert_{k\in K}\;\ell_{p,k},
+\]
+
+which is exactly the right‑hand side of the post‑condition \(Q\).
+
+---------------------------------------------------------------------
+
+## 3.  Inner‑for‑loop invariant  
+
+Inside the outer loop we have
+
+```python
+for j in range(3):
+    respostaJ = i + (j + 1)
+    if i.is_integer():
+        print(f"I={int(i)} J={int(respostaJ)}")
+    else:
+        print(f"I={i} J={respostaJ}")
+```
+
+Recall that `range(3)` yields the sequence \(j = 0,1,2\).
+Define the **inner invariant** \(I_{\text{in}}(j)\) (parameterised by the current
+value of `j`) as
+
+\[
+\begin{aligned}
+I_{\text{in}}(j) \equiv\;&
+0\le j\le 3 \\
+&\wedge\;
+\operatorname{out}= \big\Vert_{p=0}^{n-1}\;\big\Vert_{k\in K}\;\ell_{p,k}
+   \;\Vert\; \big\Vert_{t=1}^{j}\;\ell_{n,t}.
+\end{aligned}
+\tag{Inv\(_{\text{in}}\)}
+\]
+
+In words: before the body of the `for` with index `j` we have already printed
+
+* all lines belonging to the *previous* outer‑loop values \(p < n\) (the first
+  concatenation), and  
+* the first `j` lines for the *current* outer value \(I_n\) (the second
+  concatenation).  When `j = 0` the second part is empty, i.e. we have printed
+  only the previous outer‑iteration lines.
+
+### 3.1  Initialization  
+
+When the `for` is entered, `j` has the value `0`.  
+The outer invariant tells us that `out` already contains the lines for
+\(p < n\) and **nothing** for the current \(n\).  Hence \(I_{\text{in}}(0)\) holds.
+
+### 3.2  Preservation  
+
+Assume \(I_{\text{in}}(j)\) holds for some \(j\in\{0,1,2\}\).  
+The body computes  
+
+\[
+\texttt{respostaJ}= i + (j+1) = I_n + (j+1) = J_{n,\,j+1}.
+\]
+
+The `if`‑statement distinguishes two cases.
+
+* **Case 1 – `i.is_integer()` is true.**  
+  Because `i = nΔ` and \(\Delta = 0.2\), `i` is integral **iff** \(n\) is a
+  multiple of \(5\) (i.e. \(n\in\{0,5,10\}\)).  
+  In this case the printed string is  
+
+  \[
+  \texttt{f"I={int(i)} J={int(respostaJ)}"} =
+  \texttt{"I="}\,\Vert\,\operatorname{str}(n\Delta)\,\Vert\,
+  \texttt{" J="}\,\Vert\,\operatorname{str}(J_{n,j+1}) .
+  \]
+
+  Since both numbers are integers, `int` removes the trailing “.0”, which is
+  exactly \(\operatorname{repr}(I_n)\) and \(\operatorname{repr}(J_{n,j+1})\).
+
+* **Case 2 – `i.is_integer()` is false.**  
+  The printed string is  
+
+  \[
+  \texttt{f"I={i} J={respostaJ}"} =
+  \texttt{"I="}\,\Vert\,\operatorname{str}(I_n)\,\Vert\,
+  \texttt{" J="}\,\Vert\,\operatorname{str}(J_{n,j+1}) .
+  \]
+
+  Here `str` already yields the minimal decimal representation, which is
+  precisely \(\operatorname{repr}(I_n)\) and \(\operatorname{repr}(J_{n,j+1})\).
+
+Thus in either case the **exact line** \(\ell_{n,\,j+1}\) is appended to the
+output.  Consequently after the `print` statement we have
+
+\[
+\operatorname{out}= 
+\big\Vert_{p=0}^{n-1}\big\Vert_{k\in K}\ell_{p,k}
+\;\Vert\;
+\big\Vert_{t=1}^{j+1}\ell_{n,t},
+\]
+
+which is precisely \(I_{\text{in}}(j+1)\).  The loop variable `j` is then
+automatically incremented by the `for` construct, so the invariant holds for
+the next iteration.
+
+### 3.3  Termination of the inner loop  
+
+When `j` reaches `3` the guard of the `for` fails; the loop ends.  
+Instantiating the invariant with \(j=3\) yields
+
+\[
+\operatorname{out}= 
+\big\Vert_{p=0}^{n-1}\big\Vert_{k\in K}\ell_{p,k}
+\;\Vert\;
+\big\Vert_{t=1}^{3}\ell_{n,t}
+=
+\big\Vert_{p=0}^{n}\big\Vert_{k\in K}\ell_{p,k},
+\]
+
+i.e. **all three** lines for the current outer value \(I_n\) have been printed.
+This is exactly the part (1) we used in §2.2.
+
+---------------------------------------------------------------------
+
+## 4.  Termination of the whole program  
+
+* The outer loop variable `i` is updated by the exact arithmetic  
+  \(i\leftarrow (i\cdot 10+2)/10\).  Because `i` is always a non‑negative
+  multiple of \(\Delta = 0.2\), after each iteration the index \(n\) defined in
+  the invariant grows by exactly one.  The invariant guarantees \(n\le 10\);  
+  therefore after at most 11 iterations the guard `i <= 2` becomes false.
+* The inner `for` loop has a fixed, finite range `range(3)`, so it always
+  terminates.
+
+Thus the program **terminates** and, by the reasoning above, leaves the system
+in a state that satisfies the post‑condition \(Q\).
+
+---------------------------------------------------------------------
+
+## 5.  Formal Hoare‑logic derivation  
+
+Putting the pieces together we can write the Hoare derivation in the usual
+style (the symbols `⊢` and `;` denote sequential composition).
+
+1. **Outer‑loop**  
+
+   \[
+   \begin{aligned}
+   &\{\,\texttt{true}\,\}\\
+   &\quad i = 0.0;\\
+   &\quad\{\,I_{\text{out}}(n=0)\,\}\\[2mm]
+   &\quad\textbf{while } i\le 2\ \textbf{do}\\
+   &\qquad\{\,I_{\text{out}}(n)\,\}\\
+   &\qquad\quad\textbf{for } j\in\{0,1,2\}\ \textbf{do}\\
+   &\qquad\qquad\{\,I_{\text{in}}(j)\,\}\\
+   &\qquad\qquad\quad\text{print the line } \ell_{n,j+1}\\
+   &\qquad\qquad\{\,I_{\text{in}}(j+1)\,\}\\
+   &\qquad\quad\textbf{od}\\
+   &\qquad\{\,I_{\text{out}}(n+1)\,\}\\
+   &\qquad\quad i \leftarrow (i*10+2)/10\\
+   &\qquad\{\,I_{\text{out}}(n+1)\,\}\\
+   &\quad\textbf{od}\\[2mm]
+   &\{\,\operatorname{output}= \big\Vert_{p=0}^{10}\big\Vert_{k\in K}\ell_{p,k}\,\}
+   \end{aligned}
+   \]
+
+   The inner loop derivation (the part inside the two `\{\,I_{\text{in}}…\}`)
+   is a standard Hoare proof for a bounded `for` loop with the invariant
+   \(I_{\text{in}}\).  The outer loop uses the invariant \(I_{\text{out}}\) and
+   the fact that the guard `i <= 2` is equivalent to \(n\le 10\).  After the
+   guard becomes false we have \(n=11\) and therefore the invariant yields the
+   exact concatenation required by \(Q\).
+
+2. **Conclusion**  
+
+   By the **rule of consequence** we obtain  
+
+   \[
+   \{\,\texttt{true}\,\}\;\texttt{PrintSequence}\;\{\,Q\,\},
+   \]
+
+   i.e. the program is **partially correct** with respect to the given
+   specification.  The termination argument given in §4 supplies the
+   missing *total* correctness.
+
+---------------------------------------------------------------------
+
+## 6.  Remarks on the “integer‑vs‑decimal” requirement  
+
+The specification uses `\operatorname{str}` *without unnecessary trailing zeros*.
+The program implements this by
+
+* testing `i.is_integer()` (and similarly for `respostaJ`) and,
+* printing `int(i)` / `int(respostaJ)` when the test succeeds.
+
+Because `i` is always a rational number of the form \(n/5\) (since
+\(\Delta = 0.2 = 1/5\)), the test is true **exactly** for the values
+\(I_0 = 0.0, I_5 = 1.0, I_{10}=2.0\).  For those three values the printed
+representation is `0`, `1` and `2`, matching the definition of
+\(\operatorname{repr}\).  For all other values the `else` branch prints the
+full decimal representation (e.g. `0.2`, `0.4`, …).  Hence the program’s
+output coincides with the mathematical function \(\operatorname{repr}\) used in
+the formal definition of \(\ell_{i,k}\).
+
+---------------------------------------------------------------------
+
+### Final statement  
+
+All three proof obligations have been discharged:
+
+1. **Initialization** – the invariants hold before the loops start.  
+2. **Preservation** – each loop body maintains its invariant (inner loop
+   prints the correct line, outer loop updates `i` correctly).  
+3. **Termination** – both loops are bounded, hence they terminate.  
+
+Consequently the Hoare triple  
+
+\[
+\{\,\texttt{true}\,\}\; \texttt{PrintSequence}\; \{\,Q\,\}
+\]
+
+is proved, i.e. the Python program is **correct** with respect to the given
+pre‑condition and post‑condition.  The produced output is exactly the string
+described in \(Q\): 33 lines, each of the form `I=<value> J=<value>` with the
+values defined by the arithmetic progression of step \(0.2\). ∎

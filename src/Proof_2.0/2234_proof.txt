@@ -1,0 +1,158 @@
+**Proof of correctness (Hoare‑logic) for the program**
+
+```python
+H, P = map(int, input().split(' '))
+print("{:.2f}".format(H/P))
+```
+
+The proof follows the usual Hoare‑logic inference rules  
+
+* **(Assign)**                                                   
+\[
+\frac{}{\,\{\,Q[x:=E]\,\}\;x:=E\;\{\,Q\,\}}
+\]
+
+* **(Seq)**                                                   
+\[
+\frac{\{P\}S_{1}\{Q\}\qquad\{Q\}S_{2}\{R\}}{\{P\}S_{1};S_{2}\{R\}}
+\]
+
+* **(Conseq)**                                                   
+\[
+\frac{P'\Rightarrow P\qquad\{P\}S\{Q\}\qquad Q\Rightarrow Q'}{\{P'\}S\{Q'\}}
+\]
+
+--------------------------------------------------------------------
+
+### 1.   The specifications
+
+* **Pre‑condition**  
+
+\[
+\text{Pre}\; \equiv\; 1\le H\le 1000\;\land\;1\le P\le 1000 .
+\tag{P}
+\]
+
+* **Post‑condition**  
+
+\[
+\text{Post}\; \equiv\;
+\exists r\in\mathbb Q\;.\;
+r=\frac{\operatorname{round}\!\bigl(\frac{H}{P}\cdot100\bigr)}{100}\;\land\;
+\text{output}= \operatorname{format}_{2}(r) .
+\tag{Q}
+\]
+
+--------------------------------------------------------------------
+
+### 2.   Intermediate assertions
+
+| label | assertion |
+|-------|-----------|
+| **A₀** | \(1\le H\le 1000\land 1\le P\le 1000\) (the same as the pre‑condition) |
+| **A₁** | \(1\le H\le 1000\land 1\le P\le 1000\) (after the input statement) |
+| **A₂** | \(\displaystyle \text{avg}= \frac{H}{P}\) |
+| **A₃** | \(\displaystyle r = \frac{\operatorname{round}(\text{avg}\times100)}{100}\) |
+| **A₄** | \(\displaystyle \text{output}= \operatorname{format}_{2}(r)\) |
+| **A₅** | \(\displaystyle \text{output}= \operatorname{format}_{2}(r)\) (after the `print` – printing does not change the variable) |
+
+--------------------------------------------------------------------
+
+### 3.   Hoare triples for each statement
+
+| statement | Hoare triple (derived) |
+|-----------|------------------------|
+| `H, P = map(int, input().split(' '))` | \(\{A₀\}\; \text{read }H,P\; \{A₁\}\)   *Input is guaranteed to satisfy the same bounds, therefore \(A₀\Rightarrow A₁\).* |
+| `avg = H/P` | \(\{A₁\}\; \text{avg}:=H/P\; \{A₂\}\)  by **(Assign)** with \(Q\equiv A₂\). |
+| `r = round(avg*100)/100` | \(\{A₂\}\; r:=\operatorname{round}(\text{avg}\times100)/100\; \{A₃\}\)  by **(Assign)**. |
+| `output = "{:.2f}".format(r)` | \(\{A₃\}\; \text{output}:= \operatorname{format}_{2}(r)\; \{A₄\}\)  by **(Assign)** (the Python formatting `"{:.2f}".format` is defined to be exactly the function \(\operatorname{format}_{2}\)). |
+| `print(output)` | \(\{A₄\}\; \text{print } \text{output}\; \{A₅\}\)  printing is a side‑effect that does not modify the variable `output`. |
+
+--------------------------------------------------------------------
+
+### 4.   Composition of the triples
+
+Using the **(Seq)** rule repeatedly we obtain
+
+\[
+\{A₀\}\;\underbrace{
+\begin{array}{l}
+\text{read }H,P;\\
+\text{avg}:=H/P;\\
+r:=\operatorname{round}(\text{avg}\times100)/100;\\
+\text{output}:=\operatorname{format}_{2}(r);\\
+\text{print output}
+\end{array}}_{\text{Prog}}\;\{A₅\}.
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+
+### 5.   From the final assertion to the post‑condition
+
+From \(A₅\) we have
+
+* `output = format₂(r)`                                                                                        (5.1)
+
+and, by unwinding the definitions of the intermediate assertions,
+
+* `avg = H/P`                                                                                                                  (5.2)  
+
+* `r = round(avg·100)/100`                                                                             (5.3)
+
+Substituting (5.2) into (5.3) yields
+
+\[
+r = \frac{\operatorname{round}\!\bigl(\tfrac{H}{P}\cdot100\bigr)}{100}.
+\tag{5.4}
+\]
+
+Thus from (5.1) and (5.4) we obtain
+
+\[
+\exists r\in\mathbb Q.\;
+\Bigl(r = \frac{\operatorname{round}\bigl(\frac{H}{P}\cdot100\bigr)}{100}
+      \;\land\;
+      \text{output}= \operatorname{format}_{2}(r)\Bigr),
+\]
+
+which is exactly the post‑condition **Post** (Q).
+
+Consequently, by the **(Conseq)** rule we may replace the final assertion \(A₅\) in (1) by **Post**:
+
+\[
+\boxed{\{\,\text{Pre}\,\}\; \text{Prog}\; \{\,\text{Post}\,\}} .
+\]
+
+--------------------------------------------------------------------
+
+### 6.   Termination
+
+Each command of the program is a **single deterministic statement** (input, arithmetic assignment, string formatting, print).  
+No loops or recursion are present; therefore the program consists of a finite sequence of elementary steps and must terminate after performing exactly five statements. Hence the Hoare triple is total (termination is guaranteed).
+
+--------------------------------------------------------------------
+
+## 7.   Summary of the proof
+
+| Step | Reasoning |
+|------|-----------|
+| 1.   | The input statement respects the pre‑condition because the problem statement guarantees `1 ≤ H,P ≤ 1000`. |
+| 2.   | Assignment `avg := H/P` yields the assertion `avg = H/P`. |
+| 3.   | Assignment `r := round(avg*100)/100` yields the assertion `r = round(avg·100)/100`. |
+| 4.   | Assignment `output := format₂(r)` yields `output = format₂(r)`. |
+| 5.   | The `print` statement does not change any program variable, so the assertion from step 4 is preserved. |
+| 6.   | By composing the five Hoare triples we obtain a triple whose post‑condition is exactly `output = format₂(r)`. |
+| 7.   | Using the equalities established in steps 2–4 we replace `r` by the explicit expression `round(H/P·100)/100`. |
+| 8.   | The resulting assertion is precisely the required post‑condition (2). |
+| 9.   | The program contains no loops, therefore it terminates. |
+
+Hence the given Python program satisfies the Hoare‑logic specification  
+
+\[
+\{\,1\le H\le1000\land1\le P\le1000\,\}\; \text{Prog}\;
+\{\exists r\in\mathbb Q.\; r=\tfrac{\operatorname{round}(\frac{H}{P}\cdot100)}{100}
+   \land\; \text{output}= \operatorname{format}_{2}(r)\}.
+\]
+
+∎

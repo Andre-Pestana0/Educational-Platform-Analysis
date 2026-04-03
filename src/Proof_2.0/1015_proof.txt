@@ -1,0 +1,278 @@
+## 1.  What we have to show  
+
+We are given the Hoare triple  
+
+\[
+\{P\}\; \texttt{read}(x_{1},y_{1},x_{2},y_{2});\;
+      d := \operatorname{dist}(x_{1},y_{1},x_{2},y_{2});\;
+      \texttt{print}\bigl(\operatorname{round}_{4}(d)\bigr)\;
+\{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+\begin{aligned}
+P\;\equiv\;& (x_{1},y_{1},x_{2},y_{2})\in\mathbb{R}^{4}\\
+           &\land\;\text{the input consists of exactly two lines}\\
+           &\land\;\text{line 1 contains the two numbers }x_{1},y_{1}\\
+           &\land\;\text{line 2 contains the two numbers }x_{2},y_{2}.
+\end{aligned}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;\equiv\;& d = \operatorname{dist}(x_{1},y_{1},x_{2},y_{2})\\
+           &\land\;\text{output}= \operatorname{round}_{4}(d)\\
+           &\land\;|\,\text{output}-d\,|<5\!\times\!10^{-5}.
+\end{aligned}
+\]
+
+We must prove, using the rules of Hoare logic, that the concrete Python program
+satisfies this triple.
+
+---------------------------------------------------------------------
+
+## 2.  The program (annotated)
+
+```python
+from math import sqrt               # (A)  import, no effect on state
+x1, y1 = map(float, input().split())   # (B)  read line 1
+x2, y2 = map(float, input().split())   # (C)  read line 2
+d = sqrt((x2 - x1)**2 + (y1 - y2)**2)   # (D)  compute Euclidean distance
+print(f'{d:.4f}')                       # (E)  format and write output
+```
+
+The statements are executed in the order **B → C → D → E** (the import statement (A)
+does not change any program variable, so it can be omitted from the logical
+derivation).
+
+---------------------------------------------------------------------
+
+## 3.  Hoare‑logic rules we will use  
+
+| Rule | Shape | Meaning |
+|------|-------|----------|
+| **(Skip)** | \(\{P\}\; \textbf{skip}\; \{P\}\) | doing nothing preserves the assertion |
+| **(Assign)** | \(\{P[x:=E]\}\; x:=E\; \{P\}\) | the weakest pre‑condition of an assignment |
+| **(Seq)** | \(\{P\}\; S_{1};S_{2}\; \{R\}\) if \(\{P\}\;S_{1}\;\{Q\}\) and \(\{Q\}\;S_{2}\;\{R\}\) | compose two triples |
+| **(Input)** | \(\{P\land \text{input}(x_{1},\dots ,x_{k})\}\; \texttt{read}(x_{1},\dots ,x_{k})\; \{P\}\) | the read command simply *instantiates* the variables with the
+values that appear in the input |
+| **(Output‑Fmt)** | \(\{P\}\; \texttt{print}(f'{E:.4f}')\; \{P\land \text{output}= \operatorname{round}_{4}(E)\}\) | the Python format specification `:.4f` implements the mathematical rounding
+\(\operatorname{round}_{4}\) (round‑half‑to‑even, which is exactly the definition
+used in the specification) |
+| **(Termination)** | each statement terminates (finite arithmetic, finite I/O) | guarantees the whole program terminates, a required side‑condition for a Hoare triple |
+
+---------------------------------------------------------------------
+
+## 4.  Proof step‑by‑step  
+
+### 4.1  After the two input statements  
+
+*Pre‑condition* : \(P\).
+
+Apply the **Input** rule twice:
+
+1. **First read** (`x1, y1 = …`)  
+
+   \[
+   \{P \land \text{input}(x_{1},y_{1})\}\; \texttt{read}(x_{1},y_{1})\;
+   \{P\}
+   \]
+
+   Because the input file is guaranteed (by \(P\)) to contain a first line with the
+   two numbers \(x_{1},y_{1}\), after the execution we have the variables
+   bound to those exact numbers.
+
+2. **Second read** (`x2, y2 = …`)  
+
+   \[
+   \{P \land \text{input}(x_{2},y_{2})\}\; \texttt{read}(x_{2},y_{2})\;
+   \{P\}
+   \]
+
+   The same reasoning gives the binding of \(x_{2},y_{2}\).
+
+By the **Seq** rule we obtain
+
+\[
+\{P\}\; \texttt{read}(x_{1},y_{1});\;\texttt{read}(x_{2},y_{2})\; \{P\}.
+\tag{1}
+\]
+
+Thus after statements **B** and **C** the logical state satisfies exactly the
+pre‑condition again, i.e. the four variables hold the four real numbers supplied
+by the input.
+
+---------------------------------------------------------------------
+
+### 4.2  Computing the distance  
+
+Statement **D** is
+
+```python
+d = sqrt((x2 - x1)**2 + (y1 - y2)**2)
+```
+
+Define the arithmetic expression  
+
+\[
+E \;:=\; \sqrt{(x_{2}-x_{1})^{2}+(y_{2}-y_{1})^{2}} .
+\]
+
+Using the **Assign** rule with the post‑condition  
+
+\[
+R_d \;\equiv\; d = E \land P,
+\]
+
+we obtain
+
+\[
+\{R_d[x:=E]\}\; d:=E\; \{R_d\}.
+\]
+
+But \(R_d[x:=E]\) is simply \(P\) (the assignment does not mention any other
+variable). Consequently
+
+\[
+\{P\}\; d:=E\; \{d = \operatorname{dist}(x_{1},y_{1},x_{2},y_{2})\land P\}.
+\tag{2}
+\]
+
+Because the right‑hand side of (2) contains the exact mathematical distance,
+the assignment implements the statement  
+
+\[
+d := \operatorname{dist}(x_{1},y_{1},x_{2},y_{2}).
+\]
+
+---------------------------------------------------------------------
+
+### 4.3  Printing with four‑decimal rounding  
+
+Statement **E** is
+
+```python
+print(f'{d:.4f}')
+```
+
+The format specifier `:.4f` is defined by the Python language reference as
+
+> “The number is rounded to *n* digits after the decimal point using the
+> round‑half‑to‑even rule.”
+
+The mathematical function \(\operatorname{round}_{4}\) in the specification is
+exactly the same:  
+
+\[
+\operatorname{round}_{4}(z)=\frac{\big\lfloor 10^{4}z+0.5\big\rfloor}{10^{4}},
+\]
+which is the conventional “round‑to‑nearest, ties to even” rule.
+
+Hence we can use the **Output‑Fmt** rule with the post‑condition  
+
+\[
+R_{out}\; \equiv\; \text{output}= \operatorname{round}_{4}(d).
+\]
+
+\[
+\{d = E\}\; \texttt{print}(f'{d:.4f})\; \{d = E \land R_{out}\}.
+\tag{3}
+\]
+
+---------------------------------------------------------------------
+
+### 4.4  Putting the pieces together  
+
+We now have three Hoare triples:
+
+* (1) \(\{P\}\; \texttt{read}(x_{1},y_{1});\;\texttt{read}(x_{2},y_{2})\; \{P\}\)
+* (2) \(\{P\}\; d:=E\; \{d = \operatorname{dist}(x_{1},y_{1},x_{2},y_{2})\land P\}\)
+* (3) \(\{d = E\}\; \texttt{print}(f'{d:.4f})\; \{d = E \land \text{output}= \operatorname{round}_{4}(d)\}\)
+
+Apply the **Seq** rule three times (first (1) then (2) then (3)):
+
+\[
+\boxed{
+\{P\}\;
+\underbrace{
+   \texttt{read}(x_{1},y_{1});\;
+   \texttt{read}(x_{2},y_{2});\;
+   d:=E;\;
+   \texttt{print}(f'{d:.4f})
+}_{\text{the whole program}}
+\;
+\{\, d = \operatorname{dist}(x_{1},y_{1},x_{2},y_{2})\;
+   \land\; \text{output}= \operatorname{round}_{4}(d)\,\}.
+}
+\]
+
+The post‑condition of the derived triple is exactly the first two conjuncts of
+\(Q\).
+
+---------------------------------------------------------------------
+
+### 4.5  The rounding error bound  
+
+From the definition of \(\operatorname{round}_{4}\) we have, for any real
+\(z\),
+
+\[
+\bigl|\operatorname{round}_{4}(z)-z\bigr|\;<\;\frac{1}{2}\,10^{-4}
+\;=\;5\times10^{-5}.
+\]
+
+Instantiating \(z\) with the value of \(d\) that we have proved equal to the
+exact Euclidean distance yields the third conjunct of \(Q\):
+
+\[
+|\,\text{output}-d\,|<5\times10^{-5}.
+\]
+
+Thus the full post‑condition \(Q\) holds.
+
+---------------------------------------------------------------------
+
+## 5.  Termination  
+
+* The two `input()` calls each read a *finite* line.
+* The arithmetic operations (`-`, `**2`, `+`, `sqrt`) are performed on
+  IEEE‑754 double‑precision numbers and therefore terminate.
+* The `print` statement writes a bounded string and terminates.
+
+Consequently the whole program terminates for every state satisfying \(P\),
+which satisfies the implicit termination condition of Hoare logic.
+
+---------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+Starting from the pre‑condition \(P\) (four finite real numbers supplied on two
+lines), we have shown, using the standard Hoare‑logic inference rules, that the
+Python program
+
+```python
+from math import sqrt
+x1, y1 = map(float, input().split())
+x2, y2 = map(float, input().split())
+d = sqrt((x2 - x1)**2 + (y2 - y1)**2)
+print(f'{d:.4f}')
+```
+
+* terminates, and  
+* finishes with the post‑condition  
+
+\[
+\begin{aligned}
+Q\;:\;& d = \operatorname{dist}(x_{1},y_{1},x_{2},y_{2})\\
+     &\land\; \text{output}= \operatorname{round}_{4}(d)\\
+     &\land\; |\,\text{output}-d\,|<5\times10^{-5},
+\end{aligned}
+\]
+
+which is precisely the specification given in the problem statement.

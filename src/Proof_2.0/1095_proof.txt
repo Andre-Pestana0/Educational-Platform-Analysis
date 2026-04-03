@@ -1,0 +1,219 @@
+**Proof of total correctness (Hoare‑logic) of the program**
+
+```
+j = 60                # J₀
+i = 1                 # I₀
+while j >= 0:
+    print(f'I={i} J={j}')
+    j = j - 5
+    i = i + 3
+```
+
+--------------------------------------------------------------------
+### 1.  Notation that will be used in the proof  
+
+* `k` – the number of loop‑iterations that have already been executed  
+  (`k = 0` before the first test of the guard).  
+
+* `I(k)` and `J(k)` – the values of the program variables `i` and `j`
+  **after** the `k`‑th iteration of the loop body (i.e. just before the
+  next guard test).  
+
+* `out[k]` – the *k*‑th line that has already been printed (0‑based).  
+
+* `toString` – the usual conversion of an integer into its decimal
+  representation, and “·∥·” denotes string concatenation.  
+
+* `P` – the pre‑condition, `true`.  
+
+* `Q` – the post‑condition given in the statement of the problem.
+
+--------------------------------------------------------------------
+### 2.  Loop invariant  
+
+We choose the following **invariant**  `Inv(k)` :
+
+\[
+\boxed{
+\begin{aligned}
+\text{Inv}(k) \; \equiv\; &
+   i = 1 + 3k \;\land\;               \tag{1}\\
+   j = 60 - 5k \;\land\;              \tag{2}\\
+   0\le k\;\land\;                     \tag{3}\\
+   \forall r\in\{0,\dots ,k-1\}\;
+        out[r]=\bigl(\text{``I="''}\;\|\;toString(1+3r)\;\|\;
+                \text{`` J="''}\;\|\;toString(60-5r)\bigr)  \tag{4}
+\end{aligned}}
+\]
+
+* (1) and (2) say that after `k` iterations the variables have exactly the
+  arithmetic progressions required by the specification.  
+
+* (3) guarantees that `k` is a natural number (the loop never executes a
+  negative number of times).  
+
+* (4) records that the first `k` lines already printed are precisely the
+  strings demanded by the post‑condition.
+
+--------------------------------------------------------------------
+### 3.  Initialization  
+
+Before the loop we have
+
+```
+i = 1          (i = 1 + 3·0)
+j = 60         (j = 60 - 5·0)
+k = 0
+out = ⟨⟩
+```
+
+Thus `Inv(0)` holds (the universal quantifier in (4) is vacuous).  
+Hence  
+
+\[
+\{\,\text{true}\,\}\; \text{initialisation}\; \{\,\text{Inv}(0)\,\}
+\]
+
+is proved.
+
+--------------------------------------------------------------------
+### 4.  Preservation (body of the loop)
+
+Assume `Inv(k)` holds **and** the guard `j ≥ 0` is true.  
+From (2) we have `j = 60‑5k ≥ 0`, therefore `k ≤ 12`.
+
+The body executes
+
+```
+print(f'I={i} J={j}')
+j = j - 5
+i = i + 3
+```
+
+*The printed line*  
+
+Because of (1) and (2) we have `i = 1+3k` and `j = 60‑5k`.  
+Consequently the line that is appended to `out` is exactly  
+
+\[
+\text{``I="''}\;\|\;toString(1+3k)\;\|\;
+\text{`` J="''}\;\|\;toString(60-5k)
+\]
+
+which is the required line for index `k`.  
+Therefore after the `print` statement (4) holds for `r = k` as well,
+i.e. the predicate (4) is true for the new value `k+1`.
+
+*The updates of the variables*  
+
+```
+j' = j - 5 = (60 - 5k) - 5 = 60 - 5(k+1)
+i' = i + 3 = (1 + 3k) + 3 = 1 + 3(k+1)
+```
+
+Thus after the body we obtain  
+
+\[
+i' = 1 + 3(k+1),\qquad j' = 60 - 5(k+1)
+\]
+
+which are precisely (1) and (2) with `k` replaced by `k+1`.  
+The natural‑number condition (3) also holds for `k+1`.
+
+Hence
+
+\[
+\{\,\text{Inv}(k)\land (j\ge 0)\,\}\;
+\text{body}\;
+\{\,\text{Inv}(k+1)\,\}
+\]
+
+is proved.  This is the **maintenance** step of the invariant.
+
+--------------------------------------------------------------------
+### 5.  Termination (variant)
+
+Define the **variant**
+
+\[
+V(k) \;=\; 12 - k \;\;(\text{or equivalently } \frac{j}{5})
+\]
+
+* `V(k)` is a non‑negative integer while the guard holds:
+  from `j = 60‑5k ≥ 0` we obtain `k ≤ 12`, thus `V(k) ≥ 0`.  
+
+* After one execution of the loop body `k` is increased by one,
+  therefore `V(k+1) = V(k) - 1`.  
+  Consequently `V` strictly decreases at each iteration.
+
+Because a non‑negative integer cannot decrease indefinitely,
+the loop must eventually terminate.  The **while‑rule** of Hoare logic
+gives us total correctness:
+
+\[
+\{\,\text{Inv}(k)\,\}\;
+\text{while }(j\ge 0)\;\text{do body}\;
+\{\,\text{Inv}(k)\land \neg(j\ge 0)\,\}
+\]
+
+--------------------------------------------------------------------
+### 6.  Deriving the post‑condition from the invariant and the exit condition  
+
+When the loop finishes we have `¬(j ≥ 0)`, i.e. `j < 0`.  
+Using (2) we obtain  
+
+\[
+60 - 5k < 0 \;\Longrightarrow\; k > 12 .
+\]
+
+Since `k` is an integer, the smallest possible value is `k = 13`.  
+Because the guard is tested **before** each iteration, the last printed
+line corresponds to `k = 12`.  Hence:
+
+* the number of printed lines is exactly `k = 13` :
+
+  \[
+  |out| = 13 .
+  \]
+
+* for every index `r` with `0 ≤ r ≤ 12` the line `out[r]` satisfies (4),
+  which is precisely the definition of the strings demanded in the
+  post‑condition `Q`.
+
+* From (2) with `k = 12` we obtain `J_{12}=60-5·12 = 0`.  
+  For all `r < 12` we have `J_r = 60-5r > 0`.  
+
+Therefore the state after termination satisfies the whole formula `Q`.
+
+--------------------------------------------------------------------
+### 7.  Hoare triple for the whole program  
+
+We have shown
+
+* **Initialization** : `{ true }  init  { Inv(0) }`  
+* **Preservation**   : `{ Inv(k) ∧ (j≥0) } body { Inv(k+1) }`  
+* **Termination**    : the variant `V(k)` is a natural‑number that
+  strictly decreases, therefore the loop terminates.  
+* **Post‑condition**  : from `Inv(13) ∧ ¬(j≥0)` we obtain `Q`.
+
+Consequently the Hoare triple for the complete program holds:
+
+\[
+\boxed{\{\,\text{true}\,\}\; \texttt{Program}\; \{\,Q\,\}}
+\]
+
+--------------------------------------------------------------------
+### 8.  Summary (in plain English)
+
+* The program starts with `i = 1` and `j = 60`.  
+* Each loop iteration prints the current values, then adds `3` to `i`
+  and subtracts `5` from `j`.  
+* After `k` iterations we have `i = 1+3k` and `j = 60‑5k`.  
+* The guard `j ≥ 0` is true exactly for `k = 0,1,…,12`; when `k = 12`
+  the printed line shows `J = 0`.  
+* The next update makes `j = -5`, the guard becomes false, and the loop
+  stops.  
+
+Thus the program prints exactly the 13 lines required by the specification,
+and the formal Hoare‑logic proof above shows that the program satisfies the
+post‑condition `Q`. ∎

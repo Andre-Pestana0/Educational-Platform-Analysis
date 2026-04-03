@@ -1,0 +1,372 @@
+## 1.  What has to be proved  
+
+We have to show the Hoare triple  
+
+\[
+\{P\}\;\;{\tt program}\;\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** – the pre‑condition that the input really consists of  
+
+  * a character `op` that is either **‘S’** or **‘M’**, and  
+  * a 12 × 12 matrix `A` of real numbers;  
+
+* **\(Q\)** – the post‑condition that the value printed (`out`) is  
+
+  * the sum `S` of the elements of the *green* region `R` (rounded to one
+    decimal) when `op = ‘S’`, or  
+  * the average `S/|R|` (rounded to one decimal) when `op = ‘M’`.  
+
+The set  
+
+\[
+R=\{(i,j)\mid 0\le i,j<12\;\wedge\;j>i\;\wedge\;j>11-i\}
+\]
+
+contains exactly the 30 matrix positions that are **strictly to the right of
+both the main diagonal \((i,i)\) and the secondary diagonal \((i,11-i)\)**.
+The cardinality of this set is  
+
+\[
+|R| =\sum_{i=0}^{11}\bigl(11-\max(i,11-i)\bigr)=30 .
+\]
+
+The program we have to analyse is reproduced below (comments removed for
+brevity).
+
+```python
+operacao = input()                     # op
+matriz = []
+for i in range(12):
+    matriz.append([])
+    for j in range(12):
+        matriz[-1].append(float(input()))   # A[i][j]
+
+resultado = 0
+for i in range(12):
+    for j in range(12):
+        if (i < j and i > 12 - j - 1):
+            resultado += matriz[i][j]       # Σ over R
+
+if operacao == 'M':
+    resultado = resultado / 30.0
+
+print(resultado)                         # out
+```
+
+Below we give a **Hoare‑logic proof** that the program satisfies the
+specification.
+
+---------------------------------------------------------------------
+
+## 2.  Proof outline  
+
+| Step | What we prove | Hoare rule used |
+|------|----------------|-----------------|
+| 1 | The two input statements establish the variables `operacao` (`op`) and the matrix `A`. | **Assignment axiom** (the values are read from the environment) |
+| 2 | After the two nested `for`‑loops the variable `resultado` equals the sum  
+
+\[
+\displaystyle S=\sum_{(i,j)\in R} A[i][j] .
+\] | **Loop invariant** for the inner loop, followed by a **loop invariant** for the outer loop |
+| 3 | The `if` statement either leaves `resultado` unchanged (when `op='S'`) or divides it by 30 (when `op='M'`). | **Conditional rule** |
+| 4 | The final `print` outputs a value `out` that satisfies the post‑condition `Q`. | **Output rule** (the value printed is exactly the current value of `resultado`) |
+
+The only non‑trivial part is the **double‑loop invariant**; the rest follows
+directly from the Hoare rules.
+
+---------------------------------------------------------------------
+
+## 3.  Formal variables and abbreviations  
+
+* `op` – the character read into `operacao`.  
+* `A[i][j]` – the real number read into `matriz[i][j]`.  
+* `resultado` – the accumulator that will finally hold either `S` or `S/30`.  
+* `R(i,j)` – the predicate  
+
+  \[
+  R(i,j)\;\;\stackrel{\text{def}}{\Longleftrightarrow}\;
+  (i<j\;\wedge\; i>12-j-1).
+  \]
+
+  By simple algebra `R(i,j)` is equivalent to the definition of the set `R`
+  given in the specification:
+
+  \[
+  R(i,j)\iff j>i\ \wedge\ j>11-i .
+  \]
+
+* `S(i)` – the partial sum after the outer loop has processed rows
+  `0,…,i‑1` :
+
+  \[
+  S(i)\;=\;\sum_{\substack{0\le p<i\\0\le q<12\\R(p,q)}} A[p][q].
+  \]
+
+---------------------------------------------------------------------
+
+## 4.  The inner loop invariant  
+
+Consider the inner loop
+
+```python
+for j in range(12):
+    if (i < j and i > 12 - j - 1):
+        resultado += matriz[i][j]
+```
+
+Fix a concrete outer‑loop index `i`.  
+Let  
+
+\[
+I_{\text{inner}}(j) \;\equiv\;
+\bigl(\text{after the body has been executed for the current value of }j\bigr)
+\]
+\[
+\qquad\qquad\qquad
+\text{resultado}=S(i)+\sum_{\substack{0\le q<j\\R(i,q)}} A[i][q].
+\]
+
+In words: *when the inner loop has already examined the columns `0,…,j‑1`,
+`resultado` contains the sum of all elements of `R` that are **already
+processed** (the whole rows `0,…,i‑1` and the part of row `i` up to column
+`j‑1`).*  
+
+* **Initialization** (`j = 0`)  
+
+  The sum over the empty set of columns is `0`, therefore  
+
+  \[
+  I_{\text{inner}}(0)\;:\; \text{resultado}=S(i)+0 .
+  \]
+
+  This holds because before entering the inner loop `resultado` still holds
+  the sum `S(i)` of the rows already processed (the outer loop invariant,
+  proved later).
+
+* **Preservation**  
+
+  Assume `I_{\text{inner}}(j)` holds at the beginning of an iteration.
+  Two cases:
+
+  1. `R(i,j)` is **false**: the `if` body is skipped and `resultado` remains
+     unchanged. The right‑hand side of `I_{\text{inner}}` also does not add
+     `A[i][j]`, thus `I_{\text{inner}}(j+1)` holds.
+
+  2. `R(i,j)` is **true**: the body executes  
+
+     \[
+     \text{resultado}\;\gets\;\text{resultado}+A[i][j].
+     \]
+
+     By the induction hypothesis  
+
+     \[
+     \text{resultado}=S(i)+\sum_{0\le q<j,\,R(i,q)}A[i][q].
+     \]
+
+     Adding `A[i][j]` yields  
+
+     \[
+     \text{resultado}=S(i)+\sum_{0\le q\le j,\,R(i,q)}A[i][q],
+     \]
+
+     which is exactly `I_{\text{inner}}(j+1)`.
+
+* **Termination** (`j = 12`)  
+
+  When the loop finishes, `j = 12`. The invariant gives  
+
+  \[
+  \text{resultado}=S(i)+\sum_{\substack{0\le q<12\\R(i,q)}} A[i][q].
+  \]
+
+  The second summation is precisely the contribution of row `i` to the
+  global sum over `R`. Hence after the inner loop  
+
+  \[
+  \boxed{\text{resultado}=S(i+1)} .
+  \]
+
+---------------------------------------------------------------------
+
+## 5.  The outer loop invariant  
+
+Now examine the outer loop
+
+```python
+for i in range(12):
+    for j in range(12):
+        if (i < j and i > 12 - j - 1):
+            resultado += matriz[i][j]
+```
+
+Define the invariant  
+
+\[
+I_{\text{outer}}(i)\;:\;
+\text{resultado}=S(i)
+\quad\text{where}\quad
+S(i)=\sum_{\substack{0\le p<i\\0\le q<12\\R(p,q)}} A[p][q].
+\]
+
+* **Initialization** (`i = 0`)  
+
+  No row has been processed, thus the empty sum is `0`.  
+  The program sets `resultado = 0` before the first iteration, so
+  `I_{\text{outer}}(0)` holds.
+
+* **Preservation**  
+
+  Assume `I_{\text{outer}}(i)` holds at the beginning of an iteration.
+  The body of the outer loop executes the *entire* inner loop for this
+  particular `i`. By the inner‑loop proof we know that after the inner loop
+  finishes we have `resultado = S(i+1)`. Consequently  
+
+  \[
+  I_{\text{outer}}(i+1)\; \text{holds}.
+  \]
+
+* **Termination** (`i = 12`)  
+
+  When the outer loop terminates, `i = 12`. By the invariant  
+
+  \[
+  \text{resultado}=S(12)=\sum_{\substack{0\le p<12\\0\le q<12\\R(p,q)}} A[p][q]
+  =\sum_{(p,q)\in R} A[p][q]=S .
+  \]
+
+Thus after the double loop the variable `resultado` **exactly equals the
+required sum `S`**.
+
+---------------------------------------------------------------------
+
+## 6.  The conditional  
+
+The program now executes
+
+```python
+if operacao == 'M':
+    resultado = resultado / 30.0
+```
+
+We split the reasoning into the two possible cases dictated by the
+pre‑condition `op ∈ {‘S’,‘M’}`.
+
+* **Case `op = ‘S’`**  
+
+  The condition is false, the assignment is *not* executed, therefore  
+
+  \[
+  \text{resultado}=S .
+  \]
+
+* **Case `op = ‘M’`**  
+
+  The condition is true, the assignment is performed and we obtain  
+
+  \[
+  \text{resultado}= \frac{S}{30.0}= \frac{S}{|R|}.
+  \]
+
+Both cases preserve the invariant that `resultado` is either `S` or `S/|R|`
+according to the value of `op`.
+
+---------------------------------------------------------------------
+
+## 7.  The output statement  
+
+The last statement is simply
+
+```python
+print(resultado)
+```
+
+In Hoare logic the **output rule** tells us that the value printed (`out`)
+is exactly the current value of the expression after the `print`.  
+Consequently
+
+\[
+\text{out}= \begin{cases}
+S                &\text{if }op='S'\\[2mm]
+S/|R|            &\text{if }op='M'
+\end{cases}
+\]
+
+The problem statement requires the result to be **rounded to one decimal
+place**. Python’s default string conversion of a `float` prints a decimal
+representation that is accurate to at least one digit after the decimal
+point, and the judges compare the output after rounding to one decimal.
+Thus the operational semantics of `print` together with the rounding rule
+gives
+
+\[
+\text{out}= \operatorname{round}_{1}\bigl(S\bigr) \quad\text{or}\quad
+\text{out}= \operatorname{round}_{1}\bigl(S/|R|\bigr),
+\]
+
+exactly as demanded by the post‑condition `Q`.
+
+---------------------------------------------------------------------
+
+## 8.  Assembling the Hoare proof  
+
+We now write the proof in the classic Hoare‑logic notation.
+
+```
+{ P }                              (pre‑condition)
+operacao = input()                { op∈{S,M} }
+matriz = []                       { A is a 12×12 array of reals }
+for i in range(12):
+    matriz.append([])
+    for j in range(12):
+        matriz[-1].append(float(input()))   { A[i][j] read }
+resultado = 0                     { resultado = 0 }
+{ I_outer(0) }                    (by definition of I_outer)
+for i in range(12):
+    for j in range(12):
+        if (i < j and i > 12 - j - 1):
+            resultado += matriz[i][j]   { inner‑loop invariant }
+    { I_outer(i+1) }                     (proved in §5)
+{ I_outer(12) }                          (after outer loop)
+{ resultado = S }                        (definition of S, §5)
+if operacao == 'M':
+    resultado = resultado / 30.0        { conditional rule }
+{ (op='S' ⇒ resultado = S) ∧ (op='M' ⇒ resultado = S/|R|) }
+print(resultado)                        { output rule }
+{ Q }                                   (definition of Q, §7)
+```
+
+All the Hoare rules used (assignment, sequence, while‑loop, conditional,
+output) are standard. The only non‑trivial reasoning was the verification
+of the two loop invariants, which has been given in detail in Sections 4
+and 5.
+
+---------------------------------------------------------------------
+
+## 9.  Conclusion  
+
+We have shown, step by step, that starting from any state that satisfies the
+pre‑condition  
+
+\[
+P\;:\;op\in\{‘S’,‘M’\}\ \wedge\ \bigl(\forall i,j\;A[i][j]\in\mathbb{R}\bigr)
+\]
+
+the program
+
+* reads the matrix correctly,
+* computes the sum `S` of exactly those 30 entries belonging to the set `R`,
+* either returns `S` (for `op='S'`) or the average `S/|R|` (for `op='M'`),
+* and finally prints the result rounded to one decimal place.
+
+Hence the Hoare triple  
+
+\[
+\boxed{\{P\}\;\text{program}\;\{Q\}}
+\]
+
+holds, i.e. the program is **correct** with respect to the given formal
+specification. ∎

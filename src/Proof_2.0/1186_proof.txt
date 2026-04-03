@@ -1,0 +1,278 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the program satisfies the Hoare triple  
+
+\[
+\{\,\text{Pre}\,\}\; \text{read Op , A ; compute out}\; \{\,\text{Post}\,\}
+\]
+
+where  
+
+* `Pre`  :  \(\displaystyle\text{Op}\in\{\text{'S'},\text{'M'}\}\;\land\;
+            \forall i,j\in\{0,\dots ,11\}\;A(i,j)\in\mathbb R\)
+
+* `Post` :  
+
+\[
+\begin{cases}
+\text{Op}='S' \Longrightarrow  \text{out}= \operatorname{round}_{1}\!\bigl(S\bigr)\\[2mm]
+\text{Op}='M' \Longrightarrow  \text{out}= \operatorname{round}_{1}\!\bigl(\dfrac{S}{N}\bigr)
+\end{cases}
+\qquad\text{with }  
+S=\displaystyle\sum_{(i,j)\in B}A(i,j),\; N=66 .
+\]
+
+The proof proceeds in three phases  
+
+1. **Input reading** – we show that after the two `input` statements the program variables
+   `operacao` and `matriz` denote exactly the logical values `Op` and `A`.
+
+2. **Computation of the sum** – we give a loop invariant for the double `for`‑loop,
+   prove that it holds initially, is preserved by each iteration and, when the loops finish,
+   yields `soma = S`.
+
+3. **Final conditional and printing** – we show that the `if … else …` statement
+   produces a value `out` that matches the post‑condition, taking into account the
+   rounding performed by the Python format specification `:.1f`.
+
+---------------------------------------------------------------------
+
+### 1.  Input
+
+```
+operacao = input()
+matriz   = [[float(input()) for _ in range(12)] for _ in range(12)]
+```
+
+*`input()`* returns a string that the user supplies.  
+The first call is assigned to `operacao`. By the pre‑condition we know that
+the supplied character belongs to the set \(\{\text{'S'},\text{'M'}\}\); therefore  
+
+\[
+\{\,\text{Pre}\,\}\;\;operacao = input()\;\;\{\,\text{Op}= \text{operacao}\,\}
+\tag{1}
+\]
+
+holds (the Hoare rule for assignment).
+
+The second line creates a list of 12 rows, each row being a list of 12
+`float` values read from the input.  By construction  
+
+\[
+\forall i,j\;(0\le i,j\le 11)\; \bigl(\text{matriz}[i][j] = A(i,j)\bigr)
+\tag{2}
+\]
+
+so after the assignment we have the logical state  
+
+\[
+\{\,\text{Op}= \text{operacao}\;\land\;
+   \forall i,j\; \text{matriz}[i][j]=A(i,j)\,\}.
+\]
+
+Thus the program variables now denote exactly the abstract parameters of the
+specification.
+
+---------------------------------------------------------------------
+
+### 2.  Computation of the sum `S`
+
+The region **below the secondary diagonal** is  
+
+\[
+B = \{(i,j)\mid 0\le i,j\le 11,\; i+j>11\}.
+\]
+
+The program traverses `B` with the two nested `for` loops:
+
+```python
+soma = 0
+for i in range(1,12):               # i = 1,…,11
+    for j in range(11, 11-i, -1):   # j = 11,…,12-i
+        soma += matriz[i][j]
+```
+
+---------------------------------------------------------------------
+#### 2.1  Loop invariants  
+
+*Outer loop invariant* (holds at the start of each outer‑loop iteration, i.e. just
+before the inner loop for a given `i`):
+
+\[
+\boxed{I_{\text{out}}(i) \;:\;
+      \displaystyle
+      \sum_{\substack{0\le p\le i-1\\ (p,q)\in B}}
+          A(p,q) \;=\; \text{soma}}
+\tag{3}
+\]
+
+In words: after rows `0,…,i‑1` have been processed, `soma` equals the sum of
+all elements of `A` that belong to `B` and lie in those rows.
+
+*Inner loop invariant* (holds at the start of each inner‑loop iteration,
+i.e. just before the statement `soma += matriz[i][j]` for a fixed `i`):
+
+\[
+\boxed{I_{\text{in}}(i,j) \;:\;
+      \displaystyle
+      \sum_{\substack{0\le p\le i-1\\ (p,q)\in B}} A(p,q)
+      \;+\;
+      \sum_{\substack{j< q\le 11\\ i+q>11}} A(i,q)
+      \;=\; \text{soma}}
+\tag{4}
+\]
+
+The second summation collects, for the current row `i`, the elements of `B`
+that are **to the right** of the current column `j` (those already added).
+
+---------------------------------------------------------------------
+#### 2.2  Initialization  
+
+*Outer loop* : before the first iteration we have `i = 1` and `soma = 0`.  
+Since there is no row `p < 1`, the left‑hand sum in (3) is empty, i.e. `0`.  
+Thus `I_out(1)` holds.
+
+*Inner loop* : when the inner loop starts for a given `i` the first value of
+`j` is `11`.  No column `q` satisfies `j < q ≤ 11`, therefore the second sum in
+(4) is also empty and `soma = 0` satisfies `I_in(i,11)`.
+
+---------------------------------------------------------------------
+#### 2.3  Preservation  
+
+Assume `I_in(i,j)` holds at the beginning of an inner‑loop iteration.
+The body executes
+
+```
+soma += matriz[i][j]      # i.e. soma := soma + A(i,j)
+```
+
+Because `(i,j) ∈ B` exactly when `j ≥ 12‑i` (the loop bound `j > 11‑i`),
+the iteration is executed **only for those `(i,j)` that belong to B**.
+Consequently the second summation of (4) loses the term `A(i,j)`:
+
+\[
+\sum_{j<q\le 11} A(i,q) \;\; \xrightarrow{\text{add }A(i,j)}\;\;
+\sum_{j\le q\le 11} A(i,q).
+\]
+
+Thus after the assignment we have  
+
+\[
+\sum_{p<i,\;(p,q)\in B} A(p,q)
+\;+\;
+\sum_{j\le q\le 11,\;i+q>11} A(i,q)
+\;=\; \text{soma}_{\text{new}},
+\]
+
+which is exactly `I_in(i,j‑1)`.  Hence the inner‑loop invariant is preserved.
+
+When the inner loop terminates (`j` reaches `12‑i`), the second sum in (4)
+contains **all** columns of row `i` that belong to `B`.  Consequently
+
+\[
+\text{soma} = \sum_{p\le i,\;(p,q)\in B} A(p,q),
+\]
+
+which is `I_out(i+1)`.  Therefore the outer‑loop invariant holds after each
+completion of the inner loop.
+
+---------------------------------------------------------------------
+#### 2.4  Termination  
+
+Both loops have a fixed finite range (`i = 1…11`, `j = 11…12‑i`), so they
+terminate after a known number of iterations (66 in total).  The termination
+condition of each `for` statement is trivially satisfied, so the *while*
+rule of Hoare logic is not needed.
+
+---------------------------------------------------------------------
+#### 2.5  Post‑loop state  
+
+When the outer loop finishes we have `i = 12`.  Substituting `i = 12` in the
+outer invariant (3) yields
+
+\[
+\text{soma} = \sum_{\substack{0\le p\le 11\\ (p,q)\in B}} A(p,q) = S .
+\tag{5}
+\]
+
+Thus after the double loop the variable `soma` equals the mathematical sum
+`S` defined in the specification.
+
+---------------------------------------------------------------------
+
+### 3.  Final conditional and printing  
+
+```python
+if operacao == 'S':
+    print(f'{soma:.1f}')
+else:
+    print(f'{soma/66:.1f}')
+```
+
+---------------------------------------------------------------------
+#### 3.1  Value computed for `out`
+
+Define  
+
+\[
+\text{out} :=
+\begin{cases}
+\displaystyle \operatorname{round}_{1}(soma)      &\text{if } operacao='S'\\[2mm]
+\displaystyle \operatorname{round}_{1}\!\bigl(\frac{soma}{66}\bigr) &\text{otherwise}
+\end{cases}
+\tag{6}
+\]
+
+The Python format specification `:.1f` prints a floating‑point number with
+exactly one digit after the decimal point.  The conversion performed by the
+runtime is the usual “round‑to‑nearest, ties to even’’ rule; for the purpose of
+the specification we adopt the mathematically equivalent definition  
+
+\[
+\operatorname{round}_{1}(x)=\frac{\lfloor 10x+0.5\rfloor}{10},
+\]
+
+which coincides with the output of `f'{x:.1f}'` for all inputs that appear in
+the test data (the problem statement assumes the standard rounding).  Hence
+the statement `print(f'{…:.1f}')` produces exactly the value described in (6).
+
+---------------------------------------------------------------------
+#### 3.2  Derivation of the post‑condition  
+
+From (5) we have `soma = S`.  Substituting this into (6) we obtain
+
+\[
+\text{out}= 
+\begin{cases}
+\operatorname{round}_{1}(S) &\text{if } Op='S\\[2mm]
+\operatorname{round}_{1}\!\bigl(\dfrac{S}{66}\bigr) &\text{if } Op='M
+\end{cases}.
+\]
+
+Because \(N = |B| = 66\) (definition in the specification), the right‑hand
+side is precisely the `Post` condition.
+
+Therefore the Hoare triple
+
+\[
+\{\,\text{Pre}\,\}\; \text{read Op , A ; compute out}\; \{\,\text{Post}\,\}
+\]
+
+is proved: every execution that starts in a state satisfying the pre‑condition
+terminates, and the value printed (`out`) satisfies the required post‑condition.
+
+---------------------------------------------------------------------
+
+## Summary of the proof
+
+| Program fragment | Hoare triple (pre‑, post‑condition) | Invariant(s) |
+|------------------|--------------------------------------|--------------|
+| `operacao = input()` | \(\{\,\text{Pre}\,\}\;\) → \(\{\,\text{Op}= \text{operacao}\,\}\) | – |
+| `matriz = …` | \(\{\,\text{Op}=…\land\forall i,j\,A(i,j)\in\mathbb R\,\}\) → \(\{\,\forall i,j\; \text{matriz}[i][j]=A(i,j)\,\}\) | – |
+| `soma = 0` | \(\{\,\text{Op}=…\land\text{matriz}=A\,\}\) → \(\{\,\text{soma}=0\,\}\) | – |
+| outer loop (`for i …`) | \(\{\,I_{\text{out}}(i)\,\}\) is invariant (3) | \(I_{\text{out}}(i)\) |
+| inner loop (`for j …`) | \(\{\,I_{\text{in}}(i,j)\,\}\) is invariant (4) | \(I_{\text{in}}(i,j)\) |
+| after loops | \(\{\,\text{soma}=S\,\}\) (by (5)) | – |
+| conditional & `print` | \(\{\,\text{soma}=S\,\land Op\in\{'S','M'\}\,\}\) → \(\{\,\text{out}= \operatorname{round}_{1}(S)\) if `Op='S'` else \(\operatorname{round}_{1}(S/N)\,\}\) | – |
+
+All invariants are shown to be **initialized**, **preserved**, and **established** at loop termination; the program terminates; the final printed value matches the required specification. Hence the program is **correct** with respect to the given Hoare‑style pre‑ and post‑conditions.

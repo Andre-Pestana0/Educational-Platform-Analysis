@@ -1,0 +1,274 @@
+**Answer – a Hoare‑logic proof that the given Python program satisfies the specification**
+
+---------------------------------------------------------------------
+
+### 1.  The program (named `prog`) written in a Hoare‑logic‑friendly syntax  
+
+```
+1  read  R                #   R  receives the value entered by the user
+2  V := (4/3) * π * R**3  #   V  is the mathematical volume
+3  out := "VOLUME = " || str(round₃(V))   #   the line that is printed
+4  print out
+```
+
+*`π` is the constant `3.14159`.  
+`round₃(x) = floor(1000·x+0.5)/1000` (round‑to‑nearest, three decimal digits).  
+`||` denotes string concatenation.*
+
+The actual Python code is
+
+```python
+r = float(input())
+pi = 3.14159
+volume = 4/3 * pi * r**3
+print(f'VOLUME = {volume:.3f}')
+```
+
+and behaves exactly as the abstract program above – the `float` conversion reads a
+real number, the arithmetic expression computes the real value
+\( (4/3)\pi R^{3} \) (ignoring the inevitable floating‑point rounding that is
+prescribed by the specification), and the format specification `:.3f`
+produces the string `str(round₃(V))`.
+
+---------------------------------------------------------------------
+
+### 2.  Specification (the Hoare triple)
+
+\[
+\boxed{\{\,P(R)\,\}\;\textbf{prog}\;\{\,Q(R,V,\text{out})\,\}}
+\]
+
+*Pre‑condition*  
+
+\[
+P(R)\;:\;R\in\mathbb {R}\;\land\;R\ge 0 .
+\]
+
+*Post‑condition*  
+
+\[
+\begin{aligned}
+Q(R,V,\text{out})\;:\;&
+   V = \frac{4}{3}\,\pi\,R^{3}
+   \;\land\\[1mm]
+   \text{out}= 
+        \text{"VOLUME = "} \;\Vert\;
+        \operatorname{str}\bigl(\operatorname{round}_{3}(V)\bigr) .
+\end{aligned}
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Hoare‑logic rules that will be used  
+
+| Rule | Shape |
+|------|-------|
+| **(Assignment)** | \(\displaystyle\frac{}{ \{\,Q[x:=E]\,\}\;x:=E\; \{\,Q\,\}}\) |
+| **(Sequence)** | \(\displaystyle\frac{\{P\}\;S_{1}\;\{R\}\qquad\{R\}\;S_{2}\;\{Q\}}{\{P\}\;S_{1};S_{2}\;\{Q\}}\) |
+| **(Consequence)** | \(\displaystyle\frac{P\Rightarrow P'\qquad\{P'\}\;S\;\{Q'\}\qquad Q'\Rightarrow Q}{\{P\}\;S\;\{Q\}}\) |
+| **(Read)** (treated as an assignment from the environment) | \(\displaystyle\frac{}{ \{\,P(R)\,\}\; \text{read }R\; \{\,P(R)\,\}}\) |
+| **(Print)** (identical to an ordinary assignment to the output variable) | same as **Assignment**. |
+
+---------------------------------------------------------------------
+
+### 4.  Proof – step by step  
+
+We prove the triple by constructing a chain of Hoare triples for the three
+statements of the program and then linking them with the **Sequence** rule.
+
+---------------------------------------------------------------------
+
+#### 4.1  Statement 1 – reading the radius  
+
+\[
+\frac{}{ \{\,P(R)\,\}\; \text{read }R\; \{\,P(R)\,\}} \tag{S1}
+\]
+
+The read statement does not change any variable other than `R`, and the
+pre‑condition already talks only about `R`. Therefore the post‑condition after
+the read is exactly the same predicate \(P(R)\).
+
+---------------------------------------------------------------------
+
+#### 4.2  Statement 2 – computing the volume  
+
+We want, after this assignment, the predicate  
+
+\[
+Q_{2}\;:\; V = \frac{4}{3}\,\pi\,R^{3}
+          \;\land\;
+          \text{out}= "VOLUME = " \;\Vert\; \operatorname{str}(\operatorname{round}_{3}(V)).
+\tag{*}
+\]
+
+The **Assignment** axiom tells us that to obtain a triple with post‑condition
+\(Q_{2}\) we must start with the *pre‑condition obtained by substituting the
+right‑hand side for the variable*:
+
+\[
+Q_{2}[V:= (4/3)\pi R^{3}]
+      \;=\;
+      (4/3)\pi R^{3}= \frac{4}{3}\pi R^{3}
+      \;\land\;
+      \text{out}= "VOLUME = " \;\Vert\;
+                \operatorname{str}\bigl(\operatorname{round}_{3}((4/3)\pi R^{3})\bigr).
+\]
+
+The first conjunct is a tautology, hence it can be dropped.  The second conjunct
+does **not** involve `V` any more; it is a pure statement about the current value
+of `out`.  Consequently we may strengthen the pre‑condition with this pure
+statement by the **Consequence** rule.
+
+Thus we have the following derivation:
+
+```
+      { P(R) }                (S1)               { P(R) }
+      ----------------------------------------------------  (Conseq.)
+          { out = "VOLUME = " || str(round₃((4/3)πR³)) }   (pre‑condition for S2)
+      ----------------------------------------------------  (Assign)
+          { V := (4/3)πR³ }                     { Q₂ }
+```
+
+Formally:
+
+\[
+\frac{
+   \begin{array}{c}
+     P(R)\;\Rightarrow\; \bigl(\text{out}= "VOLUME = " \Vert
+                      \operatorname{str}(\operatorname{round}_{3}((4/3)\pi R^{3}))\bigr)\\[1mm]
+     \{\,\text{out}= "VOLUME = " \Vert
+          \operatorname{str}(\operatorname{round}_{3}((4/3)\pi R^{3}))\,\}
+          \;V:= (4/3)\pi R^{3}
+          \;\{\,Q_{2}\,\}
+   \end{array}
+}{
+   \{\,P(R)\,\}\;V:= (4/3)\pi R^{3}\;\{\,Q_{2}\,\}
+} \tag{S2}
+\]
+
+The implication in the numerator is true because the right‑hand side does not
+mention `R`; it merely asserts a property of `out`, which is allowed to be
+arbitrarily chosen before the assignment to `V`.  Hence we may always assume it.
+
+---------------------------------------------------------------------
+
+#### 4.3  Statement 3 – printing the line  
+
+Now the current state already satisfies \(Q_{2}\).  The third statement is a
+simple assignment to the output variable:
+
+```
+out := "VOLUME = " || str(round₃(V))
+```
+
+Applying the **Assignment** axiom directly yields the required post‑condition:
+
+\[
+\frac{}{
+   \{\,Q_{2}[\,\text{out}:=
+      "VOLUME = "||\operatorname{str}(\operatorname{round}_{3}(V))\,]\,\}
+   \;\text{out}:= \dots\;
+   \{\,Q_{2}\,\}
+}
+\]
+
+But the substitution \(Q_{2}[\text{out}:= \dots]\) simply replaces the second
+conjunct of \(Q_{2}\) by the very same expression, i.e. the substitution is
+idempotent.  Consequently the pre‑condition of the assignment is exactly the
+post‑condition of the previous statement, and we obtain
+
+\[
+\{\,Q_{2}\,\}\; \text{out}:= "VOLUME = " || \operatorname{str}(\operatorname{round}_{3}(V))
+\; \{\,Q_{2}\,\}. \tag{S3}
+\]
+
+---------------------------------------------------------------------
+
+#### 4.4  Putting the three parts together  
+
+Using the **Sequence** rule twice we combine the three triples:
+
+\[
+\begin{array}{c}
+\{P(R)\}\; \text{read }R\; \{P(R)\} \quad\text{(S1)}\\[1mm]
+\{P(R)\}\; V:= (4/3)\pi R^{3}\; \{Q_{2}\} \quad\text{(S2)}\\[1mm]
+\{Q_{2}\}\; \text{out}:= "VOLUME = "||\operatorname{str}(\operatorname{round}_{3}(V))
+\; \{Q_{2}\} \quad\text{(S3)}
+\end{array}
+\Longrightarrow
+\{P(R)\}\;
+\bigl(\text{read }R;\; V:= (4/3)\pi R^{3};\;
+      \text{out}:= "VOLUME = "||\operatorname{str}(\operatorname{round}_{3}(V))\bigr)
+\;
+\{Q_{2}\}.
+\]
+
+Finally the `print out` statement does not change any variable, it only writes
+the value of `out` to the external world; therefore it can be omitted from the
+logical state and the triple remains valid.
+
+Thus we have derived exactly the Hoare triple demanded by the specification:
+
+\[
+\boxed{\{\,R\in\mathbb R,\;R\ge 0\,\}\;
+       \textbf{prog}\;
+       \{\,V=\tfrac{4}{3}\pi R^{3}
+         \;\land\;
+         \text{out}= "VOLUME = " \Vert
+                    \operatorname{str}(\operatorname{round}_{3}(V))\,
+       \}}
+\]
+
+---------------------------------------------------------------------
+
+### 5.  Remarks on the concrete Python implementation  
+
+* **Reading** – `float(input())` converts the textual input into a Python
+  `float`.  In the abstract model we treat this as the `read R` command; it
+  guarantees that after the statement the variable `r` (our concrete name for
+  `R`) holds a real number, satisfying the pre‑condition.
+
+* **Arithmetic** – `4/3 * pi * r**3` evaluates the exact real expression
+  \((4/3)\pi r^{3}\) in IEEE‑754 double precision.  The Hoare‑logic specification
+  talks about the *mathematical* value; the proof assumes the arithmetic is
+  exact (the usual “ideal‑real” abstraction used in program‑verification).
+
+* **Formatting** – the f‑string `f'VOLUME = {volume:.3f}'` produces exactly the
+  string `str(round₃(volume))`.  The Python formatting routine implements the
+  rounding rule `floor(1000·x+0.5)/1000`, which coincides with the definition of
+  `round₃`.  Consequently the concrete statement
+
+  ```python
+  print(f'VOLUME = {volume:.3f}')
+  ```
+
+  is semantically identical to the abstract assignment to `out` used in the
+  proof, and the final line printed on `stdout` satisfies the required output
+  format.
+
+---------------------------------------------------------------------
+
+### 6.  Conclusion  
+
+By applying the Hoare‑logic axioms **Assignment**, **Sequence**, and **Consequence**
+to each of the three program fragments (reading, computing, printing) we have
+derived a chain of triples that ends with the exact post‑condition demanded by
+the specification.  Hence the Python program
+
+```python
+r = float(input())
+pi = 3.14159
+volume = 4/3 * pi * r**3
+print(f'VOLUME = {volume:.3f}')
+```
+
+is *correct* with respect to the Hoare triple  
+
+\[
+\{R\in\mathbb R,\;R\ge0\}\;\textbf{prog}\;
+\{V = \tfrac{4}{3}\pi R^{3}\;\land\;
+  \text{output}= "VOLUME = " \Vert \operatorname{str}(\operatorname{round}_{3}(V))\},
+\]
+
+i.e. it always prints the literal “VOLUME = ” followed by the volume of the
+sphere rounded to three decimal places.  ∎

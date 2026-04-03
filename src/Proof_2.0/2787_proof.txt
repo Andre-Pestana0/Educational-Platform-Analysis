@@ -1,0 +1,301 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:=\;(1\le L\le 1000)\land(1\le C\le 1000)\land L\in\mathbb N\land C\in\mathbb N
+\]
+
+* **Program fragment** (the concrete Python code)
+
+```text
+read L
+read C
+if (L%2 == 0):
+    if (C%2 == 0):
+        print 1
+    else:
+        print 0
+else:
+    if (C%2 == 0):
+        print 0
+    else:
+        print 1
+```
+
+* **Post‑condition**  
+
+\[
+Q\;:=\; \bigl(col\in\{0,1\}\bigr)\land\bigl(col = 1 \;\leftrightarrow\; (L+C)\bmod 2 = 0\bigr)
+\]
+
+The variable `col` is the value that is printed; the two `read`s are assumed to respect the pre‑condition, i.e. after the reads we still know that \(P\) holds.
+
+The proof proceeds with the **Hoare‑logic rules** for
+
+* **Assignment** (here we do not have an explicit assignment, but we will reason that each `print` is equivalent to an assignment `col := …`);
+* **Composition** (sequencing of statements);
+* **Conditional** (the `if … else …` construct);
+* **Consequence** (strengthening the pre‑condition or weakening the post‑condition).
+
+---
+
+## 2.  Useful arithmetic lemmas  
+
+We will use the following facts about the remainder modulo 2 (they can be proved by elementary number theory).
+
+| Lemma | Statement |
+|------|-----------|
+| **L1** | \(x\%2 = 0 \;\Longleftrightarrow\; x\) is **even** |
+| **L2** | \(x\%2 = 1 \;\Longleftrightarrow\; x\) is **odd** |
+| **L3** | **Parity of a sum**: \(x+y\) is even  \(\Longleftrightarrow\)  \(x\) and \(y\) have the same parity (both even or both odd). |
+| **L4** | \(x+y\) is odd \(\Longleftrightarrow\) \(x\) and \(y\) have opposite parity. |
+| **L5** | For every integer \(z\) we have \((z\bmod 2)\in\{0,1\}\). |
+| **L6** | \(1-((x+y)\bmod 2) \in\{0,1\}\) and  
+
+\[
+1-((x+y)\bmod 2)=1 \;\Longleftrightarrow\; (x+y)\bmod 2 =0 .
+\]
+
+---
+
+## 3.  Abstract version of the program  
+
+Instead of reasoning about the nested `if`s directly, we rewrite the program in a *single* assignment that captures the same functional behaviour:
+
+```
+col := 1 - ((L + C) mod 2)
+print col
+```
+
+The two `read`s do not change any variable, they only bring the values of `L` and `C` into the program while preserving \(P\).
+
+Thus the program we shall verify is the **composition**  
+
+\[
+S\;=\;(\text{read }L;\;\text{read }C)\; ;\;(\;col := 1-((L+C)\bmod 2)\;);\;\text{print }col .
+\]
+
+The Hoare triple for the whole program follows from the triple for the *computational* part  
+
+\[
+\{P\}\;col := 1-((L+C)\bmod 2)\;\{Q\}
+\tag{1}
+\]
+
+because the reads and the final `print` are *obviously* correct:
+
+* **Read rule** – reading a value that satisfies the bounds does not change any logical assertion, i.e.  
+
+\[
+\{P\}\;\text{read }L\;\{P\},\qquad
+\{P\}\;\text{read }C\;\{P\}.
+\]
+
+* **Print rule** – printing a variable does not change the state, so  
+
+\[
+\{Q\}\;\text{print }col\;\{Q\}.
+\]
+
+Consequently, from (1) and the rules of **composition** we obtain the desired triple for the whole program.
+
+Hence the only non‑trivial part of the proof is (1).
+
+---
+
+## 4.  Proof of the assignment triple  
+
+We apply the **assignment axiom** of Hoare logic:
+
+\[
+\{\,\phi[\,col\;:=\;E\,]\,\}\;col := E\;\{\,\phi\,\}
+\tag{A}
+\]
+
+where \(\phi\) is any post‑condition and \(\phi[\,col\;:=\;E\,]\) denotes the formula obtained by *substituting* the right‑hand side \(E\) for every free occurrence of `col` in \(\phi\).
+
+Take  
+
+\[
+E \;:=\; 1-((L+C)\bmod 2)
+\]
+
+and  
+
+\[
+\phi \;:=\; \bigl(col\in\{0,1\}\bigr)\land\bigl(col=1\;\leftrightarrow\;(L+C)\bmod 2=0\bigr) .
+\]
+
+We have to compute \(\phi[\,col\;:=\;E\,]\) and show that it follows from the pre‑condition \(P\).
+
+---
+
+### 4.1  Substituting \(E\) in \(\phi\)
+
+\[
+\begin{aligned}
+\phi[\,col:=E\,] &\equiv
+\bigl(1-((L+C)\bmod 2)\in\{0,1\}\bigr) \\
+&\qquad\land\bigl(1-((L+C)\bmod 2)=1\;\leftrightarrow\;(L+C)\bmod 2 =0\bigr).
+\end{aligned}
+\tag{2}
+\]
+
+---
+
+### 4.2  Showing (2) holds under \(P\)
+
+*From Lemma L5* we know \((L+C)\bmod 2 \in\{0,1\}\).  
+Therefore \(1-((L+C)\bmod 2)\) is either \(1-0=1\) or \(1-1=0\); consequently the first conjunct of (2) is true.  
+
+*From Lemma L6* we have exactly the second conjunct of (2).  
+
+Both conjuncts are pure arithmetic facts that do **not** require the bounds \(1\le L,C\le 1000\); they are true for **all** natural numbers. Hence  
+
+\[
+P\;\Longrightarrow\;\phi[\,col:=E\,].
+\tag{3}
+\]
+
+---
+
+### 4.3  Applying the assignment rule
+
+From (A) with the substitution we get the Hoare triple  
+
+\[
+\{\phi[\,col:=E\,]\}\;col := E\;\{\phi\}.
+\]
+
+Using the implication (3) we can strengthen the pre‑condition by the **rule of consequence**:
+
+\[
+\frac{P\;\Rightarrow\;\phi[\,col:=E\,]\qquad
+\{\phi[\,col:=E\,]\}\;col:=E\;\{\phi\}}
+{ \{P\}\;col:=E\;\{\phi\}}
+\]
+
+Thus we have proved (1):
+
+\[
+\boxed{\{P\}\;col := 1-((L+C)\bmod 2)\;\{Q\}}
+\]
+
+---
+
+## 5.  Connecting the abstract assignment with the concrete nested `if`
+
+The original Python program does **not** contain the assignment; it decides the value to print by testing the parity of `L` and `C` separately.  
+We show that each branch of the nested `if` computes exactly the same value as the expression `1-((L+C) mod 2)`.
+
+| Condition on `L` | Condition on `C` | Branch executed | Printed value | Parity of \(L+C\) | Truth of \(col=1 \leftrightarrow (L+C)\bmod 2 =0\) |
+|-------------------|-------------------|-----------------|---------------|-------------------|---------------------------------------------------|
+| `L%2==0` (L even) | `C%2==0` (C even) | `print 1`       | 1             | even (even+even)  | true (both sides 1)                               |
+| `L%2==0` (L even) | `C%2!=0` (C odd)  | `print 0`       | 0             | odd (even+odd)    | true (both sides 0)                               |
+| `L%2!=0` (L odd)  | `C%2==0` (C even) | `print 0`       | 0             | odd (odd+even)    | true                                              |
+| `L%2!=0` (L odd)  | `C%2!=0` (C odd)  | `print 1`       | 1             | even (odd+odd)    | true                                              |
+
+The table follows directly from Lemmas L1–L4.  
+Hence, for **every** possible pair \((L,C)\),
+
+\[
+\text{value printed by the nested‑if program } = 1-((L+C)\bmod 2).
+\]
+
+Therefore the concrete program is *semantically equivalent* to the abstract assignment we have already proved correct.
+
+---
+
+## 6.  Full Hoare‑logic proof for the original program  
+
+Putting everything together:
+
+1. **Read statements** preserve the pre‑condition  
+
+   \[
+   \{P\}\;\text{read }L\;\{P\},\qquad
+   \{P\}\;\text{read }C\;\{P\}.
+   \]
+
+2. **Conditional statement**  
+
+   Using the Hoare rule for conditionals  
+
+   \[
+   \frac{\{P\land B\}\;S_1\;\{Q\}\qquad
+         \{P\land \neg B\}\;S_2\;\{Q\}}
+        {\{P\}\;\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\;\{Q\}}
+   \]
+
+   we treat the outer `if` as  
+
+   *\(B\) = “\(L\%2==0\)”*  
+
+   *\(S_1\) = inner `if` (the two branches for `C`)*
+   
+   *\(S_2\) = inner `if` with the opposite branches*.
+
+   For each inner `if` we again apply the conditional rule, with  
+
+   *\(B' = (C\%2==0)\)*  
+
+   *\(S_{11}\) = `print 1`, \(S_{12}\) = `print 0`*  
+
+   *\(S_{21}\) = `print 0`, \(S_{22}\) = `print 1`*.
+
+   As shown in the truth‑table of Section 5, in **every** of the four possible combinations of the two boolean tests the statement `print k` (where \(k\in\{0,1\}\)) satisfies the post‑condition \(Q\).  
+   Formally we have proved the four Hoare triples  
+
+   \[
+   \{P\land L\%2==0\land C\%2==0\}\;\text{print }1\;\{Q\},
+   \]
+   \[
+   \{P\land L\%2==0\land C\%2!=0\}\;\text{print }0\;\{Q\},
+   \]
+   \[
+   \{P\land L\%2!=0\land C\%2==0\}\;\text{print }0\;\{Q\},
+   \]
+   \[
+   \{P\land L\%2!=0\land C\%2!=0\}\;\text{print }1\;\{Q\}.
+   \]
+
+   By successive applications of the conditional rule we obtain  
+
+   \[
+   \{P\}\;\text{(nested if‑else program)}\;\{Q\}.
+   \]
+
+3. **Composition**  
+
+   Combining the two reads, the conditional block, and the final `print` (which does not change the state) with the **sequencing rule**, we get the Hoare triple for the whole program:
+
+   \[
+   \boxed{\{P\}\;
+          \texttt{read }L;\;
+          \texttt{read }C;\;
+          \texttt{if }(L\%2==0):\;
+              \dots\;
+          \texttt{else:}\dots\;
+          \{Q\}}
+   \]
+
+Thus the original Python program satisfies the specification: **whenever** the inputs satisfy the bounds \(1\le L,C\le 1000\), the integer printed is `1` exactly when \(L+C\) is even (i.e. the lower‑right square of the \(L\times C\) chessboard is white) and `0` otherwise.
+
+∎
+
+---  
+
+### Remarks  
+
+* The proof never used the numerical limits \(1000\); they are only needed to guarantee that the inputs belong to the domain required by the problem statement.  
+* The key mathematical insight is Lemma L3/L4: the parity of a sum is determined by the parity of the summands. The nested `if` simply enumerates the four possibilities of that parity table.  
+* The Hoare‑logic style proof shows that the program is *totally correct*: it terminates (obviously, there are no loops) and, upon termination, the post‑condition holds.  

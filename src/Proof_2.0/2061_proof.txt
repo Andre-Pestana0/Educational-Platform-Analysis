@@ -1,0 +1,240 @@
+**Proof that the program `process` satisfies the Hoare‑logic specification**
+
+\[
+\{P\}\;\; \texttt{process}(N,M,\mathbf a)\;\; \{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition described in §2.1,  
+* \(Q\) is the post‑condition described in §2.2, and  
+
+* `process` is the Python fragment shown in the statement.
+
+--------------------------------------------------------------------
+
+### 1.  Notation that will be used in the proof  
+
+* The program variable that stores the current number of tabs is called `n_abas`.  
+* `i` denotes the number of actions that have already been processed (the loop
+  counter).  
+* For a concrete execution we write  
+
+  \[
+  n_i \;:=\; \text{value of `n_abas` after the first }i\text{ iterations}
+  \qquad(0\le i\le M).
+  \]
+
+* The **effect function** is  
+
+  \[
+  \operatorname{eff}(\texttt{fechou})=+1,\qquad
+  \operatorname{eff}(\texttt{clicou})=-1 .
+  \]
+
+* The mathematical “ideal” counter defined in the specification is  
+
+  \[
+  T_i \;:=\; \max\bigl(0,\;N+\sum_{j=1}^{i}\operatorname{eff}(a_j)\bigr)
+  \qquad (0\le i\le M).
+  \]
+
+--------------------------------------------------------------------
+
+### 2.  Loop invariant  
+
+We prove *partial correctness* with the following invariant, which is true
+immediately before the test of the `for`‑loop on each iteration **i** (i.e. after
+the first *i* actions have been processed).
+
+\[
+\boxed{I(i)\;:\; 0\le i\le M\;\land\;
+      n_i = T_i\;}
+\tag{Inv}
+\]
+
+The invariant says that the program variable `n_abas` always coincides with the
+mathematical counter \(T_i\) after the same number of actions.
+
+--------------------------------------------------------------------
+
+### 3.  Initialization (establishing the invariant)
+
+Before the loop we have
+
+* `n_abas` is read from the first input token, i.e. `n_abas = N`.  
+* By definition \(T_0 = N\).
+
+Hence  
+
+\[
+n_0 = N = T_0,
+\]
+
+so \(I(0)\) holds.  
+
+--------------------------------------------------------------------
+
+### 4.  Maintenance (preserving the invariant)
+
+Assume that for some \(i\) with \(0\le i < M\) the invariant holds **before**
+processing the \((i+1)\)-st action:
+
+\[
+n_i = T_i = \max\bigl(0,\;N+\sum_{j=1}^{i}\operatorname{eff}(a_j)\bigr).
+\tag{IH}
+\]
+
+The loop reads the next action `acao = a_{i+1}` and executes one of the two
+branches:
+
+| case | program statement | effect on `n_abas` | mathematical effect |
+|------|-------------------|--------------------|---------------------|
+| `acao == "fechou"` | `n_abas += 1` | \(n_{i+1}=n_i+1\) | adds \(+1 = \operatorname{eff}(\texttt{fechou})\) |
+| `acao == "clicou"` | `n_abas -= 1` | \(n_{i+1}=n_i-1\) | adds \(-1 = \operatorname{eff}(\texttt{clicou})\) |
+
+We treat the two cases separately.
+
+---
+
+#### 4.1  Case `fechou`
+
+From (IH)
+
+\[
+n_{i+1}=n_i+1
+      =\max\bigl(0,\;N+\!\!\sum_{j=1}^{i}\!\operatorname{eff}(a_j)\bigr)+1
+      =\max\bigl(0,\;N+\!\!\sum_{j=1}^{i+1}\!\operatorname{eff}(a_j)\bigr)
+      =T_{i+1}.
+\]
+
+(The last equality uses the fact that adding +1 cannot turn a non‑negative
+value into a negative one, therefore the outer `max` does nothing.)
+
+---
+
+#### 4.2  Case `clicou`
+
+Again from (IH)
+
+\[
+n_{i+1}=n_i-1
+      =\max\bigl(0,\;N+\!\!\sum_{j=1}^{i}\!\operatorname{eff}(a_j)\bigr)-1 .
+\]
+
+Two sub‑cases are possible.
+
+*If the inner sum is **strictly positive**,
+\(N+\sum_{j=1}^{i}\operatorname{eff}(a_j) > 0\),
+the `max` returns that sum, so*
+
+\[
+n_{i+1}=N+\!\!\sum_{j=1}^{i}\!\operatorname{eff}(a_j)-1
+      =N+\!\!\sum_{j=1}^{i+1}\!\operatorname{eff}(a_j)
+      =\max\bigl(0,\;N+\!\!\sum_{j=1}^{i+1}\!\operatorname{eff}(a_j)\bigr)
+      =T_{i+1}.
+\]
+
+*If the inner sum is **zero**, the `max` returns 0 and we obtain*
+
+\[
+n_{i+1}=0-1=-1 .
+\]
+
+But the specification’s first conjunct  
+
+\[
+\forall k\;(1\le k\le M \Rightarrow T_k\ge 0)
+\tag{no‑negative‑tabs}
+\]
+
+states that the sequence of actions never makes the true counter negative.
+Consequently the situation “inner sum = 0 and the next action is
+`clicou`” cannot occur under the pre‑condition \(P\).  
+Therefore the sub‑case that would produce a negative value is ruled out,
+and the previous sub‑case is the only one that can happen. Hence
+\(n_{i+1}=T_{i+1}\).
+
+---
+
+In **both** branches we have shown that
+
+\[
+n_{i+1}=T_{i+1},
+\]
+
+i.e. the invariant holds after the \((i+1)\)-st iteration.  
+Thus \(I(i)\Rightarrow I(i+1)\) and the invariant is preserved.
+
+--------------------------------------------------------------------
+
+### 5.  Termination  
+
+The `for`‑loop is bounded by the constant \(M\) (the second input value).  
+Since \(0\le M<500\) by the pre‑condition, the loop executes exactly \(M\)
+iterations and then stops. Hence the program terminates for every state that
+satisfies \(P\).
+
+--------------------------------------------------------------------
+
+### 6.  Post‑condition (deriving \(Q\) from the invariant)
+
+When the loop ends we have processed **all** actions, i.e. \(i=M\).  
+By the invariant \(I(M)\) we obtain
+
+\[
+n_M = T_M .
+\tag{1}
+\]
+
+The statement `print(n_abas)` outputs the current value of `n_abas`, therefore
+
+\[
+\text{output}=n_M .
+\tag{2}
+\]
+
+From the definition of \(T_M\),
+
+\[
+T_M = \max\bigl(0,\;N+\sum_{j=1}^{M}\operatorname{eff}(a_j)\bigr) .
+\tag{3}
+\]
+
+Combining (1)–(3) we have
+
+* the **non‑negativity** of every intermediate counter:
+  \(T_k\ge 0\) for all \(k\) (this follows directly from the outer `max`);
+* the **closed‑form final value** required by the second line of \(Q\);
+* the equality `output = T_M` required by the third line of \(Q\).
+
+Hence the post‑condition \(Q\) holds after termination.
+
+--------------------------------------------------------------------
+
+### 7.  Conclusion  
+
+We have exhibited a loop invariant \(I(i)\) that
+
+* is true initially (initialisation),
+* is preserved by each iteration (maintenance),
+* together with the bounded loop guarantees termination,
+* and whose truth at the end of the loop yields exactly the three conjuncts
+  of the post‑condition \(Q\).
+
+Therefore the Hoare triple
+
+\[
+\boxed{\; \{P\}\;\; \texttt{process}(N,M,\mathbf a)\;\; \{Q\}\;}
+\]
+
+is **proved**: the given Python program satisfies the formal specification.
+The program prints  
+
+\[
+\max\Bigl(0,\;N+(\#\text{fechou})-(\#\text{clicou})\Bigr),
+\]
+
+i.e. the initial number of tabs plus one for each “fechou’’ and minus one for
+each “clicou’’, never letting the count become negative, exactly as required
+by the problem statement. ∎

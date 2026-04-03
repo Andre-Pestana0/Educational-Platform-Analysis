@@ -1,0 +1,180 @@
+## 1.  What we have to prove  
+
+We are asked to show that the following program **S**
+
+```python
+# read the two integers
+provaA = int(input())      #  A
+media   = int(input())     #  M
+
+# compute and print the missing grade
+print((2 * media) - provaA)   #  B
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\;
+\bigl(A\in\mathbb Z\land M\in\mathbb Z\bigr)\;\land\;
+\exists B\in\mathbb Z.\;\frac{A+B}{2}=M
+\tag{1}
+\]
+
+* **Post‑condition**  
+
+\[
+Q\; \equiv\; B = 2M-A\;\land\;B\in\mathbb Z .
+\tag{2}
+\]
+
+In the Hoare‑logic notation the *output* variable `B` is the value that the program writes to the standard output (or returns).  
+
+We shall give a **formal derivation** that starts from `P`, applies the Hoare axioms/rules for the three statements of the program, and ends with `Q`.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules we shall use  
+
+| Rule | Shape | Meaning |
+|------|-------|---------|
+| **Assignment** | \(\displaystyle \frac{ \{\,Q[B:=E]\,\}\; B:=E\; \{\,Q\,\} }{}\) | `Q[B:=E]` denotes the formula obtained from `Q` by substituting every free occurrence of `B` with the expression `E`. |
+| **Consequence** | \(\displaystyle \frac{P'\Rightarrow P\qquad\{P\}\;S\;\{Q\}\qquad Q\Rightarrow Q'}{ \{P'\}\;S\;\{Q'\} }\) | Allows strengthening the pre‑condition or weakening the post‑condition. |
+| **Skip (output)** | \(\{\,Q\,\}\;\texttt{print}(B)\;\{\,Q\,\}\) | Printing a value does not change any program variable; therefore the same assertion holds before and after the `print`. |
+| **Input (nondeterministic assignment)** | \(\displaystyle \frac{ \{\,P\land A=a\land M=m\,\}\; \texttt{skip}\; \{\,P\land A=a\land M=m\,\} }{ \{\,P\,\}\; \texttt{input}\; \{\,P\,\}}\) | Reading a value can be modelled as a nondeterministic assignment that respects the surrounding assertion. |
+
+The last two rules are convenient abbreviations: reading a value does not change the logical relation between the variables and the assertion, and printing does not change the variables either.  Consequently we can concentrate on the *computational* statement that really changes a variable, namely the assignment that computes `B`.
+
+--------------------------------------------------------------------
+
+## 3.  Proof outline  
+
+The program consists of three elementary commands
+
+1. `provaA = int(input())`    → we denote the variable that receives the first input by **A**.
+2. `media   = int(input())`    → the second input is stored in **M**.
+3. `print((2 * media) - provaA)` → the expression `2*M - A` is printed; we treat it as an *assignment* `B := 2*M - A` followed by a `print`.
+
+Hence we rewrite the program (logically) as  
+
+```
+A := input()                (1)
+M := input()                (2)
+B := 2*M - A                (3)
+print B                     (4)
+```
+
+Our derivation will therefore be:
+
+```
+{P}      (1)   {P}               by the input rule
+{P}      (2)   {P}               by the input rule
+{P}  →  {Q[B:=2*M-A]}           by algebra (see below)
+{Q[B:=2*M-A]} (3) {Q}            by the assignment rule
+{Q}            (4) {Q}           by the print rule
+```
+
+The only non‑trivial step is the implication  
+
+\[
+P \;\Longrightarrow\; Q\bigl[B:=2M-A\bigr] .
+\tag{3}
+\]
+
+We now prove (3) formally.
+
+--------------------------------------------------------------------
+
+## 4.  From the pre‑condition to the substitution of the post‑condition  
+
+Recall  
+
+* \(P\) :  \(A,M\in\mathbb Z\) and \(\exists B\in\mathbb Z.\; \dfrac{A+B}{2}=M\).  
+* \(Q\) :  \(B = 2M-A \;\land\; B\in\mathbb Z\).
+
+The substitution \(Q[B:=2M-A]\) replaces every occurrence of `B` in `Q` by the expression `2M-A`.  Hence  
+
+\[
+Q[B:=2M-A]\;\equiv\;(2M-A)=2M-A \;\land\;(2M-A)\in\mathbb Z .
+\tag{4}
+\]
+
+The first conjunct of (4) is a *tautology* (an equality of a term with itself).  The second conjunct says that the term `2M-A` is an integer.  Since `A` and `M` are integers (by the first part of `P`), the arithmetic expression `2M-A` is also an integer; therefore the second conjunct holds automatically.
+
+Consequently  
+
+\[
+P \;\Longrightarrow\; (2M-A)=2M-A \;\land\; (2M-A)\in\mathbb Z .
+\]
+
+Thus (3) is proved.
+
+--------------------------------------------------------------------
+
+## 5.  Full Hoare‑logic derivation  
+
+We now present the derivation in the standard Hoare‑logic tableau style.
+
+| Line | Command | Pre‑condition | Reason |
+|------|---------|----------------|--------|
+| 1 | `A := input()` | \(P\) | Input rule (reads an integer, does not affect the truth of `P`). |
+| 2 | `M := input()` | \(P\) | Same as above. |
+| 3 | `B := 2*M - A` | \(P\) | By (3) we have \(P \Rightarrow Q[B:=2M-A]\).  Apply the **assignment rule** with \(E = 2M-A\). |
+| 4 | `print B` | \(Q\) | Print does not modify any variable, so the **skip (output) rule** yields the same post‑condition. |
+| 5 | – | \(Q\) | End of program. |
+
+The derivation ends with the post‑condition \(Q\), i.e. the program prints a value `B` that satisfies  
+
+\[
+B = 2M-A \;\land\; B\in\mathbb Z .
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Intuitive algebraic explanation (optional)
+
+From the existential part of the pre‑condition we know that there *exists* some integer \(B\) such that  
+
+\[
+\frac{A+B}{2}=M .
+\]
+
+Multiplying both sides by 2 and rearranging gives  
+
+\[
+A+B = 2M \quad\Longrightarrow\quad B = 2M-A .
+\]
+
+Because `A` and `M` are integers, the right‑hand side is an integer, so the required `B` is also an integer.  The program computes exactly this expression and prints it, which is precisely what the post‑condition demands.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have exhibited a **formal Hoare‑logic proof** that the Python program
+
+```python
+provaA = int(input())
+media  = int(input())
+print((2 * media) - provaA)
+```
+
+satisfies the specification  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\},
+\]
+
+with  
+
+* \(P\) asserting that the two inputs are integers and that there exists an integer second grade `B` whose mean with `A` equals `M`;
+* \(Q\) asserting that the value printed by the program is exactly that `B`, i.e. `B = 2M - A`.
+
+Therefore the program is **correct** with respect to the given Hoare‑logic specification.

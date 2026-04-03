@@ -1,0 +1,177 @@
+**Answer – a Hoare‑logic proof that the Python program satisfies the specification**  
+
+Below we give a *total‑correctness* proof for the program that solves the “par / impar” (even / odd) problem.  
+The proof follows the usual Hoare‑logic inference rules (assignment, sequencing, conditional, while‑loop) and makes explicit the connection between the concrete program variables and the abstract variables that appear in the pre‑condition **P** and the post‑condition **Q** of the specification given in the question.
+
+---------------------------------------------------------------------
+
+## 1.  Mapping of concrete to abstract variables
+
+| concrete Python name | abstract variable (spec) | comment |
+|----------------------|--------------------------|---------|
+| `testes`             | `QT`                     | number of test cases |
+| `i`                  | loop index `i` (1‑based) | loop counter |
+| `nomes[0]`           | `name₁[i]`               | first player’s name |
+| `nomes[1]`           | `c₁[i]`                  | first player’s choice (`PAR` or `IMPAR`) |
+| `nomes[2]`           | `name₂[i]`               | second player’s name |
+| `n1`                 | `N[i]`                   | first integer of the test case |
+| `n2`                 | `M[i]`                   | second integer of the test case |
+| `soma = n1+n2`       | `S[i] = N[i]+M[i]`       | the sum |
+| `result`             | `par(S[i]) ? PAR : IMPAR`| parity of the sum, expressed as a `Choice` |
+| printed name (`print`) | `winner[i]`            | the value that must appear in the output |
+
+All other Python variables (`result`, `soma`) are *local* temporaries that do not appear in the specification; they are used only to compute the parity.
+
+---------------------------------------------------------------------
+
+## 2.  The program in pseudo‑code (for the proof)
+
+```
+1  read QT                                 //  QT ∈ ℕ⁺, 1 ≤ QT ≤ 100
+2  i := 1
+3  while i ≤ QT do
+4      read name₁[i], c₁[i], name₂[i]    // each line satisfies the type constraints of P
+5      read N[i], M[i]                   // 1 ≤ N[i],M[i] ≤ 10¹⁰
+6      S := N[i] + M[i]
+7      if S mod 2 = 0 then result := PAR else result := IMPAR
+8      if result = c₁[i] then
+9          print name₁[i]                // winner[i] := name₁[i]
+10     else
+11         print name₂[i]                // winner[i] := name₂[i]
+12     i := i + 1
+13  od
+```
+
+The only statements that affect the abstract state are the **read** statements (which initialise the abstract variables) and the two `print` statements (which set `winner[i]`).  
+
+---------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+The heart of the proof is the invariant that holds at the beginning of each iteration of the `while` loop.
+
+\[
+\boxed{
+\begin{aligned}
+I(i) \;\equiv\;&
+1 \le i \le QT+1 \;\land\\
+&\bigl(\forall k\;(1\le k < i)\;.\;
+\bigl(\operatorname{par}(N[k]+M[k]) \land c₁[k]=\text{PAR}\bigr) \;\lor\;
+\bigl(\neg\operatorname{par}(N[k]+M[k]) \land c₁[k]=\text{IMPAR}\bigr)
+\;\Longrightarrow\; \text{winner}[k]=\text{name₁}[k]\bigr)\\
+&\land\;
+\bigl(\forall k\;(1\le k < i)\;.\;
+\bigl(\operatorname{par}(N[k]+M[k]) \land c₂[k]=\text{PAR}\bigr) \;\lor\;
+\bigl(\neg\operatorname{par}(N[k]+M[k]) \land c₂[k]=\text{IMPAR}\bigr)
+\;\Longrightarrow\; \text{winner}[k]=\text{name₂}[k]\bigr)
+\end{aligned}}
+\]
+
+In words:  
+
+* the loop counter is always inside the range `1 … QT+1`;  
+* for every test case that has already been processed (`k < i`) the printed name is exactly the winner dictated by the parity of `N[k]+M[k]` and the player’s declared choice.
+
+Notice that `I(i)` is exactly the part of **Q** that talks about the *already‑handled* indices.
+
+---------------------------------------------------------------------
+
+## 4.  Proof of partial correctness  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\; S\; \{Q\}
+\]
+
+by showing  
+
+\[
+\{P\}\; \text{(initialisation)}\; \{I(1)\}
+\qquad
+\{I(i)\;\land\; i\le QT\}\; \text{(body)}\; \{I(i+1)\}
+\qquad
+\{I(QT+1)\}\; \text{(loop exit)}\; \{Q\}
+\]
+
+### 4.1  Initialisation (`i := 1`)
+
+From **P** we have `1 ≤ QT ≤ 100`.  
+After executing `i := 1` we obtain `1 ≤ i ≤ QT+1`.  
+No test case has been processed yet, so the two universal quantifications in `I(1)` are vacuously true.  
+Hence `{P} i:=1 { I(1) }` holds by the **assignment rule**.
+
+### 4.2  Preservation of the invariant  
+
+Assume the invariant holds at the beginning of an iteration, i.e.
+
+\[
+\{I(i) \land i\le QT\}
+\]
+
+We must show that after executing the body (lines 4‑12) the invariant holds with the counter increased, i.e. `{ I(i+1) }`.
+
+The body consists of the following steps; we treat each one with the Hoare rule that applies.
+
+| Step | Hoare justification |
+|------|---------------------|
+| **4** `read name₁[i], c₁[i], name₂[i]` | The input is guaranteed by **P** to satisfy `name₁[i]∈String₍≤100₎`, `c₁[i]∈Choice`, `name₂[i]∈String₍≤100₎` and `opp(c₁[i],c₂[i])`. The read therefore *establishes* the abstract variables for index `i`. |
+| **5** `read N[i], M[i]` | By **P**, `1 ≤ N[i],M[i] ≤ 10¹⁰`. The read therefore establishes the abstract numbers for index `i`. |
+| **6** `S := N[i] + M[i]` | Assignment rule: after this step `S = N[i]+M[i]`. |
+| **7** `if S mod 2 = 0 then result := PAR else result := IMPAR` | The condition `S mod 2 = 0` is exactly the definition of `par(S)`. The conditional therefore sets `result` to `PAR` iff `par(N[i]+M[i])` holds, and to `IMPAR` otherwise. |
+| **8‑11**  `if result = c₁[i] then print name₁[i] else print name₂[i]` | Two cases are considered:  
+
+  *Case 1:* `result = c₁[i]`. By the previous line, `result` equals `PAR` exactly when `par(N[i]+M[i])` is true; thus `c₁[i]` matches the parity of the sum. The `print` statement stores `winner[i] := name₁[i]`. This matches the first implication of **Q** for index `i`.  
+
+  *Case 2:* `result ≠ c₁[i]`. Because the two choices are opposite (`opp(c₁[i],c₂[i])`), we have `c₂[i] = result`. Consequently `c₂[i]` matches the parity of the sum and the `else` branch prints `name₂[i]`, i.e. `winner[i] := name₂[i]`. This matches the second implication of **Q** for index `i`.  
+
+  In both cases the printed name is exactly the winner required by **Q** for test case `i`. |
+| **12** `i := i + 1` | Assignment rule: after this step the loop counter satisfies `i' = i+1`. |
+
+Now we argue that after the whole body the invariant `I(i+1)` holds:
+
+* The new counter value satisfies `1 ≤ i+1 ≤ QT+1` (because the loop guard guarantees `i ≤ QT`).  
+* For every `k < i` the invariant already held by the induction hypothesis.  
+* For `k = i` we have just proved (by the case analysis above) that `winner[i]` satisfies exactly the implication required by **Q** for that index. Hence the universal quantifications in `I(i+1)` are true for `k = i` as well.  
+
+Thus `{ I(i) ∧ i ≤ QT } body { I(i+1) }` is proved.
+
+### 4.3  Exit condition  
+
+When the loop terminates we have `¬(i ≤ QT)`, i.e. `i = QT + 1`.  
+From the invariant we obtain `I(QT+1)`. By unfolding the definition of `I` with `i = QT+1` we see that the universal quantifiers now range over **all** indices `1 … QT`. Consequently the two implications of **Q** hold for every test case, which is exactly the post‑condition **Q**.  
+
+Formally:
+
+\[
+\{ I(QT+1) \}\;\text{skip}\;\{ Q \}
+\]
+
+holds because `I(QT+1)` is *identical* to `Q` when the range `k < QT+1` is replaced by `1 ≤ k ≤ QT`.
+
+---------------------------------------------------------------------
+
+## 5.  Proof of termination  
+
+The loop variable `i` is a natural number that starts at `1` and is increased by the statement `i := i+1` in every iteration. The loop guard is `i ≤ QT`. Since `QT` is a constant (read once before the loop) and `QT ≥ 1`, the value of `i` can be increased at most `QT` times before the guard becomes false. Therefore the loop executes a finite number of iterations (≤ QT) and terminates. This satisfies the **variant** condition required for total correctness.
+
+---------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited a loop invariant `I(i)` that
+
+* is established by the initialisation,
+* is preserved by the body of the loop (proved with the Hoare rules for assignment, sequencing, and conditional),
+* together with the negated guard yields exactly the post‑condition **Q**,
+* and we have shown that the loop terminates.
+
+Consequently the Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\; S\; \{\,Q\,\} \;}
+\]
+
+holds for the concrete Python program given in the statement.  
+
+In plain English: **under the assumptions of the pre‑condition (valid input), the program prints, for each test case, precisely the name of the player whose declared choice (`PAR` or `IMPAR`) matches the parity of the sum of the two supplied numbers** – exactly what the specification requires. ∎

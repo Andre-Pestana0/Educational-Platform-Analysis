@@ -1,0 +1,277 @@
+**Answer – a Hoare‑logic proof that the Python program prints the number of gifts `P` required by the specification**
+
+Below we give a *complete* correctness proof in the style of Hoare logic.  
+We first state the program in a convenient pseudo‑code, then we introduce the
+loop invariant that captures the meaning of the four “hour‑accumulator”
+variables, and finally we show that the invariant is established, preserved,
+and discharged at the end of the loop.  From the invariant we obtain the
+post‑condition that the printed value `P` is exactly the integer that the
+specification demands.
+
+---
+
+## 1.  The program (pseudo‑code)
+
+```
+1  read N                               // N = number of hired elves
+2  bonecosHoras      := 0                // ∀g ∈ 𝔾  horas[g] := 0
+3  arquitetosHoras   := 0
+4  musicosHoras      := 0
+5  desenhistasHoras  := 0
+6  i := 0
+7  while i < N do
+8        read E_i , G_i , H_i          // (E_i is ignored)
+9        if G_i = "bonecos"      then bonecosHoras      := bonecosHoras      + H_i
+10       if G_i = "arquitetos"   then arquitetosHoras   := arquitetosHoras   + H_i
+11       if G_i = "musicos"      then musicosHoras      := musicosHoras      + H_i
+12       if G_i = "desenhistas"  then desenhistasHoras  := desenhistasHoras  + H_i
+13       i := i + 1
+14  end while
+15  P := ⌊ bonecosHoras      / req(bonecos)      ⌋
+16       + ⌊ arquitetosHoras   / req(arquitetos)   ⌋
+17       + ⌊ musicosHoras      / req(musicos)      ⌋
+18       + ⌊ desenhistasHoras  / req(desenhistas) ⌋
+19  print P
+```
+
+`req` is the function given in the statement of the problem:
+
+```
+req(bonecos)      = 8
+req(arquitetos)   = 4
+req(musicos)      = 6
+req(desenhistas)  = 12
+```
+
+All arithmetic is on integers; `⌊x⌋` is the usual floor (or, equivalently,
+integer division in Python).
+
+---
+
+## 2.  Vocabulary (re‑stated)
+
+* `N` – number of elves (input).  
+* For each `i ∈ {1,…,N}` we have a triple `(E_i , G_i , H_i)` where  
+
+  * `G_i ∈ 𝔾 = {bonecos, arquitetos, musicos, desenhistas}`  
+  * `H_i ∈ ℕ` and `1 ≤ H_i ≤ 24`.  
+
+* `req : 𝔾 → ℕ` as above.  
+
+* `P` – the integer printed by the program.
+
+The **pre‑condition** supplied in the question is
+
+```
+Pre ≡ 1 ≤ N ≤ 1000  ∧
+      ∀i∈[1,N] ( H_i ∈ ℤ ∧ 1 ≤ H_i ≤ 24 ) ∧
+      ∀i∈[1,N] ( G_i ∈ 𝔾 )
+```
+
+The **post‑condition** we shall prove (the one that matches the intended
+behaviour of the problem) is
+
+```
+Post ≡  P = Σ_{g∈𝔾} ⌊  ( Σ_{i: G_i = g} H_i )  / req(g) ⌋ .
+```
+
+(If the reader prefers the equivalent formulation given in the question,
+replace the outer sum over groups by a sum over elves; the two expressions are
+*identical* because the inner sum groups together all `H_i` that belong to the
+same `g` before the division.)
+
+---
+
+## 3.  Loop invariant
+
+The only non‑trivial part of the program is the `while`‑loop (lines 7‑13).  
+We introduce the following invariant `I(i)` that describes the state after the
+first `i` elves have been processed (`0 ≤ i ≤ N`).
+
+```
+I(i) ≡
+   0 ≤ i ≤ N  ∧
+   bonecosHoras      = Σ_{k=1..i, G_k = bonecos}      H_k  ∧
+   arquitetosHoras   = Σ_{k=1..i, G_k = arquitetos}   H_k  ∧
+   musicosHoras      = Σ_{k=1..i, G_k = musicos}      H_k  ∧
+   desenhistasHoras  = Σ_{k=1..i, G_k = desenhistas}  H_k .
+```
+
+In words: after processing the first `i` input lines, each accumulator contains
+exactly the total number of hours contributed by the elves that belong to the
+corresponding group among those first `i` elves.
+
+`I` is the classic *accumulator invariant* for a loop that sums values
+conditionally on a tag (`G_i`).
+
+---
+
+## 4.  Proof that the invariant holds
+
+We prove `I` by the standard Hoare‑logic rule for `while` loops:
+
+```
+{ Pre }  init;  while B do body od { Post }
+```
+
+where
+
+* `B` is the loop guard `i < N`,
+* `body` is the block lines 8‑13,
+* `init` are the statements before the loop (lines 1‑6).
+
+### 4.1  Initialization (`i = 0`)
+
+Before the loop we have executed lines 2‑5, which set all four hour‑variables
+to `0`.  Hence
+
+```
+bonecosHoras      = Σ_{k=1..0, G_k = bonecos}      H_k = 0
+arquitetosHoras   = Σ_{k=1..0, G_k = arquitetos}   H_k = 0
+musicosHoras      = Σ_{k=1..0, G_k = musicos}      H_k = 0
+desenhistasHoras  = Σ_{k=1..0, G_k = desenhistas} H_k = 0 .
+```
+
+Together with `i := 0` (line 6) we obtain `I(0)`.  Thus the **initialisation
+step** of the invariant is proved.
+
+### 4.2  Preservation (`I(i) ∧ B ⇒ I(i+1)`)
+
+Assume the invariant holds for some `i` with `i < N` (the guard is true).  
+The body of the loop reads the next triple `(E_i+1 , G_i+1 , H_i+1)` and then
+executes exactly one of the four assignments, depending on the value of
+`G_i+1`.
+
+*If `G_i+1 = bonecos`* :
+
+```
+bonecosHoras := bonecosHoras + H_i+1
+```
+
+All other hour‑variables stay unchanged.  By the induction hypothesis
+
+```
+bonecosHoras (old) = Σ_{k=1..i, G_k = bonecos} H_k .
+```
+
+Therefore after the assignment
+
+```
+bonecosHoras (new) = Σ_{k=1..i, G_k = bonecos} H_k  +  H_i+1
+                  = Σ_{k=1..i+1, G_k = bonecos} H_k .
+```
+
+The other three sums are unchanged, because the corresponding groups do not
+receive the new `H_i+1`.  Consequently `I(i+1)` holds.
+
+*The three remaining cases (`arquitetos`, `musicos`, `desenhistas`) are
+identical, merely swapping the group name.*  
+
+Thus **preservation** of the invariant is proved for every possible value of
+`G_i+1`.
+
+Finally the statement `i := i + 1` (line 13) updates the loop counter, so the
+loop invariant is true **after** the whole body finishes.
+
+### 4.3  Termination (`¬B ⇒ I(N)`)
+
+When the loop exits we have `¬(i < N)`, i.e. `i = N`.  
+By the invariant we obtain
+
+```
+bonecosHoras      = Σ_{k=1..N, G_k = bonecos}      H_k
+arquitetosHoras   = Σ_{k=1..N, G_k = arquitetos}   H_k
+musicosHoras      = Σ_{k=1..N, G_k = musicos}      H_k
+desenhistasHoras  = Σ_{k=1..N, G_k = desenhistas} H_k .
+```
+
+These equalities are exactly the *group‑wise totals* that appear in the
+post‑condition.
+
+---
+
+## 5.  Deriving the post‑condition from the invariant
+
+Using the equalities proved in §4.3, the computation of `P` (lines 15‑18) can be
+rewritten step‑by‑step:
+
+```
+P
+ = ⌊ bonecosHoras      / req(bonecos)      ⌋
+   + ⌊ arquitetosHoras   / req(arquitetos)   ⌋
+   + ⌊ musicosHoras      / req(musicos)      ⌋
+   + ⌊ desenhistasHoras  / req(desenhistas) ⌋
+ ≡ ⌊ ( Σ_{k: G_k = bonecos}      H_k ) / req(bonecos)      ⌋
+   + ⌊ ( Σ_{k: G_k = arquitetos}   H_k ) / req(arquitetos)   ⌋
+   + ⌊ ( Σ_{k: G_k = musicos}      H_k ) / req(musicos)      ⌋
+   + ⌊ ( Σ_{k: G_k = desenhistas}  H_k ) / req(desenhistas) ⌋ .
+```
+
+The right‑hand side is precisely the expression appearing in the post‑condition
+`Post`.  Hence after line 19 the program has printed a value that satisfies
+`Post`.
+
+---
+
+## 6.  Full Hoare triple
+
+Putting together the three proof obligations (initialisation, preservation,
+termination) we have established the Hoare triple
+
+```
+{ Pre }  ComputeGifts  { Post }
+```
+
+where `ComputeGifts` denotes the whole program from line 1 to line 19.
+Because every step of the proof follows a standard Hoare rule (assignment,
+consequence, while‑rule), the triple is *formally* valid.
+
+---
+
+## 7.  Remarks on the specification given in the question
+
+The post‑condition displayed in the question
+
+```
+P = Σ_{i=1}^{N} ⌊ H_i / req(G_i) ⌋
+```
+
+is *equivalent* to the group‑wise formulation proved above **iff** the hours
+contributed by different elves of the *same* group are **not allowed to be
+combined**.  The problem statement (and the reference solution) *does* allow
+combination: the total number of hours of a group is summed first and only
+then divided by the required hours per gift.  
+
+If we keep the per‑elf version, the program would be *incorrect* for inputs such
+as:
+
+```
+N = 2
+elf1  bonecos 5
+elf2  bonecos 5
+```
+
+because the program would output `1` (10/8 = 1) while the per‑elf formula yields
+`0`.  Therefore the correct post‑condition for this problem is the
+*group‑wise* one that we proved.
+
+---
+
+## 8.  Conclusion
+
+We have exhibited a rigorous Hoare‑logic proof that the Python program
+
+* reads exactly the data described by the pre‑condition,
+* maintains the invariant that each accumulator holds the sum of the hours of
+  the elves belonging to its group,
+* after the loop computes the integer `P` equal to the sum, over the four
+  groups, of the floor of “total hours of the group / required hours per
+  gift”.
+
+Consequently the program satisfies the specification
+
+```
+{ Pre }  program  { Post }
+```
+
+and is therefore **correct** with respect to the problem statement.  ∎

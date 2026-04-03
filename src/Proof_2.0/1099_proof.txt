@@ -1,0 +1,405 @@
+## 1.  Overview  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** is the pre‑condition that the input consists of a non‑negative integer \(N\) followed by exactly \(N\) pairs of integers \((X_i,Y_i)\);
+* **\(Q\)** is the post‑condition that the program prints a sequence  
+
+  \[
+  O=\langle o_1,\dots ,o_N\rangle ,\qquad
+  o_i=\sum_{k=\operatorname{low}(X_i,Y_i)+1}^{\operatorname{high}(X_i,Y_i)-1}
+       k\cdot\operatorname{odd}(k)
+  \]
+
+  one element per line.
+
+The program is reproduced below (the comments are kept for readability).
+
+```python
+# 1. read N
+n = int(input())
+
+# 2. outer loop – one iteration per test case
+soma = 0                         # (will be used inside each test case)
+for contador1 in range(n):       # i = 0 … n‑1   (i+1 = test case number)
+
+    # 2.1 read the pair (x,y)
+    x, y = map(int, input().split(' '))
+
+    # 2.2 branch depending on which endpoint is larger
+    if (y > x):
+        k = y - x                 # k = |y‑x|
+        # 2.2.1 sum the odd numbers that lie strictly between x and y
+        for contador2 in range(k-1):   # executed k‑1 times
+            x = x + 1
+            if (x % 2 != 0):
+                soma = soma + x
+        print(soma)               # output for this test case
+        soma = 0                   # reset for the next case
+    else:
+        k = x - y                 # k = |x‑y|
+        # 2.2.2 symmetric loop, now moving y upwards
+        for contador3 in range(k-1):
+            y = y + 1
+            if (y % 2 != 0):
+                soma = soma + y
+        print(soma)
+        soma = 0
+```
+
+The proof proceeds in three layers:
+
+1. **Inner‑loop invariant** – shows that after the *k‑1* iterations the variable `soma` holds exactly the sum of the odd numbers that are strictly between the two original endpoints.
+2. **Outer‑loop invariant** – shows that after processing the first *i* test cases the first *i* elements of the output sequence satisfy the required formula.
+3. **Termination** – shows that the loops indeed finish and that the final state satisfies the post‑condition \(Q\).
+
+All reasoning is done in the classic Hoare‑logic style (assignment axiom, sequencing, conditional rule, and the while‑rule; the `for` loops are treated as `while` loops with an explicit counter).
+
+--------------------------------------------------------------------
+
+## 2.  Notation used in the proof  
+
+* For the outer loop we denote the loop counter by `i` (the value of `contador1`).  
+  After the `i`‑th iteration (`i` ranging from 0 to \(n-1\)) we have already processed the test cases  
+  \((X_1,Y_1),\dots ,(X_{i},Y_{i})\).  
+* For the inner loop that belongs to the **`if (y > x)`** branch we use a counter `j` (`contador2`).  
+  Its value runs from 0 to \(k-2\) (total of \(k-1\) iterations).  
+  Analogously we use `j` (`contador3`) for the **`else`** branch.  
+* `low_i = min(X_i,Y_i)` and `high_i = max(X_i,Y_i)`.  
+* `odd(k) = 1` iff `k` is odd, otherwise `0`.  
+* `Σ_{a}^{b} f(k)` denotes the summation defined in the specification (empty sum = 0).
+
+--------------------------------------------------------------------
+
+## 3.  Inner‑loop invariant  
+
+We treat the two branches **symmetrically**; the invariant is the same, only the variable that is increased (`x` or `y`) differs.
+
+### 3.1  Invariant for the `if (y > x)` branch  
+
+Let  
+
+\[
+\begin{aligned}
+\text{low}   &:= x_0          &&\text{the value of }x\text{ before the inner loop}\\
+\text{high}  &:= y            &&\text{the (unchanged) value of }y\\
+k            &:= \text{high}-\text{low}  &&\text{so }k>0
+\end{aligned}
+\]
+
+The inner loop executes `k‑1` times, each time increasing `x` by one.
+Define the invariant **\(I_{\text{if}}\)** (holds at the beginning of each iteration, i.e. just before the test `if (x%2 != 0)`):
+
+\[
+\boxed{
+I_{\text{if}} \;\equiv\;
+\begin{cases}
+\text{low} \le x \le \text{high} \\
+\displaystyle
+soma = \sum_{t=\text{low}+1}^{x} t\cdot\operatorname{odd}(t)
+\end{cases}}
+\tag{I\(_{\text{if}}\)}
+\]
+
+* **Initialization** (`j = 0`).  
+  Before the first iteration we have `x = low + 1` (because the first statement of the loop body is `x = x + 1`).  
+  Hence  
+
+  \[
+  soma = 0 = \sum_{t=\text{low}+1}^{\text{low}} t\cdot\operatorname{odd}(t)
+  \]
+
+  and `low ≤ x ≤ high`.  Thus \(I_{\text{if}}\) holds initially.
+
+* **Preservation** (assume \(I_{\text{if}}\) holds at the start of an iteration).  
+  The body consists of  
+
+  1. `x = x + 1`  → new `x' = x + 1`.  
+     The new range of the sum becomes \(\text{low}+1\) … `x'`.  
+  2. `if (x' % 2 != 0): soma = soma + x'` → exactly adds the term `x'·odd(x')` to `soma` when `x'` is odd, otherwise leaves `soma` unchanged.  
+
+  Therefore after the conditional  
+
+  \[
+  soma' = \sum_{t=\text{low}+1}^{x'} t\cdot\operatorname{odd}(t)
+  \]
+
+  and clearly `low ≤ x' ≤ high`. Hence \(I_{\text{if}}\) is preserved.
+
+* **Termination** (loop condition fails).  
+  The loop runs while `j < k‑1`. After the last successful iteration we have `j = k‑1`.  
+  Consequently `x` has been increased exactly `k‑1` times, i.e.  
+
+  \[
+  x = \text{low} + (k-1) = \text{high} - 1 .
+  \]
+
+  Substituting `x = high‑1` in the invariant gives  
+
+  \[
+  soma = \sum_{t=\text{low}+1}^{\text{high}-1} t\cdot\operatorname{odd}(t) .
+  \tag{1}
+  \]
+
+  This is precisely the required sum of the odd integers that lie strictly between the original `x` and `y`.
+
+### 3.2  Invariant for the `else` branch  
+
+The same reasoning applies, swapping the roles of `x` and `y`.  
+Define  
+
+\[
+\begin{aligned}
+\text{low} &:= y_0 ,\qquad
+\text{high}&:= x ,\qquad
+k := \text{high}-\text{low}>0 .
+\end{aligned}
+\]
+
+The invariant **\(I_{\text{else}}\)** is
+
+\[
+\boxed{
+I_{\text{else}} \;\equiv\;
+\begin{cases}
+\text{low} \le y \le \text{high} \\
+\displaystyle
+soma = \sum_{t=\text{low}+1}^{y} t\cdot\operatorname{odd}(t)
+\end{cases}}
+\tag{I\(_{\text{else}}\)}
+\]
+
+The same three steps (initialisation, preservation, termination) give exactly the same final equality
+
+\[
+soma = \sum_{t=\operatorname{low}+1}^{\operatorname{high}-1}
+      t\cdot\operatorname{odd}(t) .
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Outer‑loop invariant  
+
+Let  
+
+\[
+O_i = \langle o_1,\dots ,o_i\rangle
+\]
+
+be the list of values that have already been printed after the first `i` iterations of the outer loop (i.e. after processing test cases 1 … i).  
+
+The **outer invariant** \(J(i)\) (true at the beginning of the iteration whose counter is `i`, 0‑based) is
+
+\[
+\boxed{
+J(i) \;\equiv\;
+\begin{aligned}
+&0 \le i \le n \\
+&|O_i| = i \\
+&\forall\,p\;(1\le p\le i \Longrightarrow 
+   o_p = \sum_{k=\operatorname{low}(X_p,Y_p)+1}^{\operatorname{high}(X_p,Y_p)-1}
+          k\cdot\operatorname{odd}(k) )
+\end{aligned}}
+\tag{J}
+\]
+
+### 4.1  Initialization (`i = 0`)
+
+Before the first iteration no test case has been processed, `O_0` is the empty list, and the three conjuncts of \(J(0)\) are trivially true.
+
+### 4.2  Preservation  
+
+Assume \(J(i)\) holds at the beginning of the iteration that processes the pair \((X_{i+1},Y_{i+1})\).
+
+* The program reads the pair into the local variables `x` and `y`.  
+  Hence `low = min(X_{i+1},Y_{i+1})` and `high = max(X_{i+1},Y_{i+1})`.
+* According to the branch taken, the inner loop runs and, by the inner‑loop invariant proved in Section&nbsp;3, finishes with  
+
+  \[
+  soma = \sum_{k=\operatorname{low}+1}^{\operatorname{high}-1}
+          k\cdot\operatorname{odd}(k) .
+  \]
+
+* The statement `print(soma)` outputs exactly this value; we denote it by `o_{i+1}`.
+* Afterwards `soma` is reset to `0`, which does not affect the already printed output.
+
+Consequently after the iteration we have  
+
+\[
+|O_{i+1}| = i+1,\qquad
+o_{i+1} =\sum_{k=\operatorname{low}+1}^{\operatorname{high}-1}
+          k\cdot\operatorname{odd}(k) .
+\]
+
+All the other `o_p` (with \(p\le i\)) remain unchanged, so the universal property of \(J\) is preserved. Hence \(J(i+1)\) holds.
+
+### 4.3  Termination  
+
+The outer loop executes `range(n)`, i.e. exactly `n` iterations.  
+When the loop finishes we have `i = n`.  By the invariant \(J(n)\):
+
+* `|O_n| = n`;
+* for every \(p\) ( \(1\le p\le n\) )  
+
+  \[
+  o_p = \sum_{k=\operatorname{low}(X_p,Y_p)+1}^{\operatorname{high}(X_p,Y_p)-1}
+        k\cdot\operatorname{odd}(k) .
+  \]
+
+Thus the sequence printed by the program satisfies precisely the condition required by **\(Q\)**.
+
+--------------------------------------------------------------------
+
+## 5.  Formal Hoare‑logic derivation  
+
+Below we sketch the derivation using the standard Hoare rules.  
+Every block of code is annotated with a pre‑ and a post‑condition; the proof of each block is justified by the rules mentioned earlier.
+
+### 5.1  Reading `n`
+
+\[
+\frac{
+   \{P\}\; n = \text{int}(input())\;\{\,n\in\mathbb N\land n\ge 0\land
+   \text{input stream now contains exactly }n\text{ pairs}\,\}
+}{
+   \{P\}\; n = \text{int}(input())\;\{\dots\}
+}
+\qquad\text{(assignment)}
+\]
+
+The post‑condition of this assignment is precisely the part of \(P\) that
+remains after the first integer has been consumed.
+
+### 5.2  Outer `for` loop  
+
+The `for contador1 in range(n):` loop is equivalent to  
+
+```python
+i = 0
+while i < n:
+    ... body ...
+    i = i + 1
+```
+
+Applying the **while‑rule** with invariant \(J(i)\) gives:
+
+\[
+\frac{
+   \{J(i)\land i<n\}\;\text{body}\;\{J(i+1)\}
+}{
+   \{J(0)\}\;
+   \text{while } i<n\;\text{do body}\;
+   \{J(n)\}
+}
+\]
+
+*The base case* `J(0)` is the initialization proved in §4.1.  
+*The body* is the whole block that processes one test case; its correctness
+is established in the next subsection.
+
+Thus after the outer loop we have \(J(n)\), which is exactly the part of \(Q\) concerning the output sequence.
+
+### 5.3  Body of the outer loop  
+
+The body consists of
+
+1. `x, y = map(int, input().split(' '))` – reads the next pair.  
+   The Hoare triple  
+
+   \[
+   \{J(i)\land i<n\}\;
+   x,y = \dots\;
+   \{J(i)\land x = X_{i+1}\land y = Y_{i+1}\}
+   \]
+
+   follows from the definition of the input stream.
+
+2. The conditional `if (y > x): … else: …`.  
+   The Hoare **conditional rule** requires us to prove both branches under the appropriate guard.
+
+   *Guard* `y > x`.  
+   Under this guard we have `low = x`, `high = y`, `k = high‑low`.  
+   The inner `for` loop is treated as a `while` loop with invariant \(I_{\text{if}}\) (Section 3.1).  
+   The Hoare triple for the inner loop is  
+
+   \[
+   \{I_{\text{if}}\land j<k-1\}\;
+   \text{inner body}\;
+   \{I_{\text{if}}\land j\ge k-1\}
+   \]
+
+   By the preservation proof of §3.1 the invariant holds; when the loop ends we obtain (1).  
+   The subsequent statements  
+
+   ```python
+   print(soma)
+   soma = 0
+   ```
+
+   turn the value of `soma` into the printed output `o_{i+1}` and reset the accumulator, leaving the state ready for the next outer iteration.  
+   Consequently the post‑condition of the **then**‑branch is  
+
+   \[
+   \{J(i+1)\}
+   \]
+
+   because the newly printed value satisfies the required summation formula.
+
+   *Guard* `y <= x`.  
+   The reasoning is symmetric, using invariant \(I_{\text{else}}\) (Section 3.2) and yielding the same post‑condition.
+
+   Since both branches lead to the same post‑condition, the conditional rule yields  
+
+   \[
+   \{J(i)\land i<n\}\;
+   \text{body of outer loop}\;
+   \{J(i+1)\}.
+   \]
+
+Thus the body of the outer loop satisfies the requirement of the while‑rule.
+
+### 5.4  Putting everything together  
+
+Combining the three derivations (reading `n`, the outer loop, and the body) we obtain
+
+\[
+\{P\}\;
+\text{program}\;
+\{J(n)\}
+\]
+
+and, by the definition of \(J(n)\),
+
+\[
+J(n) \equiv
+\bigl(|O| = N\bigr)\land
+\bigl(\forall i\;(1\le i\le N\Rightarrow
+   o_i = \sum_{k=\operatorname{low}(X_i,Y_i)+1}^{\operatorname{high}(X_i,Y_i)-1}
+          k\cdot\operatorname{odd}(k))\bigr)
+\]
+
+which is exactly the post‑condition **\(Q\)**.
+
+Hence the Hoare triple \(\{P\}\;{\tt program}\;\{Q\}\) is proved.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited:
+
+* a **loop invariant** for each inner `for` loop that captures the partial
+  sum of odd numbers between the two endpoints,
+* an **outer invariant** that records that all already‑processed test cases
+  have been printed correctly,
+* a step‑by‑step Hoare‑logic derivation that shows the program respects these
+  invariants, terminates, and finally satisfies the specification \(Q\).
+
+Therefore the given Python program is *correct* with respect to the Hoare‑style specification: for every well‑formed input it prints, line by line, the sum of the odd integers that lie strictly between the two numbers of each test case. ∎

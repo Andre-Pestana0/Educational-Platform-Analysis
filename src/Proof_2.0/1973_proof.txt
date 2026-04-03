@@ -1,0 +1,391 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,P\,\}\;\;{\tt StarTrekProgram}\;\;\{\,Q\,\}
+\]
+
+where  
+
+* **P** (the pre‑condition) guarantees a well‑formed input  
+  \[
+  N\in\mathbb N,\;1\le N\le10^{6},\qquad 
+  \forall i\in\{1,\dots ,N\}\;.\;X[i]\in\mathbb N,\;1\le X[i]\le10^{6}
+  \]
+
+* **Q** (the post‑condition) is the specification that the two numbers printed
+  are exactly  
+
+  * `output₁ = attacked = |V|` – the number of distinct farms that were visited,
+  * `output₂ = remaining = Σ_{i=1}^{N}(X[i]-stolen(i))` – the total number of
+    sheep left on all farms,  
+
+  together with the auxiliary facts that each farm loses at most one sheep per
+  visit (`stolen(i)=min(vis(i),X[i])`) and that a farm belongs to the visited set
+  iff it was visited at least once.
+
+The program is reproduced below (the comments are kept because they describe the
+intended algorithm).
+
+```python
+N = int(input())
+carneiros = list(map(int, input().split()))          # X[1] … X[N]
+
+estrelas_com_um_carneiro = 0                         # # of farms with X[i]==1
+total_carneiros = qtd_estrelas_atacadas = 0
+primeira_qtd_par_encontrada = False
+
+for index, qtd_carneiros_estrela in enumerate(carneiros):   # index = c‑1
+    total_carneiros += qtd_carneiros_estrela                # Σ X[1..index+1]
+
+    if not primeira_qtd_par_encontrada:
+        if qtd_carneiros_estrela % 2 == 0:                  # first even farm
+            qtd_estrelas_atacadas = index + 1               # attacked = c
+            # stolen so far = (index*2)+1 - estrelas_com_um_carneiro
+            total_carneiros -= (index * 2) + 1 - estrelas_com_um_carneiro
+            primeira_qtd_par_encontrada = True
+
+        if qtd_carneiros_estrela - 1 == 0:                 # X[c]==1 ?
+            estrelas_com_um_carneiro += 1
+
+if not primeira_qtd_par_encontrada:                         # no even farm
+    qtd_estrelas_atacadas = N
+    total_carneiros -= N
+
+print(qtd_estrelas_atacadas, total_carneiros)
+```
+
+Our proof proceeds by **loop‑invariant** reasoning for the `for`‑loop, followed
+by a case analysis for the two possible exits (first even farm found / none
+found).  Termination is immediate because the loop iterates at most `N` times.
+
+--------------------------------------------------------------------
+
+## 2.  Mapping of program variables to the logical model  
+
+| Program variable | Logical meaning |
+|-------------------|-----------------|
+| `N`               | the number of farms (`N`) |
+| `carneiros[i]`    | `X[i+1]` (the initial number of sheep on farm *i+1*) |
+| `index` (0‑based) | `c‑1` – the current farm index during the forward scan |
+| `total_carneiros` | **running total** of *remaining* sheep after the visits that have already been simulated |
+| `qtd_estrelas_atacadas` | `attacked` – number of distinct farms that have been visited |
+| `estrelas_com_um_carneiro` | `one` – the number of farms among the already scanned ones whose initial stock equals 1 |
+| `primeira_qtd_par_encontrada` | “have we already met the first even‑stock farm?” – exactly the condition “the forward walk has stopped because an even farm was reached” |
+
+The algorithm is a **closed‑form simulation** of the walk described in the
+post‑condition:
+
+* While the walk proceeds **to the right**, each farm is visited **once**,
+  one sheep is taken (if any), and the running sum `total_carneiros` is
+  decreased by that one sheep.
+* When the first farm with an **even** number of sheep is encountered, the
+  brother *must* turn back.  On the way back **every farm that was visited
+  already is visited a second time**, again stealing one sheep **unless it had
+  only one sheep to begin with** (in that case the first visit already emptied
+  the farm, so the second visit steals nothing).  
+  The term  
+
+  \[
+  (index\*2)+1 - estrelas\_com\_um\_carneiro
+  \]
+
+  is exactly the number of sheep stolen on the *return* leg:
+  * `index*2+1`  = “go forward `index+1` farms (one theft each) + come back
+    `index` farms (one theft each)”.
+  * `estrelas_com_um_carneiro` subtracts the farms that had only one sheep,
+    because they contribute **zero** theft on the return leg.
+
+Consequently, after the subtraction the variable `total_carneiros`
+contains the correct amount of sheep left on all farms after the whole trek.
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+Let  
+
+\[
+\begin{aligned}
+I(index) \equiv\;&
+   \underbrace{0\le index \le N}_{\text{loop bounds}} \;\land\\
+   &\underbrace{qtd\_estrelas\_atacadas = 0}_{\text{still unknown}} \;\land\\
+   &\underbrace{primeira\_qtd\_par\_encontrada = \bigl(\exists\,k\le index:
+        X[k]\text{ is even and }k\text{ is the first such index}\bigr)}_{\text{has the first even been seen?}} \;\land\\
+   &\underbrace{estrelas\_com\_um\_carneiro =
+        |\{\,j\mid 1\le j\le index+1 \;\wedge\; X[j]=1 \,\}|}_{\text{how many “1‑sheep” farms have been scanned}} \;\land\\
+   &\underbrace{total\_carneiros =
+        \sum_{j=1}^{index+1} X[j]\;-\;
+        \bigl(\text{sheep stolen so far on the forward walk}\bigr)}_{\text{remaining after the forward walk only}} .
+\end{aligned}
+\]
+
+A more explicit formulation of the *sheep stolen so far* part is
+
+\[
+\text{stolen\_forward} =
+\begin{cases}
+index+1 - estrelas\_com\_um\_carneiro &\text{if an even farm has *not* yet been found},\\[1mm]
+0 &\text{if an even farm has already been found} .
+\end{cases}
+\]
+
+Thus, when `primeira_qtd_par_encontrada` is *false* we have
+
+\[
+total\_carneiros = 
+\sum_{j=1}^{index+1} X[j] \;-\; \bigl(index+1 - estrelas\_com\_um\_carneiro\bigr).
+\tag{I1}
+\]
+
+When the first even farm **has** been found (the loop body will never modify
+`total_carneiros` again) we have
+
+\[
+total\_carneiros =
+\sum_{j=1}^{index+1} X[j] \;-\;
+\bigl((index\*2)+1 - estrelas\_com\_um\_carneiro\bigr),
+\tag{I2}
+\]
+which is exactly the value after the *return* leg has been accounted for.
+
+### 3.1  Initialization (`index = -1` before the first iteration)
+
+* `total_carneiros = 0` and the sum over an empty prefix is `0`.  
+* No farm has been seen, hence `estrelas_com_um_carneiro = 0`.  
+* No even farm has been found, so `primeira_qtd_par_encontrada = False`.  
+
+All conjuncts of `I` hold trivially.
+
+### 3.2  Maintenance  
+
+Assume `I(index)` holds at the beginning of an iteration with current
+`index` (the loop variable already points to the *next* farm to be processed,
+i.e. farm `c = index+1`).  The body executes the following statements
+(step‑by‑step) and we show that `I(index+1)` holds afterwards.
+
+| Statement | Effect on the logical quantities |
+|-----------|-----------------------------------|
+| `total_carneiros += qtd_carneiros_estrela` | Adds `X[index+1]` to the sum of the prefix, therefore the left‑hand side of (I1) or (I2) becomes the sum up to `index+2`. |
+| `if not primeira_qtd_par_encontrada:` | The whole block is executed **only** while we have not yet met an even farm. |
+| `if qtd_carneiros_estrela % 2 == 0:` | When the current farm is even, we set `primeira_qtd_par_encontrada := True` and compute  
+
+  \[
+  total\_carneiros \;:=\;
+  \bigl(\sum_{j=1}^{index+2} X[j]\bigr)
+  \;-\;
+  \bigl((index\*2)+1 - estrelas\_com\_um\_carneiro\bigr)
+  \]
+
+  which is precisely (I2) for `index+1`.  Moreover `qtd_estrelas_atacadas` is set
+  to `index+2`, i.e. the number of distinct farms visited (the forward walk
+  stops at the current even farm). |
+| `if qtd_carneiros_estrela - 1 == 0:` | If `X[index+1]==1` we increase `estrelas_com_um_carneiro` by one, preserving the definition of that counter. |
+| `else` branch (the `if not …` test fails) | No variable that appears in the invariant is changed any more; the invariant that already holds for the case “even already found” (I2) stays true. |
+
+Thus after the iteration the invariant holds for the next value of `index`.
+The only subtle point is the arithmetic in the subtraction:
+
+*Before the first even*: the forward walk has visited `index+2` farms,
+stealing one sheep from each **except** those with `X==1`.  Hence the number of
+stolen sheep is ` (index+2) - estrelas_com_um_carneiro`.  Subtracting exactly
+that amount from the running sum yields (I1) for the next index.
+
+*When the first even is discovered*: the total number of stolen sheep after the
+whole round‑trip is  
+
+\[
+\underbrace{(index+2)}_{\text{forward thefts}}
++ \underbrace{(index+1)}_{\text{backward thefts}}
+- \underbrace{estrelas\_com\_um\_carneiro}_{\text{zero‑return thefts}}
+=
+(index\*2)+1 - estrelas\_com\_um\_carneiro .
+\]
+
+The program performs exactly that subtraction, establishing (I2).
+
+Consequently **I is preserved**.
+
+### 3.3  Termination of the loop  
+
+The loop variable `index` increases by one each iteration and is bounded
+by `N‑1`.  Hence after at most `N` iterations the `for`‑loop terminates.
+No further reasoning about termination is required for Hoare logic (the loop
+is structurally bounded).
+
+--------------------------------------------------------------------
+
+## 4.  Deriving the post‑condition from the invariant  
+
+When the loop terminates we have `index = N‑1`.  Two exhaustive cases remain.
+
+### 4.1  Case A – an even farm **was** found (`primeira_qtd_par_encontrada = True`)
+
+From the invariant we know that the moment the even farm at position
+`k = qtd_estrelas_atacadas` (1‑based) was encountered, the program executed the
+branch that performed the subtraction  
+
+\[
+total\_carneiros \;:=\;
+\sum_{i=1}^{k} X[i]\;-\;
+\bigl((k-1)\*2+1 - estrelas\_com\_um\_carneiro\bigr).
+\tag{A1}
+\]
+
+All later iterations (with `index > k-1`) run inside the `if not …` block’s
+*else* part, i.e. they **do not change** `total_carneiros` any more.
+Consequently after the loop finishes we still have (A1) with `k` equal to the
+final value of `qtd_estrelas_atacadas`.
+
+Now consider the *real* execution described in the specification:
+
+* The forward walk visits exactly the farms `1,…,k` – therefore `attacked = k`.
+* Every visited farm loses **one** sheep on the forward step.
+* On the way back the brother visits the farms `k‑1,…,1`.  
+  For each of those farms a second sheep is taken **unless** the farm
+  originally contained only one sheep; the number of such farms is precisely
+  `estrelas_com_um_carneiro`.
+
+Hence the total number of stolen sheep is  
+
+\[
+k\;+\;(k-1)\;-\;estrelas\_com\_um\_carneiro
+= (k-1)\*2+1 - estrelas\_com\_um\_carneiro .
+\]
+
+Subtracting this quantity from the initial sum
+`Σ_{i=1}^{k} X[i]` yields exactly the expression (A1) that the program stores
+in `total_carneiros`.  Therefore  
+
+\[
+\begin{aligned}
+output_{1} &= qtd\_estrelas\_atacadas = k = attacked,\\
+output_{2} &= total\_carneiros
+          = \sum_{i=1}^{k} (X[i]-stolen(i))
+          = remaining .
+\end{aligned}
+\]
+
+The auxiliary clauses of `Q`
+
+* `stolen(i)=min(vis(i),X[i])` – holds because every farm is visited at most
+  twice and at most one sheep is taken per visit, and the algorithm never
+  steals more than the initial stock;
+* `vis(i)=0 ⇒ i∉V` – also holds trivially.
+
+Thus `Q` is satisfied in this case.
+
+### 4.2  Case B – **no** even farm (`primeira_qtd_par_encontrada = False`)
+
+If the loop finishes without ever setting the flag, the `if not …` block has
+been executed for **every** farm.  At that moment the invariant gives (I1) with
+`index = N‑1`:
+
+\[
+total\_carneiros
+   = \sum_{i=1}^{N} X[i] \;-\; \bigl(N - estrelas\_com\_um\_carneiro\bigr).
+\tag{B1}
+\]
+
+The subsequent `if not primeira_qtd_par_encontrada:` statement executes
+
+```python
+qtd_estrelas_atacadas = N
+total_carneiros -= N
+```
+
+which changes `total_carneiros` to
+
+\[
+\sum_{i=1}^{N} X[i] \;-\; N .
+\tag{B2}
+\]
+
+Why is this the correct value?  
+When **all** farms have odd stock, the brother never meets an even farm,
+hence the rule “go right on odd” is applied at every step.  He therefore
+travels **once** from farm 1 to farm N and then stops because the next move
+(`c := N+1`) would leave the interval.  Consequently
+
+* every farm is visited exactly once → `attacked = N`;
+* exactly one sheep is taken from each farm (they all contain at least one
+  sheep) → the total number of stolen sheep is `N`.
+
+Thus the remaining number of sheep is `Σ X[i] – N`, which is precisely (B2).
+
+Again the auxiliary properties of `Q` hold: each farm is visited once,
+`stolen(i)=1=min(1,X[i])`, and farms with `vis(i)=0` do not exist.
+
+Hence `Q` holds in the second case as well.
+
+--------------------------------------------------------------------
+
+## 5.  Formal Hoare‑logic proof sketch  
+
+Below we write the proof in the style of Hoare logic, using the invariant `I`
+defined in § 3.
+
+```
+{ P }                                           // pre‑condition
+
+N := input();                                   // unchanged
+carneiros := input();                           // unchanged
+
+estrelas_com_um_carneiro := 0;
+total_carneiros := 0;
+qtd_estrelas_atacadas := 0;
+primeira_qtd_par_encontrada := false;
+
+{ I(‑1) }                                      // initialization proved in 3.1
+
+for index = 0 to N‑1 do                         // loop
+    total_carneiros := total_carneiros + carneiros[index];
+    if not primeira_qtd_par_encontrada then
+        if carneiros[index] mod 2 = 0 then
+            qtd_estrelas_atacadas := index + 1;
+            total_carneiros := total_carneiros - (index*2+1) + estrelas_com_um_carneiro;
+            primeira_qtd_par_encontrada := true;
+        fi;
+        if carneiros[index] = 1 then
+            estrelas_com_um_carneiro := estrelas_com_um_carneiro + 1;
+        fi;
+    fi;
+od
+
+{ I(N‑1) }                                      // invariant after the loop (3.3)
+
+if not primeira_qtd_par_encontrada then
+    qtd_estrelas_atacadas := N;
+    total_carneiros := total_carneiros - N;
+fi;
+
+{ Q }                                           // derived in § 4
+```
+
+* The **loop rule** (`{I ∧ B} body {I}`) is satisfied by the maintenance proof
+  of § 3.2.
+* The **termination** condition `B ≡ index < N` is obviously decreasing.
+* The **post‑loop** `if` statement transforms the two possible forms of `I(N‑1)`
+  (the “even‑found” and the “no‑even” cases) into the exact expressions required
+  by `Q`, as shown in § 4.
+
+Therefore the Hoare triple `{ P } StarTrekProgram { Q }` is proved.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited a **loop invariant** that captures precisely the state of the
+simulation at any moment of the forward scan, proved that the invariant holds
+initially, is preserved by every iteration, and is strong enough to imply the
+desired post‑condition after the loop terminates.  The two possible exits of the
+program (first even farm found, or none found) have been analysed and shown
+to yield exactly the values required by the specification:
+
+* `output₁` equals the number of distinct farms visited,
+* `output₂` equals the total number of sheep that remain,
+* each farm loses at most one sheep per visit (`stolen(i)=min(vis(i),X[i])`).
+
+Hence the Python program is **correct** with respect to the Hoare‑style
+specification given in the problem statement.  

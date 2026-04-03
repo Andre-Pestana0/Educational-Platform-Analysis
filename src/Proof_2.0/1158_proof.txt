@@ -1,0 +1,307 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\;
+N\in\mathbb N\;\wedge\;N\ge 0\;\wedge\;
+\bigl(\forall i\in\{1,\dots ,N\}\bigr)\;
+\bigl(X_i\in\mathbb Z\;\wedge\;Y_i\in\mathbb N\bigr)
+\]
+
+* **Post‑condition**  
+
+\[
+Q\; \equiv\;
+\bigl(\forall i\in\{1,\dots ,N\}\bigr)\;
+O_i = Y_i\bigl(X_i' + Y_i - 1\bigr)
+\qquad\text{with } 
+X_i' = X_i +\bigl(1-(X_i\bmod 2)\bigr)
+\]
+
+The program reads the data, computes a value `soma` for each test case and prints it.  
+The proof therefore consists of three parts  
+
+1. **Reading the input** – the values that are stored in the program’s
+   variables satisfy the antecedent of `P`.  
+2. **Outer `for`‑loop** – an invariant that relates the loop counter `i`
+   with the already printed results.  
+3. **Inner `while`‑loop** – an invariant that captures the partial sum that
+   has been accumulated after `j` odd numbers have been processed.
+
+When the two loops finish we will have, for every test case `i`,
+exactly the value prescribed by `Q`.  All reasoning is carried out in the
+classical Hoare‑logic style: we exhibit a loop invariant `I`, prove  
+
+* **Init** : `I` holds before the first iteration,  
+* **Preservation** : `{I ∧ B} body {I}` where `B` is the loop guard,  
+* **Termination** : `I ∧ ¬B ⇒` the desired property for that loop.
+
+Finally we combine the two loops with the rule of **sequencing** to obtain
+the whole triple.
+
+--------------------------------------------------------------------
+
+## 2.  Notation that will be used inside the proof  
+
+* `i` – the index of the *current* test case (Python’s `for i in range(N)`).  
+  In the program `i` runs from `0` to `N‑1`; for the mathematical
+  specification we use the 1‑based index `î = i+1`.  
+* `X` – the *mutable* variable that holds the current candidate odd
+  number (it is increased inside the `while`).  
+* `X₀` – the value of `X` **just after** the pair `(X_i , Y_i)` has been read,
+  i.e. the original input value for this test case.  
+* `X₀'` – the first odd number not smaller than `X₀`.  By definition  
+
+  \[
+  X₀' = X₀ + \bigl(1-(X₀\bmod 2)\bigr)
+  \]
+
+* `Y` – the number of odd numbers that have to be summed (the second input
+  of the pair).  
+* `j` – loop counter of the `while` (how many odd numbers have already been
+  added).  
+* `soma` – the accumulator that stores the partial sum.  
+
+All arithmetic is performed in the mathematical integers ℤ.
+
+--------------------------------------------------------------------
+
+## 3.  The outer `for`‑loop  
+
+### 3.1  Invariant  
+
+\[
+\boxed{
+I_{\text{for}}(i) \; \equiv\;
+\bigl(0\le i\le N\bigr)\;\wedge\;
+\bigl(\forall k\in\{0,\dots ,i-1\}\bigr)\;
+\text{output}_k = Y_{k+1}\bigl(X_{k+1}' + Y_{k+1} -1\bigr)
+}
+\]
+
+* `i` is the number of test cases that have already been processed.  
+* `output_k` denotes the value that the program has printed on the
+  \(k\)-th line (the first printed line corresponds to `k = 0`).  
+
+The invariant states exactly what we need: after processing the first
+`i` cases the program has already printed the correct result for each of
+them.
+
+### 3.2  Proof that `I_for` holds  
+
+* **Initialization** (`i = 0`)  
+  The loop body has not been executed yet, therefore the quantifier
+  \(\forall k\in\{0,\dots ,i-1\}\) is over an empty set and is trivially true.
+  Hence `I_for(0)` holds.
+
+* **Preservation**  
+  Assume `I_for(i)` holds and the guard `i < N` is true, i.e. there is still
+  a test case to treat.  
+  The body of the `for`‑loop consists of the statements that read the pair
+  `(X, Y)`, execute the inner `while` and finally `print(soma)`.  
+  We will show (in the next section) that after the inner `while` finishes  
+
+  \[
+  \text{soma}= Y\bigl(X' + Y - 1\bigr) .
+  \tag{1}
+  \]
+
+  Consequently the `print` statement outputs the correct value for the
+  current case (`k = i`).  Adding this fact to the induction hypothesis
+  yields `I_for(i+1)`.
+
+* **Termination**  
+  When the guard becomes false we have `i = N`.  Substituting `i = N` in
+  `I_for` gives  
+
+  \[
+  \forall k\in\{0,\dots ,N-1\}\;
+  \text{output}_k = Y_{k+1}\bigl(X_{k+1}' + Y_{k+1} -1\bigr)
+  \]
+
+  which is exactly the required post‑condition `Q` (the index shift
+  `k+1 → î` is harmless).
+
+Thus the outer loop is correct **provided** that the inner loop satisfies
+(1).  The remainder of the proof is devoted to establishing that fact.
+
+--------------------------------------------------------------------
+
+## 4.  The inner `while`‑loop  
+
+Recall the statements that belong to one iteration of the outer `for`:
+
+```python
+X, Y = map(int, input().split())
+j = 0
+soma = 0
+while j < Y:
+    if (X % 2 == 1):
+        soma += X
+        j += 1
+    X += 1
+print(soma)
+```
+
+### 4.1  Invariant  
+
+\[
+\boxed{
+I_{\text{while}}(j,X,soma) \; \equiv\;
+\begin{aligned}
+&0\le j\le Y\;\wedge \\
+&X = X₀' + j\;\wedge \\
+&soma = \sum_{k=0}^{j-1}\bigl(X₀' + 2k\bigr)
+      \;=\; j\bigl(X₀' + j - 1\bigr)
+\end{aligned}
+}
+\]
+
+Explanation  
+
+* `j` counts how many odd numbers have already been added.  
+* `X` always points to the **next** integer that has not yet been examined.
+  Because after each odd number we increment `X` once more (the unconditional
+  `X += 1`), the relation `X = X₀' + j` holds.  
+* `soma` is precisely the sum of the first `j` odd numbers starting at `X₀'`.  
+  The closed‑form `j·(X₀' + j – 1)` follows from the arithmetic‑progression
+  formula.
+
+### 4.2  Proof that the invariant holds  
+
+* **Initialization** (`j = 0`, `soma = 0`)  
+
+  * `0 ≤ j ≤ Y` is true because `j = 0`.  
+  * The first odd number not smaller than the original `X₀` is computed
+    implicitly by the first test of the `while` body:
+    - If `X₀` is already odd, the condition `X % 2 == 1` is true and the
+      body adds `X₀` to `soma` and increments `j`.  
+    - If `X₀` is even, the condition is false, `soma` stays `0`, `j` stays
+      `0`, and the unconditional `X += 1` changes `X` to `X₀+1`, which is
+      odd.  
+
+    In either case after the **first** execution of the loop guard we have
+    `X = X₀'` and `j = 0`.  Hence `X = X₀' + j`.  
+  * `soma = 0 = \sum_{k=0}^{-1}…` (empty sum) = `0·(X₀' - 1)`.  Thus the
+    invariant holds initially.
+
+* **Preservation** – assume `I_while` holds at the beginning of an iteration
+  and that the guard `j < Y` is true.
+
+  There are two cases, depending on the parity test.
+
+  1. **`X` is odd** (`X % 2 == 1`).  
+
+     The body executes  
+
+     ```
+     soma += X          # soma' = soma + X
+     j += 1             # j'    = j + 1
+     ```
+     
+     After these two statements we have  
+
+     * `j' = j + 1`.  
+     * `X` is still the same odd value, so `X = X₀' + j`.  
+     * `soma' = soma + X = 
+                \bigl(j\,(X₀' + j - 1)\bigr) + (X₀' + j)
+                = (j+1)\,(X₀' + (j+1) - 1)`.  
+
+     Finally the unconditional `X += 1` is executed, giving  
+
+     \[
+     X' = X+1 = (X₀' + j) + 1 = X₀' + (j+1).
+     \]
+
+     Hence after the whole iteration we have  
+
+     \[
+     X' = X₀' + j',\qquad
+     soma' = j'\bigl(X₀' + j' - 1\bigr),
+     \]
+
+     i.e. `I_while` holds with the primed variables.
+
+  2. **`X` is even** (`X % 2 == 0`).  
+
+     The `if`‑branch is skipped, only the unconditional `X += 1` runs.  
+
+     * `j' = j` (no odd number has been added).  
+     * `X' = X + 1 = (X₀' + j) + 1 = X₀' + (j+1)`.  
+
+     The invariant `X = X₀' + j` is therefore *restored* for the next
+     iteration, while `j` and `soma` stay unchanged, so the three conjuncts
+     of `I_while` remain true.
+
+  In both cases `I_while` is preserved.
+
+* **Termination** – when the guard becomes false we have `j = Y`.  
+  Instantiating the invariant with `j = Y` yields  
+
+  \[
+  soma = Y\bigl(X₀' + Y - 1\bigr)
+  \tag{2}
+  \]
+
+  which is exactly the value that must be printed for this test case.
+  The `print(soma)` statement therefore outputs the required `O_i`.
+
+Thus the inner `while`‑loop is correct.
+
+--------------------------------------------------------------------
+
+## 5.  Putting the two loops together  
+
+We have proved  
+
+* `{I_for(i)}\; \texttt{while}\; \{I_for(i)}\)` – the inner loop establishes (2)  
+  and therefore the `print` statement makes the `i`‑th output line equal to
+  `Y_i·(X_i' + Y_i - 1)`.  
+
+* `{I_for(i)}\; \texttt{for}\; \{I_for(i+1)}\)` – by the preservation argument
+  the outer loop maintains the invariant `I_for`.  
+
+* When the outer loop terminates (`i = N`) the invariant `I_for(N)` is
+  precisely the post‑condition `Q`.
+
+Consequently we have shown the Hoare triple
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Summary of the mathematical result  
+
+For each test case `i` the program prints
+
+\[
+\boxed{
+O_i = Y_i\bigl(X_i' + Y_i - 1\bigr)
+      \;=\;
+      \sum_{k=0}^{Y_i-1}\bigl(X_i' + 2k\bigr)
+}
+\]
+
+where  
+
+\[
+X_i' = X_i + \bigl(1-(X_i\bmod 2)\bigr)
+\]
+
+is the smallest odd integer not smaller than the input `X_i`.  
+The proof rests on two loop invariants that were shown to be
+*initialised*, *preserved* and *strong enough* to yield the required
+closed‑form expression when the respective loops terminate.  Hence the
+Python program satisfies the specification given by the Hoare‑logic
+pre‑ and post‑conditions.

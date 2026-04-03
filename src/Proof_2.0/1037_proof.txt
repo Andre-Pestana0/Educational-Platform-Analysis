@@ -1,0 +1,333 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,\top\,\}\;P\;\{\,\Phi(x,\;msg)\,\},
+\]
+
+where  
+
+* `P` is the whole Python program (read, a chain of `if/elif/else`, `print`);
+* `Φ(x,msg)` is the disjunction that exactly describes the required mapping
+  between the input value `x` and the string that is printed (`msg`);
+* the only observable effect of the program is the value of `msg`
+  that is printed at the end.
+
+Because the program contains **no loops**, the proof consists of a
+straight‑line Hoare‑logic derivation that uses only the rules for
+
+* **assignment**
+* **conditional (if‑then‑else)**
+* **sequencing**
+* **consequence** (strengthening of pre‑conditions or weakening of post‑conditions).
+
+--------------------------------------------------------------------
+
+## 2.  Notation that will be used in the proof  
+
+| Symbol | Meaning |
+|--------|----------|
+| `x`    | the value read from the input (the only program variable that can affect the result) |
+| `msg`  | the string that will be printed (`print(msg)`) |
+| `s₁,s₂,s₃,s₄,s_out` | the five constant strings defined in the statement of the problem |
+| `I₁ = [0,25]` , `I₂ = (25,50]` , `I₃ = (50,75]` , `I₄ = (75,100]` | the four admissible intervals |
+| `B₀ … B₄` | the Boolean guards that appear in the program (see § 3) |
+| `C₀ … C₄` | the corresponding command fragments that assign a value to `msg` |
+| `⊤`    | the always‑true predicate (any real number can be the input) |
+
+--------------------------------------------------------------------
+
+## 3.  The program written as a Hoare‑logic command  
+
+For the purpose of the proof we rewrite the Python source in a
+syntactically “pure‑Hoare” form.
+
+```
+read  x;                                    (1)
+
+if  x > 100               then   msg := s_out;          (B0, C0)
+elif 75 < x ≤ 100        then   msg := s₄;               (B1, C1)
+elif 50 < x ≤ 75         then   msg := s₃;               (B2, C2)
+elif 25 < x ≤ 50         then   msg := s₂;               (B3, C3)
+elif 0 ≤ x ≤ 25          then   msg := s₁;               (B4, C4)
+else                         msg := s_out;               (¬(B0∨…∨B4), C5)
+fi;                                         (2)
+
+print msg;                                   (3)
+```
+
+The guards are exactly the predicates that appear in the specification:
+
+\[
+\begin{aligned}
+B_{0}&\; \equiv\; x>100,\\
+B_{1}&\; \equiv\; 75< x\le 100,\\
+B_{2}&\; \equiv\; 50< x\le 75,\\
+B_{3}&\; \equiv\; 25< x\le 50,\\
+B_{4}&\; \equiv\; 0\le x\le 25 .
+\end{aligned}
+\]
+
+Notice that the guards are **mutually exclusive** and that their
+disjunction is exactly the predicate that appears in the post‑condition:
+
+\[
+B_{0}\lor B_{1}\lor B_{2}\lor B_{3}\lor B_{4}\;\equiv\;
+(x<0\lor x>100)\;\lor\;
+\bigvee_{i=1}^{4} (x\in I_{i}).
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Hoare‑logic rules that will be used  
+
+| Rule | Formal statement |
+|------|-------------------|
+| **(Assign)** | \(\{\,P[x:=E]\,\}\;x:=E\;\{\,P\,\}\) |
+| **(Seq)** | From \(\{P\}C_{1}\{Q\}\) and \(\{Q\}C_{2}\{R\}\) infer \(\{P\}C_{1};C_{2}\{R\}\) |
+| **(If)** | If \(\{P\land B\}C_{1}\{Q\}\) and \(\{P\land\neg B\}C_{2}\{Q\}\) then \(\{P\}\text{if }B\text{ then }C_{1}\text{ else }C_{2}\{Q\}\) |
+| **(Consequence)** | From \(P'\Rightarrow P\), \(\{P\}C\{Q\}\) and \(Q\Rightarrow Q'\) infer \(\{P'\}C\{Q'\}\) |
+
+--------------------------------------------------------------------
+
+## 5.  Proof of the conditional part  
+
+We first prove the Hoare triple for the **if‑chain** (commands (1)–(2)).
+The outermost `read` does not change any logical variable, therefore
+
+\[
+\{\,\top\,\}\; \text{read }x\; \{\,\top\,\}
+\tag{5.1}
+\]
+
+holds trivially (the read merely binds the value of the program variable
+`x` to the input; it does not affect the truth of any predicate).
+
+Now we concentrate on the conditional command
+
+\[
+\text{if }B_{0}\text{ then }C_{0}
+\; \text{elsif }B_{1}\text{ then }C_{1}
+\; \dots
+\; \text{else }C_{5}\;\text{fi}.
+\]
+
+### 5.1  Individual branches  
+
+For each branch we apply the **Assign** rule.
+
+*Branch 0*  
+
+\[
+\{\,B_{0}\land (msg = s_{\text{out}})\,\}\;msg:=s_{\text{out}}\;\{\,B_{0}\land (msg = s_{\text{out}})\,\}.
+\tag{5.2a}
+\]
+
+*Branch 1*  
+
+\[
+\{\,B_{1}\land (msg = s_{4})\,\}\;msg:=s_{4}\;\{\,B_{1}\land (msg = s_{4})\,\}.
+\tag{5.2b}
+\]
+
+*Branch 2*  
+
+\[
+\{\,B_{2}\land (msg = s_{3})\,\}\;msg:=s_{3}\;\{\,B_{2}\land (msg = s_{3})\,\}.
+\tag{5.2c}
+\]
+
+*Branch 3*  
+
+\[
+\{\,B_{3}\land (msg = s_{2})\,\}\;msg:=s_{2}\;\{\,B_{3}\land (msg = s_{2})\,\}.
+\tag{5.2d}
+\]
+
+*Branch 4*  
+
+\[
+\{\,B_{4}\land (msg = s_{1})\,\}\;msg:=s_{1}\;\{\,B_{4}\land (msg = s_{1})\,\}.
+\tag{5.2e}
+\]
+
+*Else‑branch* (`¬(B₀∨…∨B₄)`)  
+
+\[
+\{\,\neg(B_{0}\lor\cdots\lor B_{4})\land (msg = s_{\text{out}})\,\}
+\;msg:=s_{\text{out}}\;
+\{\,\neg(B_{0}\lor\cdots\lor B_{4})\land (msg = s_{\text{out}})\,\}.
+\tag{5.2f}
+\]
+
+All six triples are immediate instances of the **Assign** rule because the
+post‑condition of each assignment is exactly the pre‑condition with the
+assigned expression substituted for `msg`.
+
+### 5.2  Combining the branches  
+
+The Hoare‑logic **If** rule tells us that if every branch, under the
+appropriate guard, establishes the *same* post‑condition `Q`, then the
+whole conditional establishes `Q` as well.  
+We choose  
+
+\[
+Q \;\equiv\; \Phi(x,msg)
+\]
+
+(the specification we want to prove).  
+
+Observe that each of the six triples (5.2a‑f) can be *strengthened* to
+`Q` by a simple logical implication:
+
+* For branch 0 we have  
+
+  \[
+  B_{0}\land (msg=s_{\text{out}})\;\Longrightarrow\;
+  (x>100\lor x<0)\land (msg=s_{\text{out}})
+  \;\Longrightarrow\; \Phi(x,msg).
+  \]
+
+  (The first implication is just the definition of `B₀`; the second
+  is the first disjunct of `Φ`.)
+
+* For branch 1 we have  
+
+  \[
+  B_{1}\land (msg=s_{4})\;\Longrightarrow\;
+  (75<x\le 100)\land (msg=s_{4})\;\Longrightarrow\; \Phi(x,msg).
+  \]
+
+  This is the fourth disjunct of `Φ`. The same reasoning works for
+  branches 2, 3 and 4, which correspond respectively to the third,
+  second and first disjuncts of `Φ`.
+
+* For the else‑branch we have  
+
+  \[
+  \neg(B_{0}\lor\cdots\lor B_{4})\land (msg=s_{\text{out}})
+  \;\Longrightarrow\;
+  (x<0\lor x>100)\land (msg=s_{\text{out}})
+  \;\Longrightarrow\; \Phi(x,msg).
+  \]
+
+Thus, by the **Consequence** rule, each branch satisfies the *same*
+post‑condition `Φ`.  Consequently, the whole conditional command satisfies
+
+\[
+\{\,\top\,\}\;
+\text{if‑chain}
+\;\{\,\Phi(x,msg)\,\}.
+\tag{5.3}
+\]
+
+(The pre‑condition `⊤` is sufficient because the guards themselves are
+pure predicates on the already‑read variable `x`; no additional
+assumption is required.)
+
+--------------------------------------------------------------------
+
+## 6.  Adding the final `print`  
+
+The last command of the program is the observable effect
+
+```
+print msg
+```
+
+In Hoare logic we treat `print` as a *skip* with respect to the logical
+state: it does not modify any program variable, it merely produces an
+external side‑effect.  Hence the rule  
+
+\[
+\{\,P\,\}\;\text{print }msg\;\{\,P\,\}
+\tag{6.1}
+\]
+
+holds for any predicate `P`.  Instantiating `P` with the post‑condition
+obtained in (5.3) yields
+
+\[
+\{\,\Phi(x,msg)\,\}\;\text{print }msg\;\{\,\Phi(x,msg)\,\}.
+\tag{6.2}
+\]
+
+--------------------------------------------------------------------
+
+## 7.  Whole‑program derivation (sequencing)
+
+Now we put everything together using the **Seq** rule.
+
+1. From (5.1) we have  
+   \(\{\,\top\,\}\;\text{read }x\;\{\,\top\,\}\).
+
+2. From (5.3) we have  
+   \(\{\,\top\,\}\;\text{if‑chain}\;\{\,\Phi(x,msg)\,\}\).
+
+   By **Seq** we obtain  
+
+   \[
+   \{\,\top\,\}\;
+   (\text{read }x;\;\text{if‑chain})\;
+   \{\,\Phi(x,msg)\,\}. \tag{7.1}
+   \]
+
+3. From (6.2) we have  
+   \(\{\,\Phi(x,msg)\,\}\;\text{print }msg\;\{\,\Phi(x,msg)\,\}\).
+
+   Applying **Seq** once more to (7.1) and (6.2) gives the final
+   Hoare triple for the whole program:
+
+   \[
+   \boxed{\{\,\top\,\}\;
+          (\text{read }x;\;\text{if‑chain};\;\text{print }msg)\;
+          \{\,\Phi(x,msg)\,\}} .
+   \]
+
+--------------------------------------------------------------------
+
+## 8.  Discussion of the order of the tests in the Python source  
+
+The original Python source checks the conditions **from the largest to
+the smallest**:
+
+```
+if 100 < valor:          # B0'
+elif 75 < valor:         # B1'
+elif 50 < valor:         # B2'
+...
+```
+
+These tests are *syntactically* different from the guards `B₀ … B₄`
+written above, but they are *logically equivalent* because each `elif`
+is executed only when all previous tests have failed.  In Hoare‑logic
+terms this means that the guard of the second branch is
+
+\[
+\neg(100< x)\land (75< x) \equiv 75< x\le 100,
+\]
+
+which is exactly `B₁`.  The same reasoning applies to the remaining
+branches, and the final `else` is executed precisely when  
+
+\[
+\neg(B_{0}\lor\cdots\lor B_{4}) \equiv (x<0\lor x>100).
+\]
+
+Hence the concrete Python ordering implements the same logical
+conditional that we used in the proof, and the correctness proof
+covers the actual program verbatim.
+
+--------------------------------------------------------------------
+
+## 9.  Conclusion  
+
+We have exhibited a complete Hoare‑logic derivation that starts from the
+trivial pre‑condition `⊤`, reads the input value `x`, executes the chain
+of `if/elif/else` statements, prints the resulting string, and ends in a
+state that satisfies the post‑condition `Φ(x,msg)`.  Because `Φ` is
+exactly the specification required by the problem statement, the proof
+demonstrates that **the program is correct with respect to the given
+formal specification**.  No additional assumptions are needed, and the
+program terminates for every possible real (floating‑point) input. ∎

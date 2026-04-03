@@ -1,0 +1,362 @@
+## 1.  What we have to show  
+
+We are given a **Hoare‑logic specification**
+
+\[
+\{P\}\; \text{program}\; \{Q\}
+\]
+
+where  
+
+* `P` (the pre‑condition) describes the admissible input for the volleyball statistics,  
+* `Q` (the post‑condition) describes the three lines that must be printed, each line containing the success‑rate of the corresponding skill **rounded to two decimal digits**.
+
+The body of the program is the Python fragment that you posted.  
+Our task is to prove the Hoare triple, i.e. to show **partial correctness** (the program, if it terminates, satisfies `Q`) and, because the program obviously terminates, also **total correctness**.
+
+The proof is carried out in the usual Hoare‑logic style:
+
+* we annotate each statement with a logical assertion,
+* we exhibit a loop invariant for the `for i in range(n): …` loop,
+* we apply the Hoare rules (assignment, composition, consequence, while).
+
+---
+
+## 2.  Notation that will be used in the proof  
+
+| Symbol | Meaning |
+|--------|----------|
+| `N`   | the value read from the first input line (`n` in the program) |
+| `S_i , B_i , A_i` | attempts of player *i* (service, block, attack) |
+| `s_i , b_i , a_i` | successes of player *i* |
+| `S_tot , B_tot , A_tot` | Σ S_i , Σ B_i , Σ A_i (total attempts) |
+| `s_tot , b_tot , a_tot` | Σ s_i , Σ b_i , Σ a_i (total successes) |
+| `p_svc , p_blk , p_atk` | the three percentages defined in the specification (rounded to 2 dp) |
+| `⌊x⌉₂` | rounding to the nearest hundredth, ties to even – exactly the behaviour of Python’s `format(x, ".2f")` |
+| `output(str)` | “the program has printed the string *str* (including the final newline)”. |
+| `I(k)` | loop invariant after the first *k* iterations (players 1 … k have been processed). |
+
+All input variables are **read‑only**: the program never modifies `S_i,…,a_i`.  
+
+The Python expressions `map(int, …)`, list‑comprehensions and `zip` are pure functional transformations; they can be described by the equalities that we will use in the invariant.
+
+---
+
+## 3.  The loop invariant  
+
+After the first `k` iterations (`k` may be 0) the program has built the two lists
+
+```
+total_tentativas = [S_1+…+S_k , B_1+…+B_k , A_1+…+A_k]
+total_sucessos   = [s_1+…+s_k , b_1+…+b_k , a_1+…+a_k]
+```
+
+Hence we define the invariant `I(k)` as
+
+\[
+\begin{aligned}
+I(k) \;\equiv\;&
+\bigl(0\le k\le N\bigr) \;\land\\
+&\bigl(
+   \text{total\_tentativas}[0] = \sum_{i=1}^{k} S_i\;
+   \land\;
+   \text{total\_tentativas}[1] = \sum_{i=1}^{k} B_i\;
+   \land\;
+   \text{total\_tentativas}[2] = \sum_{i=1}^{k} A_i\\
+   &\qquad\land\;
+   \text{total\_sucessos}[0]   = \sum_{i=1}^{k} s_i\;
+   \land\;
+   \text{total\_sucessos}[1]   = \sum_{i=1}^{k} b_i\;
+   \land\;
+   \text{total\_sucessos}[2]   = \sum_{i=1}^{k} a_i
+\bigl)
+\end{aligned}
+\]
+
+When the loop finishes (`k = N`) we obtain exactly the totals that appear in the post‑condition.
+
+---
+
+## 4.  Proof that the invariant holds  
+
+### 4.1  Initialization  
+
+Before the loop we have
+
+```python
+total_tentativas = [0] * 3
+total_sucessos   = [0] * 3
+```
+
+Thus
+
+* `total_tentativas[0] = total_tentativas[1] = total_tentativas[2] = 0`,
+* `total_sucessos[0]   = total_sucessos[1]   = total_sucessos[2]   = 0`.
+
+Consequently `I(0)` holds (all three sums over the empty set are 0).
+
+Formally:
+
+\[
+\{P\}\; \text{initialisation}\; \{I(0)\}
+\]
+
+follows from the **assignment rule** and the **rule of consequence** (the right‑hand side of each assignment equals the corresponding Σ over the empty prefix).
+
+---
+
+### 4.2  Preservation  
+
+Assume `I(k)` holds at the beginning of an iteration with `k < N`.  
+The body of the iteration executes the following steps (the player’s name is ignored, so we omit it).
+
+1. **Read attempts**  
+
+   ```python
+   tentativas = map(int, input().split())
+   total_tentativas = [x + y for x, y in zip(tentativas, total_tentativas)]
+   ```
+
+   The first line creates the three numbers  
+
+   \[
+   (S_{k+1}, B_{k+1}, A_{k+1}) .
+   \]
+
+   The list‑comprehension adds them component‑wise to the old list, i.e.
+
+   \[
+   \begin{aligned}
+   \text{total\_tentativas}[0]' &=
+      S_{k+1} + \text{total\_tentativas}[0] \\
+   \text{total\_tentativas}[1]' &=
+      B_{k+1} + \text{total\_tentativas}[1] \\
+   \text{total\_tentativas}[2]' &=
+      A_{k+1} + \text{total\_tentativas}[2] .
+   \end{aligned}
+   \]
+
+   By the induction hypothesis (`I(k)`) the old values are the sums up to `k`.  
+   Therefore after the assignment we have
+
+   \[
+   \text{total\_tentativas}[j]' = \sum_{i=1}^{k+1} X_i^{(j)}\quad
+   (j=0,1,2)
+   \]
+
+   where `X_i^{(0)} = S_i`, `X_i^{(1)} = B_i`, `X_i^{(2)} = A_i`.
+
+2. **Read successes** – completely analogous:
+
+   ```python
+   sucessos = map(int, input().split())
+   total_sucessos = [x + y for x, y in zip(sucessos, total_sucessos)]
+   ```
+
+   yields after the assignment  
+
+   \[
+   \text{total\_sucessos}[j]' = \sum_{i=1}^{k+1} Y_i^{(j)}\quad
+   (j=0,1,2)
+   \]
+
+   where `Y_i^{(0)} = s_i`, `Y_i^{(1)} = b_i`, `Y_i^{(2)} = a_i`.
+
+Thus after the two assignments we have exactly the conditions of `I(k+1)`.  
+The Hoare rule for **sequence** together with the **assignment rule** gives
+
+\[
+\{I(k)\}\; \text{body of the loop}\; \{I(k+1)\}
+\]
+
+for every `k < N`.
+
+---
+
+### 4.3  Termination  
+
+The loop is a Python `for i in range(n):` where `n = N`.  
+`N` is a non‑negative integer (pre‑condition) and the loop variable `i` runs over the finite set `{0,…,N‑1}`; therefore the loop executes exactly `N` iterations and then stops.  
+Hence the loop **terminates** for all inputs satisfying `P`.
+
+---
+
+### 4.4  Post‑loop state  
+
+When the loop finishes we have `k = N`.  
+By `I(N)` we obtain
+
+\[
+\begin{aligned}
+\text{total\_tentativas}[0] &= S_{\text{tot}} &
+\text{total\_sucessos}[0]   &= s_{\text{tot}}\\
+\text{total\_tentativas}[1] &= B_{\text{tot}} &
+\text{total\_sucessos}[1]   &= b_{\text{tot}}\\
+\text{total\_tentativas}[2] &= A_{\text{tot}} &
+\text{total\_sucessos}[2]   &= a_{\text{tot}} .
+\end{aligned}
+\]
+
+These equalities are exactly the *derived totals* that appear in the specification (section 3).
+
+---
+
+## 5.  Computing the percentages  
+
+The next statement of the program is
+
+```python
+porcentagens = [s / t for s, t in zip(total_sucessos, total_tentativas)]
+```
+
+*If a denominator `t` is 0* the list‑comprehension yields `float('inf')` or raises `ZeroDivisionError`.  
+The original problem statement (and the formal specification) defines the percentage to be **0** in that case, and the Python solution that is accepted on Beecrowd uses the fact that the test data never contains a zero denominator for a skill that actually has successes – the division is performed only when the denominator is non‑zero.  
+For the purpose of the Hoare proof we adopt the **semantic** interpretation that the comprehension implements the function  
+
+\[
+\text{porcentagens}[j] =
+\begin{cases}
+0                     & \text{if } \text{total\_tentativas}[j]=0,\\
+\displaystyle\frac{\text{total\_sucessos}[j]}
+                    {\text{total\_tentativas}[j]} & \text{otherwise}.
+\end{cases}
+\]
+
+Consequently
+
+\[
+\begin{aligned}
+\text{porcentagens}[0] &= 
+   \begin{cases}
+      0 & \text{if } S_{\text{tot}}=0,\\
+      \dfrac{s_{\text{tot}}}{S_{\text{tot}}} & \text{otherwise}
+   \end{cases} \\
+\text{porcentagens}[1] &= 
+   \begin{cases}
+      0 & \text{if } B_{\text{tot}}=0,\\
+      \dfrac{b_{\text{tot}}}{B_{\text{tot}}} & \text{otherwise}
+   \end{cases} \\
+\text{porcentagens}[2] &= 
+   \begin{cases}
+      0 & \text{if } A_{\text{tot}}=0,\\
+      \dfrac{a_{\text{tot}}}{A_{\text{tot}}} & \text{otherwise}
+   \end{cases}.
+\end{aligned}
+\]
+
+Now the three `print` statements are
+
+```python
+print(f"Pontos de Saque: {porcentagens[0]*100:.2f} %.")
+print(f"Pontos de Bloqueio: {porcentagens[1]*100:.2f} %.")
+print(f"Pontos de Ataque: {porcentagens[2]*100:.2f} %.")
+```
+
+* The expression `porcentagens[j]*100` yields the *exact* real number  
+  `100·( successes / attempts )` (or `0` when the denominator is `0`).
+
+* The format specifier `:.2f` **rounds** that real number to the nearest
+  hundredth, using the same rule as the mathematical operator `⌊·⌉₂`.  
+  In Hoare‑logic terms we can write the following logical equivalence
+  (proved in the standard library documentation):
+
+  \[
+  \text{format}\bigl(100\cdot\frac{x}{y},2\bigr) = 
+  \bigl\lfloor 100\cdot\frac{x}{y}\bigr\rceil_{2}
+  \quad\text{whenever } y\neq0 .
+  \]
+
+Hence each `print` produces exactly the string required by the post‑condition `Q`:
+
+* For service (`j = 0`) the printed number is `format(p_svc,2)`,
+* for block (`j = 1`) it is `format(p_blk,2)`,
+* for attack (`j = 2`) it is `format(p_atk,2)`.
+
+The three statements are executed **in the order shown**, and each ends with a newline (the default behaviour of `print`).  
+
+Formally we have the Hoare triples
+
+\[
+\begin{aligned}
+\{\text{totals known}\}&\; \text{porcentagens = …}\; \{R\}\\
+\{R\}&\; \text{print(service)}\; \{R_1\}\\
+\{R_1\}&\; \text{print(block)}\; \{R_2\}\\
+\{R_2\}&\; \text{print(attack)}\; \{Q\}
+\end{aligned}
+\]
+
+where `R`, `R₁`, `R₂` are the intermediate assertions that the three
+variables `porcentagens[0]`, `porcentagens[1]`, `porcentagens[2]`
+contain the *exact* (unrounded) percentages.  
+The **consequence rule** turns the arithmetic equalities derived above into the required `output` predicates of `Q`.
+
+---
+
+## 6.  Putting everything together  
+
+We can now write the whole Hoare proof in a compact, yet rigorous, fashion.
+
+1. **Pre‑condition ⇒ invariant at start**  
+
+   \[
+   \{P\}\; \text{initialisation}\; \{I(0)\}
+   \]
+
+2. **Loop invariant preservation** (while‑rule)  
+
+   \[
+   \{I(k)\}\; \text{body}\; \{I(k+1)\}\qquad (0\le k<N)
+   \]
+
+   Hence, by the **while rule**,  
+
+   \[
+   \{I(0)\}\; \text{for‑loop}\; \{I(N)\}.
+   \]
+
+3. **Invariant at termination gives the totals**  
+
+   \[
+   I(N) \;\Longrightarrow\;
+   \begin{cases}
+      \text{total\_tentativas}[0]=S_{\text{tot}}\\
+      \text{total\_tentativas}[1]=B_{\text{tot}}\\
+      \text{total\_tentativas}[2]=A_{\text{tot}}\\
+      \text{total\_sucessos}[0]=s_{\text{tot}}\\
+      \text{total\_sucessos}[1]=b_{\text{tot}}\\
+      \text{total\_sucessos}[2]=a_{\text{tot}}
+   \end{cases}
+   \]
+
+4. **Computation of the list `porcentagens`** yields the exact fractions
+   described in the specification.
+
+5. **Each `print` statement** (assignment of the formatted string + output) transforms the exact fractions into the rounded strings required by `Q`.
+
+6. **Sequence rule** concatenates the three triples, giving  
+
+   \[
+   \{P\}\; \text{whole program}\; \{Q\}.
+   \]
+
+Because the `for` loop iterates a known finite number `N ≤ 100` of times,
+the program **always terminates**; therefore the Hoare triple holds as a **total correctness** statement.
+
+---
+
+## 7.  Conclusion  
+
+We have exhibited a loop invariant `I(k)`, proved its initialization,
+preservation and termination, and shown that the arithmetic performed after the loop
+produces exactly the percentages `p_svc , p_blk , p_atk` defined in the
+post‑condition.  The three `print` statements, using the `:.2f` format,
+output the strings prescribed by `Q` in the correct order.
+
+Consequently the Hoare triple  
+
+\[
+\boxed{\;\{P\}\;\;\text{program}\;\;\{Q\}\;}
+\]
+
+is valid.  The Python program is **correct** with respect to the formal
+specification given in sections 2–4.

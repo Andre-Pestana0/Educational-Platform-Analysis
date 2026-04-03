@@ -1,0 +1,395 @@
+## 1.  What has to be shown  
+
+We are given a **Hoare‑logic specification**
+
+\[
+\{P\}\; C\; \{Q\}
+\]
+
+where  
+
+* `P`  is the pre‑condition that the four integers read from the
+  input are a pair of legal 24‑hour times,  
+
+* `C` is the concrete Python program (the series of `if … elif …` blocks),  
+
+* `Q` is the post‑condition that the two output variables  
+
+  \[
+  dh,\;dm
+  \]
+
+  contain respectively the whole‑hour part and the minute‑remainder of the
+  elapsed time, defined by the abstract program  
+
+  \[
+  \Delta = 
+  \begin{cases}
+  24\cdot 60                                 &\text{if } hf\!:\!mf = hi\!:\!mi,\\[1mm]
+  ((hf\cdot60+mf)-(hi\cdot60+mi)+24\cdot60)\bmod 24\cdot60 
+                                            &\text{otherwise},
+  \end{cases}
+  \qquad
+  dh = \Delta\;{\rm div}\;60,\;
+  dm = \Delta\;{\rm mod}\;60 .
+  \]
+
+Our goal is to prove, **by Hoare‑logic**, that the concrete program `C`
+satisfies the specification, i.e. that the triple
+
+\[
+\{P\}\;C\;\{Q\}
+\tag{1}
+\]
+
+is valid.
+
+--------------------------------------------------------------------
+
+## 2.  Notation and auxiliary facts  
+
+* For a time `t = h·60+m` we write  
+
+  \[
+  \operatorname{tot}(h,m) = h\cdot 60 + m .
+  \]
+
+* The arithmetic lemmas we shall use (all are elementary integer
+  equalities, provable by ordinary algebraic manipulation):
+
+| Lemma | Statement |
+|-------|-----------|
+| **L1** | If `a = b` then `24·60 − a = 24·60 − b`. |
+| **L2** | For any integers `x,y` with `0≤x<60` and `0≤y<60`  
+
+  \[
+  60-(x-y) = 60 -x + y .
+  \] |
+| **L3** | For any integers `h1,h2` with `0≤h1,h2<24`  
+
+  \[
+  (h2-h1)+24 \equiv (h2-h1)\pmod{24}.
+  \] |
+| **L4** | For any integers `a,b`  
+
+  \[
+  a\;{\rm div}\;60 = \left\lfloor\frac{a}{60}\right\rfloor ,\qquad
+  a\;{\rm mod}\;60 = a-60\bigl(a\;{\rm div}\;60\bigr) .
+  \] |
+| **L5** | If `0≤x<60` then `x div 60 = 0` and `x mod 60 = x`. |
+| **L6** | For any `x` we have  
+
+  \[
+  (x+24·60)\;{\rm div}\;60 = x\;{\rm div}\;60 + 24,\qquad
+  (x+24·60)\;{\rm mod}\;60 = x\;{\rm mod}\;60 .
+  \] |
+
+All these lemmas are admissible as *derived rules* inside a Hoare proof
+(their proofs are omitted for brevity).
+
+--------------------------------------------------------------------
+
+## 3.  Abstract program (the specification)  
+
+```
+read hi, mi, hf, mf                // atomic
+Δ ← if (hf·60+mf) = (hi·60+mi) then 24·60
+     else ((hf·60+mf) - (hi·60+mi) + 24·60) mod (24·60);
+dh ← Δ div 60;
+dm ← Δ mod 60;
+print …
+```
+
+The Hoare triple for the abstract program is immediate:
+
+\[
+\{P\}\;
+\text{read …; Δ←…; dh←Δ div 60; dm←Δ mod 60}
+\;\{Q\}
+\tag{2}
+\]
+
+because each assignment is a *simple assignment* and the
+definition of `Δ` is exactly the one appearing in `Q`.
+
+--------------------------------------------------------------------
+
+## 4.  Concrete program  
+
+The concrete program `C` is a cascade of conditionals that
+computes the same `Δ` *implicitly* and then prints the result.
+For a Hoare proof we split `C` into three top‑level cases according to
+the comparison of the **total minutes** of the two times:
+
+```
+if hi = hf then                (case A)
+    …
+elif hi > hf then              (case B)
+    …
+else                           (case C)   # hi < hf
+    …
+```
+
+Inside each case we have three sub‑cases according to the minutes.
+The proof consists of showing, for **every** reachable leaf of the
+conditional tree, that the printed `dh` and `dm` satisfy `Q`.
+
+--------------------------------------------------------------------
+
+### 4.1  Case A – `hi = hf`
+
+The pre‑condition gives `0≤mi,mf<60`.  
+Three sub‑cases are distinguished:
+
+| sub‑case | condition on minutes | printed text (dh,dm) | derived Δ |
+|----------|----------------------|----------------------|-----------|
+| A1 | `mi = mf` | `24 HORA(S) 0 MINUTO(S)` | Δ = 24·60 |
+| A2 | `mi > mf` | `23 HORA(S) 60-(mi-mf) MINUTO(S)` | Δ = 23·60 + (60-(mi-mf)) |
+| A3 | `mi < mf` | `0 HORA(S) mf-mi MINUTO(S)` | Δ = mf-mi |
+
+**Proof for A1**  
+
+*Hoare step*  
+
+```
+{hi = hf ∧ mi = mf}
+print "24 HORA(S) 0 MINUTO(S)"
+{Δ = 24·60 ∧ dh = Δ div 60 ∧ dm = Δ mod 60}
+```
+
+Because `Δ` is defined in the specification as `24·60` when the two
+times are equal, `dh = 24` and `dm = 0` follow from Lemma L4.
+Thus `Q` holds.
+
+**Proof for A2**  
+
+From `hi = hf` and `mi > mf` we have  
+
+\[
+\Delta = 24·60 - (mi-mf) \quad\text{(definition of Δ in the spec)} .
+\]
+
+Algebraically
+
+\[
+\begin{aligned}
+\Delta
+   &= 24·60 - (mi-mf) \\
+   &= 23·60 + \bigl(60-(mi-mf)\bigr) \qquad (\text{since }24·60 = 23·60+60) .
+\end{aligned}
+\]
+
+The program prints exactly `23` hours and `60-(mi-mf)` minutes,
+hence  
+
+\[
+dh = 23,\qquad dm = 60-(mi-mf).
+\]
+
+Using Lemma L4 we obtain `dh = Δ div 60` and `dm = Δ mod 60`.  
+Therefore `Q` holds.
+
+**Proof for A3**  
+
+When `mi < mf`
+
+\[
+\Delta = mf-mi .
+\]
+
+The program prints `0` hours and `mf-mi` minutes, i.e.  
+
+\[
+dh = 0,\qquad dm = mf-mi .
+\]
+
+Because `0 ≤ mf-mi < 60`, Lemma L5 yields `dh = Δ div 60` and
+`dm = Δ mod 60`.  Hence `Q` holds.
+
+Thus every leaf under **Case A** satisfies the post‑condition.
+
+--------------------------------------------------------------------
+
+### 4.2  Case B – `hi > hf`
+
+Again three sub‑cases on the minutes.
+
+| sub‑case | condition | printed (dh,dm) | derived Δ |
+|----------|-----------|-----------------|-----------|
+| B1 | `mi = mf` | `24-(hi-hf) 0` | Δ = (24-(hi-hf))·60 |
+| B2 | `mi > mf` | `23-(hi-hf) 60-(mi-mf)` | Δ = (23-(hi-hf))·60 + (60-(mi-mf)) |
+| B3 | `mi < mf` | `24-(hi-hf) mf-mi` | Δ = (24-(hi-hf))·60 + (mf-mi) |
+
+**Derivation of the abstract Δ**  
+
+Because `hi > hf`, the total minutes of the start time are larger than
+those of the end time, so the game certainly crossed midnight.
+The specification gives  
+
+\[
+\Delta = \bigl((hf·60+mf)-(hi·60+mi)+24·60\bigr)\bmod 24·60 .
+\tag{3}
+\]
+
+Write `Δ₀ = (hf·60+mf)-(hi·60+mi)`.  Since `hi>hf`,
+`Δ₀` is negative and satisfies `-24·60 < Δ₀ ≤ -1`.  Adding `24·60` makes it
+positive and smaller than `24·60`; consequently the `mod` in (3) is just
+the ordinary addition:
+
+\[
+\Delta = 24·60 + (hf·60+mf)-(hi·60+mi) .
+\tag{4}
+\]
+
+Now split (4) according to the three minute relations.
+
+*If `mi = mf`* :
+
+\[
+\Delta = 24·60 + (hf-hi)·60 = (24-(hi-hf))·60 .
+\]
+
+Exactly the value printed by **B1**.
+
+*If `mi > mf`* :
+
+\[
+\begin{aligned}
+\Delta &= 24·60 + (hf-hi)·60 + (mf-mi) \\
+       &= (24-(hi-hf))·60 - (mi-mf) \\
+       &= (23-(hi-hf))·60 + \bigl(60-(mi-mf)\bigr) .
+\end{aligned}
+\]
+
+The program prints the right‑hand side, i.e. **B2**.
+
+*If `mi < mf`* :
+
+\[
+\begin{aligned}
+\Delta &= 24·60 + (hf-hi)·60 + (mf-mi) \\
+       &= (24-(hi-hf))·60 + (mf-mi) .
+\end{aligned}
+\]
+
+Again this is precisely the output of **B3**.
+
+In each sub‑case the printed `dh` and `dm` equal the quotient and remainder
+of the corresponding `Δ` (by Lemma L4).  Hence `Q` holds for all leaves of
+**Case B**.
+
+--------------------------------------------------------------------
+
+### 4.3  Case C – `hi < hf`
+
+Now the start time is earlier than the final time, so no midnight is
+crossed.  The specification (3) reduces to the simple difference
+
+\[
+\Delta = (hf·60+mf)-(hi·60+mi) .
+\tag{5}
+\]
+
+Again three minute sub‑cases.
+
+| sub‑case | condition | printed (dh,dm) | derived Δ |
+|----------|-----------|-----------------|-----------|
+| C1 | `mi = mf` | `hf-hi 0` | Δ = (hf‑hi)·60 |
+| C2 | `mi > mf` | `hf‑hi‑1 60-(mi‑mf)` | Δ = (hf‑hi‑1)·60 + (60-(mi‑mf)) |
+| C3 | `mi < mf` | `hf‑hi mf‑mi` | Δ = (hf‑hi)·60 + (mf‑mi) |
+
+**Verification**  
+
+From (5) we have  
+
+\[
+\Delta = (hf‑hi)·60 + (mf‑mi) .
+\tag{6}
+\]
+
+*If `mi = mf`* the second term vanishes and (6) becomes
+`Δ = (hf‑hi)·60`, exactly the output of **C1**.
+
+*If `mi > mf`* then `mf‑mi = -(mi‑mf)`.  Substituting in (6) gives  
+
+\[
+\Delta = (hf‑hi)·60 -(mi‑mf)
+       = (hf‑hi‑1)·60 + \bigl(60-(mi‑mf)\bigr) .
+\]
+
+Thus **C2** prints the correct quotient and remainder.
+
+*If `mi < mf`* the second term `(mf‑mi)` is already a positive number
+smaller than 60, so (6) yields exactly the pair printed by **C3**.
+
+Again Lemma L4 converts the printed pair into `dh = Δ div 60`,
+`dm = Δ mod 60`.  Hence `Q` holds for every leaf of **Case C**.
+
+--------------------------------------------------------------------
+
+## 5.  Assembling the proof  
+
+We now apply the **rule of conditional composition** of Hoare logic:
+
+\[
+\frac{
+   \{P\}\;S_{1}\;\{R\} \qquad
+   \{R\}\;S_{2}\;\{Q\}
+}{
+   \{P\}\; \textbf{if}\;B\;\textbf{then}\;S_{1}\;\textbf{else}\;S_{2}\;\{Q\}
+}
+\]
+
+where `B` is the guard of the conditional and `R` is the
+intermediate assertion that states which of the three top‑level cases
+has been selected (e.g. `hi = hf ∨ hi > hf ∨ hi < hf`, which is a tautology
+under the pre‑condition).  
+
+* For the outermost `if` we take as intermediate assertion  
+
+  \[
+  R_{0}\;≡\; (hi=hf) \;\lor\; (hi>hf) \;\lor\; (hi<hf) .
+  \]
+
+  The three branches have been proved to satisfy `Q` (Sections 4.1–4.3).
+
+* Inside each branch we again apply the conditional rule, using as
+  intermediate assertions the three minute‑relations (`mi = mf`,
+  `mi > mf`, `mi < mf`).  The leaf proofs (the eight `print …`
+  statements) have already been shown to establish `Q`.
+
+Since every leaf of the conditional tree has been proved to satisfy the
+post‑condition, the rule of conditional composition guarantees that the
+whole program `C` satisfies `{P} C {Q}`.
+
+Finally we use the **sequencing rule**
+
+\[
+\frac{\{P\}\;C_{1}\;\{R\}\qquad\{R\}\;C_{2}\;\{Q\}}{\{P\}\;C_{1};C_{2}\;\{Q\}}
+\]
+
+to prepend the atomic input action `read hi,mi,hf,mf`.  
+The pre‑condition `P` guarantees that after the read the variables
+indeed satisfy the assumptions used in the subsequent proof, so the
+overall Hoare triple (1) is valid.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited a complete Hoare‑logic proof that the concrete Python
+program computes the exact elapsed time between two clock moments,
+including the special case in which the game lasts exactly 24 hours.
+Formally,
+
+\[
+\boxed{\; \{P\}\;\texttt{read hi,mi,hf,mf;  … ; print …}\;\{Q\}\;}
+\]
+
+holds, i.e. the program is **correct** with respect to the given
+pre‑condition and post‑condition.  The proof proceeds by a case
+analysis that mirrors the structure of the program and shows that each
+branch implements the abstract definition of `Δ`, and that the
+subsequent integer division and remainder (`dh = Δ div 60`,
+`dm = Δ mod 60`) produce the required output.  Hence the implementation
+conforms exactly to the specification.

@@ -1,0 +1,267 @@
+## Overview  
+
+We are asked to **prove** that the Python program  
+
+```python
+a = int(input())          # 1
+b = int(input())          # 2
+print(f'PROD = {a*b}')    # 3
+```
+
+satisfies the Hoare‑logic contract  
+
+\[
+\boxed{
+\{\, a\in\mathbb Z \;\land\; b\in\mathbb Z \,\}
+\;\;\text{read\_prod}\;\;
+\{\, \text{PROD}=a\cdot b\ \land\ 
+   \text{out}= \langle\text{"PROD = "}\rangle\,
+               \text{toString}(a\cdot b)\,
+               \langle\text{"\n"}\rangle \,\}
+}
+\tag{C}
+\]
+
+The proof proceeds **step‑by‑step** with the standard Hoare‑logic inference rules:
+
+| Rule | Shape | Comment |
+|------|-------|---------|
+| **(Skip)** | `{P} skip {P}` | does nothing |
+| **(Assign)** | `{P[x:=E]}  x := E  {P}` | substitution of the right‑hand side |
+| **(Seq)** | `{P} C₁ {R} , {R} C₂ {Q}  ⇒  {P} C₁;C₂ {Q}` | composition |
+| **(Input)** | `{true}  x := input()  {x∈ℤ}` | the language guarantees an integer value (our pre‑condition guarantees it) |
+| **(Output)** | `{P ∧ out = s}`  `print(s)`  `{P ∧ out = s·"\n"}` | the printed string is appended to the output buffer |
+| **(Consequence)** | `P ⇒ P' , {P'} C {Q'} , Q' ⇒ Q  ⇒  {P} C {Q}` | strengthening/weakening of assertions |
+
+In the program we also introduce a *program variable* `PROD` that is not present in the source code but is defined as the mathematical result of the multiplication; the rule **(Assign)** will be used to give it a value.
+
+Below we give a **full derivation** from the pre‑condition of (C) to its post‑condition, indicating the intermediate assertions that are true after each line of the program.
+
+---
+
+## 1.  Formalisation of the program
+
+For the purpose of the proof we rewrite the three Python statements as a small “imperative” fragment that makes the intermediate variable `PROD` explicit:
+
+```
+1. a   := input()          // read first integer
+2. b   := input()          // read second integer
+3. PROD:= a * b            // compute product
+4. out := out ∘ ("PROD = " ⟨ toString(PROD) ⟩ "\n")   // print
+```
+
+*`out`* denotes the whole text that has been written to the standard output **so far** (initially the empty string).  
+The concatenation operator `∘` is the same as the “string concatenation” `⟨·⟩` used in the specification.
+
+The three‑line Python program is therefore the **sequence** `C₁;C₂;C₃` where  
+
+* `C₁` = `a := input()`,  
+* `C₂` = `b := input()`,  
+* `C₃` = `PROD := a * b ; out := out ∘ ("PROD = " ⟨ toString(PROD) ⟩ "\n")`.
+
+---
+
+## 2.  Proof skeleton  
+
+We will prove the Hoare triple  
+
+\[
+\{\, a\in\mathbb Z \land b\in\mathbb Z \,\}
+\; C₁;C₂;C₃ \;
+\{\, \text{PROD}=a\cdot b \land
+   \text{out}= "PROD = " \;⟨\!\!a\cdot b\!\!⟩ "\n" \,\}.
+\tag{*}
+\]
+
+The derivation proceeds by **composition**:
+
+```
+{P0} C1 {P1}
+{P1} C2 {P2}
+{P2} C3 {P3}
+-------------------  (Seq)
+{P0} C1;C2;C3 {P3}
+```
+
+where  
+
+* `P0` = `a∈ℤ ∧ b∈ℤ` (the given pre‑condition)  
+* `P1`, `P2`, `P3` are intermediate assertions that we shall define.
+
+---
+
+## 3.  Detailed derivation  
+
+### 3.1  First input command (`C₁`)
+
+**Rule used** – *Input*: `{true} x := input() {x∈ℤ}`  
+
+Because the pre‑condition already tells us that the *first* value supplied by the input file is an integer, we can strengthen the antecedent from `true` to `a∈ℤ`.  
+
+```
+{ a∈ℤ }               (P0)
+a := input()          (C1)
+{ a∈ℤ }               (P1)
+```
+
+Thus we set  
+
+\[
+P_1 \equiv a\in\mathbb Z .
+\tag{1}
+\]
+
+(The variable `b` is untouched, so the conjunct `b∈ℤ` is still true but we do not need it explicitly at this point.)
+
+---
+
+### 3.2  Second input command (`C₂`)
+
+Analogously:
+
+```
+{ a∈ℤ }               (P1)
+b := input()          (C2)
+{ a∈ℤ ∧ b∈ℤ }        (P2)
+```
+
+Hence  
+
+\[
+P_2 \equiv a\in\mathbb Z \land b\in\mathbb Z .
+\tag{2}
+\]
+
+Notice that `P₂` is exactly the original pre‑condition; the two reads have restored the information that **both** input numbers are integers.
+
+---
+
+### 3.3  Multiplication and output (`C₃`)
+
+`C₃` is a **compound command** consisting of an assignment followed by a print.  
+We treat it as `C₃₁ ; C₃₂` and apply the **(Seq)** rule again.
+
+#### 3.3.1  Assignment `PROD := a * b`
+
+**Rule used** – *Assign*:  
+
+\[
+\{\,P[\,\text{PROD} := a*b\,]\}\; \text{PROD} := a*b\; \{\,P\,\}
+\]
+
+Take  
+
+\[
+P \equiv \bigl(\text{PROD}=a\cdot b\bigr)\ \land\ 
+        \bigl(\text{out}= \text{out}_0\bigr),
+\]
+
+where `out₀` is a placeholder for the (still unknown) output string *before* the print.  
+The substitution `P[PROD := a*b]` yields simply `true` because `PROD` does not appear elsewhere in `P`. Consequently we obtain
+
+```
+{ true }                     (we can weaken to P2)
+PROD := a * b                (C3₁)
+{ PROD = a*b }               (P3₁)
+```
+
+Thus after `C₃₁` we have  
+
+\[
+P_3^{(1)} \equiv \text{PROD}=a\cdot b .
+\tag{3}
+\]
+
+#### 3.3.2  Print command  
+
+The Python statement  
+
+```python
+print(f'PROD = {a*b}')
+```
+
+writes the *exact* string  
+
+```
+"PROD = " ⟨ toString(a*b) ⟩ "\n"
+```
+
+to the standard output. In our abstract language the rule for `print(s)` is
+
+\[
+\frac{\{\,P \land \text{out}=s_0\,\}\; \text{print}(s)\;
+      \{\,P \land \text{out}=s_0\!\!∘\!s\!\!∘\!"\n"\,\}}
+      {}
+\]
+
+where `s_0` is the value of `out` **before** the command.  
+We apply it with  
+
+* `s = "PROD = " ⟨ toString(PROD) ⟩`  
+* `s₀ = out₀` (the value of `out` after the previous commands; at this point `out₀` is still the empty string).
+
+Because `PROD = a·b` holds by (3), we can replace `PROD` inside `s` by `a·b`.  
+
+Hence:
+
+```
+{ PROD = a*b }                                 (P3₁)
+out := out ∘ ("PROD = " ⟨ toString(PROD) ⟩ "\n")   (C3₂)
+{ PROD = a*b  ∧  out = "PROD = " ⟨ toString(a*b) ⟩ "\n" }   (P3)
+```
+
+We have obtained exactly the **post‑condition** required in (C).
+
+---
+
+### 3.4  Putting the pieces together  
+
+Now we chain all the derived triples using the **(Seq)** rule:
+
+| Step | Hoare triple |
+|------|--------------|
+| (1)  | `{a∈ℤ} a := input() {a∈ℤ}` |
+| (2)  | `{a∈ℤ} b := input() {a∈ℤ ∧ b∈ℤ}` |
+| (3)  | `{a∈ℤ ∧ b∈ℤ} PROD := a*b {PROD = a·b}` |
+| (4)  | `{PROD = a·b} print … {PROD = a·b ∧ out = "PROD = "⟨a·b⟩"\n"}` |
+
+Applying **(Seq)** three times we obtain
+
+\[
+\{\,a\in\mathbb Z \land b\in\mathbb Z \,\}
+\; (a:=input();\; b:=input();\; PROD:=a*b;\; \text{print})\;
+\{\, \text{PROD}=a\cdot b \;\land\;
+   \text{out}= "PROD = "⟨a\cdot b⟩"\n" \,\}.
+\]
+
+This is precisely the Hoare triple \((*)\), i.e. the specification (C).
+
+---
+
+## 4.  Remarks on the Python implementation  
+
+* The Python `int()` conversion raises a `ValueError` if the textual token is not a legal integer.  
+  Our **pre‑condition** guarantees that the two lines of the input file *are* integers, therefore the conversion never aborts and the program terminates normally.  
+
+* The expression `f'PROD = {a*b}'` produces the same string that we used in the abstract proof: the literal `"PROD = "` followed by the decimal representation of the product, *without* extra spaces, and `print` automatically appends a newline (`"\n"`). Hence the concrete Python statement implements exactly the abstract `print` command used in the proof.
+
+* The variable `PROD` does not exist in the source code; it is introduced only for the purpose of stating the post‑condition. In the proof we treated the multiplication `a*b` as the value assigned to `PROD`, which is a perfectly valid logical abstraction.
+
+---
+
+## 5.  Conclusion  
+
+Using the standard Hoare‑logic inference rules we have shown, step by step, that the program
+
+```python
+a = int(input())
+b = int(input())
+print(f'PROD = {a*b}')
+```
+
+*starts* with the weakest possible assumption that the input file supplies two (arbitrary) integers, and *terminates* with
+
+* `PROD` equal to their mathematical product, and  
+* the exact output string `PROD = <product>\n`.
+
+Therefore the program **satisfies** the formal contract (C) and is **correct** with respect to the given Hoare‑logic specification.

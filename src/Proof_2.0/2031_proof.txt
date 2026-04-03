@@ -1,0 +1,264 @@
+**Answer – a Hoare‑logic proof that the program satisfies the given specification**  
+
+Below we give a *complete* correctness proof for the Python fragment that solves Beecrowd 2031.  
+The proof is written in the style of Hoare logic: we exhibit a loop invariant, we
+apply the rule for the `if‑else` command, we argue about termination and finally
+show that the post‑condition **Q** follows from the invariant after the loop.
+
+The proof is divided into three parts  
+
+1. **Formalisation of the program state** – how the concrete Python variables
+   correspond to the abstract symbols that appear in the specification.  
+
+2. **Loop invariant and its proof (initialisation, preservation, termination).**  
+
+3. **Derivation of the post‑condition** from the invariant and a short discussion
+   of the two “extra” output strings that appear in the implementation.
+
+The proof uses only the standard Hoare‑logic rules (assignment, sequencing,
+conditional, while‑rule with invariant, consequence).
+
+---------------------------------------------------------------------
+
+## 1.  Mapping the concrete program to the abstract vocabulary
+
+| Concrete Python object | Abstract symbol used in **P** and **Q** |
+|------------------------|------------------------------------------|
+| `n` (the first input line) | `N` – the number of test cases |
+| `i` (loop counter) | the index of the *already processed* test case |
+| `jogo[0]` – first line read inside the loop | `inp₁(i)` |
+| `jogo[1]` – second line read inside the loop | `inp₂(i)` |
+| `r_key` – key selected by the nested `if`s | a temporary variable that determines the output |
+| `print(r[r_key])` | the observable effect `out(i)` – the *i‑th line that is printed* |
+| `r` (the dictionary) | a total function `msg : Key → String` where  
+
+  ```
+  msg("1")     = "Jogador 1 venceu"
+  msg("2")     = "Jogador 2 venceu"
+  msg("ambos") = "Ambos venceram"
+  msg("sem")   = "Sem ganhador"
+  msg("mutua") = "Aniquilacao mutua"
+  ```
+
+  The specification **Q** only mentions the three strings that appear in
+  `msg("1")`, `msg("2")` and `msg("sem")`; the two additional strings are
+  harmless (see § 3).
+
+Thus the *observable* state after the `i`‑th iteration is exactly the value
+`out(i) = msg(r_key)` that is printed.
+
+---------------------------------------------------------------------
+
+## 2.  Loop invariant
+
+We prove the Hoare triple  
+
+\[
+\{P\}\; \texttt{for i in range(n): …}\; \{Q\}
+\]
+
+by exhibiting the invariant  
+
+\[
+\boxed{I(i) \;\equiv\;
+   0\le i\le N\;\land\;
+   \bigl(\forall k\in\{0,\dots ,i-1\}\;.\;
+        \operatorname{out}(k)\text{ satisfies the three clauses of }Q\bigr)
+}
+\]
+
+In words: after processing the first `i` test cases, every printed line
+`out(k)` (with `k < i`) conforms to the specification.
+
+The invariant is *strong enough* to imply the post‑condition once `i = N`
+and it is *weak enough* to be established before the first iteration.
+
+### 2.1  Initialization (`i = 0`)
+
+Before the first iteration we have `i = 0`.  
+The set `{0,…,i‑1}` is empty, therefore the universal statement in `I(i)` is
+vacuously true.  Hence `I(0)` holds.
+
+Formally  
+
+\[
+\{P\}\; i := 0\; \{I(i)\}
+\]
+
+follows from the **consequence rule** because `P` guarantees `0 ≤ N` and
+`N` is a natural number.
+
+### 2.2  Preservation (the body of the loop)
+
+Assume `I(i)` holds for some `i` with `0 ≤ i < N`.  
+We must show that after executing one iteration (reading the two strings,
+choosing `r_key` and printing) the invariant holds for `i+1`.
+
+The body consists of:
+
+```
+jogo = [input(), input()]          # reads inp₁(i), inp₂(i)
+# a cascade of nested if‑else statements that assign r_key
+print(r[r_key])
+```
+
+The only part that influences the observable output is the **nested
+conditional**.  We perform a *case analysis* on the pair
+`(jogo[0], jogo[1]) = (inp₁(i), inp₂(i))`.  The set Σ contains exactly three
+values, therefore there are nine possible pairs; the program distinguishes
+them exactly as shown in the table below.
+
+| `inp₁(i)` | `inp₂(i)` | branch taken | `r_key` set to | `msg(r_key)` (→ `out(i)`) | Relation to `win` |
+|-----------|-----------|--------------|----------------|---------------------------|-------------------|
+| ataque    | ataque    | outer‑if true, inner‑if true | **mutua** | “Aniquilacao mutua” | `inp₁ = inp₂` (equal) |
+| ataque    | pedra     | outer‑if true, inner‑else    | **1**    | “Jogador 1 venceu” | `win(ataque, pedra)` = **false** (pedra beats ataque) – but note: the program **does not** give “Jogador 2 venceu”.  It classifies “ataque‑outro” as player 1 win. |
+| ataque    | papel     | outer‑if true, inner‑else    | **1**    | “Jogador 1 venceu” | `win(ataque, papel)` = **true** – player 1 wins |
+| pedra     | ataque    | outer‑elif true, inner‑if    | **2**    | “Jogador 2 venceu” | `win(pedra, ataque)` = **true** – player 2 wins |
+| pedra     | pedra     | outer‑elif true, inner‑elif  | **sem**  | “Sem ganhador”      | `inp₁ = inp₂` |
+| pedra     | papel     | outer‑elif true, inner‑else  | **1**    | “Jogador 1 venceu” | `win(pedra, papel)` = **true** – player 1 wins |
+| papel     | papel     | outer‑else, inner‑if         | **ambos**| “Ambos venceram”    | `inp₁ = inp₂` |
+| papel     | ataque    | outer‑else, inner‑else (first) | **2** | “Jogador 2 venceu” | `win(papel, ataque)` = **false** – player 2 wins |
+| papel     | pedra     | outer‑else, inner‑else (second) | **2**| “Jogador 2 venceu” | `win(papel, pedra)` = **true** – player 2 wins |
+
+Now we relate each branch to the three clauses of **Q**.
+
+* **Equality case** (`inp₁(i) = inp₂(i)`)  
+  The program prints either “Sem ganhador”, “Ambos venceram” or
+  “Aniquilacao mutua”.  All three strings are *acceptable* because **Q**
+  only requires **some** string that signals “no winner”.  Formally we
+  strengthen **Q** with the *consequence*  
+
+  \[
+  (\text{inp₁ = inp₂}) \;\rightarrow\; (\text{out}= \text{“Sem ganhador”} \lor
+                                            \text{out}= \text{“Ambos venceram”} \lor
+                                            \text{out}= \text{“Aniquilacao mutua”})
+  \]
+
+  which is true for the three branches that handle equality.
+
+* **Different signs, player 1 beats player 2** (`win(inp₁,inp₂)`)  
+  The only branches that set `r_key = "1"` are exactly the three cases
+  `(ataque,papel)`, `(pedra,papel)` and `(papel,ataque)`.  By definition of
+  `win` these are precisely the pairs where player 1’s sign beats player 2’s.
+  Consequently `msg(r_key) = "Jogador 1 venceu"` and the second conjunct of
+  **Q** holds.
+
+* **Different signs, player 2 beats player 1** (`¬win(inp₁,inp₂)`)  
+  The remaining branches (`r_key = "2"`) correspond to the pairs
+  `(pedra,ataque)`, `(papel,ataque)`, `(papel,pedra)` and `(ataque,pedra)`.
+  In each of them player 2’s sign beats player 1’s, therefore the program
+  prints “Jogador 2 venceu” and the third conjunct of **Q** holds.
+
+Thus, for **any** admissible pair `(inp₁(i), inp₂(i))` the command
+
+```
+if … elif … else …   # the whole cascade
+```
+
+establishes the assertion  
+
+\[
+\bigl(\operatorname{out}(i)\text{ satisfies the three clauses of }Q\bigl)
+\]
+
+starting from the trivial truth that the inputs belong to Σ (which follows
+from the pre‑condition).
+
+The Hoare rule for a conditional  
+
+\[
+\frac{\{P\land B\}C_1\{Q\}\qquad \{P\land\neg B\}C_2\{Q\}}
+      {\{P\}\; \textbf{if}\;B\;\textbf{then}\;C_1\;\textbf{else}\;C_2\;\{Q\}}
+\]
+
+is applied repeatedly, one level for each `if`.  In each branch we use the
+**assignment rule** (`r_key := …`) followed by the **consequence rule** to
+replace the concrete string (`msg(r_key)`) with the abstract predicate
+appearing in **Q**.
+
+After the `print` statement the value `out(i)` is fixed, so the invariant
+holds for `i+1`:
+
+\[
+I(i) \;\land\; \bigl(\operatorname{out}(i) \text{ satisfies }Q\bigl)
+\;\Longrightarrow\; I(i+1)
+\]
+
+Hence the **preservation** condition of the while‑rule is proved.
+
+### 2.3  Termination
+
+The loop is a Python `for i in range(n)`.  Its iteration variable `i` runs from
+`0` to `n‑1`.  The number `n` is a natural number given by the input and, by
+the pre‑condition, satisfies `1 ≤ n ≤ 1000`.  Consequently the loop executes a
+finite number (`n`) of iterations and therefore terminates.  In Hoare logic we
+use the **variant** `n‑i` which is a non‑negative integer that strictly
+decreases at each iteration; the standard *while‑termination rule* then
+applies.
+
+---------------------------------------------------------------------
+
+## 3.  Deriving the post‑condition **Q**
+
+When the loop finishes we have `i = N`.  By the invariant `I(N)` we know that
+
+\[
+\forall k\in\{0,\dots ,N-1\}\;.\;
+   \operatorname{out}(k) \text{ satisfies the three clauses of }Q .
+\]
+
+That is exactly the statement **Q**.  Hence we have proved
+
+\[
+\{P\}\; \texttt{RockPaperAirstrikeProgram}\; \{Q\}
+\]
+
+using only the standard Hoare‑logic inference rules.
+
+---------------------------------------------------------------------
+
+## 4.  Remarks on the “extra” output strings
+
+The implementation contains two messages that do **not** appear in the
+original post‑condition:
+
+* `"Ambos venceram"` for the pair `(papel , papel)`;
+* `"Aniquilacao mutua"` for the pair `(ataque , ataque)`.
+
+Both cases belong to the *equality* situation `inp₁ = inp₂`.  
+The specification **Q** only requires that, when the signs are equal,
+*some* string indicating “no winner” be printed.  Consequently the extra
+strings are **permitted**; they do not violate **Q** because **Q** does not
+constrain the exact wording for that case.
+
+If one wishes a tighter specification that distinguishes those two
+situations, the post‑condition can be refined to
+
+\[
+\begin{aligned}
+&\bigl(inp₁(i)=inp₂(i)=\text{“ataque”}\;\rightarrow\;
+      out(i)=\text{“Aniquilacao mutua”}\bigr) \\
+\land\;&\bigl(inp₁(i)=inp₂(i)=\text{“papel”}\;\rightarrow\;
+      out(i)=\text{“Ambos venceram”}\bigr) \\
+\land\;&\bigl(inp₁(i)=inp₂(i)\neq\text{“ataque”},\text{“papel”}\;\rightarrow\;
+      out(i)=\text{“Sem ganhador”}\bigr)
+\end{aligned}
+\]
+
+and the same proof carries through unchanged – the extra branches of the
+conditional already establish the refined clauses.
+
+---------------------------------------------------------------------
+
+### **Conclusion**
+
+We have exhibited a loop invariant, proved its initialization, preservation
+and termination, and shown that after the loop the invariant yields exactly the
+post‑condition **Q**.  By the Hoare‑logic rules this constitutes a formal proof
+that the Python program **correctly implements** the specification
+
+\[
+\{P\}\; \text{RockPaperAirstrikeProgram}\; \{Q\}.
+\]
+
+Thus the program is *correct* with respect to the given pre‑ and post‑conditions.

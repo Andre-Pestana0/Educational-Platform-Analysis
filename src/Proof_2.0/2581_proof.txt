@@ -1,0 +1,238 @@
+## 1.  What we have to prove  
+
+We are asked to show that the following **Hoare triple** is valid  
+
+\[
+\{P\}\; \texttt{program}\; \{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:=\;N\ge 0\;\land\;Q=(q_{1},\dots ,q_{N})\;\land\;
+\bigl(\forall i\in\{1,\dots ,N\}\;q_{i}\in\Sigma^{*}\bigr)
+\]
+
+* **Program** (the “real” Python code that will be executed)  
+
+```python
+N = int(input())                # read N
+print('I am Toorg!\n'*N, end='')# write the answer N times
+```
+
+* **Post‑condition**  
+
+\[
+Q\;:=\;|A| = N\;\land\;
+\bigl(\forall i\in\{1,\dots ,N\}\;a_{i}= \text{``I am Toorg!''}\bigr)
+\]
+
+`A = (a_1,…,a_N)` denotes the sequence of lines that the program has written to **stdout**.
+
+The specification that appears in the statement of the problem is a *loop* version of the same program:
+
+```
+read N
+for i = 1 to N do
+        read q_i          // the i‑th question (ignored)
+        write "I am Toorg!"
+od
+```
+
+Both versions produce the same observable effect (the same output), therefore we may prove the loop version and then argue that the one‑liner `print('I am Toorg!\n'*N)` is a *derived* implementation of the same loop.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic proof for the loop version  
+
+We will use the standard Hoare‑logic rules:
+
+* **Assignment**                                                                                                                                                                                                    
+\[
+\frac{}{\{\,P[E/x]\,\}\;x:=E\;\{\,P\,\}}
+\]
+
+* **Composition** (sequencing)  
+
+\[
+\frac{\{P\}\;S_{1}\;\{R\}\qquad\{R\}\;S_{2}\;\{Q\}}{\{P\}\;S_{1};S_{2}\;\{Q\}}
+\]
+
+* **Consequences**  
+
+\[
+\frac{P'\Rightarrow P\qquad\{P\}\;S\;\{Q\}\qquad Q\Rightarrow Q'}{\{P'\}\;S\;\{Q'\}}
+\]
+
+* **While‑rule** (the same rule works for a `for` loop after we rewrite it as a `while`)  
+
+\[
+\frac{I\;\text{is an invariant and}\;
+      \{I\land B\}\;S\;\{I\}\;\;\;
+      I\land\neg B\;\Rightarrow\;Q}{\{I\}\;\textbf{while}\;B\;\textbf{do}\;S\;\textbf{od}\;\{Q\}}
+\]
+
+--------------------------------------------------------------------
+### 2.1  Notation  
+
+* `i` – loop counter (starts at 0, ends at `N`).  
+* `A` – the list that accumulates the output lines; initially `A = ε`.  
+* `B(i)` – the loop guard, i.e. `i < N`.  
+
+--------------------------------------------------------------------
+### 2.2  Loop invariant  
+
+\[
+I(i)\;:=\;0\le i\le N\;\land\;
+|A| = i\;\land\;
+\bigl(\forall j\in\{1,\dots ,i\}\;a_{j}= \text{``I am Toorg!''}\bigr)
+\]
+
+Intuitively: after having processed the first `i` questions we have already written exactly `i` answer lines, and each of them is the required constant string.
+
+--------------------------------------------------------------------
+### 2.3  Proof steps  
+
+#### 2.3.1  Reading `N`
+
+```
+N := int(input())
+```
+
+*Pre‑condition before the assignment* : `P` (the given `P`).  
+
+By the **assignment rule** we obtain the post‑condition  
+
+\[
+\{\,P\}\;N:=\text{int(input())}\;\{\,N\ge 0\land Q=(q_{1},\dots ,q_{N})\land
+\forall i\;q_{i}\in\Sigma^{*}\,\}
+\]
+
+which is exactly the same as `P` (the assignment does not change any of the conjuncts). Hence after this statement the state still satisfies `P`.
+
+--------------------------------------------------------------------
+#### 2.3.2  Initialisation of the loop variables  
+
+```
+i := 0
+A := ε                # empty list of output lines
+```
+
+Applying the assignment rule twice we obtain  
+
+\[
+\{P\}\;i:=0;\;A:=\varepsilon\;\{\,I(0)\,\}
+\]
+
+because after the two assignments we have  
+
+* `0 ≤ i = 0 ≤ N` (true because `N ≥ 0` from `P`);
+* `|A| = 0`;
+* the universal quantifier over an empty index set `\{1,…,0\}` is vacuously true.  
+Thus the **loop invariant holds before the first iteration**.
+
+--------------------------------------------------------------------
+#### 2.3.3  Loop body – preservation of the invariant  
+
+The body of the `for` loop (rewritten as a `while`) is
+
+```
+read q_{i+1}          # allowed by the pre‑condition
+A := A ⧺ ["I am Toorg!"]
+i := i + 1
+```
+
+We show that  
+
+\[
+\{\,I(i)\land i<N\,\}\;\text{body}\;\{\,I(i+1)\,\}
+\]
+
+* **Reading `q_{i+1}`** – this statement does not modify any variable that appears in `I`, therefore `I(i)` is preserved unchanged.
+
+* **Appending the answer** – `A := A ⧺ ["I am Toorg!"]` increases the length of `A` by exactly one and stores a line that satisfies the required constant.  
+  From `|A| = i` we obtain `|A'| = i+1`.  
+  Moreover, the property  
+  \[
+  \forall j\le i\; a_{j}= \text{``I am Toorg!''}
+  \]
+  still holds, and we add the new element `a_{i+1}` that also equals the constant string. Hence after this statement  
+
+  \[
+  |A| = i+1\;\land\;
+  \forall j\le i+1\; a_{j}= \text{``I am Toorg!''}
+  \]
+
+* **Incrementing the counter** – `i := i+1` changes the counter from `i` to `i+1`.  
+  The inequality `0 ≤ i+1 ≤ N` follows from the loop guard `i < N`.  
+
+Collecting the three sub‑steps we have derived exactly the invariant with `i` replaced by `i+1`. Hence the **preservation condition** holds.
+
+--------------------------------------------------------------------
+#### 2.3.4  Termination condition  
+
+The loop guard is `i < N`. When the loop exits we have `¬(i < N)`, i.e. `i = N`.  
+By the invariant `I(i)` (instantiated with `i = N`) we obtain  
+
+\[
+|A| = N\;\land\;
+\forall j\in\{1,\dots ,N\}\;a_{j}= \text{``I am Toorg!''}
+\]
+
+which is exactly the **post‑condition** `Q`.
+
+--------------------------------------------------------------------
+#### 2.3.5  Putting the pieces together  
+
+Using the **while‑rule** with invariant `I` we have proved  
+
+\[
+\{\,I(0)\,\}\;\mathbf{while}\;i<N\;\mathbf{do}\;\text{body}\;\mathbf{od}\;\{\,Q\,\}
+\]
+
+and we have already shown that `{P} i:=0;A:=ε {I(0)}` holds.  
+By **composition** we finally obtain  
+
+\[
+\{\,P\,\}\;
+\bigl(i:=0;\;A:=\varepsilon;\;\mathbf{while}\;i<N\;\mathbf{do}\;\text{body}\;\mathbf{od}\bigr)
+\; \{\,Q\,\}
+\]
+
+which is the Hoare triple for the *loop* version of the program.
+
+--------------------------------------------------------------------
+### 2.4  From the loop to the one‑liner  
+
+The statement  
+
+```python
+print('I am Toorg!\n'*N, end='')
+```
+
+is a *derived* command that is provably equivalent to the loop just proved:
+
+* The expression `'I am Toorg!\n'*N` creates a string that consists of the constant line followed by a newline, repeated exactly `N` times.
+* `print(..., end='')` writes that string to `stdout` **without** adding an extra final newline.
+
+Therefore the effect on the observable variable `A` is precisely the same: after execution `A` contains `N` copies of the required line, and no other output is produced.  
+
+By the **consequence rule** we may replace the loop body by this equivalent statement, preserving the validity of the Hoare triple.
+
+--------------------------------------------------------------------
+
+## 3.  Final statement  
+
+We have exhibited a loop invariant, proved its initialization, preservation, and that it yields the required post‑condition when the loop terminates, and we have shown that the Python one‑liner implementation is an equivalent refinement of the loop. Consequently the Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\texttt{program}\;\{\,Q\,\}}
+\]
+
+holds. In words:  
+
+*If the input starts with a non‑negative integer `N` followed by any `N` strings, then after the program finishes it will have written exactly `N` lines, each line being the literal text **“I am Toorg!”**.*
+
+Thus the program is **correct** with respect to the given formal specification. ∎

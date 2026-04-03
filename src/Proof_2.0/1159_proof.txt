@@ -1,0 +1,330 @@
+Below is a **complete Hoare‑logic proof** that the Python program supplied in the question satisfies the
+specification that you wrote in the “Hoare‑style specification’’ section.
+
+--------------------------------------------------------------------
+## 1.  Program and notations
+
+```
+i := 1                         # logical counter, not present in the code
+while True:                    # (1)  while  x ≠ 0
+    x = int(input())           # read the next element of the input file
+    if x == 0:                 # (2)  exit condition
+        break
+    y = x
+    soma = 0
+    if x % 2 == 0:             # even branch
+        for i in range(5):     # i = 0,…,4
+            soma = soma + y
+            y = y + 2
+    else:                      # odd branch
+        y = y + 1               # make it even
+        for i in range(5):
+            soma = soma + y
+            y = y + 2
+    print(soma)                # output the result for this x
+```
+
+* `x` – the integer just read (the current input element).  
+* `y` – a temporary variable that holds the **current even number** that is added to the sum.  
+* `soma` – the value that will be printed; it is the sum of the five consecutive even numbers that start at the smallest even number `≥ x`.  
+
+The **input file** is a finite sequence  
+
+\[
+\mathbf{x}= \langle x_{1},x_{2},\dots ,x_{n},0\rangle ,\qquad n\ge 0 .
+\]
+
+The **output file** must be  
+
+\[
+\mathbf{y}= \langle y_{1},y_{2},\dots ,y_{n}\rangle ,
+\]
+
+where for each \(i\)
+
+\[
+e_i = \begin{cases}
+x_i      & x_i\equiv 0\pmod 2,\\
+x_i+1    & x_i\equiv 1\pmod 2,
+\end{cases}\qquad
+y_i = \sum_{k=0}^{4}(e_i+2k)=5e_i+20 . \tag{1}
+\]
+
+--------------------------------------------------------------------
+## 2.  Hoare‑logic triple to be proved  
+
+\[
+\{P\}\;\;{\tt program}\;\;\{Q\}
+\]
+
+*Pre‑condition*  
+
+\[
+P\;:\;\exists n\ge 0\bigl(\mathbf{x}= \langle x_{1},\dots ,x_{n},0\rangle\;
+\wedge\;\forall i\le n\;x_i\in\mathbb Z\bigr).
+\]
+
+*Post‑condition*  
+
+\[
+Q\;:\;\mathbf{y}= \langle y_{1},\dots ,y_{n}\rangle
+   \;\wedge\;
+   \forall i\le n\; y_i = 5e_i+20
+   \text{ with } e_i=2\bigl\lceil x_i/2\bigr\rceil .
+\]
+
+--------------------------------------------------------------------
+## 3.  Loop structure used for the proof  
+
+For a Hoare‑logic proof it is convenient to rewrite the program as a
+single **while** loop that explicitly tests the termination condition:
+
+```
+i := 1;                         # logical counter, 1‑based
+while (x != 0) {                # the test is performed after the read
+    /* body that computes soma from the current x */
+    print(soma);
+    i := i + 1;
+    read x;                     # the next input element (or 0)
+}
+```
+
+The *real* Python code implements exactly this control flow:
+the `break` is taken precisely when the value read is `0`.  Hence the
+above abstract loop is *semantically equivalent* to the concrete code.
+
+--------------------------------------------------------------------
+## 4.  Loop invariant  
+
+Let  
+
+* `i` – number of input elements already processed (so far \(0\le i\le n\));
+* `x` – the value that has just been read **but not yet processed**;
+* `out` – the list of values that have already been printed.
+
+The invariant \(I(i,x,out)\) is:
+
+\[
+\begin{aligned}
+I\;:\;& 0\le i\le n\ \wedge\\
+    & out = \langle y_{1},\dots ,y_{i-1}\rangle\ \wedge\\
+    & \bigl(\forall j\in\{1,\dots ,i-1\}\;
+        y_{j}=5e_{j}+20\bigr)\ \wedge\\
+    & (i\le n \;\Rightarrow\; x = x_{i}) .
+\end{aligned}
+\tag{I}
+\]
+
+Intuitively:
+
+* the first `i‑1` inputs have already been transformed into the first
+  `i‑1` correct outputs,
+* if we have not yet reached the end of the input (`i≤n`) then the
+  variable `x` holds exactly the next input element `x_i`.
+
+--------------------------------------------------------------------
+## 5.  Proof that the invariant holds  
+
+### 5.1  Initialization  
+
+Before the loop we execute
+
+```
+i := 1
+read x                # reads x1 (or 0 if n = 0)
+```
+
+* `i = 1` ⇒ `0 ≤ i ≤ n` because `n ≥ 0`.  
+* No output has been produced yet, therefore `out = ⟨⟩ = ⟨ y₁,…,y₀ ⟩`.  
+* The universal quantifier over an empty set is true, so the second
+  conjunct holds.  
+* Since `i = 1 ≤ n` (when `n>0`) the last conjunct forces `x = x₁`.  
+  When `n = 0` the antecedent `i ≤ n` is false, so the implication is
+  true as well.
+
+Thus `I` holds before the first iteration.
+
+--------------------------------------------------------------------
+### 5.2  Maintenance  
+
+Assume `I` holds at the beginning of an iteration with `i ≤ n`.  
+Consequently `x = x_i` and the next step of the program is the *body*
+that computes `soma`.  We prove that after the body finishes and
+`print(soma)` is executed, the invariant holds for the new values
+`i' = i+1`, `x'` (the next input value) and `out'` (the output list
+extended by the newly printed value).
+
+#### 5.2.1  Computing the correct `soma`
+
+Two cases are distinguished by the `if x % 2 == 0` test.
+
+* **Case 1 – `x` even.**  
+  Then `e = x`.  The `for` loop executes five times:
+
+  ```
+  soma_0 = 0, y_0 = e
+  for t = 0..4:
+      soma_{t+1} = soma_t + y_t
+      y_{t+1}    = y_t + 2
+  ```
+
+  By simple induction on `t` we obtain  
+
+  \[
+  y_t = e+2t,\qquad
+  soma_{t+1}= \sum_{k=0}^{t}(e+2k).
+  \]
+
+  After the fifth iteration (`t = 4`) we have  
+
+  \[
+  soma = \sum_{k=0}^{4}(e+2k)=5e+20 .
+  \tag{2}
+  \]
+
+* **Case 2 – `x` odd.**  
+  The program first executes `y = y + 1`, i.e. `y = x+1`.  
+  Hence `e = x+1`, which is the smallest even number ≥ `x`.  
+  The same `for` loop as in the even case is now run with this `e`,
+  and (2) holds again with `e = x+1`.
+
+In both cases the value stored in `soma` after the loop is exactly
+
+\[
+soma = 5e_i + 20 = y_i .
+\]
+
+Thus the printed value satisfies the specification (1) for the current
+input `x_i`.
+
+#### 5.2.2  Updating the logical variables
+
+* `out' = out \mathbin{+\!\!+} \langle soma\rangle` – we append the newly
+  printed value, therefore  
+
+  \[
+  out' = \langle y_{1},\dots ,y_{i-1},y_i\rangle .
+  \]
+
+* `i' = i+1`.  Consequently `0 ≤ i' ≤ n+1`.  
+
+* The next statement in the abstract loop is `read x'`.  By the
+  definition of the input file we obtain  
+
+  \[
+  x' = \begin{cases}
+        x_{i+1} & \text{if } i < n,\\
+        0       & \text{if } i = n .
+       \end{cases}
+  \]
+
+Putting all the pieces together we see that the four conjuncts of
+\(I(i',x',out')\) are satisfied:
+
+1. `0 ≤ i' ≤ n` holds when `i < n`; when `i = n` we have `i' = n+1`
+   and the first conjunct is still true because the invariant allows
+   `i = n+1` (the loop will terminate immediately afterwards).
+2. `out'` is exactly the list of the first `i'‑1` correct outputs.
+3. The universal property holds for all indices `j ≤ i'‑1` because it
+   held for `j ≤ i‑1` by the induction hypothesis and we have just shown
+   that `y_i` satisfies (1).
+4. If `i' ≤ n` then indeed `x' = x_{i'}`; when `i' = n+1` the antecedent
+   of the implication is false, so the conjunct is vacuously true.
+
+Hence the invariant is **maintained**.
+
+--------------------------------------------------------------------
+### 5.3  Termination  
+
+The loop condition in the abstract version is `x ≠ 0`.  
+The program leaves the loop only through the `break` that is executed
+exactly when the value read from the input file is `0`.  
+Because the input file is defined to end with a single `0`, after at
+most `n` iterations the read value becomes `0` and the loop terminates.
+
+When the loop exits we have `x = 0`.  By the invariant we know that
+`i = n+1` (the counter has been incremented after processing the last
+non‑zero element) and that
+
+\[
+out = \langle y_{1},\dots ,y_{n}\rangle,
+\qquad
+\forall j\le n\; y_j = 5e_j+20 .
+\]
+
+Thus `out` is precisely the sequence required by the post‑condition
+\(Q\).
+
+--------------------------------------------------------------------
+## 6.  Derivation of the Hoare triple  
+
+We can now chain the standard Hoare‑logic rules:
+
+1. **Read the first element**  
+   \[
+   \{P\}\; \texttt{read }x\; \{I(1,x,\langle\rangle)\}
+   \]  
+   by the definition of the input file.
+
+2. **Loop rule**  
+   \[
+   \begin{array}{c}
+   \{I(i,x,out)\}\;\texttt{if }x=0\texttt{ break else body; print; i:=i+1; read }x'\;
+   \{I(i',x',out')\}
+   \end{array}
+   \]  
+   is justified by the **maintenance** argument of §5.2.
+
+3. **Exit rule**  
+   From the invariant and the exit guard `x = 0` we obtain the post‑condition:
+
+   \[
+   \{I(i,x,out)\wedge x=0\}\; \texttt{skip}\; \{Q\}.
+   \]
+
+4. **Loop composition** (while‑rule) yields  
+
+   \[
+   \{P\}\;\texttt{while }(x\neq 0)\{\,\text{body}\,\}\;\{Q\}.
+   \]
+
+Because the concrete Python program is a syntactic variant of the
+abstract loop (the `break` is exactly the test `x = 0`), the same triple
+holds for the original program.
+
+--------------------------------------------------------------------
+## 7.  Final statement  
+
+We have proved, **using Hoare logic**, that for every finite input file
+
+\[
+\mathbf{x}= \langle x_{1},\dots ,x_{n},0\rangle ,
+\]
+
+the program terminates and produces the output file
+
+\[
+\mathbf{y}= \langle y_{1},\dots ,y_{n}\rangle ,
+\qquad
+y_i = 5\bigl(2\lceil x_i/2\rceil\bigr)+20
+     = \sum_{k=0}^{4}\bigl(e_i+2k\bigr),
+\]
+
+where \(e_i\) is the smallest even integer not smaller than \(x_i\).
+This is exactly the post‑condition \(Q\) that you gave, therefore the
+program is **correct** with respect to the specification \(\{P\}\;{\tt
+program}\;\{Q\}\). ∎
+
+--------------------------------------------------------------------
+### Remarks on the concrete Python code
+
+* The variable `y` in the code plays the role of the temporary even
+  number `e + 2·t`.  
+* The variable `soma` corresponds to the accumulator `soma_t`.  
+* The `for i in range(5):` loop iterates five times, which is why the
+  closed‑form sum is `5e + 20`.  
+* The two branches of the outer `if` exactly implement the definition of
+  `e_i` (even → `e = x`, odd → `e = x+1`).
+
+Thus every line of the source program can be matched with a step in the
+formal proof above.

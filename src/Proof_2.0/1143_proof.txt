@@ -1,0 +1,174 @@
+**Answer – a Hoare‑logic proof that the given Python program satisfies the specification**  
+
+We prove the Hoare triple  
+
+\[
+\{\,P(N)\,\}\;\texttt{program}\;\{\,Q(N,\text{out})\,\}
+\]
+
+where  
+
+* \(P(N)\equiv N\in\mathbb Z\land 1<N<1000\) (the pre‑condition),  
+* \(Q(N,\text{out})\equiv |\,\text{out}\,|=N\;\land\;
+   \forall i\in 1\!..\!N\;.\;\text{out}[i]=(i,i^{2},i^{3})\) (the post‑condition).  
+
+The program (written in Python) is
+
+```python
+valor = int(input())                # 1. read N
+for x in range(valor):              # 2. loop   x = 0,…,N‑1
+    print(f'{x+1} {(x+1)**2} {(x+1)**3}')
+```
+
+For the proof we treat the **output stream** as a mutable list `out`.  
+Every execution of `print` appends one triple to this list; after the loop
+`out` therefore contains exactly the triples that have been printed.
+
+--------------------------------------------------------------------
+### 1.  Decomposition of the program
+
+```
+S ≡  (1)  N := int(input) ;
+      (2)  i := 0 ;
+      (3)  while i < N do
+                out := out ∘ [(i+1, (i+1)², (i+1)³)] ;
+                i := i + 1
+```
+
+*Step (1)* reads the integer and stores it in the variable `N`.  
+*Step (2)* introduces a loop counter `i` that will run from `0` to `N‑1`.  
+*Step (3)* is the abstract version of the `for`‑loop; the body appends the
+required triple and then increments the counter.
+
+--------------------------------------------------------------------
+### 2.  Loop invariant
+
+The heart of the proof is the invariant that holds at the beginning of each
+iteration of the `while` loop.
+
+\[
+\boxed{I(i)\;\equiv\;
+   0\le i\le N\;\land\;
+   |\text{out}| = i\;\land\;
+   \forall k\in 1\!..\!i\;.\;\text{out}[k]=(k,k^{2},k^{3})}
+\]
+
+Intuitively, after `i` iterations we have already printed the first `i`
+triples, and `out` contains exactly those triples.
+
+--------------------------------------------------------------------
+### 3.  Proof obligations
+
+We use the standard Hoare rules (Assignment, Sequence, While).
+
+| # | Statement | Hoare triple to be shown | Reason |
+|---|-----------|--------------------------|--------|
+| A | `N := int(input)` | \(\{P(N)\}\;N:=\text{input}\;\{N\in\mathbb Z\land 1<N<1000\}\) | The input routine is assumed to return the integer that was read; the pre‑condition guarantees it satisfies the bounds. |
+| B | `i := 0` | \(\{N\in\mathbb Z\land 1<N<1000\}\;i:=0\;\{I(0)\}\) | Substituting `i←0` in `I(i)` gives `0≤0≤N ∧ |out|=0 ∧ (∀k∈1..0 …)`. The last conjunct is vacuous, therefore `I(0)` holds. |
+| C | Loop body | \(\{I(i)\land i<N\}\;\text{body}\;\{I(i+1)\}\) | Shown below (maintenance). |
+| D | Loop termination | \(\{I(i)\land \lnot(i<N)\}\;\{\;|\text{out}|=N\land\forall k\in1..N.\text{out}[k]=(k,k^{2},k^{3})\;\}\) | When `¬(i<N)` we have `i=N`. Instantiating `I(i)` with `i=N` yields exactly the post‑condition. |
+| E | Whole program | From A–D by the **Sequence** and **While** rules we obtain \(\{P(N)\}\;S\;\{Q(N,\text{out})\}\). |  |
+
+--------------------------------------------------------------------
+### 4.  Detailed proof of the loop‑body invariant (C)
+
+Assume `I(i) ∧ i < N` holds at the start of an iteration.
+
+*Current state*  
+
+```
+|out| = i
+out[1] = (1,1²,1³)
+…
+out[i] = (i,i²,i³)
+```
+
+**Body** (abstracted from the Python `print`):
+
+```
+out := out ∘ [(i+1, (i+1)², (i+1)³)];
+i   := i + 1
+```
+
+*Step 1 – appending*  
+
+The assignment `out := out ∘ [(i+1,…)]` adds exactly one new element at
+position `i+1`. Consequently
+
+* the new length is `|out| = i + 1`;
+* for every `k ≤ i` the old triple is unchanged, i.e. `out[k] = (k,k²,k³)`;
+* the freshly added element satisfies `out[i+1] = (i+1,(i+1)²,(i+1)³)`.
+
+Thus after the first statement we have
+
+\[
+|out| = i+1\;\land\;
+\forall k\in 1..i+1.\;out[k]=(k,k^{2},k^{3}).
+\]
+
+*Step 2 – incrementing the counter*  
+
+The assignment `i := i+1` changes the loop counter to `i' = i+1`.  
+Replacing `i` by `i'` in the invariant `I(i')` yields exactly the property
+derived after Step 1, together with the obvious bound `0 ≤ i' ≤ N`
+(because the guard `i<N` guarantees `i+1 ≤ N`).  
+
+Hence `I(i+1)` holds after the whole body, establishing the **maintenance**
+condition.
+
+--------------------------------------------------------------------
+### 5.  Termination
+
+The loop variable `i` is a non‑negative integer that is increased by `1` each
+iteration and is bounded above by `N`. Because of the pre‑condition
+`1<N<1000`, `N` is a finite natural number, therefore the loop can execute at
+most `N` times and must eventually reach the state `i = N`, where the guard
+fails. This gives the **termination** condition required by the Hoare‑while
+rule.
+
+--------------------------------------------------------------------
+### 6.  From invariant to post‑condition (D)
+
+When the loop ends we have `¬(i<N)`, i.e. `i = N`.  
+Instantiating the invariant `I(i)` with `i = N` yields
+
+* `|out| = N`;
+* `∀k∈1..N . out[k] = (k,k²,k³)`.
+
+These two conjuncts are precisely the post‑condition `Q(N,out)`.
+
+--------------------------------------------------------------------
+### 7.  Putting the pieces together
+
+1. **Initialization** – A and B give us `I(0)` before the loop starts.  
+2. **Preservation** – C shows that `I(i)` is preserved by one loop iteration.  
+3. **Termination** – The loop guard `i<N` together with the invariant forces
+   `i = N` when the loop exits.  
+4. **Post‑condition** – D shows that the invariant at `i = N` entails `Q(N,out)`.
+
+By the **Sequence** rule we can concatenate the three program fragments
+(read, initialise `i`, loop) and by the **While** rule we obtain the desired
+Hoare triple
+
+\[
+\boxed{\{\,P(N)\,\}\;\texttt{program}\;\{\,Q(N,\text{out})\,\}} .
+\]
+
+--------------------------------------------------------------------
+### 8.  Remarks on the concrete Python code
+
+* `valor = int(input())` implements the assignment `N := int(input)`.  
+* `for x in range(valor):` is syntactic sugar for the `while` loop described
+  in Section 2, with `x` playing the role of the counter `i‑1`.  
+* The statement  
+
+  ```python
+  print(f'{x+1} {(x+1)**2} {(x+1)**3}')
+  ```
+
+  writes exactly the triple `(x+1,(x+1)**2,(x+1)**3)` followed by a newline,
+  which is precisely the effect of the abstract `out := out ∘ [(i+1,…)]`.
+
+Therefore the concrete program is a faithful implementation of the abstract
+program `S`, and the Hoare‑logic proof above guarantees that it satisfies the
+given specification for every input integer `N` with `1 < N < 1000`. ∎

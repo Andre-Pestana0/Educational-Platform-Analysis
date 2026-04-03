@@ -1,0 +1,300 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{P\}\;\;C\;\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; 
+\begin{cases}
+A\in\mathbb R,\;B\in\mathbb R\\
+0\le A\le 10,\;0\le B\le 10
+\end{cases}
+\]
+
+* **Program**  
+
+```text
+1  a = float(input())          # read A
+2  b = float(input())          # read B
+3  media = (3.5*a + 7.5*b) / 11 # compute M
+4  print(f'MEDIA = {media:.5f}')# write out
+```
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\; \equiv\; & M = \frac{3.5A+7.5B}{11}                \\
+            & \land\; \text{out}= \texttt{"MEDIA = "}\;\|\;
+                 \textsf{format}(M,5)                \\
+            & \land\; \textsf{format}(M,5) \text{ is the decimal
+                 representation of }M\text{ with exactly five
+                 fractional digits}                     \\
+            & \land\; \textsf{ends\_with\_newline}(\text{out})
+\end{aligned}
+\]
+
+We will prove the triple by **structural induction on the program** using the basic Hoare‑logic rules:
+
+| Rule | Shape | Meaning |
+|------|-------|---------|
+| **(Skip)** | \(\{P\}\;skip\;\{P\}\) | doing nothing preserves the assertion |
+| **(Assign)** | \(\{P[E/x]\}\;x:=E\;\{P\}\) | substitution of the RHS for the variable |
+| **(Seq)** | \(\{P\}C_1\{R\},\;\{R\}C_2\{Q\}\) ⇒ \(\{P\}C_1;C_2\{Q\}\) | composition |
+| **(Conseq)** | \(P\Rightarrow P',\;\{P'\}C\{Q'\},\;Q'\Rightarrow Q\) ⇒ \(\{P\}C\{Q\}\) | strengthening/weakening |
+| **(Input/Output)** | for `read` and `print` we use the same assignment rule, treating the value read as an assignment to the program variable and the printed string as an assignment to the *output* variable `out`. |
+
+The only non‑trivial part is the **formatting** of the real number with exactly five decimal digits.  The specification does not prescribe a particular rounding mode; it only requires that the string produced by `format(M,5)` be the usual decimal representation of `M` rounded to five positions.  In the proof we treat the routine `format(_,5)` as a *pure* function `F` with the following logical property (which can be justified by the definition of Python’s f‑string formatting):
+
+\[
+\forall x\in\mathbb R:\;F(x)=\textsf{format}(x,5)\;\Longrightarrow\;
+\begin{cases}
+\text{F}(x)\text{ is a string of the form }d_0.d_1d_2d_3d_4d_5\\
+\text{and }|\,\text{numeric}(F(x))-x\,|\le 0.5\cdot10^{-5}
+\end{cases}
+\]
+
+where `numeric(s)` converts a decimal string back to a real number.  This property will be used only to justify the *format* clause of the post‑condition.
+
+---
+
+## 2.  Proof structure  
+
+We split the program into four elementary commands and prove a Hoare triple for each of them.  The intermediate assertions are denoted \(R_1,R_2,R_3\).
+
+| line | command | intermediate assertion |
+|------|---------|------------------------|
+| 1 | `a = float(input())` | \(R_1\) |
+| 2 | `b = float(input())` | \(R_2\) |
+| 3 | `media = (3.5*a + 7.5*b) / 11` | \(R_3\) |
+| 4 | `print(f'MEDIA = {media:.5f}')` | \(Q\) |
+
+The **global** pre‑condition \(P\) talks about the *mathematical* inputs \(A,B\).  After the two reads the program variables `a` and `b` hold exactly those values, therefore we can use the *assignment* rule with the substitution \(a:=A,\;b:=B\).
+
+---
+
+### 2.1  First command – reading the first grade  
+
+**Command**  
+
+\[
+c_1\;:\; a := \text{float}(input())
+\]
+
+**Goal**  
+
+\[
+\{P\}\;c_1\;\{R_1\}
+\]
+
+**Choice of \(R_1\)**  
+
+\[
+R_1 \equiv a = A \;\land\; 0\le A\le 10 \;\land\; B\in\mathbb R \;\land\; 0\le B\le 10
+\]
+
+*Proof (Assign‑axiom + Consequence)*  
+
+1. By the **input axiom** we may view the statement as the assignment `a:=A`.  
+2. Apply the **Assign** rule with the substitution \(P[A/a]\):  
+
+   \[
+   \{a=A\}\;a:=A\;\{a=A\}
+   \]
+
+3. Strengthen the pre‑condition from \(P\) to \(a=A\) using **Conseq** (because \(P\Rightarrow a=A\) holds, the other conjuncts of \(P\) are simply carried forward).  
+4. Hence \(\{P\}\;c_1\;\{R_1\}\) is proved.
+
+---
+
+### 2.2  Second command – reading the second grade  
+
+**Command**  
+
+\[
+c_2\;:\; b := \text{float}(input())
+\]
+
+**Goal**  
+
+\[
+\{R_1\}\;c_2\;\{R_2\}
+\]
+
+**Choice of \(R_2\)**  
+
+\[
+R_2 \equiv a = A \;\land\; b = B \;\land\; 0\le A\le 10 \;\land\; 0\le B\le 10
+\]
+
+*Proof* – identical to the previous step, just with variable `b` and value `B`.  The **Assign** axiom gives  
+
+\[
+\{b = B\}\;b:=B\;\{b = B\}
+\]
+
+and strengthening the pre‑condition from \(R_1\) to \(b = B\) yields the desired triple.
+
+---
+
+### 2.3  Third command – computing the weighted average  
+
+**Command**  
+
+\[
+c_3\;:\; \text{media} := \frac{3.5\,a + 7.5\,b}{11}
+\]
+
+**Goal**  
+
+\[
+\{R_2\}\;c_3\;\{R_3\}
+\]
+
+**Choice of \(R_3\)**  
+
+\[
+R_3 \equiv 
+\begin{aligned}
+& a = A \;\land\; b = B \\
+& \land\; \text{media}=M \\
+& \land\; M = \frac{3.5A+7.5B}{11}
+\end{aligned}
+\]
+
+*Proof (Assign‑axiom)*  
+
+The right‑hand side of the assignment is the arithmetic expression  
+
+\[
+E \;=\; \frac{3.5\,a + 7.5\,b}{11}
+\]
+
+Applying the assignment rule with substitution \(R_3[E/\text{media}]\) we obtain  
+
+\[
+\{a=A\land b=B\land E=M\}\;\text{media}:=E\;\{a=A\land b=B\land \text{media}=M\}
+\]
+
+Because \(E\) is *exactly* \(\frac{3.5A+7.5B}{11}\) under the equalities \(a=A,\,b=B\), the antecedent simplifies to  
+
+\[
+a=A\land b=B\land M = \frac{3.5A+7.5B}{11}
+\]
+
+which is precisely \(R_3\).  Hence  
+
+\[
+\{R_2\}\;c_3\;\{R_3\}
+\]
+
+holds.
+
+---
+
+### 2.4  Fourth command – printing the result  
+
+**Command**  
+
+\[
+c_4\;:\; \text{print}\bigl(\,f\text{'MEDIA = \{media:.5f\}'}\bigr)
+\]
+
+In Hoare logic we treat `print` as an assignment to a *ghost* variable `out` that records the exact string written to standard output.
+
+Let  
+
+\[
+F(x) \;=\; \textsf{format}(x,5)
+\]
+
+be the pure formatting function defined in the specification.
+
+**Goal**  
+
+\[
+\{R_3\}\;c_4\;\{Q\}
+\]
+
+**Choice of the post‑condition of `c_4` (intermediate)**  
+
+\[
+R_4 \equiv 
+\begin{aligned}
+& a=A\land b=B\land M=\frac{3.5A+7.5B}{11}\\
+&\land\; \text{out}= \texttt{"MEDIA = "}\;\|\;F(M)\\
+&\land\; \textsf{ends\_with\_newline}(\text{out})
+\end{aligned}
+\]
+
+*Proof (Assign‑axiom on `out`)*  
+
+The execution of the `print` statement is equivalent to  
+
+\[
+\text{out} := \texttt{"MEDIA = "}\;\|\;F(\text{media})
+\]
+
+Applying the assignment rule with substitution \(R_4[F(\text{media})/\text{out}]\) we obtain  
+
+\[
+\{a=A\land b=B\land \text{media}=M\}\;
+\text{out}:= \texttt{"MEDIA = "}\|\;F(\text{media})\;
+\{a=A\land b=B\land \text{out}= \texttt{"MEDIA = "}\|\;F(M)\}
+\]
+
+Because the Python `print` routine automatically appends a line‑feed character, we can add the conjunct `ends_with_newline(out)` by a **consequence** step (the operational semantics of `print` guarantees it).  Consequently  
+
+\[
+\{R_3\}\;c_4\;\{R_4\}
+\]
+
+holds.
+
+---
+
+## 3.  Composition of the four triples  
+
+We have proved the following Hoare triples:
+
+1. \(\{P\}\;c_1\;\{R_1\}\)
+2. \(\{R_1\}\;c_2\;\{R_2\}\)
+3. \(\{R_2\}\;c_3\;\{R_3\}\)
+4. \(\{R_3\}\;c_4\;\{R_4\}\)
+
+Using the **Sequence** rule repeatedly we obtain  
+
+\[
+\{P\}\;c_1;c_2;c_3;c_4\;\{R_4\}
+\]
+
+Finally we notice that \(R_4\) is **exactly** the post‑condition \(Q\) stated in the specification (the three conjuncts of \(R_4\) are the three conjuncts of \(Q\)).  Hence  
+
+\[
+\boxed{\{P\}\; \texttt{read}(A);\;\texttt{read}(B);\;
+        M\gets\frac{3.5A+7.5B}{11};\;
+        \texttt{print}(\text{"MEDIA = "}\|\;F(M))\;\{Q\}}
+\]
+
+is proved.
+
+---
+
+## 4.  Remarks on the rounding / formatting clause  
+
+* The function \(F\) is total on \(\mathbb R\) and deterministic; therefore the Hoare triple does **not** need any additional loop invariant or case analysis.
+* The specification’s requirement *“exactly five digits after the decimal point”* is satisfied because the f‑string syntax `"{media:.5f}"` in Python *guarantees* that the resulting string contains a decimal point followed by **five** characters, padding with trailing zeros if necessary.  
+* The proof treats `F` as a pure mathematical function; any concrete rounding mode (nearest‑even, round‑half‑up, …) merely determines the concrete value of `F(M)`.  Since the post‑condition only demands that the printed string be *the* result of `format(M,5)`, the proof is valid for all compliant implementations.
+
+---
+
+## 5.  Conclusion  
+
+By applying the elementary Hoare‑logic rules (assignment, sequence, consequence) to each line of the Python program and by using the logical description of the formatting routine, we have shown that **every execution that starts in a state satisfying the pre‑condition \(P\) terminates in a state satisfying the post‑condition \(Q\)**.  Consequently the program is *correct* with respect to the given Hoare‑logic specification.

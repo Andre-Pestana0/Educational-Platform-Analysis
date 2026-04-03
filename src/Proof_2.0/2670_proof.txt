@@ -1,0 +1,427 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{\,P\,\}\;{\tt Program}\; \{\,Q\,\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in the statement,  
+
+* \(Q\) is the post‑condition that the printed value `M` equals  
+
+\[
+\min _{f\in\{1,2,3\}}\;\underbrace{\sum_{i=1}^{3}2\lvert i-f\rvert A_i}_{\displaystyle\text{cost}(f)} .
+\]
+
+The program is divided into three logical parts:
+
+1. **Input** – reading the three numbers.  
+2. **Choice of the floor** – computing the floor `f*` on which the coffee‑machine must be placed.  
+3. **Computation of the total travelling time** – evaluating \(\text{cost}(f^*)\) and printing it.
+
+For each part we give a Hoare triple, an invariant (for the loops), and a short justification.  
+The auxiliary variables used in the proof are
+
+* `listFuncAndar` – a list of length three that, after the input phase, contains the three
+  employee numbers \([A_1,A_2,A_3]\);
+* `maxFuncionarios` – the maximum of the three numbers;
+* `andarCafeteira` – the index (0‑based) of the floor that the algorithm finally chooses;
+* `totalMinutos` – the value that will be printed (the variable `M` of the specification).
+
+---------------------------------------------------------------------
+
+### 1.  Input  
+
+```
+listFuncAndar = []
+for i in range(3):
+    listFuncAndar.append(int(input()))
+```
+
+**Invariant** for the `for`‑loop (the loop variable is `i`):
+
+\[
+I_{\text{in}}(i) \;:\; 
+0\le i\le 3 \;\land\;
+\bigl|\,\text{listFuncAndar}\,\bigr| = i \;\land\;
+\forall k\;(0\le k < i \;\Rightarrow\; \text{listFuncAndar}[k] = A_{k+1})
+\]
+
+*Initialization* (`i = 0`): the list is empty, therefore the invariant holds.  
+
+*Preservation*: assuming the invariant for a given `i` (< 3), the body executes  
+
+```
+listFuncAndar.append(int(input()))
+```
+
+which reads the next input value `A_{i+1}` and appends it. Consequently the list length becomes `i+1`,
+and the property for all positions `k < i+1` holds. Hence `I_{\text{in}}(i+1)` is true.  
+
+*Termination*: when the loop ends `i = 3`. By `I_{\text{in}}(3)` we have  
+
+\[
+\text{listFuncAndar} = [A_1,A_2,A_3]\qquad\text{and}\qquad |\text{listFuncAndar}| = 3 .
+\]
+
+Thus after the input phase the program state satisfies  
+
+\[
+S_1\;:\;\text{listFuncAndar}[0]=A_1,\;
+      \text{listFuncAndar}[1]=A_2,\;
+      \text{listFuncAndar}[2]=A_3 .
+\]
+
+---------------------------------------------------------------------
+
+### 2.  Choice of the floor  
+
+The remaining statements are:
+
+```python
+maxFuncionarios = max(listFuncAndar)
+andarCafeteira = listFuncAndar.index(maxFuncionarios)
+
+listFuncAndar.remove(maxFuncionarios)          # the other two values stay in the list
+
+if sum(listFuncAndar) > maxFuncionarios:
+    listFuncAndar.insert(andarCafeteira, maxFuncionarios)
+    andarCafeteira = 1                         # index 1 = floor 2
+else:
+    listFuncAndar.insert(andarCafeteira, maxFuncionarios)
+```
+
+---------------------------------------------------------------------
+#### 2.1  Computing the maximum and its index  
+
+From `S_1` we know that `listFuncAndar` contains exactly the three numbers.
+Therefore  
+
+* `maxFuncionarios = max(A_1,A_2,A_3) =: M`.  
+* `andarCafeteira = listFuncAndar.index(M)` returns **the first index** `j∈{0,1,2}`
+  such that `listFuncAndar[j]=M`.  
+  Consequently the floor corresponding to `j` is  
+
+\[
+f_{\text{max}} = j+1 \in\{1,2,3\}.
+\]
+
+---------------------------------------------------------------------
+#### 2.2  Removing the maximum  
+
+After `listFuncAndar.remove(M)` the list contains the two *other* employee numbers,
+say  
+
+\[
+B_1,B_2\in\{A_1,A_2,A_3\}\setminus\{M\},\qquad
+\text{listFuncAndar}= [B_1,B_2].
+\]
+
+Hence  
+
+\[
+\operatorname{sum(listFuncAndar)} = B_1+B_2 = (A_1+A_2+A_3)-M .
+\]
+
+---------------------------------------------------------------------
+#### 2.3  The conditional  
+
+The condition tested is  
+
+\[
+\operatorname{sum(listFuncAndar)} > M\quad\Longleftrightarrow\quad
+(A_1+A_2+A_3)-M > M\quad\Longleftrightarrow\quad
+M < A_1+A_2+A_3-M .
+\tag{1}
+\]
+
+Thus the program distinguishes two cases.
+
+* **Case A** – `sum(listFuncAndar) > maxFuncionarios` (i.e. (1) is true).  
+  The body inserts `M` again at the former position `andarCafeteira`
+  (so the list regains the original order) **and overwrites**
+  `andarCafeteira = 1`. Because the list indices are 0‑based,
+  `andarCafeteira = 1` corresponds to floor  
+
+  \[
+  f^{*}=2 .
+  \]
+
+* **Case B** – `sum(listFuncAndar) ≤ maxFuncionarios` (i.e. (1) is false).  
+  The program only reinserts `M` at its former position, leaving
+  `andarCafeteira` unchanged, i.e.  
+
+  \[
+  f^{*}=f_{\text{max}} .
+  \]
+
+Consequently after the conditional we have
+
+\[
+\boxed{\,f^{*}= 
+\begin{cases}
+2 & \text{if }M < \sum_{i\neq f_{\text{max}}}A_i,\\[2mm]
+f_{\text{max}} & \text{otherwise.}
+\end{cases}}
+\tag{2}
+\]
+
+---------------------------------------------------------------------
+#### 2.4  Showing that (2) yields the optimal floor  
+
+Define the three possible total travelling times (the “cost’’ functions)
+
+\[
+\begin{aligned}
+\text{cost}(1) &= 2\bigl(0\cdot A_1 + 1\cdot A_2 + 2\cdot A_3\bigr)
+               = 2\bigl(A_2 + 2A_3\bigr),\\[1mm]
+\text{cost}(2) &= 2\bigl(1\cdot A_1 + 0\cdot A_2 + 1\cdot A_3\bigr)
+               = 2\bigl(A_1 + A_3\bigr),\\[1mm]
+\text{cost}(3) &= 2\bigl(2\cdot A_1 + 1\cdot A_2 + 0\cdot A_3\bigr)
+               = 2\bigl(2A_1 + A_2\bigr).
+\end{aligned}
+\tag{3}
+\]
+
+We prove two lemmas.
+
+*Lemma 1.*  
+If the floor that contains the **largest** number of employees,
+say floor `p` (so `A_p = M`), satisfies  
+
+\[
+M \ge \sum_{i\neq p} A_i,
+\tag{4}
+\]
+
+then `cost(p) ≤ cost(1),cost(2),cost(3)`.  
+
+*Proof.*  There are three possibilities for `p`.
+
+  *`p = 1`* : (4) reads `A_1 ≥ A_2+A_3`.  
+    From (3)
+
+    \[
+    \begin{aligned}
+    \text{cost}(2)-\text{cost}(1) 
+      &= 2(A_1+A_3) - 2(A_2+2A_3)\\
+      &= 2(A_1 - A_2 - A_3) \ge 0 ,
+    \end{aligned}
+    \]
+
+    because `A_1 ≥ A_2+A_3`.  
+    Also  
+
+    \[
+    \text{cost}(3)-\text{cost}(1) 
+      = 2(2A_1+A_2) - 2(A_2+2A_3)
+      = 4A_1 - 2A_3 \ge 2A_1 \ge 0 .
+    \]
+
+    Hence `cost(1)` is minimal.
+
+  *`p = 2`* : (4) is `A_2 ≥ A_1+A_3`.  
+    Compute  
+
+    \[
+    \text{cost}(1)-\text{cost}(2)=2(A_2+2A_3)-2(A_1+A_3)
+                                 =2(A_2-A_1+A_3)\ge 0,
+    \]
+    and  
+
+    \[
+    \text{cost}(3)-\text{cost}(2)=2(2A_1+A_2)-2(A_1+A_3)
+                                 =2(A_1+A_2-A_3)\ge 0 .
+    \]
+
+    So `cost(2)` is minimal.
+
+  *`p = 3`* : symmetric to the case `p = 1`. ∎
+
+
+
+*Lemma 2.*  
+If (4) **does not** hold, i.e.  
+
+\[
+M < \sum_{i\neq p} A_i,
+\tag{5}
+\]
+
+then `cost(2) ≤ cost(1),cost(3)`.  
+
+*Proof.*  Because `M` is the maximum of the three numbers,
+(5) implies that the *sum of the two smaller numbers* is larger than the
+largest one.  Therefore each of the two smaller numbers is **strictly**
+less than the largest one, and we have  
+
+\[
+A_1 + A_3 \le A_2 + A_3 \quad\text{and}\quad
+A_1 + A_3 \le A_1 + A_2 .
+\]
+
+Multiplying by the factor `2` gives  
+
+\[
+\text{cost}(2)=2(A_1+A_3) \le 2(A_2+2A_3)=\text{cost}(1),
+\]
+\[
+\text{cost}(2)=2(A_1+A_3) \le 2(2A_1+A_2)=\text{cost}(3).
+\]
+
+Hence floor 2 yields the smallest cost. ∎
+
+
+
+*Conclusion of the lemmas.*  
+Exactly the two situations distinguished by the program (condition
+`sum(listFuncAndar) > maxFuncionarios`) correspond to the hypotheses of
+Lemma 1 and Lemma 2, respectively.  Consequently the floor `f^{*}` computed
+by the program **coincides with the floor that minimises** `cost(f)` :
+
+\[
+f^{*}= \arg\min_{f\in\{1,2,3\}}\text{cost}(f).
+\tag{6}
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Computation of the total travelling time  
+
+```
+totalMinutos = 0
+for i in range(3):
+    fim = andarCafeteira
+    inicio = i
+    if i > andarCafeteira:
+        fim = i
+        inicio = andarCafeteira
+    totalMinutos += 2 * (fim - inicio) * listFuncAndar[i]
+```
+
+Recall that after the previous part `andarCafeteira` is a **0‑based** index
+of the chosen floor, i.e.  
+
+\[
+\text{chosen floor } f^{*}= \text{andarCafeteira}+1 .
+\]
+
+Define the loop invariant (the loop variable is `i`):
+
+\[
+I_{\text{cost}}(i) \;:\;
+\begin{aligned}
+&0\le i\le 3\;\land\\
+&\text{totalMinutos}= \sum_{k=0}^{i-1}
+   2\;|k-\text{andarCafeteira}|\;\text{listFuncAndar}[k].
+\end{aligned}
+\tag{7}
+\]
+
+*Initialization* (`i = 0`): the sum on the right‑hand side is empty,
+hence `totalMinutos = 0` and `I_{\text{cost}}(0)` holds.
+
+*Preservation*: assume `I_{\text{cost}}(i)` holds for some `i<3`.  
+The body computes
+
+```
+fim = andarCafeteira
+inicio = i
+if i > andarCafeteira:
+    fim = i
+    inicio = andarCafeteira
+```
+
+which is exactly the Python way of setting  
+
+\[
+\text{fim}= \max(i,\text{andarCafeteira}),\qquad
+\text{inicio}= \min(i,\text{andarCafeteira}),
+\]
+
+so that `fim‑inicio = |i‑andarCafeteira|`.  
+Consequently the update
+
+```
+totalMinutos += 2 * (fim - inicio) * listFuncAndar[i]
+```
+
+adds  
+
+\[
+2\,|i-\text{andarCafeteira}|\;\text{listFuncAndar}[i]
+\]
+
+to the accumulator, and after the increment we have  
+
+\[
+\text{totalMinutos}= \sum_{k=0}^{i}
+   2\,|k-\text{andarCafeteira}|\;\text{listFuncAndar}[k],
+\]
+
+which is precisely `I_{\text{cost}}(i+1)`.  
+
+*Termination*: when the loop ends `i = 3`. By `I_{\text{cost}}(3)` we obtain  
+
+\[
+\text{totalMinutos}= \sum_{k=0}^{2}
+   2\,|k-\text{andarCafeteira}|\;\text{listFuncAndar}[k].
+\]
+
+Using the correspondence `listFuncAndar[0]=A_1`,
+`listFuncAndar[1]=A_2`, `listFuncAndar[2]=A_3` and `\text{andarCafeteira}+1 = f^{*}`,
+the sum rewrites as  
+
+\[
+\text{totalMinutos}= \sum_{i=1}^{3} 2\,|i-f^{*}|\,A_i
+                 = \text{cost}(f^{*}).
+\tag{8}
+\]
+
+---------------------------------------------------------------------
+
+### 4.  Post‑condition  
+
+From Lemma 1, Lemma 2 and equation (6) we have  
+
+\[
+\text{cost}(f^{*}) = \min_{f\in\{1,2,3\}} \text{cost}(f).
+\]
+
+Equation (8) tells us that the variable `totalMinutos` (the value printed,
+i.e. `M`) equals `cost(f^{*})`.  Therefore  
+
+\[
+M = \min_{f\in\{1,2,3\}} \sum_{i=1}^{3} 2\,|i-f|\,A_i .
+\]
+
+This is exactly the post‑condition \(Q\).
+
+---------------------------------------------------------------------
+
+### 5.  Summary of the Hoare proof  
+
+We have exhibited for each program fragment a Hoare triple that is
+valid under the pre‑condition \(P\):
+
+\[
+\begin{aligned}
+\{P\}&\;\; \text{input loop}\; \{S_1\} ,\\[1mm]
+\{S_1\}&\;\; \text{max, index, conditional}\; \{f^{*}\text{ satisfies (6)}\},\\[1mm]
+\{f^{*}\text{ satisfies (6)}\}&\;\; \text{cost‑loop}\; \{M=\text{cost}(f^{*})\},\\[1mm]
+\{M=\text{cost}(f^{*})\}&\;\; \text{print}\; \{Q\}.
+\end{aligned}
+\]
+
+Since the conjunction of the three parts yields \(Q\), the whole program
+satisfies the Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\text{Program}\;\{\,Q\,\}} .
+\]
+
+Thus the Python program is **correct** with respect to the given
+pre‑ and post‑conditions. ∎

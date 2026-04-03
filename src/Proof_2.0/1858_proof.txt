@@ -1,0 +1,213 @@
+**Proof of correctness (Hoare‑style) of the program**
+
+The program (rewritten with a few auxiliary names) is  
+
+```python
+# 1 – read the number of candidates (we do not use it afterwards)
+_ = int(input())                     #  N  is read
+
+# 2 – read the list of hits
+consequencias = [int(x) for x in input().split()]   #  T  is read
+
+# 3 – compute the answer
+m       = min(consequencias)                     #  m = min_i T(i)
+k0      = consequencias.index(m)                 #  k0 = smallest j s.t. T(j)=m (0‑based)
+ans     = k0 + 1                                 #  ans is 1‑based
+print(ans)
+```
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in the statement,  
+
+* \(S\) is the whole program,  
+
+* \(Q\) is the post‑condition stated in the problem.
+
+---------------------------------------------------------------------
+
+### 1.  Specification of the primitive operations
+
+| statement | Hoare‑triple (pre‑condition → post‑condition) |
+|-----------|----------------------------------------------|
+| `N = int(input())` | \(\{\,\top\,\}\; N = \text{readInt}()\; \{\,1\le N\le 100\,\}\)  (the input guarantees this) |
+| `consequencias = [int(x) for x in input().split()]` | \(\{\,\top\,\}\; c = \text{readList}(N)\; \{\,|c| = N \land \forall i\in\{1,\dots ,N\}\;0\le c[i]\le 20\,\}\) |
+| `m = min(c)` | \(\{\,|c|=N\,\}\; m = \min(c)\; \{\,m = \min_{i\in\{1,\dots ,N\}}c[i]\,\}\) |
+| `k0 = c.index(m)` | \(\{\,m = \min_i c[i]\,\}\; k0 = c.\text{index}(m)\; \{\,k0 = \min\{j\mid 0\le j<N\land c[j]=m\}\,\}\) |
+| `ans = k0+1` | \(\{\,0\le k0 < N\,\}\; ans = k0+1\; \{\,1\le ans \le N\,\}\) |
+
+The two list‑operations `min` and `index` are treated as *atomic* commands whose
+specifications are taken as axioms.  They are exactly the properties we need
+later in the proof.
+
+---------------------------------------------------------------------
+
+### 2.  Derivation of the Hoare triple
+
+We write the program as a sequence of commands and apply the **rule of
+composition** (if \(\{P\}C_1\{R\}\) and \(\{R\}C_2\{Q\}\) then \(\{P\}C_1;C_2\{Q\}\)).
+The intermediate assertions are named \(A_0,\dots ,A_5\).
+
+| step | command | assertion after the command |
+|------|---------|------------------------------|
+| 0 | – | **\(A_0\)** :  \(P\) (the given pre‑condition) |
+| 1 | `_ = int(input())` | **\(A_1\)** : \(1\le N\le 100\)  (the input satisfies the bound) |
+| 2 | `consequencias = [...]` | **\(A_2\)** : \(|consequencias| = N \land \forall i\;0\le consequencias[i]\le 20\) |
+| 3 | `m = min(consequencias)` | **\(A_3\)** : \(m = \displaystyle\min_{i\in\{1,\dots ,N\}} consequencias[i]\) |
+| 4 | `k0 = consequencias.index(m)` | **\(A_4\)** : \(k0 = \displaystyle\min\{j\mid 0\le j<N\land consequencias[j]=m\}\) |
+| 5 | `ans = k0+1` | **\(A_5\)** : \(1\le ans\le N\)  and  \(\forall i\; consequencias[ans-1]\le consequencias[i]\) and  \(\forall i\;(consequencias[i]=consequencias[ans-1]\rightarrow ans\le i+1)\) |
+| 6 | `print(ans)` | **\(A_6\)** : the same as \(A_5\) (printing does not change the state) |
+
+We now justify each transition.
+
+---------------------------------------------------------------------
+
+#### Step 0 → Step 1  
+
+`int(input())` reads the first integer of the input.  
+The problem statement guarantees that this integer equals the number of
+candidates \(N\) and satisfies \(1\le N\le 100\).  
+Hence the Hoare triple for this command is  
+
+\[
+\{P\}\;_ = \text{int(input())}\;\{A_1\},
+\qquad A_1 \equiv 1\le N\le 100 .
+\]
+
+---------------------------------------------------------------------
+
+#### Step 1 → Step 2  
+
+The list comprehension reads the second line of the input, splits it and
+converts each token to an integer.  
+Because the input line contains exactly \(N\) numbers and each of them lies
+in \([0,20]\), we obtain  
+
+\[
+\{A_1\}\;c = \text{readList}(N)\;\{A_2\},
+\qquad
+A_2 \equiv |c| = N \land \forall i\;(0\le c[i]\le 20).
+\]
+
+We rename the list `c` to `consequencias` in the following steps.
+
+---------------------------------------------------------------------
+
+#### Step 2 → Step 3  
+
+`min(consequencias)` returns the smallest element of the list.  
+By the specification of the primitive `min` we have  
+
+\[
+\{A_2\}\;m = \min(c)\;\{A_3\},
+\qquad
+A_3 \equiv m = \min_{i\in\{1,\dots ,N\}}c[i].
+\]
+
+---------------------------------------------------------------------
+
+#### Step 3 → Step 4  
+
+`c.index(m)` returns the **first** position (0‑based) where the value `m`
+appears.  The specification of `index` gives  
+
+\[
+\{A_3\}\;k0 = c.\text{index}(m)\;\{A_4\},
+\qquad
+A_4 \equiv k0 = \min\{j\mid 0\le j<N \land c[j]=m\}.
+\]
+
+Because `m` is the minimum of the whole list, the set inside the minimum is
+non‑empty, so `k0` is well‑defined and satisfies `0 ≤ k0 < N`.
+
+---------------------------------------------------------------------
+
+#### Step 4 → Step 5  
+
+`ans = k0+1` converts the 0‑based index into the 1‑based index required by
+the statement.  From `0 ≤ k0 < N` we obtain `1 ≤ ans ≤ N`.  
+Moreover, using the definition of `k0` we can rewrite the property of `A_4`
+in terms of `ans`:
+
+* minimality  
+
+  \[
+  c[k0] = m = \min_i c[i]
+  \Longrightarrow
+  \forall i\;c[ans-1]\le c[i].
+  \]
+
+* tie‑breaking  
+
+  If some `i` satisfies `c[i] = c[ans-1]` then, by construction of `k0`,
+  `k0 ≤ i`.  Adding 1 yields `ans ≤ i+1`.  
+
+Thus  
+
+\[
+\{A_4\}\;ans = k0+1\;\{A_5\},
+\]
+
+where  
+
+\[
+\begin{aligned}
+A_5 \equiv\;& 1\le ans\le N \\
+            &\land\; \forall i\;(c[ans-1]\le c[i])\\
+            &\land\; \forall i\;(c[i]=c[ans-1]\rightarrow ans\le i+1).
+\end{aligned}
+\]
+
+---------------------------------------------------------------------
+
+#### Step 5 → Step 6  
+
+`print(ans)` does not modify the program state, therefore  
+
+\[
+\{A_5\}\;\text{print}(ans)\;\{A_6\}
+\qquad\text{with }A_6\equiv A_5 .
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Obtaining the required post‑condition
+
+Recall that `c` is exactly the array \(T\) of the specification, i.e.
+\(c[i]=T(i+1)\).  Re‑expressing \(A_5\) with this notation yields
+
+\[
+\begin{aligned}
+&1\le ans\le N,\\[2mm]
+&\forall i\in\{1,\dots ,N\}\; T(ans)\le T(i),\\[2mm]
+&\forall i\in\{1,\dots ,N\}\;(T(i)=T(ans)\rightarrow ans\le i).
+\end{aligned}
+\]
+
+These three conjuncts are precisely the post‑condition \(Q\) given in the
+statement.  Hence  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+holds: under the pre‑condition that the input respects the limits,
+the program terminates and prints the smallest index whose value is the
+minimum of the list.
+
+---------------------------------------------------------------------
+
+### 4.  Conclusion
+
+By chaining the Hoare triples for each elementary statement (including the
+specifications of the library functions `min` and `index`) and using the
+rule of composition, we have derived the required Hoare triple
+\(\{P\}S\{Q\}\).  Consequently, the program is **correct** with respect to the
+formal specification: it always outputs the index (1‑based) of the first
+minimum element of the array of hits. ∎

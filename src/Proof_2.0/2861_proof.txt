@@ -1,0 +1,295 @@
+## 1.  What we have to prove  
+
+We want to show the Hoare triple  
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** – the pre‑condition that the input file consists of a natural number  
+  \(C\) with \(2\le C\le 99\) followed by exactly \(C\) strings \(q_{1},\dots ,q_{C}\);
+* **\(S\)** – the program that reads \(C\), then for \(i=0\) while \(i<C\) reads the
+  next line (the *question*) and prints the literal string **gzuz**;
+* **\(Q\)** – the post‑condition that the output consists of a sequence  
+  \(\langle a_{1},\dots ,a_{C}\rangle\) with every \(a_{k}= \mathtt{gzuz}\).
+
+In Hoare‑logic the usual way to prove a while‑loop is to exhibit a **loop
+invariant** \(\mathcal I(i)\) and show three things
+
+1. **Initialization** – \(\{P\}\) establishes \(\mathcal I\) before the first test;
+2. **Maintenance** – \(\{\mathcal I\wedge i<C\}\) the loop body preserves \(\mathcal I\);
+3. **Termination** – \(\mathcal I\wedge\lnot(i<C)\) entails the desired post‑condition
+   (and also guarantees that the loop really stops).
+
+The invariant that works for this program is  
+
+\[
+\boxed{\mathcal I(i)\; \equiv\; (0\le i\le C)\;\wedge\;
+        (\forall j\;(1\le j\le i)\;\Rightarrow\;a_{j}= \mathtt{gzuz})}
+\tag{1}
+\]
+
+It says that after the loop has executed *i* times we have already produced
+*i* answer lines and each of them equals **gzuz**.
+
+Below we give a step‑by‑step Hoare‑logic derivation that follows the
+standard rules (assignment, composition, while).
+
+--------------------------------------------------------------------
+
+## 2.  Proof in Hoare logic  
+
+### 2.1  Notation  
+
+* \(\{R\}\;c\;\{R'\}\) denotes a Hoare triple.
+* The command *read* \(x\) means “assign to the program variable \(x\) the next
+  line of the input”.  It does **not** modify any other program variable.
+* The command *write* \(e\) means “append the value of the expression \(e\) to the
+  output sequence \(\mathbf a\)”.
+
+--------------------------------------------------------------------
+
+### 2.2  The program written as a sequence of commands  
+
+\[
+\begin{aligned}
+S \; \equiv\;&\; \textbf{read }C;                                   \tag{S1}\\
+          &\; i\gets 0;                                          \tag{S2}\\
+          &\; \textbf{while } i<C\textbf{ do }                  \tag{S3}\\
+          &\qquad\; \textbf{read }q_{i+1};                      \tag{S4}\\
+          &\qquad\; \textbf{write } \mathtt{gzuz};              \tag{S5}\\
+          &\qquad\; i\gets i+1;                                 \tag{S6}\\
+          &\; \textbf{od }                                      \tag{S7}
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+
+### 2.3  Initialization  
+
+We start from the pre‑condition \(P\).
+
+* From \(P\) we know that a value \(C\) has been read from the first line,
+  therefore after executing **(S1)** we have  
+
+  \[
+  \{P\}\;\textbf{read }C\;\{C\in\mathbb N\wedge 2\le C\le 99\}
+  \]
+
+  (the rest of \(P\) is unchanged).
+
+* Executing the assignment **(S2)** gives  
+
+  \[
+  \{C\in\mathbb N\wedge 2\le C\le 99\}\; i\gets 0\;
+  \{0\le i\le C\}
+  \]
+
+  because \(0\le C\) follows from \(C\ge 2\).
+
+* The second conjunct of \(\mathcal I(0)\) is vacuous: there is no
+  \(j\) with \(1\le j\le 0\).  Hence we have proved  
+
+  \[
+  \{P\}\; (S1);(S2)\; \{\mathcal I(0)\}
+  \tag{Init}
+  \]
+
+--------------------------------------------------------------------
+
+### 2.4  Maintenance (preservation of the invariant)
+
+Assume the invariant holds **before** an iteration and that the loop guard
+is true:
+
+\[
+\mathcal I(i)\wedge i<C
+\tag{Ass}
+\]
+
+We must show that after the three statements **(S4)–(S6)** the invariant holds
+with the new value of the counter, i.e. \(\mathcal I(i+1)\).
+
+* **(S4) – read the next question**  
+  The command reads a line into the variable \(q_{i+1}\) and does not affect
+  any other variable, therefore  
+
+  \[
+  \{\mathcal I(i)\wedge i<C\}\; \textbf{read }q_{i+1}\;
+  \{\mathcal I(i)\wedge i<C\}
+  \tag{R}
+  \]
+
+* **(S5) – write gzuz**  
+  The semantics of *write* is  
+
+  \[
+  \mathbf a \gets \mathbf a\!\cdot\!\langle\mathtt{gzuz}\rangle
+  \]
+
+  Consequently the new output sequence satisfies  
+
+  \[
+  a_{i+1}= \mathtt{gzuz}
+  \]
+
+  while all earlier entries stay unchanged.  Hence  
+
+  \[
+  \{\mathcal I(i)\wedge i<C\}\; \textbf{write }\mathtt{gzuz}\;
+  \{\;0\le i\le C\;\wedge\;
+      (\forall j\le i\; a_j=\mathtt{gzuz})\;\wedge\;
+      a_{i+1}= \mathtt{gzuz}\;\}
+  \tag{W}
+  \]
+
+* **(S6) – increment the counter**  
+  The assignment \(i\gets i+1\) transforms the condition
+  \(0\le i\le C\) into \(0\le i+1\le C\) because we already know \(i<C\)
+  from the guard.  Moreover the universal clause becomes  
+
+  \[
+  \forall j\;(1\le j\le i+1\Rightarrow a_j=\mathtt{gzuz})
+  \]
+
+  (the new case \(j=i+1\) is covered by the fact proved in **(W)**).  Thus
+
+  \[
+  \{\text{post‑condition of (W)}\}\; i\gets i+1\;
+  \{\mathcal I(i+1)\}
+  \tag{Inc}
+  \]
+
+Putting **R**, **W** and **Inc** together (rule of composition) we obtain  
+
+\[
+\{\mathcal I(i)\wedge i<C\}\;
+\bigl(\textbf{read }q_{i+1};\;
+      \textbf{write }\mathtt{gzuz};\;
+      i\gets i+1\bigr)\;
+\{\mathcal I(i+1)\}
+\tag{Pres}
+\]
+
+That is exactly the *maintenance* condition required for a while‑loop.
+
+--------------------------------------------------------------------
+
+### 2.5  Loop rule  
+
+The Hoare rule for a while‑statement is  
+
+\[
+\frac{\{\mathcal I\wedge B\}\;c\;\{\mathcal I\}}{\{\mathcal I\}\;
+      \textbf{while } B\textbf{ do }c\textbf{ od}\;
+      \{\mathcal I\wedge\neg B\}}
+\]
+
+We instantiate it with  
+
+* invariant \(\mathcal I(i)\) from (1);
+* guard \(B\equiv i<C\);
+* body \(c\) = **(S4);(S5);(S6)**.
+
+The premise \(\{\mathcal I\wedge B\}\;c\;\{\mathcal I\}\) is precisely the
+preservation proof (Pres).  Therefore we obtain  
+
+\[
+\{\mathcal I(0)\}\;
+\textbf{while } i<C\textbf{ do }c\textbf{ od}\;
+\{\mathcal I(i)\wedge\neg(i<C)\}
+\tag{Loop}
+\]
+
+--------------------------------------------------------------------
+
+### 2.6  From the invariant after the loop to the post‑condition  
+
+When the loop finishes we have \(\neg(i<C)\), i.e. \(i\ge C\).
+Together with the first conjunct of the invariant \((0\le i\le C)\) we obtain  
+
+\[
+i=C .
+\]
+
+Thus the invariant yields  
+
+\[
+\forall j\;(1\le j\le C\Rightarrow a_j=\mathtt{gzuz}) .
+\]
+
+Together with the definition of the output sequence \(\mathbf a=
+\langle a_{1},\dots ,a_{C}\rangle\) this is exactly the post‑condition \(Q\).
+
+Hence we have proved  
+
+\[
+\{\mathcal I(0)\}\; \textbf{while } i<C\textbf{ do }c\textbf{ od}\;
+\{Q\}.
+\tag{AfterLoop}
+\]
+
+--------------------------------------------------------------------
+
+### 2.7  Putting everything together  
+
+From **Init** we have  
+
+\[
+\{P\}\;(S1);(S2)\;\{\mathcal I(0)\}.
+\]
+
+From **AfterLoop** we have  
+
+\[
+\{\mathcal I(0)\}\; \textbf{while } i<C\textbf{ do }c\textbf{ od}\;
+\{Q\}.
+\]
+
+By the rule of composition we finally obtain  
+
+\[
+\boxed{\{P\}\; S\; \{Q\}}
+\]
+
+which is the required Hoare triple.
+
+--------------------------------------------------------------------
+
+## 3.  Remarks on termination  
+
+The loop counter \(i\) is a natural number that starts at \(0\) and is
+increased by exactly one each iteration (statement **(S6)**).  Because the
+invariant guarantees \(i\le C\) at every entry of the loop, after at most
+\(C\) iterations the guard \(i<C\) becomes false.  Hence the loop is
+guaranteed to terminate for every state satisfying the pre‑condition.
+
+--------------------------------------------------------------------
+
+## 4.  Translation to the concrete Python program  
+
+```python
+# 1. read C
+C = int(input())
+
+# 2. initialise counter
+i = 0
+
+# 3. loop
+while i < C:
+    input()                # read and discard q_{i+1}
+    print('gzuz')          # write gzuz
+    i += 1                 # i ← i+1
+```
+
+* `int(input())` implements the command *read C*.
+* `input()` inside the loop implements *read q_{i+1}* (the value is ignored).
+* `print('gzuz')` implements *write gzuz*.
+* `i += 1` implements the assignment `i ← i+1`.
+
+All the reasoning above applies verbatim to this Python code, therefore the
+program is **correct** with respect to the specification: when the input
+conforms to \(P\) it produces exactly \(C\) lines, each containing the word
+`gzuz`. ∎

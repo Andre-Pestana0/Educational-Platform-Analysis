@@ -1,0 +1,299 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt read\_6\_numbers; compute\_c\_and\_m; print\_out1\_out2}\;\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** – the pre‑condition given in the statement, i.e. the six input
+  numbers \((a_{1},\dots ,a_{6})\) are already on the input stream and at
+  least one of them is strictly positive;  
+
+* **\(Q\)** – the post‑condition defined in the specification (the values
+  `c`, `s`, `m` and the two output strings are exactly the ones required).
+
+--------------------------------------------------------------------
+
+### 1.  Translation of the program
+
+For the purpose of the proof we rewrite the Python program in a
+*while‑language* that is convenient for Hoare‑logic reasoning.
+
+```
+c  := 0;               # auxiliary counter  (|positivos|)
+s  := 0.0;             # auxiliary sum      (sum(positivos))
+i  := 0;               # loop index (how many numbers have been read)
+
+while i < 6 do
+    num := float(input());          # reads a_{i+1}
+    if num > 0 then
+        c := c + 1;
+        s := s + num
+    else
+        skip
+    fi
+    i := i + 1
+od
+
+m  := s / c;                         # division is safe because P ⇒ c>0
+out1 := concat(toString(c), " valores positivos");
+out2 := format_one_decimal(m)       # the same as f"{m:.1f}"
+```
+
+The list `positivos` used in the original program is replaced by the two
+auxiliary variables `c` and `s`.  The final two `print` statements are
+expressed as assignments to the output strings `out1` and `out2`.  All
+operations are elementary and have the usual Hoare‑logic axioms
+(assignment, sequential composition, conditional, while‑loop).
+
+--------------------------------------------------------------------
+
+### 2.  Loop invariant
+
+The only non‑trivial part of the program is the `while` loop.  We prove
+its correctness by exhibiting a **loop invariant** that captures exactly
+what has been accumulated after the first `i` iterations.
+
+\[
+\boxed{I(i)\;:\;
+\begin{aligned}
+&0\le i\le 6\\[2pt]
+&c = \bigl|\{\,j\mid 1\le j\le i\;\land\;a_{j}>0\,\}\bigr|\\[4pt]
+&s = \displaystyle\sum_{\,j\le i,\;a_{j}>0} a_{j}
+\end{aligned}}
+\]
+
+Interpretation: after reading the first `i` numbers (`a₁,…,aᵢ`) the
+variables `c` and `s` contain respectively the **cardinality** and the
+**sum** of the positive values among those `i` numbers.
+
+--------------------------------------------------------------------
+
+### 3.  Initialization (base case)
+
+Before the loop we have the assignments
+
+```
+c := 0;  s := 0.0;  i := 0;
+```
+
+Hence  
+
+* `c = 0 = |{ j | 1 ≤ j ≤ 0 ∧ a_j > 0 }|`,  
+* `s = 0 = Σ_{j ≤ 0, a_j > 0} a_j`.
+
+Thus `I(0)` holds.  By the **assignment axiom** we obtain  
+
+\[
+\{P\}\;c:=0;\;s:=0.0;\;i:=0\;\{I(0)\}.
+\]
+
+--------------------------------------------------------------------
+
+### 4.  Preservation (inductive step)
+
+Assume that `I(i)` holds at the beginning of an iteration with `i<6`.  
+The loop body executes the following statements (we write `a:=a_{i+1}`
+to denote the value read from the input).
+
+```
+num := a;                     # num = a_{i+1}
+if num > 0 then
+    c := c + 1;
+    s := s + num
+else
+    skip
+fi
+i := i + 1
+```
+
+We analyse the two possible branches.
+
+* **Case 1 – `a_{i+1} > 0`.**  
+  The `then`‑branch is taken.  By the assignment rule
+
+  ```
+  c' = c+1
+  s' = s + a_{i+1}
+  i' = i+1
+  ```
+
+  Using the induction hypothesis (`I(i)`) we obtain  
+
+  \[
+  \begin{aligned}
+  c' &= |\{j\mid 1\le j\le i,\;a_j>0\}|+1
+      = |\{j\mid 1\le j\le i+1,\;a_j>0\}|,\\
+  s' &= \sum_{j\le i,\;a_j>0} a_j + a_{i+1}
+      = \sum_{j\le i+1,\;a_j>0} a_j .
+  \end{aligned}
+  \]
+
+  Hence `I(i+1)` holds after the body.
+
+* **Case 2 – `a_{i+1} ≤ 0`.**  
+  The `else`‑branch does nothing, therefore  
+
+  \[
+  c' = c,\qquad s' = s,\qquad i' = i+1 .
+  \]
+
+  By the induction hypothesis the set of positive indices does **not**
+  change, so
+
+  \[
+  c' = |\{j\mid 1\le j\le i,\;a_j>0\}|
+      = |\{j\mid 1\le j\le i+1,\;a_j>0\}|
+  \]
+
+  and similarly for `s'`.  Again `I(i+1)` holds.
+
+Both cases are covered by the **conditional rule**, therefore  
+
+\[
+\{I(i)\land i<6\}\; \text{loop‑body} \; \{I(i+1)\}.
+\]
+
+--------------------------------------------------------------------
+
+### 5.  Termination (loop exit)
+
+The loop guard is `i < 6`.  The invariant guarantees that `i` is a
+natural number that is increased by exactly one in each iteration.
+Consequently the loop terminates after at most six iterations.
+The **while rule** gives
+
+\[
+\{I(0)\}\;\text{while }i<6\text{ do body od}\;\{I(6)\}.
+\]
+
+--------------------------------------------------------------------
+
+### 6.  State after the loop
+
+Instantiating the invariant with `i = 6` yields
+
+\[
+\begin{aligned}
+c &= |\{\,j\mid 1\le j\le 6\;\land\;a_{j}>0\,\}|,\\
+s &= \sum_{\,j\le 6,\;a_{j}>0} a_{j}.
+\end{aligned}
+\tag{1}
+\]
+
+Thus `c` is exactly the number of positive inputs and `s` their sum,
+exactly as required by the first two lines of the post‑condition **Q**.
+
+--------------------------------------------------------------------
+
+### 7.  Computing the mean
+
+The next statement of the program is
+
+```
+m := s / c;
+```
+
+The pre‑condition `P` guarantees that at least one input is positive,
+hence by (1) `c > 0`.  The division is therefore defined.  Using the
+assignment axiom we obtain
+
+\[
+\{c>0 \land (1)\}\; m:=s/c\; \{m = s/c \land (1)\}.
+\]
+
+Together with (1) this is precisely the third line of **Q**.
+
+--------------------------------------------------------------------
+
+### 8.  Producing the output strings
+
+*First line*  
+
+```
+out1 := concat(toString(c), " valores positivos")
+```
+
+The Hoare rule for assignment yields  
+
+\[
+\{m = s/c \land (1)\}\;
+out1 := \dots\;
+\{out1 = \text{``}c\; \text{valores positivos''}\land m = s/c \land (1)\}.
+\]
+
+*Second line*  
+
+```
+out2 := format_one_decimal(m)        # exactly the f"{m:.1f}" format
+```
+
+The formatting routine rounds `m` to one decimal digit; by definition
+this is the function `round₁(m)` used in **Q**.  Hence
+
+\[
+\{out1\text{ as above}\}\;
+out2 := \dots\;
+\{out2 = \text{round}_{1}(m)\land out1\text{ as above}\}.
+\]
+
+--------------------------------------------------------------------
+
+### 9.  Assembling the whole proof
+
+We now combine the pieces using the **sequencing rule**:
+
+```
+c:=0; s:=0.0; i:=0;            (initialisation)
+while i<6 do body od          (loop, gives (1))
+m:=s/c;                       (mean)
+out1:=…; out2:=…;              (printing)
+```
+
+From Sections 3–8 we have proved the following Hoare triples:
+
+1. `{P}  c:=0; s:=0.0; i:=0  {I(0)}`
+2. `{I(i) ∧ i<6}  body  {I(i+1)}`   (preservation)
+3. `{I(0)}  while i<6 do body od  {I(6)}`   (termination)
+4. `{I(6)}  m:=s/c  {c = |{j|a_j>0}| ∧ s = Σ_{a_j>0} a_j ∧ m = s/c}`
+5. `{…}  out1:=…  {out1 = “c valores positivos” ∧ …}`
+6. `{…}  out2:=…  {out2 = round₁(m) ∧ …}`
+
+By repeated application of the **sequencing rule** we obtain
+
+\[
+\{P\}\;
+\text{program}
+\;\{\,c = |\{i\mid a_i>0\}|,\;
+   s = \sum_{a_i>0} a_i,\;
+   m = s/c,\;
+   out_1 = \text{``}c\; \text{valores positivos''},\;
+   out_2 = \text{round}_{1}(m)\,\}
+\]
+
+which is exactly the post‑condition **Q**.
+
+--------------------------------------------------------------------
+
+### 10.  Conclusion
+
+All three phases of the program have been shown to preserve the
+invariant, to terminate, and to produce the required values.  Hence the
+Hoare triple  
+
+\[
+\boxed{\{P\}\;\text{read\_6\_numbers; compute\_c\_and\_m; print\_out1\_out2}\;\{Q\}}
+\]
+
+is proved correct.  Consequently the Python program indeed prints
+
+* the number `c` of positive inputs followed by the literal
+  *“valores positivos”*, and  
+
+* the arithmetic mean of those positive inputs rounded to one decimal
+  place,  
+
+exactly as demanded by the specification. ∎

@@ -1,0 +1,330 @@
+**Proof that the program `read_areas` satisfies the Hoare‑logic specification**  
+
+We prove the Hoare triple  
+
+\[
+\{\,\mathcal P\,\}\; \textbf{read\_areas}\; \{\,\mathcal Q\,\}
+\]
+
+by applying the Hoare‑logic rules **(assignment, sequencing, consequence)** to every statement of the program.  
+All reasoning is carried out in the mathematical universe of real numbers; the only extra
+operational detail that has to be justified is the formatting `{: .3f}` used by Python,
+which we show implements the rounding function \(\lceil\;\cdot\;\rceil_{3}\) defined in the
+specification.
+
+---------------------------------------------------------------------
+
+## 1.  Notation used in the proof  
+
+* `A , B , C` – the three numbers that appear in the pre‑condition \(\mathcal P\).  
+* `a , b , c` – the program variables that receive the input.  
+* `π` – the constant \(3.14159\) that appears in the specification.  
+* `T , R , Z , Q , Y` – the five intermediate program variables defined in the
+  source code (named `triangulo`, `circulo`, `trapezio`, `quadrado`, `retangulo`).  
+* `s_i` – the five output strings that are printed.  
+* `⌈x⌉_3` – “round‑to‑3‑decimals” as defined in the specification.  
+
+The Hoare‑logic rules we use are:
+
+| Rule | Form |
+|------|------|
+| **Assignment** | \(\displaystyle \frac{}{ \{\,\phi[e/x]\,\}\; x:=e\; \{\,\phi\,\}}\) |
+| **Sequencing** | \(\displaystyle \frac{\{P\}c_1\{Q\}\qquad\{Q\}c_2\{R\}}{\{P\}c_1;c_2\{R\}}\) |
+| **Consequence** | \(\displaystyle \frac{P\Rightarrow P' \qquad \{P'\}c\{Q'\}\qquad Q'\Rightarrow Q}{\{P\}c\{Q\}}\) |
+
+---------------------------------------------------------------------
+
+## 2.  The proof
+
+### 2.1  The input statement  
+
+```
+a, b, c = map(float, input().split())
+```
+
+*Pre‑condition*  
+
+\[
+\mathcal P \equiv
+\bigl(\text{in}= \langle A,B,C\rangle\bigr) \land
+\bigl(A,B,C\in\mathbb{R}_{\ge 0}\bigr)\land
+\bigl(\text{each of }A,B,C\text{ has exactly one decimal digit}\bigr)
+\]
+
+*Assertion after the statement*  
+
+The call `map(float, …)` converts each textual token into the exact floating‑point
+value that represents the same real number (the input is guaranteed to have only one
+decimal digit, therefore the conversion is loss‑free). Hence
+
+\[
+\{\,\mathcal P\,\}\; a,b,c = \dots\; \bigl\{\,a=A\;\land\;b=B\;\land\;c=C\,\bigr\}
+\tag{1}
+\]
+
+The rule used is **consequence**: from \(\mathcal P\) we infer the weaker post‑condition
+\(a=A\land b=B\land c=C\).
+
+---------------------------------------------------------------------
+
+### 2.2  Definition of the constant  
+
+```
+pi = 3.14159
+```
+
+Using the **assignment axiom** with the expression `3.14159` we obtain
+
+\[
+\{\,a=A\land b=B\land c=C\,\}\; pi:=3.14159\;
+\bigl\{\,pi=\pi \;\land\; a=A\land b=B\land c=C\,\bigr\}
+\tag{2}
+\]
+
+---------------------------------------------------------------------
+
+### 2.3  Computing the five areas  
+
+We treat the five assignments one after another; after each step we keep a
+*global invariant* that records all values already computed.
+
+-----------------------------------------------------------------
+**(a) Triangle**
+
+```
+triangulo = a * c / 2
+```
+
+Applying the assignment axiom to the expression `a*c/2` and using (2) we get
+
+\[
+\{\,\text{inv}_0\,\}\; triangulo := a*c/2\;
+\bigl\{\,\text{inv}_1\,\bigr\}
+\]
+
+where  
+
+\[
+\begin{aligned}
+\text{inv}_0 &\equiv pi=\pi\land a=A\land b=B\land c=C,\\[1mm]
+\text{inv}_1 &\equiv pi=\pi\land a=A\land b=B\land c=C\land
+               \underbrace{triangulo}_{T}= \frac{A\cdot C}{2}.
+\end{aligned}
+\tag{3}
+\]
+
+-----------------------------------------------------------------
+**(b) Circle**
+
+```
+circulo = c**2 * pi
+```
+
+Using (3) as the pre‑condition:
+
+\[
+\{\,\text{inv}_1\,\}\; circulo := c**2 * pi\;
+\bigl\{\,\text{inv}_2\,\bigr\}
+\]
+
+with  
+
+\[
+\text{inv}_2 \equiv \text{inv}_1 \land
+                  \underbrace{circulo}_{R}= \pi\,C^{2}.
+\tag{4}
+\]
+
+-----------------------------------------------------------------
+**(c) Trapezium**
+
+```
+trapezio = (a + b) * c / 2
+```
+
+\[
+\{\,\text{inv}_2\,\}\; trapezio := (a+b)*c/2\;
+\bigl\{\,\text{inv}_3\,\bigr\}
+\]
+
+\[
+\text{inv}_3 \equiv \text{inv}_2 \land
+                  \underbrace{trapezio}_{Z}= \frac{(A+B)}{2}\,C .
+\tag{5}
+\]
+
+-----------------------------------------------------------------
+**(d) Square**
+
+```
+quadrado = b**2
+```
+
+\[
+\{\,\text{inv}_3\,\}\; quadrado := b**2\;
+\bigl\{\,\text{inv}_4\,\bigr\}
+\]
+
+\[
+\text{inv}_4 \equiv \text{inv}_3 \land
+                  \underbrace{quadrado}_{Q}= B^{2}.
+\tag{6}
+\]
+
+-----------------------------------------------------------------
+**(e) Rectangle**
+
+```
+retangulo = a * b
+```
+
+\[
+\{\,\text{inv}_4\,\}\; retangulo := a*b\;
+\bigl\{\,\text{inv}_5\,\bigr\}
+\]
+
+\[
+\text{inv}_5 \equiv \text{inv}_4 \land
+                  \underbrace{retangulo}_{Y}= A\cdot B .
+\tag{7}
+\]
+
+---------------------------------------------------------------------
+
+At this point we have proved, by a chain of **sequencing** steps, that after the
+five assignments the following invariant holds:
+
+\[
+\boxed{
+\begin{aligned}
+&pi=\pi,\; a=A,\; b=B,\; c=C,\\
+&T = \frac{A\cdot C}{2},\;
+R = \pi C^{2},\;
+Z = \frac{(A+B)}{2}C,\;
+Q = B^{2},\;
+Y = A B .
+\end{aligned}}
+\tag{I}
+\]
+
+---------------------------------------------------------------------
+
+### 2.4  The output statements  
+
+Each `print` statement has the form  
+
+```
+print(f'LABEL: {var:.3f}')
+```
+
+where `var` is one of the five area variables.  
+Python’s format specification `{: .3f}` produces a **decimal string** that
+contains exactly three digits after the decimal point and whose numerical value
+\(s\) satisfies  
+
+\[
+|s - \text{var}| \le 0.0005 .
+\]
+
+Thus the produced string is precisely the mathematical function \(\lceil\;\cdot\;\rceil_{3}\) applied to the real value of `var`.  
+
+Consequently, using invariant (I) we obtain the following Hoare triples for the
+five prints (the proof for each line is identical, so we show the first one and
+state the others analogously).
+
+-----------------------------------------------------------------
+**First line – triangle**
+
+```
+print(f'TRIANGULO: {triangulo:.3f}')
+```
+
+*Pre‑condition* : invariant (I).  
+*Post‑condition* :
+
+\[
+s_1 = \text{msg}_1 \;\cdot\; \bigl\lceil T \bigr\rceil_{3}
+     = \text{“TRIANGULO: ”} \;\cdot\; \bigl\lceil \frac{A C}{2} \bigr\rceil_{3}.
+\]
+
+The same reasoning gives  
+
+\[
+\begin{aligned}
+s_2 &= \text{msg}_2 \cdot \bigl\lceil R \bigr\rceil_{3}
+    = \text{“CIRCULO: ”}   \cdot \bigl\lceil \pi C^{2} \bigr\rceil_{3},\\
+s_3 &= \text{msg}_3 \cdot \bigl\lceil Z \bigr\rceil_{3}
+    = \text{“TRAPEZIO: ”}  \cdot \bigl\lceil \frac{(A+B)C}{2} \bigr\rceil_{3},\\
+s_4 &= \text{msg}_4 \cdot \bigl\lceil Q \bigr\rceil_{3}
+    = \text{“QUADRADO: ”}  \cdot \bigl\lceil B^{2} \bigr\rceil_{3},\\
+s_5 &= \text{msg}_5 \cdot \bigl\lceil Y \bigr\rceil_{3}
+    = \text{“RETANGULO: ”} \cdot \bigl\lceil A B \bigr\rceil_{3}.
+\end{aligned}
+\]
+
+Collecting the five strings we obtain the tuple  
+
+\[
+\text{out}= \langle s_1,s_2,s_3,s_4,s_5\rangle .
+\]
+
+---------------------------------------------------------------------
+
+### 2.5  From the invariant to the post‑condition  
+
+We have proved the following Hoare triple:
+
+\[
+\{\,\mathcal P\,\}\;
+\underbrace{
+\begin{array}{l}
+a,b,c = \dots\\
+pi = 3.14159\\
+triangulo = a*c/2\\
+circulo   = c**2 * pi\\
+trapezio  = (a+b)*c/2\\
+quadrado  = b**2\\
+retangulo = a*b\\
+\text{five prints}
+\end{array}}_{\,\textbf{read\_areas}}
+\;
+\{\,\text{out}= \langle s_1,\dots ,s_5\rangle \,\}
+\]
+
+The **consequence rule** now strengthens the post‑condition to the exact
+form required by \(\mathcal Q\) (the five equalities listed in the specification).
+Since each equality is a logical consequence of the invariant (I) and of the
+definition of the formatting operation, we have  
+
+\[
+\text{out}= \langle s_1,\dots ,s_5\rangle\;\Longrightarrow\;\mathcal Q .
+\]
+
+Thus  
+
+\[
+\{\,\mathcal P\,\}\; \textbf{read\_areas}\; \{\,\mathcal Q\,\}
+\]
+
+holds, i.e. the program is **correct** with respect to the given Hoare‑logic
+specification.
+
+---------------------------------------------------------------------
+
+## 3.  Summary of the proof steps
+
+| Step | Statement | Hoare triple (pre‑condition → post‑condition) |
+|------|-----------|-----------------------------------------------|
+| 1 | `a,b,c = …` | \(\{ \mathcal P\}\; a,b,c = …\; \{a=A\land b=B\land c=C\}\) |
+| 2 | `pi = 3.14159` | \(\{a=A\land b=B\land c=C\}\; pi:=3.14159\; \{pi=\pi\land a=A\land b=B\land c=C\}\) |
+| 3 | `triangulo = a*c/2` | \(\{inv_0\}\; triangulo:=a*c/2\; \{inv_1\}\) |
+| 4 | `circulo = c**2 * pi` | \(\{inv_1\}\; circulo:=c**2*pi\; \{inv_2\}\) |
+| 5 | `trapezio = (a+b)*c/2` | \(\{inv_2\}\; trapezio:=…\; \{inv_3\}\) |
+| 6 | `quadrado = b**2` | \(\{inv_3\}\; quadrado:=b**2\; \{inv_4\}\) |
+| 7 | `retangulo = a*b` | \(\{inv_4\}\; retangulo:=a*b\; \{inv_5\}\) |
+| 8 | five `print` statements | \(\{inv_5\}\) → strings \(s_i = \text{msg}_i\cdot\lceil\text{expr}_i\rceil_{3}\) |
+| 9 | **Consequence** | strengthen the post‑condition to exactly \(\mathcal Q\). |
+
+All five area formulas are computed **exactly** (no rounding is performed until the
+final `print`), and the formatting step produces the required rounding to three
+decimal places. Consequently the program satisfies the specification. ∎

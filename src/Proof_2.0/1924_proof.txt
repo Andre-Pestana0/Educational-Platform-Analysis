@@ -1,0 +1,244 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**
+
+---
+
+### 1.  The program written as a small imperative fragment  
+
+For the purpose of a Hoare‑logic proof we rewrite the Python code in a
+canonical imperative syntax (the two `input` statements are treated as
+atomic commands that read values from the environment and store them in
+temporary variables – they do **not** change the logical variables that
+appear in the specification).
+
+```
+   /* 1. read the number of lines that will follow                         */
+   read  n                     //  n := int(input())
+
+   /* 2. discard the next n lines – the actual strings are irrelevant       */
+   i := 0
+   while i < n do
+        read  dummy            //  dummy := input()
+        i := i + 1
+   od
+
+   /* 3. print the required answer                                            */
+   out := C                    //  out := "Ciencia da Computacao"
+   print out
+```
+
+The only logical variables that occur in the Hoare triple are  
+
+* `n` – the integer read in step 1,  
+* `C` – the constant string `"Ciencia da Computacao"`,  
+* `out` – the variable that will be printed.
+
+All other temporaries (`dummy`, the loop counter `i`) are *local* and do
+not appear in the specification.
+
+---
+
+### 2.  The Hoare triple we have to prove  
+
+\[
+\{P\}\;\; \texttt{ChooseCourse}\;(n,S,out)\;\; \{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+\begin{aligned}
+P \;\equiv\;& 1\le n\le 2000 \;\land\;
+               \bigl(\forall i\in\{1,\dots ,n\}\;.\;1\le|S(i)|\le 100\bigr) \\
+            &\land\;
+               \bigl(\forall i\in\{1,\dots ,n\}\;.\;S(i)\in\Sigma^{*}\bigr) \\
+            &\land\; C\in\Sigma^{*}
+\end{aligned}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q \;\equiv\;& out = C \;\land\; out\in\Sigma^{*}
+               \;\land\; \text{“the program terminates”.}
+\end{aligned}
+\]
+
+The body of the program is exactly the three fragments shown above,
+hence the proof is a composition of three Hoare‑logic derivations:
+
+```
+  (A)   read n
+  (B)   while i < n do … od
+  (C)   out := C
+```
+
+---
+
+### 3.  Proof of the three fragments  
+
+#### 3.1  Fragment (A) – reading the integer  
+
+The command `read n` is *atomic* and, by definition of the input
+environment, it yields a value that satisfies the condition imposed by
+the problem statement.  Therefore the **rule of consequence** can be
+applied:
+
+```
+   { P }    read n    { 1 ≤ n ≤ 2000 }
+```
+
+The right‑hand side is exactly the part of `P` that talks about `n`;
+the remaining conjuncts of `P` are untouched because `read n` does not
+touch `S` or `C`.  Consequently we have
+
+\[
+\{P\}\; \texttt{read n}\; \{\,1\le n\le 2000\land
+      (\forall i\in\{1,\dots ,n\}\;.\;1\le|S(i)|\le100)\land
+      (\forall i\in\{1,\dots ,n\}\;.\;S(i)\in\Sigma^{*})\land
+      C\in\Sigma^{*}\,\}.
+\]
+
+Thus after the first command the whole pre‑condition is still true,
+except that it is now *known* to the program that the value stored in
+`n` actually satisfies the bound `1 ≤ n ≤ 2000`.
+
+---
+
+#### 3.2  Fragment (B) – the `while` loop  
+
+The loop body only reads a line and discards it; it never touches the
+variables that appear in `P` or `Q`.  Consequently a **trivial loop
+invariant** works:
+
+\[
+I \;\equiv\; 1\le n\le 2000 \;\land\;
+              (\forall i\in\{1,\dots ,n\}\;.\;1\le|S(i)|\le100)\;\land\;
+              (\forall i\in\{1,\dots ,n\}\;.\;S(i)\in\Sigma^{*})\;\land\;
+              C\in\Sigma^{*}.
+\]
+
+* **Initialization** – before the first iteration we have just proved
+  `I` (see §3.1).
+
+* **Preservation** – assume `I` holds and the loop guard `i < n` is
+  true.  The body executes `read dummy; i := i+1`.  
+  Neither statement modifies `n`, `S` or `C`; therefore `I` still holds
+  after the body finishes.
+
+* **Termination condition** – when the guard becomes false we have
+  `i ≥ n`.  The invariant `I` is still true, but the loop does not
+  contribute any additional information that is needed later.
+
+Hence, by the **while‑rule** we obtain
+
+\[
+\{I\}\; \texttt{while } i<n\; \texttt{do } (\texttt{read dummy; } i:=i+1)\;
+\texttt{od}\; \{I\}.
+\]
+
+In words: after the loop finishes the whole pre‑condition `P` is still
+valid, and *no* program variable that matters for the specification has
+been altered.
+
+---
+
+#### 3.3  Fragment (C) – the final assignment  
+
+The last command is the simple assignment `out := C`.  The **assignment
+axiom** of Hoare logic tells us that for any expression `E`
+
+\[
+\{\,Q[E/out]\,\}\; out := E\; \{\,Q\,\}.
+\]
+
+Choosing  
+
+* `E ≡ C`, and  
+* `Q ≡ (out = C) ∧ (out ∈ Σ^{*})`
+
+we compute the substitution `Q[C/out]` :
+
+```
+   (out = C)[C/out]   ≡   C = C          (true)
+   (out ∈ Σ*)[C/out]  ≡   C ∈ Σ*         (true by the pre‑condition)
+```
+
+Thus the weakest pre‑condition of the assignment is simply `true`.  Adding
+the invariant `I` (which we already know holds) we get
+
+\[
+\{ I \}\; out := C\; \{\,out = C \;\land\; out\in\Sigma^{*}\,\}.
+\]
+
+The command `print out` does not change the logical state; it only
+produces the observable side‑effect that the specification calls
+“the program terminates and prints `out`”.  Therefore the post‑condition
+`Q` is satisfied.
+
+---
+
+### 4.  Composition of the three fragments  
+
+Using the **sequence rule** of Hoare logic we concatenate the three
+derivations:
+
+```
+{P}          read n
+           ; while i<n do (read dummy ; i:=i+1) od
+           ; out := C
+{ out = C ∧ out∈Σ* }   (i.e. Q)
+```
+
+The rule states that if  
+
+* `{P}  C1  {R}` and  
+* `{R}  C2  {S}`  
+
+then  
+
+* `{P}  C1;C2  {S}`.
+
+Applying it twice (first for `C1 = read n`, `C2 = while …`,
+second for the whole prefix and `C3 = out := C`) yields the desired
+triple.
+
+---
+
+### 5.  Termination  
+
+* The `read n` command obviously terminates – it is a single I/O
+  operation.
+* The `while` loop iterates exactly `n` times; the invariant `i < n`
+  guarantees that `i` is increased by one on each iteration, therefore
+  after `n` steps the guard becomes false and the loop stops.  Because the
+  pre‑condition guarantees `n ≤ 2000`, the number of iterations is
+  bounded.
+* The final assignment and the `print` statement are single, terminating
+  steps.
+
+Hence the whole program terminates for every state that satisfies `P`.
+
+---
+
+### 6.  Final Hoare‑logic theorem  
+
+\[
+\boxed{\; \{\,P\,\}\;\; \texttt{ChooseCourse}(n,S,out)\;\; \{\,Q\,\}\;}
+\]
+
+has been proved by:
+
+1. establishing that the pre‑condition `P` is preserved by the input
+   reading,
+2. showing that the loop invariant `I` (which is exactly `P`) is
+   maintained and the loop finishes,
+3. applying the assignment axiom to obtain `out = C`,
+4. using the sequence and while rules to compose the three parts, and
+5. arguing that each command terminates.
+
+Therefore **the program is correct with respect to the given Hoare‑logic
+specification**: for every admissible input it terminates and prints the
+fixed string `"Ciencia da Computacao"`.

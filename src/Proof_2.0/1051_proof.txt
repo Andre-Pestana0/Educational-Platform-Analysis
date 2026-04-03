@@ -1,0 +1,316 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the program `tax_calculator` satisfies  
+
+\[
+\{P\}\; \texttt{tax\_calculator}\; \{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; S\in\mathbb{R}_{\ge 0}\ \wedge\ \text{“`S` is given with exactly two decimal digits’’}
+\]
+
+* **Post‑condition**  
+
+\[
+Q\; \equiv\;
+\begin{cases}
+S\le 2000.00 \Longrightarrow O = \text{“Isento’’}\\[2mm]
+S>2000.00 \Longrightarrow O = \text{“R\$ ”}\;\|\;\text{fmt}(T)
+\end{cases}
+\]
+
+with  
+
+\[
+\begin{aligned}
+b_{1}&:=\max\bigl(0,\ \min(S,3000.00)-2000.00\bigr)\\
+b_{2}&:=\max\bigl(0,\ \min(S,4500.00)-3000.00\bigr)\\
+b_{3}&:=\max\bigl(0,\ S-4500.00\bigr)\\[2mm]
+T   &:=0.08\,b_{1}+0.18\,b_{2}+0.28\,b_{3}
+\end{aligned}
+\tag{1}
+\]
+
+The program (with the variable names used in the source) is  
+
+```text
+1  renda = float(input())          #  (renda = S)
+2  imposto = 0.00                  #  (imposto = 0)
+
+3  if renda <= 2000.00:
+4      print("Isento")
+5  else:
+6      renda = renda - 2000.00     #  (renda = r := S-2000)
+7      if renda <= 1000.00:
+8          imposto = renda * 0.08
+9          print(f"R$ {imposto:.2f}")
+10     else:
+11         imposto = 1000.00 * 0.08
+12         renda   = renda - 1000.00   #  (renda = r-1000)
+13         if renda <= 1500.00:
+14             imposto = imposto + renda * 0.18
+15             print(f"R$ {imposto:.2f}")
+16         else:
+17             imposto = imposto + 1500.00 * 0.18
+18             renda   = renda - 1500.00   # (renda = r-2500)
+19             if renda > 0.00:
+20                 imposto = imposto + renda * 0.28
+21             print(f"R$ {imposto:.2f}")
+```
+
+---------------------------------------------------------------------
+
+### 1.  Preliminary facts
+
+Define  
+
+\[
+r := S-2000.00 \qquad (\text{taxable amount after the exemption})
+\]
+
+and the three *bracket portions*  
+
+\[
+\begin{aligned}
+p_1 &:= \min(r,1000.00) \\
+p_2 &:= \min\bigl(\max(r-1000.00,0),1500.00\bigr) \\
+p_3 &:= \max(r-2500.00,0).
+\end{aligned}
+\tag{2}
+\]
+
+A short calculation shows that (2) is equivalent to the definition of  
+\(b_1,b_2,b_3\) in (1):
+
+*If* \(S\le 2000\) then \(r\le0\) and all three \(p_i\) (hence all \(b_i\)) are 0.  
+
+*If* \(2000<S\le 3000\) then \(0<r\le1000\) and  
+
+\[
+p_1=r,\;p_2=0,\;p_3=0\quad\Longrightarrow\quad b_1=r,\;b_2=b_3=0 .
+\]
+
+*If* \(3000<S\le 4500\) then \(1000<r\le2500\) and  
+
+\[
+p_1=1000,\;p_2=r-1000,\;p_3=0\quad\Longrightarrow\quad
+b_1=1000,\;b_2=r-1000,\;b_3=0 .
+\]
+
+*If* \(S>4500\) then \(r>2500\) and  
+
+\[
+p_1=1000,\;p_2=1500,\;p_3=r-2500\quad\Longrightarrow\quad
+b_1=1000,\;b_2=1500,\;b_3=r-2500 .
+\]
+
+Consequently
+
+\[
+T = 0.08\,p_1 + 0.18\,p_2 + 0.28\,p_3 . \tag{3}
+\]
+
+---------------------------------------------------------------------
+
+### 2.  Hoare triples for the program fragments  
+
+We use the standard Hoare rules for **assignment**, **sequencing**, **conditional**
+and **consequence**.
+
+---
+
+#### 2.1  Lines 1‑2  
+
+\[
+\{P\}\; \texttt{renda = float(input())};\; \texttt{imposto = 0.00}\; \{\,\texttt{renda}=S\ \wedge\ \texttt{imposto}=0\,\}
+\]
+
+*Reason*: the assignment rule preserves the truth of the pre‑condition and
+instantiates the variables with their right‑hand sides.
+
+---
+
+#### 2.2  First conditional (lines 3‑5)  
+
+We prove the two branches separately.
+
+*Branch A* (`renda ≤ 2000.00`):
+
+\[
+\begin{aligned}
+&\{\,\texttt{renda}=S \wedge S\le 2000.00\,\}\\
+&\qquad\texttt{print("Isento")}\\
+&\{\,O = \text{“Isento”}\,\}
+\end{aligned}
+\]
+
+The command only produces the required output; the post‑condition of the
+whole program is satisfied because the antecedent of the first line of (2)
+holds.
+
+*Branch B* (`renda > 2000.00`):
+
+\[
+\{\,\texttt{renda}=S \wedge S>2000.00\,\}
+\Longrightarrow
+\{\,\texttt{renda}=r\}
+\]
+
+where `r = S‑2000.00`.  
+Thus after line 6 we have the invariant
+
+\[
+I_1:\; \texttt{renda}=r \wedge \texttt{imposto}=0 .
+\tag{4}
+\]
+
+---
+
+#### 2.3  Second conditional (lines 7‑9)  
+
+*Case B1* (`renda ≤ 1000.00`):
+
+From (4) and the guard we obtain `0<r≤1000`.  
+Line 8 executes `imposto = renda * 0.08`, i.e.
+
+\[
+\texttt{imposto}=0.08\,r = 0.08\,p_1 .
+\]
+
+Using (3) with \(p_2=p_3=0\) we get `imposto = T`.  
+Line 9 prints `"R$ "` concatenated with `fmt(imposto)`.  
+Hence the post‑condition for this branch is
+
+\[
+O = \text{“R\$ ”}\;\|\;\text{fmt}(T) .
+\tag{5}
+\]
+
+*Case B2* (`renda > 1000.00`) – we continue with the `else` part.
+
+After line 11 we set  
+
+\[
+\texttt{imposto}=1000\cdot0.08 = 0.08\,p_1 .
+\tag{6}
+\]
+
+Line 12 reduces `renda` by 1000, therefore
+
+\[
+\texttt{renda}=r-1000 = p_2 + p_3 .
+\tag{7}
+\]
+
+We keep the invariant
+
+\[
+I_2:\; \texttt{imposto}=0.08\,p_1\ \wedge\ \texttt{renda}=p_2+p_3 .
+\tag{8}
+\]
+
+---
+
+#### 2.4  Third conditional (lines 13‑15)  
+
+*Case B2‑1* (`renda ≤ 1500.00`):
+
+From (8) and the guard we have `0 ≤ p_2 ≤ 1500` and `p_3=0`.  
+Line 14 adds `renda * 0.18 = p_2·0.18` to `imposto`, therefore after line 14
+
+\[
+\texttt{imposto}=0.08\,p_1+0.18\,p_2 = T .
+\]
+
+Line 15 prints the required string, yielding (5) again.
+
+*Case B2‑2* (`renda > 1500.00`) – we go to the innermost `else`.
+
+After line 17 we add the whole second bracket:
+
+\[
+\texttt{imposto}=0.08\,p_1+0.18\cdot1500 = 0.08\,p_1+0.18\,p_2 .
+\tag{9}
+\]
+
+Line 18 subtracts 1500, so
+
+\[
+\texttt{renda}= (p_2+p_3)-1500 = p_3 .
+\tag{10}
+\]
+
+Now the invariant is
+
+\[
+I_3:\; \texttt{imposto}=0.08\,p_1+0.18\,p_2\ \wedge\ \texttt{renda}=p_3 .
+\tag{11}
+\]
+
+---
+
+#### 2.5  Fourth conditional (lines 19‑21)  
+
+If `renda > 0.00` (i.e. `p_3>0`) line 20 adds `p_3·0.28` to `imposto`.  
+Consequently after line 20
+
+\[
+\texttt{imposto}=0.08\,p_1+0.18\,p_2+0.28\,p_3 = T .
+\]
+
+If `renda = 0` the addition is skipped, but `imposto` already equals `T`
+because `p_3 = 0`.  
+
+Line 21 prints `"R$ "` followed by `fmt(imposto)`, so (5) holds.
+
+---
+
+### 3.  Composition of the triples  
+
+Summarising the branches we have proved the following Hoare triples:
+
+* **(A)** \(\{P\}\) `if renda ≤ 2000.00: print("Isento")` \(\{S\le2000\Rightarrow O="Isento"\}\)
+
+* **(B)** \(\{P\}\) `else:` *the whole block from line 6 to line 21* \(\{S>2000\Rightarrow O="R$ "+fmt(T)\}\)
+
+By the **conditional rule**  
+
+\[
+\frac{\{P\wedge B\}\;C_1\;\{Q\}\qquad\{P\wedge\neg B\}\;C_2\;\{Q\}}
+     {\{P\}\; \textbf{if }B\textbf{ then }C_1\textbf{ else }C_2\;\{Q\}}
+\]
+
+with \(B\equiv\) `renda ≤ 2000.00`, we obtain  
+
+\[
+\{P\}\;\texttt{tax\_calculator}\;\{Q\}.
+\]
+
+Thus the program satisfies the specification.
+
+---------------------------------------------------------------------
+
+### 4.  Concluding remarks  
+
+* The variable `imposto` computed by the program is exactly the mathematical
+tax `T` defined in (1).  
+* The printed string is precisely the one demanded by the post‑condition
+(2):  
+
+  * “Isento’’ when the income does not exceed the exemption threshold,  
+  * otherwise “R$ ” followed by the value of `T` formatted with two
+    decimal digits (`fmt`), which matches the required rounding rule.
+
+Hence the Hoare triple  
+
+\[
+\boxed{\{P\}\; \texttt{tax\_calculator}\; \{Q\}}
+\]
+
+is proved, i.e. **the program is correct with respect to the given formal
+specification**.  

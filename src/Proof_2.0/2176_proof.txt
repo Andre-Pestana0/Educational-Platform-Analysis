@@ -1,0 +1,327 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the concrete Python program  
+
+```python
+S = input()                     #  (1)
+digitos = 0                     #  (2)
+for i in S:                     #  (3)
+    if i == "1":                #  (4)
+        digitos += 1           #  (5)
+if digitos % 2 == 0:            #  (6)
+    print(S + "0")              #  (7)
+else:                           #  (8)
+    print(S + "1")              #  (9)
+```
+
+satisfies the Hoare triple  
+
+\[
+\{\,P\,\}\; \texttt{program}\; \{\,Q\,\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\;:=\;S\in\{0,1\}^{*}\;\land\;1\le |S|\le 100 .
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:=\;&T = S\cdot B \\
+     &\land\;B\in\{0,1\}\\
+     &\land\;(\operatorname{par}(S)\oplus B)=0\\
+     &\land\;|T| = |S|+1 ,
+\end{aligned}
+\]
+
+where  
+
+\[
+\operatorname{par}(S)=\Bigl(\sum_{i=1}^{|S|} S[i]\Bigr)\bmod 2,
+\qquad
+B = \begin{cases}0 &\text{if } \operatorname{par}(S)=0\\
+                 1 &\text{if } \operatorname{par}(S)=1\end{cases}.
+\]
+
+The program prints the word \(T=S\cdot B\); therefore we must show that after the
+execution of the program the four conjuncts of \(Q\) hold.
+
+---------------------------------------------------------------------
+
+## 1.  Notation for the proof
+
+* Let `n = |S|`.  
+* In the Python `for i in S` loop we introduce an auxiliary index variable `k`
+  (0‑based) that counts how many characters of `S` have already been inspected.
+  After the *k*‑th iteration we have examined the prefix `S[0..k‑1]`.  
+* Define the predicate  
+
+\[
+I(k,\text{digitos})\;:=\;
+0\le k\le n\;\land\;
+\text{digitos}= \sum_{j=0}^{k-1}\bigl[\,S[j]="1"\,\] .
+\]
+
+The term \([S[j]="1"]\) is 1 if the *j*‑th character equals `"1"` and 0 otherwise.
+Thus `I` says that **digitos always equals the number of `1`‑bits that have been
+seen so far**.
+
+---------------------------------------------------------------------
+
+## 2.  Proof outline (Hoare‑logic rules)
+
+We use the standard Hoare‑logic inference rules:
+
+* **(Assign)** \(\{Q[E/x]\}\;x := E\;\{Q\}\)  
+* **(Seq)**   \(\{P\}C_1\{R\},\; \{R\}C_2\{Q\}\; \Longrightarrow\; \{P\}C_1;C_2\{Q\}\)  
+* **(While)** \(\{I\land B\}\;C\;\{I\},\; I\) invariant, \(B\) loop guard  
+                                                                                                                                                                                                                          
+* **(If)**   \(\{P\land B\}C_1\{Q\},\; \{P\land\lnot B\}C_2\{Q\}\; \Longrightarrow\; \{P\}\texttt{if }B\texttt{ then }C_1\texttt{ else }C_2\{Q\}\)
+
+---------------------------------------------------------------------
+
+## 3.  Detailed proof
+
+### 3.1  Reading the input  
+
+Statement (1) is an input statement.  
+The specification of an input statement is  
+
+\[
+\{P\}\; \texttt{read } S\; \{P\},
+\]
+
+because the pre‑condition already describes the property that the value read
+must satisfy. Hence
+
+\[
+\{P\}\; \texttt{S = input()}\; \{P\}.
+\tag{A1}
+\]
+
+### 3.2  Initialising `digitos`  
+
+Statement (2) is the assignment `digitos := 0`.  
+Take the post‑condition  
+
+\[
+R_2 \;:=\; I(0, \text{digitos})\;\land\;P .
+\]
+
+Since \(I(0,0)\) is true (the sum over an empty prefix is 0), we have  
+
+\[
+\{R_2\}\; \texttt{digitos = 0}\; \{I(0,\text{digitos})\land P\}.
+\tag{A2}
+\]
+
+By the **Assign** rule this is valid.
+
+### 3.3  The `for`‑loop (treated as a `while`)
+
+A Python `for i in S:` is equivalent to
+
+```text
+k := 0
+while k < n:
+    i := S[k]
+    ... body using i ...
+    k := k + 1
+```
+
+We therefore prove the loop with invariant `I(k,digitos)`.
+
+* **Invariant holds initially** – after (A2) we have `k = 0` and `digitos = 0`,
+  so `I(0,0)` holds.
+
+* **Maintenance** – assume `I(k,digitos)` holds at the beginning of an
+  iteration and `k < n`. The body consists of statements (4)–(5):
+
+  * (4) tests `i == "1"`.  `i` is `S[k]`, so the test is exactly the predicate
+    \([S[k]="1"]\).
+
+  * (5) executes `digitos += 1` **iff** the test is true.  Consequently after
+    the body we have  
+
+    \[
+    \text{digitos}' = \text{digitos} + [S[k]="1"] .
+    \]
+
+    Using the definition of `I`,  
+
+    \[
+    \begin{aligned}
+    \text{digitos}' 
+      &= \sum_{j=0}^{k-1}[S[j]="1"] + [S[k]="1"] \\
+      &= \sum_{j=0}^{k}[S[j]="1"] .
+    \end{aligned}
+    \]
+
+    The index is then incremented (`k' = k+1`).  Hence  
+
+    \[
+    I(k',\text{digitos}') \;=\;
+    0\le k+1\le n \;\land\;
+    \text{digitos}' = \sum_{j=0}^{k}[S[j]="1"] ,
+    \]
+
+    i.e. the invariant is preserved.
+
+* **Termination** – the loop stops when `k = n`.  By the invariant we obtain  
+
+  \[
+  I(n,\text{digitos})\;\Longrightarrow\;
+  \text{digitos}= \sum_{j=0}^{n-1}[S[j]="1"]
+               = \sum_{i=1}^{|S|} S[i] .
+  \tag{A3}
+  \]
+
+Thus the while‑loop (and consequently the `for` loop) is proved correct:
+
+\[
+\{I(0,0)\land P\}\; \texttt{for i in S: …}\; \{I(n,\text{digitos})\land P\}.
+\tag{A4}
+\]
+
+### 3.4  Computing the parity bit  
+
+After the loop we have the fact (A3).  
+Statement (6) tests `digitos % 2 == 0`.  Define  
+
+\[
+B \;:=\;
+\begin{cases}
+0 &\text{if } \text{digitos}\bmod 2 = 0,\\[2mm]
+1 &\text{otherwise}.
+\end{cases}
+\]
+
+The `if` statement (6)–(9) can be written as
+
+```
+if digitos % 2 == 0:
+    B := 0;  out := S + "0"
+else:
+    B := 1;  out := S + "1"
+```
+
+We prove the two branches separately.
+
+* **Then‑branch** (`digitos % 2 == 0`).  
+  From the guard we have `digitos mod 2 = 0`.  By definition of `B` we get
+  `B = 0`.  The statement `out := S + "0"` yields `out = S·B`.  
+  Moreover  
+
+  \[
+  (\operatorname{par}(S) \oplus B)=
+  (\text{digitos}\bmod 2)\oplus 0 = 0 .
+  \]
+
+  The length condition follows from concatenation: `|out| = |S|+1`.
+
+* **Else‑branch** (`digitos % 2 != 0`).  
+  Here `digitos mod 2 = 1`, thus `B = 1`.  The statement `out := S + "1"` gives
+  `out = S·B`.  Again  
+
+  \[
+  (\operatorname{par}(S) \oplus B)=
+  (\text{digitos}\bmod 2)\oplus 1 = 1\oplus 1 = 0 .
+  \]
+
+  Length is unchanged (`|out| = |S|+1`).
+
+Both branches establish the same post‑condition
+
+\[
+Q \;:=\; \bigl(out = S\cdot B\bigr)\land
+        \bigl(B\in\{0,1\}\bigr)\land
+        \bigl(\operatorname{par}(S)\oplus B = 0\bigr)\land
+        \bigl(|out| = |S|+1\bigr).
+\tag{A5}
+\]
+
+Applying the **If** rule with the invariant `I(n,digitos)` as the pre‑condition
+for the `if` yields
+
+\[
+\{I(n,\text{digitos})\land P\}\;
+\texttt{if digitos % 2 == 0: … else: …}\;
+\{Q\}.
+\tag{A6}
+\]
+
+### 3.5  Sequencing the whole program
+
+Now we chain all the pieces:
+
+1. (A1) `S = input()`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+* **Applying the `if`** (statements (6)–(9)) we have exactly the two branches proved above, each leading to post‑condition `Q`. By the **If** rule we obtain  
+
+\[
+\{I(n,\text{digitos})\land P\}\;
+\texttt{if digitos % 2 == 0: … else: …}\;
+\{Q\}.
+\tag{A7}
+\]
+
+### 3.6  Final composition
+
+Now we compose the pieces using the **Seq** rule:
+
+\[
+\begin{aligned}
+\{P\} &\; \texttt{S = input()}\; \{P\}          &&\text{(A1)}\\
+      &\; \texttt{digitos = 0}\; \{I(0,\text{digitos})\land P\} &&\text{(A2)}\\
+      &\; \texttt{for i in S: …}\; \{I(n,\text{digitos})\land P\} &&\text{(A4)}\\
+      &\; \texttt{if digitos % 2 == 0: … else: …}\; \{Q\} &&\text{(A7)} .
+\end{aligned}
+\]
+
+Thus we have proved the Hoare triple  
+
+\[
+\boxed{\; \{P\}\;\texttt{program}\;\{Q\}\;}
+\]
+
+which is exactly the specification given at the beginning.
+
+---------------------------------------------------------------------
+
+## 4.  Interpretation of the post‑condition
+
+From the derivation we can read off the concrete meaning of `Q` for the concrete
+variables used in the program:
+
+* `T` is the string printed by the program; by construction `T = S + B`.
+* `B` is a bit (`"0"` or `"1"`).  The program sets `B = "0"` when `digitos` is even
+  and `B = "1"` otherwise, i.e.  
+
+  \[
+  B = (\text{digitos}\bmod 2) .
+  \]
+
+* Because `digitos = \sum_{j=0}^{n-1}[S[j]="1"]`, we have  
+
+  \[
+  (\operatorname{par}(S) \oplus B)=0,
+  \]
+
+  i.e. the total number of `1`‑bits in `T` is even (even parity).
+
+* The length condition `|T| = |S|+1` follows from the concatenation.
+
+Hence the program **adds the correct parity bit** to the binary message `S`,
+exactly as required by the problem statement.
+
+---------------------------------------------------------------------
+
+**Conclusion** – The Python program satisfies the Hoare‑logic specification
+\(\{P\}\, \texttt{program}\, \{Q\}\); consequently it is correct with respect to the
+required behaviour “output the original binary string followed by a single
+parity bit that makes the whole word have even parity”.   ∎

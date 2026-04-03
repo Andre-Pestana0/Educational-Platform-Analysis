@@ -1,0 +1,267 @@
+**Answer – a Hoare‑logic proof that the program prints the alphabetical position of the
+input letter**
+
+---------------------------------------------------------------------
+
+### 1.  Notation that will be used in the proof  
+
+| Symbol | Meaning |
+|--------|---------|
+| `L`    | the value that the user types (the *input*). By the pre‑condition we know `L∈Σ`. |
+| `letra`| the program variable that stores the result of `input()`. |
+| `posLetra`| the program variable that stores the result of the arithmetic expression. |
+| `out`  | the value that finally reaches `print`. (In the program this is exactly `posLetra`.) |
+| `code(c)`| the ASCII/Unicode code of a character `c`. In Python `ord(c) = code(c)`. |
+| `pos(c)`| the mathematical function defined in the statement of the problem:  
+
+\[
+\operatorname{pos}(c)=1+(\operatorname{code}(c)-\operatorname{code}('A')) .
+\]|
+
+All arithmetic is performed over the integers ℤ.  
+
+The Hoare triple we have to prove is  
+
+\[
+\{\,L\in Σ\,\}\;S\;\{\text{out}= \operatorname{pos}(L)\}
+\tag{1}
+\]
+
+where `S` is the three‑line program
+
+```python
+letra = input()                # (a)
+posLetra = ord(letra) - 64     # (b)
+print(posLetra)                # (c)
+```
+
+---------------------------------------------------------------------
+
+### 2.  Proof strategy  
+
+We shall prove (1) by **structural Hoare reasoning**:  
+
+1. Show that after line (a) the variable `letra` holds exactly the input letter `L`.  
+2. Show that after line (b) the variable `posLetra` holds the value `pos(L)`.  
+3. Show that line (c) merely copies `posLetra` to the output channel, therefore the
+   post‑condition “`out = pos(L)`” holds.  
+
+The three steps are combined with the **sequencing rule** of Hoare logic.
+
+---------------------------------------------------------------------
+
+### 3.  Individual Hoare triples for the three statements  
+
+#### 3.1  Input statement  
+
+The Python primitive `input()` is assumed to be *total* and to return exactly the
+character that the user typed.  Hence the following Hoare triple is valid (the
+rule for a *deterministic* input command):
+
+\[
+\{\,L\in Σ\,\}\;\; \texttt{letra = input()}\;\;
+\{\,\texttt{letra}=L \;\wedge\; L\in Σ\,\}
+\tag{2}
+\]
+
+*Explanation.*  
+The pre‑condition guarantees that the user indeed types a capital letter.  
+After the assignment the program variable `letra` contains that same letter,
+so the post‑condition is exactly the conjunction of the original pre‑condition
+and the equality `letra = L`.
+
+---------------------------------------------------------------------
+
+#### 3.2  Arithmetic statement  
+
+We use the **assignment axiom**  
+
+\[
+\{\,Q[\,e/x\,]\}\;x:=e\; \{\,Q\,\}
+\tag{A}
+\]
+
+where `Q[ e/x ]` denotes the predicate `Q` with every free occurrence of `x`
+replaced by the expression `e`.
+
+Take  
+
+* `x` = `posLetra`  
+* `e` = `ord(letra) - 64`  
+
+and let the desired post‑condition be  
+
+\[
+Q \equiv \bigl(\texttt{posLetra}= \operatorname{pos}(\texttt{letra})\bigr)
+        \;\wedge\; L\in Σ .
+\tag{3}
+\]
+
+We have to compute `Q[ e / posLetra ]`, i.e. replace `posLetra` by `ord(letra)-64`:
+
+\[
+Q[ e / \texttt{posLetra}]
+\;\equiv\;
+\bigl(\, \underbrace{ord(\texttt{letra})-64}_{e}
+       = \operatorname{pos}(\texttt{letra})\bigr)
+\;\wedge\; L\in Σ .
+\tag{4}
+\]
+
+Now we show that (4) is *true* under the invariant `letra = L`.  
+Recall the definition of `pos` :
+
+\[
+\operatorname{pos}(c)=1+(\operatorname{code}(c)-\operatorname{code}('A')) .
+\tag{5}
+\]
+
+Because `ord` in Python returns the Unicode code point, we have the identity  
+
+\[
+\operatorname{code}(c)=\texttt{ord}(c) \qquad(\forall c\in Σ).
+\tag{6}
+\]
+
+Substituting (6) and the constant `code('A') = 65` into (5) we obtain  
+
+\[
+\operatorname{pos}(c)=1+(\texttt{ord}(c)-65)
+                    =\texttt{ord}(c)-64 .
+\tag{7}
+\]
+
+Thus for every `c∈Σ` the equality  
+
+\[
+\texttt{ord}(c)-64 = \operatorname{pos}(c)
+\tag{8}
+\]
+
+holds.  Instantiating (8) with `c = letra` (and remembering that after line (a)
+`letra = L`) we get exactly the left conjunct of (4). Consequently the whole
+formula (4) is *valid* under the pre‑condition `L∈Σ`.  
+
+Therefore, by the assignment axiom (A) we obtain the Hoare triple
+
+\[
+\{\;L\in Σ\;\}\;
+\texttt{posLetra = ord(letra) - 64}\;
+\{\;\texttt{posLetra}= \operatorname{pos}(\texttt{letra})\;\wedge\;L\in Σ\;\}
+\tag{9}
+\]
+
+and, using the already proved equality `letra = L` from (2), we can rewrite the
+post‑condition as  
+
+\[
+\{\;\texttt{posLetra}= \operatorname{pos}(L)\;\wedge\;L\in Σ\;\}.
+\tag{9′}
+\]
+
+---------------------------------------------------------------------
+
+#### 3.3  Output statement  
+
+The `print` command does not change any program variable; it only sends the
+value of its argument to the external world.  In Hoare logic we model it by the
+triple
+
+\[
+\{\;\texttt{posLetra}= \operatorname{pos}(L)\;\wedge\;L\in Σ\;\}\;
+\texttt{print(posLetra)}\;
+\{\;\texttt{out}= \operatorname{pos}(L)\;\wedge\;L\in Σ\;\}
+\tag{10}
+\]
+
+where the logical variable `out` denotes the value that the environment receives.
+The rule is a simple *consequence* rule: the post‑condition of the program is
+exactly the same as the pre‑condition of `print`, except that we rename the
+observable value `posLetra` to `out`.
+
+---------------------------------------------------------------------
+
+### 4.  Composition of the three triples  
+
+The Hoare **sequencing rule** states that if  
+
+\[
+\{P\}\;S_1\; \{R\}\qquad\text{and}\qquad\{R\}\;S_2\;\{Q\}
+\]
+
+then  
+
+\[
+\{P\}\;S_1;S_2\;\{Q\}.
+\]
+
+Applying it twice we obtain
+
+* From (2) and (9) :
+
+\[
+\{L\in Σ\}\;
+\texttt{letra = input(); posLetra = ord(letra) - 64}\;
+\{\texttt{posLetra}= \operatorname{pos}(L)\;\wedge\;L\in Σ\}.
+\tag{11}
+\]
+
+* From (11) and (10) :
+
+\[
+\boxed{\;
+\{L\in Σ\}\;
+\underbrace{\texttt{letra = input(); posLetra = ord(letra) - 64; print(posLetra)}}
+_{S}
+\;
+\{\texttt{out}= \operatorname{pos}(L)\;\wedge\;L\in Σ\}\;}
+\tag{12}
+\]
+
+The right‑hand side of (12) is exactly the post‑condition required in the
+original Hoare triple (1).  Hence the program **satisfies the specification**.
+
+---------------------------------------------------------------------
+
+### 5.  Termination argument  
+
+All three statements are *total* in Python:
+
+* `input()` always returns a string (the user is assumed to provide a character;
+  the pre‑condition guarantees that it is a capital letter).  
+* The arithmetic expression `ord(letra) - 64` is a pure integer computation,
+  which always terminates.  
+* `print` writes a value to standard output and then terminates.
+
+Therefore the whole sequence `S` terminates for every state that fulfills the
+pre‑condition `L∈Σ`.  Termination together with the Hoare triple (12) gives
+*partial correctness* → *total correctness*.
+
+---------------------------------------------------------------------
+
+### 6.  Concluding statement  
+
+We have proved, using only the Hoare‑style pre‑ and post‑conditions supplied in
+the problem statement, that the Python program
+
+```python
+letra = input()
+posLetra = ord(letra) - 64
+print(posLetra)
+```
+
+terminates and, for every uppercase English letter `L` supplied as input,
+outputs the integer  
+
+\[
+\text{out}= \operatorname{pos}(L)=1+(\operatorname{code}(L)-\operatorname{code}('A')),
+\]
+
+i.e. the alphabetical position of `L` (A → 1, …, Z → 26).  Consequently the
+Hoare triple  
+
+\[
+\{\,L\in Σ\,\}\;S\;\{\text{out}= \operatorname{pos}(L)\}
+\]
+
+holds, which is precisely the correctness specification required. ∎

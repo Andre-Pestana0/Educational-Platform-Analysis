@@ -1,0 +1,328 @@
+## 1.  What we have to show  
+
+We are given a **Hoare‑logic specification**
+
+\[
+\{\,\exists d\in\mathbb Z.\;{\tt read}=d\,\}\;\;{\tt prog}\;\;
+\{\,out = R(d)\,\},
+\qquad
+R(d)=\begin{cases}
+\Delta(d) & d\in\operatorname{dom}(\Delta)\\[2pt]
+\text{“DDD nao cadastrado”} & d\notin\operatorname{dom}(\Delta)
+\end{cases}
+\tag{S}
+\]
+
+and a concrete Python program (the “solution of Beecrowd 1050”).  
+Our task is to **prove** that the program satisfies (S).  
+We do this by writing a *Hoare‑logic derivation* that starts from the
+pre‑condition, applies the standard inference rules for the language
+constructs that appear in the program, and ends with the post‑condition.
+
+The proof consists of two parts  
+
+* **Partial correctness** – the program, if it terminates, produces the
+  required output.  
+* **Total correctness** – the program always terminates (in particular,
+  the `if‑else` terminates).
+
+---
+
+## 2.  The program in a Hoare‑logic friendly syntax  
+
+For the sake of a formal proof we rewrite the Python fragment as a
+sequence of elementary commands of a simple imperative language
+(`:=` for assignment, `if b then S₁ else S₂`, `print e`).  The program
+contains only **read‑once** input, a constant dictionary, a membership
+test, a dictionary lookup and a `print`.  All of them are primitive
+operations that we treat as *atomic* (they have a known Hoare‑logic
+axiom).
+
+```
+1  ddd := read                     # read the integer from stdin
+2  cidades := { … }                # the literal dictionary (see below)
+3  if ddd in cidades then
+4        out := cidades[ddd]      # the “then” branch
+5  else
+6        out := "DDD nao cadastrado"   # the “else” branch
+7  print out
+```
+
+The *literal* dictionary in line 2 is exactly the partial function
+\(\Delta\) that appears in the specification; we therefore assume the
+following **definition‑equivalence** (proved once and for all by inspection
+of the source code):
+
+\[
+\boxed{\;cidades \equiv \Delta\;}
+\tag{D}
+\]
+
+Consequently
+
+\[
+ddd\in cidades \;\;\Longleftrightarrow\;\; ddd\in\operatorname{dom}(\Delta)
+\tag{M}
+\]
+
+and, for every integer `x` that belongs to the domain,
+
+\[
+cidades[x] = \Delta(x). \tag{L}
+\]
+
+---
+
+## 3.  Hoare‑logic rules that we shall use  
+
+| construct | Hoare rule (partial correctness) |
+|-----------|-----------------------------------|
+| **Assignment** | \(\displaystyle \frac{}{\{P[e/x]\}\;x:=e\;\{P\}}\) |
+| **If‑then‑else** | \(\displaystyle \frac{\{P\wedge b\}\;S_1\;\{Q\}\qquad\{P\wedge\neg b\}\;S_2\;\{Q\}}{\{P\}\;\textbf{if }b\textbf{ then }S_1\textbf{ else }S_2\;\{Q\}}\) |
+| **Sequence** | \(\displaystyle \frac{\{P\}\;S_1\;\{R\}\qquad\{R\}\;S_2\;\{Q\}}{\{P\}\;S_1;S_2\;\{Q\}}\) |
+| **Print** (treated as an assignment to the *output* variable) | \(\displaystyle \frac{}{\{out = v\}\;\textbf{print }v\;\{out = v\}}\) |
+| **Read** (atomic input) | \(\displaystyle \frac{}{\{\,read = d\,\}\;\textbf{read}\;d\;\{\,ddd = d\,\}}\) |
+
+The rule for **total correctness** adds a *variant* that strictly
+decreases for each loop or recursive call.  Our program contains no
+loop, therefore total correctness follows from the fact that each
+primitive command terminates (reading an integer, evaluating a literal
+dictionary, a membership test and a single `print` are all terminating).
+
+---
+
+## 4.  Annotated proof  
+
+We annotate each line of the program with a *loop‑invariant‑style*
+assertion.  The assertions are written as logical formulas over the
+variables `ddd`, `cidades`, `out` and the *input* constant `read`.
+
+### 4.1  After the input command (line 1)
+
+```
+{ ∃d∈ℤ . read = d }                -- pre‑condition (2)
+read ddd                           -- “read” is an atomic command
+{ ∃d∈ℤ . read = d ∧ ddd = d }     -- by the read‑axiom
+```
+
+Since the only value that `read` can have is the integer supplied by the
+environment, we can rewrite the post‑condition of line 1 as
+
+\[
+\boxed{P_1 \;:\; ddd = d \;\wedge\; d\in\mathbb Z}
+\tag{P₁}
+\]
+
+where the existential quantifier is now **eliminated** (the program
+stores the concrete value `d` in `ddd`).
+
+### 4.2  After the dictionary construction (line 2)
+
+The statement is a *constant* assignment; it does not depend on the
+current state, therefore we may strengthen the assertion with the
+definition (D):
+
+\[
+\frac{\{P_1\}}{cidades := \Delta}\;
+\{\,P_1 \;\wedge\; cidades \equiv \Delta\,\}
+\stackrel{\text{def}}{=}
+\boxed{P_2 \;:\; ddd = d \;\wedge\; cidades = \Delta}
+\tag{P₂}
+\]
+
+(The equality `cidades = Δ` is a shorthand for “the two partial functions
+have exactly the same graph”.)
+
+### 4.3  The conditional (lines 3–6)
+
+We now apply the **if‑then‑else** rule with the Boolean guard  
+
+\[
+b \;=\; (ddd\in cidades).
+\]
+
+Because of (M) we have the logical equivalence  
+
+\[
+b \;\Longleftrightarrow\; (d \in \operatorname{dom}(\Delta)).
+\tag{B}
+\]
+
+We must prove two sub‑derivations:
+
+* **Then‑branch** (`b` true) – line 4  
+* **Else‑branch** (`b` false) – line 6  
+
+Both branches end with the same post‑condition, which we call `Q`:
+
+\[
+Q \;:\; out = 
+\begin{cases}
+\Delta(d) & d\in\operatorname{dom}(\Delta)\\[2pt]
+\text{“DDD nao cadastrado”} & d\notin\operatorname{dom}(\Delta)
+\end{cases}
+\tag{Q}
+\]
+
+---
+
+### 4.3.1  Then‑branch  
+
+Assume the guard holds, i.e. `ddd ∈ cidades`.  Using (M) we know that
+`d ∈ dom(Δ)`.  The command in line 4 is the assignment
+
+```
+out := cidades[ddd]
+```
+
+By (L) the right‑hand side equals `Δ(d)`.  Applying the assignment rule:
+
+\[
+\frac{\{\,Q[Δ(d)/out]\}}{out := cidades[ddd]}\;
+\{\,Q\,\}
+\]
+
+Since `Q[Δ(d)/out]` is precisely the assertion  
+
+\[
+out = Δ(d) \;\wedge\; d\in\operatorname{dom}(\Delta),
+\]
+
+and this follows from `P₂` together with the hypothesis `b`,
+the then‑branch is proved.
+
+Formally:
+
+\[
+\{P_2 \wedge b\}
+\;\;out := cidades[ddd]\;
+\{Q\}
+\tag{T}
+\]
+
+---
+
+### 4.3.2  Else‑branch  
+
+Assume the guard is false, i.e. `ddd ∉ cidades`.  By (M) we obtain
+`d ∉ dom(Δ)`.  The command in line 6 is
+
+```
+out := "DDD nao cadastrado"
+```
+
+Again the assignment rule gives
+
+\[
+\frac{\{\,Q["DDD nao cadastrado"/out]\}}{out := "DDD nao cadastrado"}\;
+\{\,Q\,\}
+\]
+
+and `Q["DDD nao cadastrado"/out]` is exactly
+
+\[
+out = \text{“DDD nao cadastrado”} \;\wedge\; d\notin\operatorname{dom}(\Delta),
+\]
+
+which follows from `P₂ ∧ ¬b`.  Hence
+
+\[
+\{P_2 \wedge \neg b\}
+\;\;out := "DDD nao cadastrado"\;
+\{Q\}
+\tag{E}
+\]
+
+---
+
+### 4.3.3  Putting the two branches together  
+
+From (T) and (E) the **if‑rule** yields
+
+\[
+\{P_2\}\;
+\textbf{if }(ddd\in cidades)\textbf{ then }out:=cidades[ddd]\textbf{ else }out:="DDD nao cadastrado"\;
+\{Q\}.
+\tag{IF}
+\]
+
+Thus after line 6 we have established the post‑condition `Q`.
+
+### 4.4  The final `print` (line 7)
+
+The last statement merely writes the value of `out` to the terminal.
+In Hoare logic we treat it as an *output* command that does not change
+the logical state, i.e.
+
+\[
+\frac{}{\{out = v\}\;\textbf{print }v\;\{out = v\}} .
+\]
+
+Instantiating `v` with the current value of `out` we obtain
+
+\[
+\{Q\}\;\textbf{print }out\;\{Q\}.
+\tag{PR}
+\]
+
+---
+
+### 4.5  Whole program  
+
+Now we compose the three pieces:
+
+1. `{∃d. read = d}` → (read) → `P₁`.  
+2. `P₁` → (dictionary literal) → `P₂`.  
+3. `P₂` → (if‑else) → `Q`.  
+4. `Q` → (print) → `Q`.
+
+Using the **sequence rule** repeatedly we obtain the Hoare triple
+
+\[
+\boxed{\;\{\,\exists d\in\mathbb Z.\;read = d\,\}\;\;{\tt prog}\;\;
+\{\,out = R(d)\,\}\;}
+\tag{PROV}
+\]
+
+where `R(d)` is precisely the definition (1) of the result function.
+Thus **partial correctness** is proved.
+
+---
+
+## 5.  Termination (total correctness)
+
+The program contains no loops or recursion:
+
+* `read` returns a value after a bounded amount of I/O work.  
+* The dictionary literal is a compile‑time constant; constructing it is a
+  finite, bounded operation.  
+* The membership test `ddd in cidades` and the lookup `cidades[ddd]`
+  are constant‑time operations on a finite table.  
+* `print` terminates after writing a finite string.
+
+Therefore every execution reaches the final `print` statement in a
+finite number of steps.  Consequently the program is **totally
+correct** with respect to the specification (5).
+
+---
+
+## 6.  Conclusion  
+
+We have exhibited a complete Hoare‑logic derivation:
+
+* Starting from the pre‑condition “the input is a single integer”,  
+* applying the assignment, if‑then‑else and print axioms,  
+* using the factual equivalences (D), (M) and (L) that relate the
+  concrete Python dictionary to the abstract partial function Δ,  
+
+we have derived exactly the post‑condition required by the specification,
+namely `out = R(d)`.  The derivation also shows that the program always
+terminates, hence it satisfies the **total‑correctness** Hoare triple
+
+\[
+\{\,\exists d\in\mathbb Z.\;read=d\,\}\;{\tt prog}\;
+\{\,out = R(d)\,\}.
+\]
+
+Consequently the given Python program is **correct** with respect to the
+formal Hoare‑logic specification (5).  

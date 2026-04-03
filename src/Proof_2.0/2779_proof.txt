@@ -1,0 +1,206 @@
+**Proof of correctness (Hoare‑logic style)**  
+
+We prove that the program satisfies the Hoare triple  
+
+\[
+\{P\}\;\;{\text{program}}\;\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in the statement,  
+
+* \(Q\) is the post‑condition that the printed value **missing** equals the number of album slots that are still empty.  
+
+The proof proceeds by showing a suitable **loop invariant** for the `for`‑loop, then using the rules of Hoare logic (initialisation, preservation, termination) to obtain the desired post‑condition.
+
+---------------------------------------------------------------------
+
+## 1. Notation and auxiliary definitions  
+
+* Input variables (read from `stdin`):
+
+  * `total_fig`  – the value called **N** in the specification.  
+  * `total_figCompradas` – the value called **M**.  
+
+* The sequence of stickers bought by the user is  
+
+  \[
+  X_1,\dots ,X_M\quad\text{where }X_i\in\{1,\dots ,N\}.
+  \]
+
+* During execution we maintain the list  
+
+  \[
+  \texttt{fig\_possuidas}
+  \]
+
+  which, by construction, always contains **exactly** the distinct stickers already seen.
+
+* For a natural number \(i\) (the loop counter) we define  
+
+  \[
+  \mathsf{Owned}_i \;=\; \{\,k\mid \exists j\in\{1,\dots ,i\}\;.\;X_j=k\,\}
+  \]
+
+  – the set of *different* stickers among the first \(i\) inputs.  
+
+  Its cardinality is \(|\mathsf{Owned}_i|\).
+
+---------------------------------------------------------------------
+
+## 2. Loop invariant  
+
+\[
+\boxed{I(i):\;
+\begin{cases}
+\texttt{fig\_possuidas} = \mathsf{Owned}_i,\\[2mm]
+\texttt{total\_fig} = N - |\mathsf{Owned}_i|,\\[2mm]
+0\le i\le M .
+\end{cases}}
+\]
+
+In words: after the loop has processed the first `i` stickers,  
+
+* the list `fig_possuidas` contains **exactly** the distinct stickers among those `i` inputs, and  
+
+* the variable `total_fig` equals the original number of slots `N` minus the number of distinct stickers already owned.
+
+---------------------------------------------------------------------
+
+## 3. Proof that the invariant holds
+
+### 3.1. Initialization (`i = 0`)
+
+Before the loop starts we have executed only the two `input()` statements, therefore  
+
+* `total_fig` still equals the original `N`.  
+* `fig_possuidas` is the empty list `[]`.  
+
+Hence  
+
+\[
+\mathsf{Owned}_0 = \varnothing,\qquad |\mathsf{Owned}_0| = 0 .
+\]
+
+Consequently  
+
+\[
+\texttt{fig\_possuidas}= \varnothing = \mathsf{Owned}_0,\qquad
+\texttt{total\_fig}=N = N-0 = N-|\mathsf{Owned}_0|.
+\]
+
+Thus \(I(0)\) holds. (Rule **{P} init {I(0)}**.)
+
+---------------------------------------------------------------------
+
+### 3.2. Preservation (inductive step)
+
+Assume the invariant holds at the beginning of an iteration with loop counter `i` (`0 ≤ i < M`).  
+The body reads the next sticker `fig = X_{i+1}` and executes:
+
+```python
+if fig_possuidas.count(fig) == 0:
+    fig_possuidas.append(fig)
+    total_fig -= 1
+```
+
+Two cases:
+
+| case | condition | effect on `fig_possuidas` | effect on `total_fig` |
+|------|-----------|---------------------------|-----------------------|
+| **A** | `fig` already belongs to `fig_possuidas` (`fig ∈ \mathsf{Owned}_i`) | nothing is appended → `fig_possuidas` stays equal to `\mathsf{Owned}_i` | `total_fig` unchanged → still `N-|\mathsf{Owned}_i|` |
+| **B** | `fig` is **new** (`fig ∉ \mathsf{Owned}_i`) | `fig` is appended → new list = `\mathsf{Owned}_i ∪ {fig}` = `\mathsf{Owned}_{i+1}` | `total_fig` is decremented by 1 → `N-|\mathsf{Owned}_i|-1 = N-|\mathsf{Owned}_{i+1}|` (because a new element increases the cardinality by 1) |
+
+In both cases after the body finishes we have  
+
+\[
+\texttt{fig\_possuidas}= \mathsf{Owned}_{i+1},\qquad
+\texttt{total\_fig}= N-|\mathsf{Owned}_{i+1}|,
+\]
+
+and the loop counter is automatically increased by the `for` construct to `i+1`.  
+Thus \(I(i+1)\) holds. (Rule **{I(i) ∧ B} body {I(i+1)}**.)
+
+---------------------------------------------------------------------
+
+### 3.3. Termination
+
+The loop variable `i` runs from `0` to `total_figCompradas-1`.  
+Because `total_figCompradas = M` is a non‑negative integer (by \(P\)), the loop executes exactly `M` iterations and then stops.  
+When it stops we have `i = M`. By the invariant we obtain  
+
+\[
+\texttt{total\_fig}= N-|\mathsf{Owned}_M| .
+\]
+
+---------------------------------------------------------------------
+
+## 4. Deriving the post‑condition
+
+Define  
+
+\[
+\mathsf{Owned}\;=\;\mathsf{Owned}_M
+        =\{\,k\in\{1,\dots ,N\}\mid \exists i\in\{1,\dots ,M\}\;.\;X_i=k\,\}.
+\]
+
+Thus \(|\mathsf{Owned}| = |\mathsf{Owned}_M|\).  
+From the reasoning above, after the loop finishes we have  
+
+\[
+\texttt{total\_fig}= N-|\mathsf{Owned}|.
+\]
+
+The next statement of the program is
+
+```python
+print(total_fig)
+```
+
+Hence the value printed, called **missing**, satisfies  
+
+\[
+\text{missing}= N-|\mathsf{Owned}|.
+\]
+
+Since `0 ≤ |\mathsf{Owned}| ≤ N`, we also have `0 ≤ missing ≤ N`.  
+These two facts are exactly the post‑condition \(Q\) given in the specification.
+
+---------------------------------------------------------------------
+
+## 5. Full Hoare‑logic derivation
+
+\[
+\begin{array}{ll}
+\{P\} & \text{read } N, M \text{ (these are the program variables `total_fig`, `total_figCompradas`)} \\[1mm]
+      & \text{initialize } \texttt{fig\_possuidas}:=[] \\
+      & \text{(by the initialization argument) } \{I(0)\}\\[2mm]
+\{I(i)\} & \text{for } i=0 \text{ to } M-1 \text{ do } \\
+        & \quad\text{read } X_{i+1}\text{ into } \texttt{fig} \\
+        & \quad\text{if } \texttt{fig\_possuidas.count(fig)}==0 \\
+        & \qquad\texttt{fig\_possuidas.append(fig); total\_fig -= 1} \\
+        & \quad\text{(by the preservation argument) } \{I(i+1)\}\\[2mm]
+\{I(M)\} & \text{loop ends} \\[1mm]
+        & \text{print(total\_fig)}\\[1mm]
+\{Q\}   & \text{(by substitution of } I(M) \text{ and definition of } \mathsf{Owned}) 
+\end{array}
+\]
+
+Thus we have proved the Hoare triple  
+
+\[
+\boxed{\{P\}\;\; \text{program}\;\; \{Q\}}
+\]
+
+which shows that, under the given pre‑condition, the program always terminates and prints the exact number of missing stickers required by the specification. ∎
+
+---------------------------------------------------------------------
+
+### Remarks on the Python implementation  
+
+* The list method `count` is used only to test membership (`count(fig)==0`).  
+  Semantically this is equivalent to the set‑membership test `fig ∉ fig_possuidas`.  
+* Because `fig_possuidas` is updated **only** when a new sticker is found, it always stores a collection of *pairwise different* stickers; therefore its length coincides with \(|\mathsf{Owned}_i|\) at every loop iteration, which is the key property used in the invariant.  
+
+Consequently the concrete program conforms perfectly to the abstract algorithm described in the Hoare‑logic specification.

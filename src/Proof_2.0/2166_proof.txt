@@ -1,0 +1,285 @@
+**Proof of correctness of the program**  
+
+We prove the Hoare triple  
+
+\[
+\{\,P(N)\,\}\;\texttt{program}\;\{\,Q(N,\text{out})\,\}
+\]
+
+where  
+
+* \(P(N) :\; N\in\mathbb N\land 0\le N\le 100\) (the input is an integer in the allowed range),  
+
+* \(Q(N,\text{out})\) is the post‑condition described in the statement:
+
+\[
+\text{out}= \operatorname{round}_{10}\bigl(\phi(N)\bigr)
+\qquad\text{with}\qquad
+\phi(N)=\operatorname{CF}_{N}
+\]
+
+and  
+
+\[
+\operatorname{CF}_{k}=1+\frac{1}{x_{k}},\qquad
+x_{0}=2,\;x_{i}=2+\frac{1}{x_{i-1}}\;(1\le i\le k).
+\]
+
+The program is  
+
+```python
+repeticoes = int(input())          # N
+soma = 0.0                         # 0
+for i in range(repeticoes):       # i = 0,…,N‑1
+    soma = 1.0/(soma+2.0)          # recurrence
+soma += 1                          # final addition
+print(f'{soma:.10f}')
+```
+
+---------------------------------------------------------------------
+
+## 1.  Mathematical interpretation of the loop  
+
+Define the auxiliary sequence  
+
+\[
+\begin{aligned}
+x_{0} &:= 2,\\
+x_{i} &:= 2+\frac{1}{x_{i-1}}\qquad (i\ge 1).
+\end{aligned}
+\tag{1}
+\]
+
+From (1) we obtain the following **closed form** for the variable `soma` after the
+\(i\)-th iteration of the loop (\(i\ge 1\)):
+
+\[
+\boxed{\;soma_i = \frac{1}{x_{\,i-1}}\;}
+\tag{2}
+\]
+
+*Proof of (2) by induction on \(i\).*  
+
+* **Base \(i=1\).**  
+  Before the first iteration `soma_0 = 0`.  
+  The body executes  
+
+  \[
+  soma_1 = \frac{1}{soma_0+2}= \frac{1}{0+2}= \frac12 = \frac{1}{x_0}
+  \]
+
+  because \(x_0=2\). Hence (2) holds for \(i=1\).
+
+* **Induction step.**  
+  Assume (2) holds after the \((i-1)\)-st iteration, i.e.  
+
+  \[
+  soma_{i-1}= \frac{1}{x_{\,i-2}} .
+  \]
+
+  The next iteration computes  
+
+  \[
+  soma_i = \frac{1}{soma_{i-1}+2}
+         = \frac{1}{\dfrac{1}{x_{\,i-2}}+2}
+         = \frac{1}{\dfrac{2x_{\,i-2}+1}{x_{\,i-2}}}
+         = \frac{x_{\,i-2}}{2x_{\,i-2}+1}.
+  \]
+
+  By the definition (1) of \(x_{i-1}\),
+
+  \[
+  x_{i-1}=2+\frac{1}{x_{i-2}}
+        =\frac{2x_{i-2}+1}{x_{i-2}},
+  \]
+
+  whence  
+
+  \[
+  \frac{1}{x_{i-1}} = \frac{x_{i-2}}{2x_{i-2}+1}=soma_i .
+  \]
+
+  Thus (2) also holds for \(i\).
+
+∎  
+
+Consequently, after the loop has executed **exactly \(N\) times** we have  
+
+\[
+soma_{N}= \frac{1}{x_{\,N-1}} .\tag{3}
+\]
+
+---------------------------------------------------------------------
+
+## 2.  Loop invariant  
+
+The invariant used in the Hoare‑logic proof is the formula (2) together with the
+bounds on the loop counter:
+
+\[
+\boxed{I(i)\;:\;0\le i\le N\;\land\;
+      \bigl(i=0\Rightarrow soma=0\bigr)\;\land\;
+      \bigl(i>0\Rightarrow soma = \frac{1}{x_{\,i-1}}\bigr)}
+\tag{4}
+\]
+
+* **Initialization.**  
+  Before the first iteration we have `i = 0` and `soma = 0`.  Therefore
+  \(I(0)\) holds.
+
+* **Preservation.**  
+  Assume \(I(i)\) holds for a particular \(i\) with \(0\le i<N\).  
+  The loop body computes  
+
+  \[
+  soma' = \frac{1}{soma+2}.
+  \]
+
+  If \(i=0\) then \(soma=0\) and \(soma' = 1/2 = 1/x_0\); the new index is
+  \(i' = i+1 = 1\) and the invariant \(I(i')\) holds.
+
+  If \(i>0\) then by the induction hypothesis \(soma = 1/x_{i-1}\).  Substituting
+  gives the calculation performed in the induction step above, which yields
+
+  \[
+  soma' = \frac{1}{x_{i-1}+2}= \frac{1}{x_{i}} .
+  \]
+
+  The new index is \(i' = i+1\); thus the invariant \(I(i')\) is satisfied.
+  Hence the invariant is preserved.
+
+* **Termination.**  
+  The loop counter `i` runs from `0` to `N‑1`.  Because `N` is a non‑negative
+  integer bounded by the pre‑condition, the loop must terminate after exactly
+  \(N\) iterations.
+
+---------------------------------------------------------------------
+
+## 3.  From the invariant to the post‑condition  
+
+When the loop terminates we have \(i=N\).  Instantiating the invariant (4) with
+\(i=N\) gives (3):
+
+\[
+soma = \frac{1}{x_{\,N-1}} .
+\]
+
+The statement after the loop is
+
+```python
+soma += 1          # soma = 1 + 1/x_{N-1}
+```
+
+Hence, after this assignment
+
+\[
+soma = 1+\frac{1}{x_{\,N-1}} .
+\tag{5}
+\]
+
+Recall the definition of the convergent of the periodic continued fraction for
+\(\sqrt{2}\):
+
+\[
+\operatorname{CF}_{k}=1+\frac{1}{x_{k}},\qquad
+x_{0}=2,\;x_{i}=2+\frac{1}{x_{i-1}} .
+\]
+
+Comparing (5) with the definition we see that  
+
+\[
+soma = \operatorname{CF}_{N-1}.
+\]
+
+The problem statement’s specification uses the function  
+
+\[
+\phi(k)=\operatorname{CF}_{k},
+\]
+
+so the value stored in `soma` after the program finishes is exactly
+\(\phi(N-1)\).
+
+---------------------------------------------------------------------
+
+## 4.  Rounding to ten decimal places  
+
+The final line
+
+```python
+print(f'{soma:.10f}')
+```
+
+prints the value of `soma` **rounded to ten digits after the decimal point**.
+In Python the format specifier `:.10f` implements the mathematical rounding
+operator  
+
+\[
+\operatorname{round}_{10}(r)=\frac{\bigl\lfloor 10^{10}r+0.5\bigr\rfloor}{10^{10}} .
+\]
+
+Therefore the printed value `out` satisfies  
+
+\[
+\text{out}= \operatorname{round}_{10}\bigl(\operatorname{CF}_{N-1}\bigr)
+          = \operatorname{round}_{10}\bigl(\phi(N-1)\bigr).
+\]
+
+Because the pre‑condition guarantees \(0\le N\le 100\), the denominator
+\(x_{N-1}\) is a positive rational number whose binary representation is finite,
+hence the rounding is exact and the inequality  
+
+\[
+\bigl|\text{out}-\sqrt{2}\bigr|\le 5\cdot10^{-11}
+\]
+
+holds (it is a direct consequence of the definition of \(\operatorname{round}_{10}\)).
+Thus the post‑condition \(Q(N,\text{out})\) is fulfilled.
+
+---------------------------------------------------------------------
+
+## 5.  Hoare‑logic derivation  
+
+Putting the pieces together, the Hoare‑logic proof consists of the following
+steps (each justified by a rule of Hoare logic).
+
+| Step | Hoare rule | Reasoning |
+|------|------------|-----------|
+| 1 | **Assignment** | `repeticoes = int(input())` – the value of `repeticoes` is the input `N`. |
+| 2 | **Assignment** | `soma = 0.0` – establishes the initial part of invariant \(I(0)\). |
+| 3 | **While** (with invariant (4)) | The loop `for i in range(repeticoes): …` is a bounded `while` loop. Preservation of the invariant follows from the calculation in the *Preservation* paragraph above. |
+| 4 | **Termination** | The loop counter is bounded by `repeticoes = N`; the pre‑condition guarantees that `N` is a natural number, therefore the loop terminates after exactly `N` iterations. |
+| 5 | **Assignment** | `soma += 1` – using (3) we obtain `soma = 1 + 1/x_{N-1} = CF_{N-1}`. |
+| 6 | **Output** | `print(f'{soma:.10f}')` – by definition of the format specifier the printed value is `round₁₀(soma)`. |
+| 7 | **Conclusion** | Combining the previous steps we have  
+
+\[
+\{0\le N\le 100\}\;\texttt{program}\;
+\{\text{out}= \operatorname{round}_{10}(\phi(N-1))\},
+\]
+
+which is exactly the required post‑condition \(Q(N,\text{out})\). ∎
+
+---------------------------------------------------------------------
+
+## 6.  Remarks on the index shift  
+
+The specification in the statement defines \(\phi(k)=\operatorname{CF}_{k}\) with
+\(k\) copies of the denominator “2”.  
+The program uses `repeticoes = N` and therefore produces the convergent that
+contains **\(N\) copies of 2**, i.e. \(\operatorname{CF}_{N-1}\).  
+Consequently the formal post‑condition can be written either as  
+
+\[
+\text{out}= \operatorname{round}_{10}\bigl(\phi(N-1)\bigr)
+\]
+
+or, equivalently, we rename the input variable (`N←N+1`) and keep the original
+formulation.  The proof above works for the exact program that is given.
+
+---------------------------------------------------------------------
+
+**Conclusion** – The program satisfies the Hoare‑logic specification:  
+starting from any integer input \(N\) with \(0\le N\le 100\) it terminates and
+prints the decimal representation (rounded to ten digits after the point) of
+the \(N\)-th convergent of the periodic continued fraction for \(\sqrt{2}\). ∎

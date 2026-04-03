@@ -1,0 +1,312 @@
+**Answer – A Hoare‑logic proof that the Python program satisfies the specification**  
+
+We prove the total‑correctness Hoare triple  
+
+\[
+\{P\}\;\texttt{Program}\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition (3)  
+
+\[
+P\equiv s\in\mathbb R_{2}\land s\ge 0\land\text{the input stream contains exactly the token }s .
+\]
+
+* \(Q\) is the post‑condition (4)  
+
+\[
+\begin{aligned}
+Q\equiv &\;\exists p\in\{4,7,10,12,15\}\,
+          \bigl(p=\operatorname{perc}(s)\bigr)                     \\
+        &\land\;\operatorname{inc}(s)=\tfrac{p}{100}s               \\
+        &\land\;\operatorname{new}(s)=s+\operatorname{inc}(s)       \\
+        &\land\;{\tt out}= \bigl(\text{“Novo salario: ”}\Vert\texttt{fmt}(\operatorname{new}(s),2)\bigr)\\
+        &\qquad\Vert\bigl(\text{“Reajuste ganho: ”}\Vert\texttt{fmt}(\operatorname{inc}(s),2)\bigr)\\
+        &\qquad\Vert\bigl(\text{“Em percentual: ”}\Vert p\Vert\text{ “ %”}\bigr) .
+\end{aligned}
+\]
+
+The proof proceeds by annotating the program with **assertions** (the *intermediate* Hoare
+states) and applying the standard Hoare inference rules:
+
+* **(Assign)** \(\{Q[e/x]\}\;x:=e\;\{Q\}\)  
+* **(If‑Then‑Else)** \(\displaystyle\frac{\{P\land B\}\;C_{1}\;\{Q\}\qquad\{P\land\neg B\}\;C_{2}\;\{Q\}}{\{P\}\;\texttt{if }B\texttt{ then }C_{1}\texttt{ else }C_{2}\;\{Q\}}\)  
+* **(Seq)** \(\displaystyle\frac{\{P\}\;C_{1}\;\{R\}\qquad\{R\}\;C_{2}\;\{Q\}}{\{P\}\;C_{1};C_{2}\;\{Q\}}\)  
+* **(Consequence)** \(\displaystyle\frac{P'\Rightarrow P\qquad\{P\}\;C\;\{Q\}\qquad Q\Rightarrow Q'}{\{P'\}\;C\;\{Q'\}}\)  
+
+We also use the **total‑correctness** rule for `while`/`if` blocks (termination of the
+`if‑elif‑else` chain is obvious because the guards are mutually exclusive and cover
+all real numbers).
+
+--------------------------------------------------------------------
+### 1.  Program skeleton with assertions
+
+|   # | Program fragment                              | Assertion after fragment (A) |
+|-----|-----------------------------------------------|------------------------------|
+| 1   | `salario = float(input())`                    | \(A_{1}: s = \texttt{salario}\land P\) |
+| 2   | `percentual = 0`                               | \(A_{2}: A_{1}\land \texttt{percentual}=0\) |
+| 3   | `novoSalario = 0`                               | \(A_{3}: A_{2}\land \texttt{novoSalario}=0\) |
+| 4   | `reajuste = 0`                                 | \(A_{4}: A_{3}\land \texttt{reajuste}=0\) |
+| 5   | `if salario <= 400:`                           | – |
+| 5a  | &nbsp;&nbsp;`percentual = 0.15`                | \(A_{5a}\) |
+| 5b  | `elif salario <= 800:`                         | – |
+| 5c  | &nbsp;&nbsp;`percentual = 0.12`                | \(A_{5c}\) |
+| 5d  | `elif salario <= 1200:`                        | – |
+| 5e  | &nbsp;&nbsp;`percentual = 0.10`                | \(A_{5e}\) |
+| 5f  | `elif salario <= 2000:`                        | – |
+| 5g  | &nbsp;&nbsp;`percentual = 0.07`                | \(A_{5g}\) |
+| 5h  | `else:`                                        | – |
+| 5i  | &nbsp;&nbsp;`percentual = 0.04`                | \(A_{5i}\) |
+| 6   | `novoSalario = salario + salario*percentual`  | \(A_{6}\) |
+| 7   | `reajuste = salario*percentual`                | \(A_{7}\) |
+| 8   | `print(f"Novo salario: {novoSalario:.2f}")`   | \(A_{8}\) |
+| 9   | `print(f"Reajuste ganho: {reajuste:.2f}")`    | \(A_{9}\) |
+|10   | `print(f"Em percentual: {(percentual*100):.0f} %")`| \(A_{10}\) |
+
+The final assertion \(A_{10}\) is exactly the post‑condition \(Q\); therefore we must
+show  
+
+\[
+P\;\stackrel{1\!-\!10}{\Longrightarrow}\; Q .
+\]
+
+--------------------------------------------------------------------
+### 2.  Proof of each fragment
+
+#### 2.1  Input and initialisation  
+
+* **(Assign)** on line 1  
+
+\[
+\{P\}\;\texttt{salario}=float(input())\;\{s=\texttt{salario}\land P\}=A_{1}.
+\]
+
+* **(Assign)** on lines 2‑4  
+
+\[
+\{A_{1}\}\;\texttt{percentual}=0\;\{A_{2}\},\qquad
+\{A_{2}\}\;\texttt{novoSalario}=0\;\{A_{3}\},\qquad
+\{A_{3}\}\;\texttt{reajuste}=0\;\{A_{4}\}.
+\]
+
+All three assignments are simple; the rule *Consequence* is used to keep the
+previous facts unchanged.
+
+#### 2.2  The `if‑elif‑else` chain  
+
+Define the Boolean guards
+
+\[
+\begin{aligned}
+B_{1}&\equiv \texttt{salario}\le 400,\\
+B_{2}&\equiv \neg B_{1}\wedge \texttt{salario}\le 800,\\
+B_{3}&\equiv \neg(B_{1}\lor B_{2})\wedge \texttt{salario}\le 1200,\\
+B_{4}&\equiv \neg(B_{1}\lor B_{2}\lor B_{3})\wedge \texttt{salario}\le 2000,\\
+B_{5}&\equiv \neg(B_{1}\lor B_{2}\lor B_{3}\lor B_{4}).
+\end{aligned}
+\]
+
+Observe that the guards are **mutually exclusive** and **exhaustive**:
+
+\[
+\bigvee_{i=1}^{5}B_{i}\equiv\texttt{true},\qquad
+\bigwedge_{i\neq j}\neg(B_{i}\land B_{j}).
+\]
+
+For each branch we prove the Hoare triple that after executing the assignment
+`percentual = c` the variable `percentual` holds the value required by
+\(\operatorname{perc}(s)\).
+
+*Branch 1* (\(B_{1}\))  
+
+\[
+\{A_{4}\land B_{1}\}\;\texttt{percentual}=0.15\;\{A_{5a}\},
+\qquad A_{5a}\equiv A_{4}\land \texttt{percentual}=0.15 .
+\]
+
+Because \(B_{1}\) is exactly the condition “\(0\le s\le 400\)”, the
+definition (1) gives \(\operatorname{perc}(s)=15\), i.e.  
+
+\[
+\texttt{percentual}=0.15\;\Longleftrightarrow\;
+\texttt{percentual}= \frac{\operatorname{perc}(s)}{100}.
+\]
+
+Thus from \(A_{5a}\) we can derive  
+
+\[
+A_{5a}\;\Rightarrow\;p=15\land \texttt{percentual}=p/100 .
+\]
+
+The same reasoning applies to the other four branches:
+
+| branch | guard            | assignment | value of `percentual` | corresponding \(p\) |
+|-------|------------------|------------|----------------------|---------------------|
+| 2     | \(B_{2}\)        | `=0.12`    | \(0.12\)             | \(p=12\)            |
+| 3     | \(B_{3}\)        | `=0.10`    | \(0.10\)             | \(p=10\)            |
+| 4     | \(B_{4}\)        | `=0.07`    | \(0.07\)             | \(p=7\)             |
+| 5     | \(B_{5}\)        | `=0.04`    | \(0.04\)             | \(p=4\)             |
+
+Hence, using the **If‑Then‑Else** rule we obtain
+
+\[
+\{A_{4}\}\;\texttt{if }B_{1}\texttt{ … elif }B_{5}\texttt{ … else …}\;\{A_{5i}\},
+\]
+
+where \(A_{5i}\) is the common assertion  
+
+\[
+A_{5i}\equiv A_{4}\land \exists p\in\{4,7,10,12,15\}\;(p=\operatorname{perc}(s)\land
+\texttt{percentual}=p/100).
+\tag{5}
+\]
+
+Thus after the conditional we know the exact percentage \(p\) and we have stored
+the *fraction* \(p/100\) in the variable `percentual`.
+
+#### 2.3  Computing the increase and the new salary  
+
+*Line 6* – assignment `novoSalario = salario + salario*percentual`
+
+\[
+\{A_{5i}\}\;\texttt{novoSalario}= \texttt{salario}+ \texttt{salario}*\texttt{percentual}\;
+\{A_{6}\},
+\]
+
+where  
+
+\[
+A_{6}\equiv A_{5i}\land
+\texttt{novoSalario}= s + s\cdot\frac{p}{100}.
+\tag{6}
+\]
+
+*Line 7* – assignment `reajuste = salario*percentual`
+
+\[
+\{A_{6}\}\;\texttt{reajuste}= \texttt{salario}*\texttt{percentual}\;
+\{A_{7}\},
+\]
+
+with  
+
+\[
+A_{7}\equiv A_{6}\land
+\texttt{reajuste}= s\cdot\frac{p}{100}.
+\tag{7}
+\]
+
+Using (2) we recognise  
+
+\[
+\texttt{reajuste}= \operatorname{inc}(s),\qquad
+\texttt{novoSalario}= \operatorname{new}(s).
+\]
+
+Thus \(A_{7}\) is exactly  
+
+\[
+\exists p\bigl(p=\operatorname{perc}(s)\land
+\operatorname{inc}(s)=\tfrac{p}{100}s\land
+\operatorname{new}(s)=s+\operatorname{inc}(s)\bigr).
+\tag{8}
+\]
+
+#### 2.4  Printing  
+
+The three `print` statements do not modify program variables, therefore the
+usual **(Skip)** rule tells us that the assertions are unchanged; we only have to
+show that the *observable output* that is produced matches the textual
+description in \(Q\).
+
+*Line 8* prints the string  
+
+\[
+\texttt{"Novo salario: "}\;\Vert\;\texttt{format}(\texttt{novoSalario},2).
+\]
+
+Because `novoSalario` equals \(\operatorname{new}(s)\) (by (8)) and the
+formatting routine rounds to exactly two decimal digits, the first line of
+`out` is precisely the first component required by \(Q\).
+
+*Line 9* similarly prints  
+
+\[
+\texttt{"Reajuste ganho: "}\;\Vert\;\texttt{format}(\texttt{reajuste},2)
+   =\texttt{"Reajuste ganho: "}\;\Vert\;\texttt{format}(\operatorname{inc}(s),2).
+\]
+
+*Line 10* prints  
+
+\[
+\texttt{"Em percentual: "}\;\Vert\;( \texttt{percentual}*100 )\;\Vert\;\texttt{" %"}.
+\]
+
+Since `percentual = p/100`, we have `percentual*100 = p`.  The format specifier
+`.0f` removes the fractional part, so the printed integer is exactly the
+percentage \(p\).  Consequently the third line of `out` coincides with the last
+component of \(Q\).
+
+Collecting the three lines we obtain exactly the string described in the
+post‑condition (4).  Hence after line 10 we have
+
+\[
+A_{10}\equiv Q .
+\]
+
+--------------------------------------------------------------------
+### 3.  Composition of the whole proof
+
+Putting the pieces together with the **Seq** rule:
+
+\[
+\begin{aligned}
+&\{P\}\;\texttt{salario}=float(input())\;\{A_{1}\}\\
+&\{A_{1}\}\;\texttt{percentual}=0\;\{A_{2}\}\\
+&\{A_{2}\}\;\texttt{novoSalario}=0\;\{A_{3}\}\\
+&\{A_{3}\}\;\texttt{reajuste}=0\;\{A_{4}\}\\
+&\{A_{4}\}\;\texttt{if …}\;\{A_{5i}\}\\
+&\{A_{5i}\}\;\texttt{novoSalario}=salario+salario*percentual\;\{A_{6}\}\\
+&\{A_{6}\}\;\texttt{reajuste}=salario*percentual\;\{A_{7}\}\\
+&\{A_{7}\}\;\texttt{print(...)}\;\{A_{8}\}\\
+&\{A_{8}\}\;\texttt{print(...)}\;\{A_{9}\}\\
+&\{A_{9}\}\;\texttt{print(...)}\;\{A_{10}\}=Q .
+\end{aligned}
+\]
+
+All intermediate triples have been justified by the appropriate Hoare rule,
+and the **Consequence** rule was used where necessary to replace the concrete
+numeric constants (0.15, 0.12, …) by the abstract expression \(p/100\).
+
+Since the program contains no loops, termination is immediate; therefore the
+triple is **totally correct**.
+
+--------------------------------------------------------------------
+### 4.  Conclusion  
+
+We have exhibited a complete Hoare‑logic derivation that starts from the
+pre‑condition  
+
+\[
+P\equiv s\in\mathbb R_{2}\land s\ge 0\land\text{input token }s
+\]
+
+and ends with the post‑condition  
+
+\[
+Q\equiv\exists p\bigl(p=\operatorname{perc}(s)\land
+\operatorname{inc}(s)=\tfrac{p}{100}s\land
+\operatorname{new}(s)=s+\operatorname{inc}(s)\land
+\texttt{out} \text{ as required}\bigr).
+\]
+
+Consequently the Python program **conforms to the specification**: for every
+admissible salary it prints
+
+* the new salary,
+* the amount of the raise,
+* and the correct percentage,  
+
+all with the prescribed formatting.  Hence the Hoare triple \(\{P\}\; \texttt{Program}\; \{Q\}\) is proved.   ▢

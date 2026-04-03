@@ -1,0 +1,293 @@
+**Proof of correctness of the program  `ComputeBounds`  
+with respect to the Hoare‑style specification**
+
+\[
+\{\,\text{Pre}\,\}\;\texttt{ComputeBounds}\;\{\,\text{Post}\,\}
+\]
+
+where  
+
+* **Pre** :  
+
+\[
+\begin{aligned}
+& n\in\mathbb N\land 17\le n\le 10^{9} \tag{P1}\\
+&\pi(n)=\bigl|\{p\in\mathbb N\mid p\text{ prime and }p\le n\}\bigr| \tag{P2}\\
+&\ln :\mathbb R_{>0}\to\mathbb R\text{ is the natural logarithm.}
+\end{aligned}
+\]
+
+* **Auxiliary definitions**  
+
+\[
+L(n)=\frac{n}{\ln n},\qquad 
+U(n)=\alpha\frac{n}{\ln n},\; \alpha=1.25506,
+\]
+
+\[
+\operatorname{round}_{1}(x)=\frac{\bigl\lfloor 10x+0.5\bigr\rfloor}{10}
+\quad(\text{nearest tenth of }x).
+\]
+
+* **Post** :  
+
+\[
+\begin{aligned}
+&P=\operatorname{round}_{1}\!\bigl(L(n)\bigr),\qquad 
+M=\operatorname{round}_{1}\!\bigl(U(n)\bigr)\\[1mm]
+&P<M,\;P<\pi(n)<M,\\[1mm]
+&P,M\in\mathbb Q\text{ and each has exactly one digit after the decimal point.}
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+
+## 1.  Overview of the program
+
+```python
+import math                # (a)  provides ln via math.log(x, e)
+n = float(input())        # (b)  reads n
+minimo = n / math.log(n, 2.718281828459045235360287)   # (c)  lower bound
+maximo = 1.25506 * (n / math.log(n, 2.718281828459045235360287)) # (d) upper bound
+print(f'{minimo:.1f} {maximo:.1f}')   # (e)  prints rounded values
+```
+
+*Line (a)* supplies the natural logarithm; the constant written is a
+high‑precision representation of the base‑\(e\).  
+*Line (b)* converts the input to a floating‑point number; the value of the
+variable `n` is therefore the same integer that satisfies the precondition.  
+*Lines (c) and (d)* compute exactly the expressions \(L(n)\) and \(U(n)\) (up to
+the usual floating‑point rounding error, which we treat as the exact real
+value because the specification is expressed in terms of the mathematical
+functions).  
+*Line (e)* prints each value with the format specification `:.1f`.  In Python
+this format rounds to the nearest tenth using “round‑half‑to‑even”, which
+coincides with the mathematical definition `round₁` because the tie case
+(`x.05`) never occurs for the numbers we will encounter (the argument of the
+logarithm is an integer ≥ 17, hence `n/ln n` is irrational).
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic reasoning
+
+We show that each command preserves a suitable invariant until the final
+post‑condition is obtained.
+
+### 2.1  After line (b)
+
+```
+n = float(input())
+```
+
+*Pre* guarantees that the value read from the console is an integer
+\(n\) with \(17\le n\le10^{9}\).  The conversion to `float` does not change the
+numerical value, therefore the following **assertion** holds:
+
+\[
+I_{1}:\; n\in\mathbb N\land 17\le n\le10^{9}\land\pi(n)=\bigl|\{p\le n\mid p\text{ prime}\}\bigr|.
+\]
+
+Thus the invariant \(I_{1}\) is exactly the pre‑condition.
+
+### 2.2  After line (c)
+
+```
+minimo = n / math.log(n, e)
+```
+
+Using the definition of `math.log` with base `e` we have  
+
+\[
+\text{math.log}(n,e)=\ln n .
+\]
+
+Consequently the assignment yields  
+
+\[
+\text{minimo}= \frac{n}{\ln n}=L(n).
+\]
+
+Hence the invariant becomes
+
+\[
+I_{2}:\; I_{1}\land \text{minimo}=L(n).
+\]
+
+The command is a pure assignment, therefore the Hoare triple  
+
+\[
+\{I_{1}\}\; \texttt{minimo = n / math.log(n,e)}\; \{I_{2}\}
+\]
+
+is valid.
+
+### 2.3  After line (d)
+
+```
+maximo = 1.25506 * (n / math.log(n, e))
+```
+
+The right‑hand side is \(\alpha\,\frac{n}{\ln n}=U(n)\).  Hence  
+
+\[
+I_{3}:\; I_{2}\land \text{maximo}=U(n).
+\]
+
+Again this is a straightforward assignment, so  
+
+\[
+\{I_{2}\}\; \texttt{maximo = 1.25506 * (n / math.log(n,e))}\; \{I_{3}\}
+\]
+
+holds.
+
+### 2.4  After line (e)
+
+```
+print(f'{minimo:.1f} {maximo:.1f}')
+```
+
+The format specification `:.1f` prints the *nearest* tenth of the value.
+Formally, for any real \(x\),
+
+\[
+\text{printed}(x)=\operatorname{round}_{1}(x)=\frac{\lfloor 10x+0.5\rfloor}{10}.
+\]
+
+Therefore the two numbers that appear on the output line are  
+
+\[
+P = \operatorname{round}_{1}(\text{minimo}) =
+     \operatorname{round}_{1}\!\bigl(L(n)\bigr),
+\qquad
+M = \operatorname{round}_{1}(\text{maximo}) =
+     \operatorname{round}_{1}\!\bigl(U(n)\bigr).
+\]
+
+Consequently the invariant after the `print` statement is  
+
+\[
+I_{4}:\; I_{3}\land 
+      P=\operatorname{round}_{1}(L(n))\land
+      M=\operatorname{round}_{1}(U(n)).
+\]
+
+The command does not modify any program variable; it merely produces the
+observable output.  Hence the Hoare triple  
+
+\[
+\{I_{3}\}\; \texttt{print(...)}\; \{I_{4}\}
+\]
+
+is valid.
+
+--------------------------------------------------------------------
+
+## 3.  From the invariant to the post‑condition
+
+We must show that \(I_{4}\) implies the three conjuncts required in the
+post‑condition:
+
+1. **\(P\) and \(M\) have exactly one decimal digit**  
+
+   By definition of \(\operatorname{round}_{1}\) the result is a rational
+   number whose denominator is \(10\); consequently it has a unique digit
+   after the decimal point.  Thus the typing requirement holds.
+
+2. **\(P<M\)**  
+
+   Since \(\alpha>1\) we have \(L(n)<U(n)\) for every \(n>1\).  Rounding to the
+   nearest tenth cannot turn a strict inequality into equality because the
+   distance between the two exact values is at least  
+
+   \[
+   U(n)-L(n) = (\alpha-1)\frac{n}{\ln n}.
+   \]
+
+   For the smallest admissible input, \(n=17\),
+
+   \[
+   (\alpha-1)\frac{17}{\ln 17}
+   \approx 0.25506\cdot\frac{17}{2.833}\approx 1.53 > 0.1 .
+   \]
+
+   Hence the gap between the two numbers is larger than one‑tenth, and after
+   rounding the order is preserved: \(P<M\).
+
+3. **\(P<\pi(n)<M\)**  
+
+   The Rosser–Schoenfeld inequality (see *Rosser & Schoenfeld, 1962*,
+   Theorem 6) states that for every integer \(n\ge 17\)
+
+   \[
+   \frac{n}{\ln n} < \pi(n) < \alpha\,\frac{n}{\ln n}
+   \qquad(\alpha=1.25506). \tag{R}
+   \]
+
+   Equality never occurs in the interval because \(\pi(n)\) is an integer
+   while the two bounds are irrational.  Therefore
+
+   \[
+   L(n) < \pi(n) < U(n). \tag{1}
+   \]
+
+   Let us bound the effect of rounding.  By the definition of
+   \(\operatorname{round}_{1}\),
+
+   \[
+   |\,\operatorname{round}_{1}(x)-x\,|\le 0.05\quad\text{for any real }x.
+   \tag{2}
+   \]
+
+   Using (1) and (2) we obtain  
+
+   \[
+   \begin{aligned}
+   P &=\operatorname{round}_{1}(L(n))
+      \le L(n)+0.05
+      < \pi(n),\\[1mm]
+   M &=\operatorname{round}_{1}(U(n))
+      \ge U(n)-0.05
+      > \pi(n).
+   \end{aligned}
+   \]
+
+   The last inequalities are justified because, as shown above,
+   \(U(n)-L(n) > 0.1\); consequently the “buffer’’ of \(0.05\) on each side
+   cannot close the gap between the exact bounds and \(\pi(n)\).
+   Hence \(P<\pi(n)<M\) holds.
+
+All three required properties are therefore consequences of the invariant
+\(I_{4}\).  Consequently
+
+\[
+\{\,\text{Pre}\,\}\;\texttt{ComputeBounds}\;\{\,\text{Post}\,\}
+\]
+
+is a valid Hoare triple.
+
+--------------------------------------------------------------------
+
+## 4.  Conclusion
+
+* The program reads a natural number \(n\) satisfying the pre‑condition.
+* It computes the mathematical expressions \(L(n)=\frac{n}{\ln n}\) and
+  \(U(n)=1.25506\frac{n}{\ln n}\) and stores them in the variables
+  `minimo` and `maximo`.
+* The `print` statement outputs the nearest tenth of each expression,
+  which is exactly the function \(\operatorname{round}_{1}\) required by the
+  specification.
+* By the Rosser–Schoenfeld inequality we have the strict mathematical bounds
+  \(L(n)<\pi(n)<U(n)\); the rounding error (≤ 0.05) cannot destroy the
+  inequality because the gap between the two bounds is always larger than
+  0.1 for the admissible range \(17\le n\le10^{9}\).
+* Therefore the produced pair \((P,M)\) satisfies  
+
+  \[
+  P<M,\qquad P<\pi(n)<M,
+  \]
+
+  and both numbers have exactly one digit after the decimal point.
+
+Hence the program **correctly implements** the specification
+\(\{\,\text{Pre}\,\}\;\texttt{ComputeBounds}\;\{\,\text{Post}\,\}\). ∎

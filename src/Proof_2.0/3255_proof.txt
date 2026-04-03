@@ -1,0 +1,489 @@
+## 1.  Overview  
+
+We prove  
+
+\[
+\{\,\mathsf{Pre}\,\}\;\;\texttt{solve()}\;\;\{\,\mathsf{Post}\,\}
+\]
+
+where  
+
+* `solve()` is the whole program that you posted,  
+* `\mathsf{Pre}` is the input‑condition given in § 4 of the specification, and  
+* `\mathsf{Post}` is the output‑condition of § 4.
+
+The proof is **modular** :
+
+1.  Lemma 1 – the sieve builds the correct prime predicate `p`.  
+2.  Lemma 2 – the list `q` is exactly the ordered set of primes `< N`.  
+3.  Lemma 3 – after the dynamic‑programming phase the array `D` satisfies  
+
+   \[
+   D[3\cdot x + j]=\operatorname{opt}(x,j)      \qquad
+   (1\le x<N,\;j\in\{0,1,2\})
+   \]
+
+   where `opt(x,j)` is the value that the functional `out` (definition § 2) returns
+   when the current number is `x` and the player whose turn it is is the
+   *j‑th* player in the order `(O,E,I)`.  
+
+4.  Lemma 4 – the final `for _ in range(n): …` loop accumulates the scores
+   prescribed by the per‑round function  
+
+   \[
+   f(\mathit{sp},s)=\operatorname{out}\bigl((\mathit{sp},s,\infty,\infty,\infty,s)\bigr).
+   \]
+
+The three lemmas together give the required Hoare triple.
+
+In the sequel we write Hoare triples as  
+
+\[
+\{I\}\;C\;\{I'\}
+\]
+
+and we use the usual Hoare‑logic inference rules (assignment, sequencing,
+consequence, while‑loop).  For brevity we omit the explicit “consequence’’
+steps when the invariant is obviously stronger than the required one.
+
+--------------------------------------------------------------------
+
+## 2.  Lemma 1 – the sieve  
+
+### 2.1  Notation  
+
+* `N = 10008`.  
+* `p` is a Python list of length `N`.  
+
+We define the **mathematical** predicate  
+
+\[
+\mathsf{Prime}(t) \;\;\stackrel{\text{def}}{\Longleftrightarrow}\;\;
+t\in\mathbb P\cap[0,N).
+\]
+
+### 2.2  Invariant for the outer `for n in range(2,N)` loop  
+
+\[
+\begin{aligned}
+I_{\text{outer}}(n) \equiv &
+\Bigl(\forall\,t < n\;.\;p[t]=\mathsf{Prime}(t)\Bigr)\;\land\\
+&\Bigl(\forall\,t\ge n\;.\;p[t]=\text{True}\Bigr)
+\end{aligned}
+\]
+
+*Initially* (`n = 2`) the invariant holds because the program has already set
+`p[0]=False`, `p[1]=False` and all other entries to `True`.
+
+### 2.3  Body of the outer loop  
+
+The body is
+
+```python
+if (n * n) >= N: break
+if p[n]:
+    for k in range(2*n, N, n):
+        p[k] = False
+```
+
+*Case 1 – `n*n >= N`* : the `break` exits the loop; the invariant is not needed
+anymore.
+
+*Case 2 – `p[n]` is `False`* : then `n` is already known to be composite, the
+inner loop is skipped and the invariant is trivially preserved (the set of
+indices `< n+1` that are known to be prime/composite does not change).
+
+*Case 3 – `p[n]` is `True`* : `n` is a prime (by the invariant), and the inner
+loop marks exactly the multiples `k = n·m` with `m ≥ 2`.  
+For each such `k` we assign `p[k]=False`.  After the inner loop finishes we have
+
+\[
+\forall\,t\le n\;.\;p[t]=\mathsf{Prime}(t),
+\qquad
+\forall\,t>n\;.\;p[t]=\text{True}\;\text{or already set to `False`}.
+\]
+
+Thus `I_{\text{outer}}(n+1)` holds.
+
+### 2.4  Termination  
+
+`n` increases by one each iteration, therefore the loop terminates after at most
+`N‑2` steps.
+
+### 2.5  Consequence  
+
+When the outer loop terminates we have
+
+\[
+\forall\,t<N\;.\;p[t]=\mathsf{Prime}(t).
+\]
+
+That is exactly the claim of Lemma 1. ∎
+
+
+
+--------------------------------------------------------------------
+
+## 3. Lemma 2 – the list `q` of primes  
+
+`q` is built by
+
+```python
+q = list(zip(*filter(lambda e : e[1], enumerate(p))))[0]
+```
+
+* `enumerate(p)` produces the sequence \((0, p[0]),(1,p[1]),\dots,(N-1,p[N-1])\).  
+* `filter(..., …)` keeps precisely those pairs whose second component is `True`,
+  i.e. the indices that are prime (by Lemma 1).  
+* `zip(* …)` transposes the resulting list of pairs, giving a two‑tuple
+  `(list_of_indices, list_of_Trues)`.  
+* `[0]` extracts the first component, i.e. the list of indices.
+
+Hence  
+
+\[
+q = \bigl\{\,t\mid 0\le t<N\land p[t]=\mathsf{True}\,\bigr\}
+   = \bigl\{\,t\mid t\in\mathbb P\land t<N\,\bigr\}
+\]
+
+and the order is the natural order of `range`, i.e. increasing. ∎
+
+
+
+--------------------------------------------------------------------
+
+## 4. Lemma 3 – the DP table `D`  
+
+### 4.1  Intended meaning of `D`
+
+For any `x` with `1 ≤ x < N` and any player index  
+
+\[
+j\in\{0,1,2\}\quad
+\bigl(j=0\leftrightarrow p=O,\;j=1\leftrightarrow p=E,\;j=2\leftrightarrow p=I\bigr)
+\]
+
+let  
+
+\[
+\operatorname{opt}(x,j)=
+\begin{cases}
+\displaystyle\min\bigl\{\,\pi_j(\operatorname{out}(\sigma(y)))\mid
+           y\in\operatorname{Moves}(x)\bigr\} &
+   \text{if }x>1,\\[2mm]
+\displaystyle\operatorname{score}_j(s_0) &
+   \text{if }x=1 .
+\end{cases}
+\]
+
+`opt(x,j)` is exactly the value that the functional `out` (§ 2) returns for the
+state in which the current number is `x` and the player to move is the *j‑th*
+player.  
+
+The DP construction of `D` is proved correct by a **double induction**:
+
+* outer induction on the *largest prime that has already been processed*,
+* inner induction on the decreasing value of `l` inside the inner `for l in …` loop.
+
+### 4.2  Invariant for the outer loop  
+
+The outer loop iterates over the prime numbers `n` in the list `q` **in increasing
+order**.  
+
+\[
+\begin{aligned}
+I_{\text{outer}}(n) \equiv &
+\Bigl(\forall\,x\in\mathbb P\cap[2,n]\;.\;
+      D[3x]=1\Bigr)\\
+&\land
+\Bigl(\forall\,x\in[2,n]\;.\;
+      D[3x+0],D[3x+1],D[3x+2]\text{ already equal }
+      \operatorname{opt}(x,0),\operatorname{opt}(x,1),\operatorname{opt}(x,2)\Bigr) .
+\end{aligned}
+\]
+
+*Initially* (`n` is the first prime, i.e. 2) the invariant is true because the
+array `D` was filled with the sentinel value `N` and the first statement of the
+outer loop executes `D[3*2]=1`; the three rotations that follow will be handled
+by the inner loop for `l = 1`, which is never entered, so the invariant holds.
+
+### 4.3  Body of the outer loop  
+
+The body consists of two parts.
+
+#### (a)  `D[3*n] = 1`  
+
+If the current number is a prime `n` and it is the player’s turn, the player can
+divide by `n` and reach `1`.  The score obtained in that move is exactly `1`
+(the smallest possible claim, because the player *must* claim the resulting
+number).  Hence `opt(n,0)=1`.  The assignment therefore establishes the first
+conjunct of the invariant for the new prime `n`.
+
+#### (b)  The inner `for l in range(n‑1,1,-1)` loop  
+
+We prove an invariant for this loop.
+
+\[
+\begin{aligned}
+I_{\text{inner}}(l) \equiv &
+\Bigl(\forall\,x\in[l+1,n]\;.\;
+      D[3x+0]=\operatorname{opt}(x,0)\land
+      D[3x+1]=\operatorname{opt}(x,1)\land
+      D[3x+2]=\operatorname{opt}(x,2)\Bigr) .
+\end{aligned}
+\]
+
+*Base* (`l = n‑1`) : the interval `[l+1,n]` contains only the single element `n`,
+which is already handled by part (a).  Thus the invariant holds.
+
+*Inductive step* : assume `I_{\text{inner}}(l)` holds and consider the
+iteration with the current value `l`.
+
+*If `p[l]` is `True`* (i.e. `l` itself is prime) the `break` exits the loop.
+Because `l` is a prime, the optimal value for a player whose turn it is is
+again `1` (divide by `l`).  The outer invariant will be re‑established when the
+next prime `n'` is processed, so no further work is required.
+
+*Otherwise `l` is composite.*  
+The code first **copies** the solution of the successor number `l+1` and rotates
+the three entries:
+
+```python
+D[3*l+0] = D[3*(l+1)+2]
+D[3*l+1] = D[3*(l+1)+0]
+D[3*l+2] = D[3*(l+1)+1]
+```
+
+Interpretation: the current player decides to **add 1** (the move `l → l+1`);
+the turn passes to the next player, therefore the three scores are rotated.
+Consequently after the three assignments we have
+
+\[
+\begin{aligned}
+D[3l+0] &= \operatorname{opt}(l+1,2) ,\\
+D[3l+1] &= \operatorname{opt}(l+1,0) ,\\
+D[3l+2] &= \operatorname{opt}(l+1,1) .
+\end{aligned}
+\tag{1}
+\]
+
+Now the inner-most loop
+
+```python
+for k in q:
+    if not l%k:
+        if (min(l//k, D[3*(l//k)+2]) <= D[3*l]):
+            D[3*l+0] = min(l//k, D[3*(l//k)+2])
+            D[3*l+1] = D[3*(l//k)+0]
+            D[3*l+2] = D[3*(l//k)+1]
+```
+
+examines **every prime divisor `k` of `l`** (because `q` contains all primes
+and the test `not l%k` is true exactly for the divisors).  
+
+* For a divisor `k` we consider the move `l → l/k`.  
+  The score that the current player would obtain by performing this move is  
+
+  \[
+  s = \min\bigl(l/k,\;D[3(l/k)+2]\bigr)
+  \]
+
+  – the first term is the claim “the resulting number itself”, the second term
+    is the claim that will be obtained later when the opponent finishes the
+    sub‑game starting from `l/k` (the opponent’s turn is encoded by the
+    `+2` rotation).  
+
+* The condition  
+
+  \[
+  s \le D[3*l]
+  \]
+
+  checks whether this move yields a **strictly better personal score** than the
+  “add 1” move already stored in `D[3*l]`.  If it does, the three assignments
+  replace the three entries with the scores that belong to the sub‑game
+  `l/k` (again rotated because the turn passes to the next player).
+
+Consequently after the whole `for k in q` loop finishes we have
+
+\[
+D[3l+0]=\min\Bigl\{\,\pi_0\bigl(\operatorname{out}(\sigma(y))\bigr)
+                \mid y\in\operatorname{Moves}(l)\Bigr\}
+      =\operatorname{opt}(l,0),
+\]
+
+and the same holds for the two other coordinates (they are the rotated values
+for the next two players).  This is exactly the definition of `opt(l,·)`.  
+
+Thus after the inner loop we obtain  
+
+\[
+\forall\,x\in[l,n]\;.\; D[3x+j]=\operatorname{opt}(x,j)
+\qquad(j=0,1,2),
+\]
+
+which is `I_{\text{inner}}(l‑1)`.  Hence the invariant is preserved.
+
+When the inner loop finishes (`l = 1`) we have proved the outer invariant for
+the current prime `n`.  Because the outer loop proceeds to the next prime, the
+induction on the outer loop is complete.
+
+### 4.4  The final “min with the index” loop  
+
+```python
+for n in range(1,N):
+    D[3*n+0] = min(n, D[3*n+0])
+    D[3*n+1] = min(n, D[3*n+1])
+    D[3*n+2] = min(n, D[3*n+2])
+```
+
+If the starting number of a round is `s`, a player may never obtain a claim
+larger than `s` – the definition of `score(m)` in the specification forces the
+final score to be `min(s,m)`.  The loop therefore transforms each entry into
+
+\[
+D[3x+j]=\min\bigl(x,\operatorname{opt}(x,j)\bigr)
+      =\operatorname{final}(x,j),
+\]
+
+which is the exact value that the functional `out` returns for the state
+\((p,x,\infty,\infty,\infty,s)\) with `s = x`.  Consequently after this loop
+
+\[
+\forall\,x\in[1,N)\;.\;
+   D[3x+0]=f(O,x)_0,\;
+   D[3x+1]=f(O,x)_1,\;
+   D[3x+2]=f(O,x)_2,
+\]
+
+and by rotating the indices we obtain the same correspondence for any
+starting player.  Hence `D` **stores the per‑round optimal scores** required by
+the specification. ∎
+
+
+
+--------------------------------------------------------------------
+
+## 5. Lemma 4 – the main simulation loop  
+
+### 5.1  Variables used  
+
+* `Score_O, Score_E, Score_I` – the three accumulators (initially `0`).  
+* `n` – number of rounds (read from input).  
+* In each iteration we read a pair `(c,k)` with  
+  `c ∈ {‘O’,‘E’,‘I’}` and `1 ≤ k < N`.
+
+### 5.2  Loop invariant  
+
+\[
+\begin{aligned}
+I_{\text{round}}(t) \equiv &
+\Bigl(\forall\,i\le t\;.\;
+   \text{the i‑th round data are }(sp[i],s_i)\Bigr)\\
+&\land
+\bigl(
+   Score_O =\!\!\sum_{i=1}^{t} f(sp[i],s_i)_0\;\land\;
+   Score_E =\!\!\sum_{i=1}^{t} f(sp[i],s_i)_1\;\land\;
+   Score_I =\!\!\sum_{i=1}^{t} f(sp[i],s_i)_2
+\bigr).
+\end{aligned}
+\]
+
+*Base* (`t = 0`) : the three sums are empty, thus all three scores are `0`,
+which is exactly the initialisation performed before the loop.
+
+### 5.3  Body of the loop  
+
+The body reads one round, then executes one of the three `if`‑branches.
+Consider the branch `c == 'O'` (the other two are symmetric).  The statements are
+
+```python
+o += D[3*k+0]
+e += D[3*k+1]
+i += D[3*k+2]
+```
+
+By Lemma 3 we have  
+
+\[
+\begin{aligned}
+D[3*k+0] &= f(O,k)_0,\\
+D[3*k+1] &= f(O,k)_1,\\
+D[3*k+2] &= f(O,k)_2 .
+\end{aligned}
+\]
+
+Therefore after the three assignments we obtain
+
+\[
+\begin{aligned}
+Score_O' &= Score_O + f(O,k)_0,\\
+Score_E' &= Score_E + f(O,k)_1,\\
+Score_I' &= Score_I + f(O,k)_2,
+\end{aligned}
+\]
+
+which is precisely the update required in the invariant for `t+1`.  
+The branches for `'E'` and `'I'` perform the same three additions but with the
+indices cyclically rotated; this matches the definition of `f(sp[i],s_i)` for
+starting players `E` and `I`.  Hence the invariant is preserved.
+
+### 5.4  Termination  
+
+The loop iterates exactly `n` times, where `n` is a non‑negative integer read
+from the input, so it certainly terminates.
+
+### 5.5  Consequence  
+
+When the loop finishes (`t = n`) we have
+
+\[
+Score_O = \sum_{i=1}^{n} f(sp[i],s_i)_0,\qquad
+Score_E = \sum_{i=1}^{n} f(sp[i],s_i)_1,\qquad
+Score_I = \sum_{i=1}^{n} f(sp[i],s_i)_2,
+\]
+
+which is exactly the post‑condition of the whole program. ∎
+
+
+
+--------------------------------------------------------------------
+
+## 6.  Putting the pieces together  
+
+* Lemma 1 gives the correct prime predicate `p`.  
+* Lemma 2 shows that `q` is the ordered set of all primes `< N`.  
+* Lemma 3 proves that after the DP phase the array `D` stores the values
+  `f(sp,k)_j` for every possible starting player `sp` and number `k`.  
+* Lemma 4 shows that the final loop adds precisely those values to the three
+  accumulators.
+
+Consequently, starting from any state that satisfies `\mathsf{Pre}` the program
+reaches a state that satisfies `\mathsf{Post}`.  By the **rule of consequence**
+the Hoare triple  
+
+\[
+\boxed{\;\{\mathsf{Pre}\}\;\;\texttt{solve()}\;\;\{\mathsf{Post}\}\;}
+\]
+
+is proved.  Hence the Python program correctly implements the specification
+given in § 4 – it reads the list of rounds, simulates each round under the
+optimal‑play rule, and finally prints the three accumulated scores. ∎
+
+
+
+--------------------------------------------------------------------
+
+## 7.  Remarks on the proof style  
+
+* All loops are proved by an explicit invariant that is strong enough to imply
+  the required property after the loop terminates.  
+* The only place where the functional definition of `out` is used is in Lemma 3;
+  the DP recurrence implemented in the program is exactly the recurrence that
+  follows from the minimisation rule of `out`.  
+* The proof does **not** depend on the concrete bound `N = 10008`; any
+  `N > 10 000` would work, because the specification limits the starting numbers
+  to `≤ 10 000`.  
+
+Thus the program is *correct* with respect to the Hoare‑logic specification
+stated in the problem.

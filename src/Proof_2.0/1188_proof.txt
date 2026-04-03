@@ -1,0 +1,379 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**  
+
+Below we work with the **Hoare triple**
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in the statement,  
+
+* \(Q\) is the post‑condition that the value printed is  
+
+  \[
+  \mathit{res}(O,A)=
+  \begin{cases}
+  \displaystyle\sum_{(i,j)\in G}A(i,j) & \text{if }O='S'\\[6pt]
+  \displaystyle\frac{1}{|G|}\sum_{(i,j)\in G}A(i,j) & \text{if }O='M'
+  \end{cases}
+  \]
+
+  with exactly one digit after the decimal point,  
+
+* “program’’ is the concrete Python code shown in the question.
+
+The proof proceeds by **structural decomposition** of the program into
+four parts:
+
+1. reading the operation character `o`,
+2. reading the 12 × 12 matrix into the list `m`,
+3. computing the partial sum `soma` and the counter `k`,
+4. selecting the final value (`soma/k` or `soma`) and printing it.
+
+For each part we give an appropriate Hoare rule (assignment, sequence,
+while‑loop) together with a **loop invariant** that is strong enough to
+allow us to derive the post‑condition at the end.
+
+--------------------------------------------------------------------
+### 1.  Notation that will be used inside the proof
+
+* We index rows and columns **from 1** (the mathematical specification) while
+  Python uses 0‑based indices.  
+  The translation is  
+
+  \[
+  \text{Python index }p = i-1,\qquad
+  \text{Python index }q = j-1 .
+  \]
+
+* The list `m` after the reading loops satisfies  
+
+  \[
+  (\forall i,j\in\{1,\dots ,12\})\;
+  m[i-1][j-1]=A(i,j) .
+  \tag{1}
+  \]
+
+* The set of “green’’ positions is  
+
+  \[
+  G \;=\;
+  \{(i,j)\mid (11-i)<j<i\}\cap\{1,\dots ,12\}^{2}
+  \tag{2}
+  \]
+
+  (the same condition that appears in the program).  
+  From the definition we already know \(|G|=30\).
+
+--------------------------------------------------------------------
+### 2.  Reading the operation character  
+
+```python
+o = input()
+```
+
+* **Hoare rule**: assignment  
+
+  \[
+  \{P\}\;o:=\text{input()}\;\{P\land o\in\{'S','M'\}\}
+  \]
+
+  The pre‑condition already guarantees that the input character belongs to
+  \(\{'S','M'\}\), therefore the post‑condition of this statement is still
+  \(P\).
+
+--------------------------------------------------------------------
+### 3.  Reading the matrix  
+
+```python
+m = []
+for _ in range(12):
+    m.append([])
+    for _ in range(12):
+        v = float(input())
+        m[-1].append(v)
+```
+
+We treat the **outer loop** and the **inner loop** separately.
+
+--------------------------------------------------------------------
+#### 3.1  Inner loop invariant  
+
+For a fixed outer‑loop iteration (fixed Python row index `r`, i.e. matrix
+row \(i=r+1\)) let the loop variable be `c` (the Python column index,
+\(0\le c\le 12\)).  
+
+**Invariant \(I_{\text{inner}}(r,c)\)**  
+
+\[
+\begin{aligned}
+I_{\text{inner}}(r,c) \equiv\;&
+\bigl(\forall q\in\{0,\dots ,c-1\}\;
+      m[r][q]=A(r+1,q+1)\bigr) \\
+ &\land\; \bigl(\forall q\in\{c,\dots ,11\}\;
+      \text{the cell } m[r][q]\text{ is not yet created}\bigr)
+\end{aligned}
+\]
+
+* **Initialization** (`c = 0`): the first conjunct is vacuously true,
+  the second says that the whole row is still empty – true after the
+  `m.append([])` statement.
+
+* **Preservation**: assume \(I_{\text{inner}}(r,c)\) holds before the body.
+  The body reads a value `v` and executes `m[-1].append(v)`.  
+  By (1) the value read is exactly \(A(r+1,c+1)\).  
+  After the append we have  
+
+  \[
+  m[r][c]=A(r+1,c+1)
+  \]
+
+  and the rest of the row (indices \(\ge c+1\)) is still not created,
+  therefore \(I_{\text{inner}}(r,c+1)\) holds.
+
+* **Termination** (`c = 12`): the invariant yields  
+
+  \[
+  (\forall q\in\{0,\dots ,11\})\;m[r][q]=A(r+1,q+1)
+  \]
+
+  i.e. the whole row `r` has been filled with the correct values.
+
+--------------------------------------------------------------------
+#### 3.2  Outer loop invariant  
+
+Let the outer‑loop variable be `r` (Python row index, \(0\le r\le 12\)).  
+
+**Invariant \(I_{\text{outer}}(r)\)**  
+
+\[
+\begin{aligned}
+I_{\text{outer}}(r) \equiv\;&
+\bigl(\forall p\in\{0,\dots ,r-1\}\;
+      \forall q\in\{0,\dots ,11\}\;
+      m[p][q]=A(p+1,q+1)\bigr) \\
+ &\land\; \bigl(\forall p\in\{r,\dots ,11\}\;
+      \text{row } m[p]\text{ is not yet created}\bigr)
+\end{aligned}
+\]
+
+* **Initialization** (`r = 0`): before the first iteration the list `m`
+  is empty, so the invariant holds.
+
+* **Preservation**: assume \(I_{\text{outer}}(r)\) holds at the beginning of
+  an iteration.  
+  The statements `m.append([])` and the inner loop together establish,
+  by the inner‑loop proof, that after the inner loop finishes we have
+
+  \[
+  \forall q\; m[r][q]=A(r+1,q+1)
+  \]
+
+  and the rows with index \(>r\) are still absent. Consequently
+  \(I_{\text{outer}}(r+1)\) holds.
+
+* **Termination** (`r = 12`): the invariant gives
+
+  \[
+  (\forall p,q\in\{0,\dots ,11\})\;m[p][q]=A(p+1,q+1)
+  \]
+
+  which is exactly (1). Hence after the two nested loops the Python
+  variable `m` represents the mathematical matrix \(A\).
+
+--------------------------------------------------------------------
+### 4.  Computing the partial sum and the counter  
+
+```python
+k = 0
+soma = 0
+for i in range(12):
+    for j in range(12):
+        if (11 - i) < j < i:
+            k += 1
+            soma += m[i][j]
+```
+
+Again we treat the **inner** and **outer** loops with a suitable invariant.
+
+--------------------------------------------------------------------
+#### 4.1  Invariant for the inner loop (fixed `i`)
+
+Let `j` be the inner‑loop variable (\(0\le j\le 12\)).  
+
+**Invariant \(I_{\text{inner2}}(i,j)\)**  
+
+\[
+\begin{aligned}
+I_{\text{inner2}}(i,j) \equiv\;&
+k = |\{(p,q)\in G\mid p\le i\land q<j\}| \\[2pt]
+&\land\;
+soma = \sum_{(p,q)\in G,\;p\le i,\;q<j} A(p+1,q+1) .
+\end{aligned}
+\]
+
+Explanation:
+
+* The set on the right‑hand side contains exactly the green positions that
+  have already been visited by the two loops (rows up to `i`, columns
+  strictly smaller than the current `j`).  
+
+* Because `m[i][j] = A(i+1,j+1)` (by (1)), the body of the `if` statement
+  adds precisely the contribution of the newly visited green cell.
+
+* **Initialization** (`j = 0`): the two sets are empty, therefore
+  `k = 0` and `soma = 0`, which matches the program statements right
+  before the loops.
+
+* **Preservation**: assume the invariant holds before the test
+  `(11-i) < j < i`.  
+
+  *If the test is false* the body is skipped, `k` and `soma` stay unchanged,
+  and the set of visited green cells also stays unchanged (the index `j`
+  is not a green column for this row). Hence the invariant holds for
+  `j+1`.
+
+  *If the test is true* then `(i+1,j+1)∈G`. The body executes  
+
+  ```
+  k += 1
+  soma += m[i][j]
+  ```
+
+  which adds exactly one to the cardinality of the visited set and adds
+  the value `A(i+1,j+1)` to the sum. Consequently the invariant holds for
+  `j+1`.
+
+* **Termination** (`j = 12`): the invariant yields  
+
+  \[
+  \begin{aligned}
+  k &= |\{(p,q)\in G\mid p\le i\}| ,\\
+  soma &= \sum_{(p,q)\in G,\;p\le i} A(p+1,q+1) .
+  \end{aligned}
+  \tag{3}
+  \]
+
+--------------------------------------------------------------------
+#### 4.2  Invariant for the outer loop  
+
+Let `i` be the outer‑loop variable (\(0\le i\le 12\)).  
+
+**Invariant \(I_{\text{outer2}}(i)\)**  
+
+\[
+\begin{aligned}
+I_{\text{outer2}}(i) \equiv\;&
+k = |\{(p,q)\in G\mid p< i\}| \\[2pt]
+&\land\;
+soma = \sum_{(p,q)\in G,\;p< i} A(p+1,q+1) .
+\end{aligned}
+\]
+
+* **Initialization** (`i = 0`): before the first iteration `k` and
+  `soma` are both zero, which coincides with the empty set of visited
+  rows.
+
+* **Preservation**: assume \(I_{\text{outer2}}(i)\) holds at the beginning
+  of an iteration. After the inner loop finishes we have (3), i.e.
+
+  \[
+  \begin{aligned}
+  k &= |\{(p,q)\in G\mid p\le i\}| ,\\
+  soma &= \sum_{(p,q)\in G,\;p\le i} A(p+1,q+1) .
+  \end{aligned}
+  \]
+
+  The outer loop then increments `i` (the `for` statement) and the
+  invariant for the next iteration becomes exactly \(I_{\text{outer2}}(i+1)\).
+
+* **Termination** (`i = 12`): the invariant gives  
+
+  \[
+  k = |G| = 30,\qquad
+  soma = \sum_{(p,q)\in G} A(p+1,q+1) = \mathit{sum}_{G}(A) .
+  \tag{4}
+  \]
+
+Thus after the two nested loops the program variables satisfy (4).
+
+--------------------------------------------------------------------
+### 5.  Selecting the result and printing  
+
+```python
+if o == 'M':
+    resultado = soma/k
+elif o == 'S':
+    resultado = soma
+print(f'{resultado:.1f}')
+```
+
+*From (4) we know* `k = 30` and `soma = sum_G(A)`.  
+Because `k>0`, the division `soma/k` is well‑defined.
+
+We consider the two possible cases for the input character `o`.
+
+* **Case `o = 'S'`.**  
+  The `elif` branch is taken, `resultado` receives the value `soma`.  
+  Consequently  
+
+  \[
+  \text{resultado}= \mathit{sum}_{G}(A) .
+  \]
+
+* **Case `o = 'M'`.**  
+  The first branch is taken, `resultado` receives `soma/k`.  
+  Using (4) we get  
+
+  \[
+  \text{resultado}= \frac{\mathit{sum}_{G}(A)}{|G|} .
+  \]
+
+In both cases `resultado` equals the mathematical function
+\(\mathit{res}(O,A)\) defined in the post‑condition.  
+
+The final `print` statement formats the value with exactly one digit
+after the decimal point (`:.1f`).  This is precisely the requirement of
+\(Q\).
+
+--------------------------------------------------------------------
+### 6.  Putting the pieces together  
+
+We have shown, using Hoare logic, that each command of the program
+preserves a suitable invariant and that at the end of the program the
+state satisfies the post‑condition \(Q\).  Formally we have derived the
+Hoare triple
+
+\[
+\boxed{\; \{P\}\; \texttt{program}\; \{Q\} \;}
+\]
+
+where  
+
+* \(P\) is the pre‑condition “\(O\in\{'S','M'\}\) and all matrix entries are
+  real numbers”,  
+
+* \(Q\) is “the printed value is \(\mathit{res}(O,A)\) with one decimal
+  digit”.
+
+Hence the program is **correct** with respect to the given specification.
+
+--------------------------------------------------------------------
+### 7.  Summary of the proof steps (compact form)
+
+| Program fragment | Hoare rule used | Invariant / derived fact |
+|------------------|-----------------|--------------------------|
+| `o = input()` | Assignment | `o ∈ {'S','M'}` (still true) |
+| matrix‑reading loops | two nested `while`/`for` rules | (1) – `m[i-1][j-1] = A(i,j)` for all `i,j` |
+| `k = 0; soma = 0` | Assignment | `k = 0 ∧ soma = 0` |
+| inner loop (`j`) | `while` rule with \(I_{\text{inner2}}\) | (3) – partial sum up to column `j` |
+| outer loop (`i`) | `while` rule with \(I_{\text{outer2}}\) | (4) – `k = |G|` and `soma = sum_G(A)` |
+| `if o == 'M' …` | Conditional rule | `resultado = soma/k` if `o='M'`, else `resultado = soma` |
+| `print` | Assignment + output rule | prints \(\mathit{res}(O,A)\) formatted with one decimal |
+
+All steps are justified by the usual Hoare inference rules, and the
+invariants have been proved to hold initially, be preserved by the loop
+bodies, and imply the desired property on termination.  Consequently the
+program meets the specification.

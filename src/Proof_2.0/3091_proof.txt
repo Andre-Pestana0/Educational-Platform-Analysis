@@ -1,0 +1,230 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,P\,\}\;\;{\tt program}\;\;\{\,Q\,\}
+\]
+
+where  
+
+* **\(P\)** (pre‑condition)  
+
+\[
+P\;:\;A\!\in\!\mathbb Z\;\land\;B\!\in\!\mathbb Z\;\land\;1\le A\le 100\,000\;\land\;1\le B\le 100\,000
+\]
+
+* **\(Q\)** (post‑condition)  
+
+\[
+Q\;:\;R\!\in\!\mathbb Z\;\land\;\exists q\in\mathbb Z\;(A = B\cdot q + R)\;\land\;0\le R < B
+\]
+
+* **program** (concrete Python code)
+
+```python
+valorA = int(input())          # line 1
+valorB = int(input())          # line 2
+print(valorA % valorB)         # line 3
+```
+
+The variables of the specification are identified with the program variables as  
+
+\[
+A \equiv \mathtt{valorA},\qquad
+B \equiv \mathtt{valorB},\qquad
+R \equiv \mathtt{valorA\ \% \ valorB}.
+\]
+
+No other program variable appears, therefore the only state change we have to reason about is the assignment of `valorA % valorB` to the (implicit) output `R`.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic machinery we shall use  
+
+| Rule | Shape | Comment |
+|------|-------|---------|
+| **(Input)** | \(\{P\}\;x = \text{input}()\; \{P[x:=v]\}\) | The value read is *any* integer that satisfies the part of the pre‑condition that mentions `x`. |
+| **(Assignment)** | \(\{P[x:=E]\}\;x:=E\;\{P\}\) | Substitutes the right‑hand side expression `E` for `x` in the post‑condition. |
+| **(Composition)** | \(\{P\}C_1\{R\},\;\{R\}C_2\{Q\}\;\Longrightarrow\;\{P\}C_1;C_2\{Q\}\) | Sequential composition. |
+| **(Consequence)** | \(\{P'\}C\{Q'\},\;P\Rightarrow P',\;Q'\Rightarrow Q\;\Longrightarrow\;\{P\}C\{Q\}\) | Allows strengthening the pre‑condition or weakening the post‑condition. |
+| **(Existential‑intro)** | From \(P\) we may derive \(\exists x.P\). | Used to introduce the existential quantifier for `q`. |
+| **(Property of Python `%` for positive divisor)** | For any integers \(a,b\) with \(b>0\):<br> \(\exists q\in\mathbb Z\;(a = b\cdot q + (a\%b))\) and \(0\le a\%b < b\). | This is a theorem of the language semantics (the division algorithm). |
+
+--------------------------------------------------------------------
+
+## 3.  Proof structure  
+
+We split the program into three *atomic* commands and prove a Hoare triple for each:
+
+1. `valorA = int(input())` – reads the first integer.
+2. `valorB = int(input())` – reads the second integer.
+3. `print(valorA % valorB)` – computes the remainder and prints it.
+
+The third command does **not** modify any program variable; it only produces an observable effect (the printed value). Consequently we can treat it as an *assignment* of the expression `valorA % valorB` to a fresh logical variable `R` and then ignore the `print` itself for the purpose of the state‑based Hoare triple.
+
+--------------------------------------------------------------------
+
+## 4.  Detailed derivation  
+
+### 4.1  First input statement  
+
+We start from the pre‑condition \(P\).  
+Because `valorA` is read *once* and the input is guaranteed (by the problem statement) to be an integer satisfying  
+
+\[
+1\le \mathtt{valorA}\le 100\,000,
+\]
+
+the **Input** rule yields
+
+\[
+\{\,P\,\}\;\mathtt{valorA}= \text{input()}\;\{\,P[\;A:=\mathtt{valorA}\;]\;\}.
+\]
+
+Since the substitution only replaces the symbolic `A` by the concrete variable `valorA`, the post‑condition after line 1 is still
+
+\[
+P_1\;:\;1\le \mathtt{valorA}\le 100\,000\;\land\;1\le B\le 100\,000 .
+\]
+
+(We keep the condition on `B` untouched because it has not been read yet.)
+
+### 4.2  Second input statement  
+
+Applying the **Input** rule again, now to `valorB`, we obtain
+
+\[
+\{\,P_1\,\}\;\mathtt{valorB}= \text{input()}\;\{\,P_1[\;B:=\mathtt{valorB}\;]\;\}.
+\]
+
+After substitution we have the complete state
+
+\[
+P_2\;:\;1\le \mathtt{valorA}\le 100\,000\;\land\;1\le \mathtt{valorB}\le 100\,000 .
+\]
+
+Thus after the first two lines the program state satisfies exactly the original pre‑condition \(P\) with the symbolic names replaced by the concrete variables.
+
+### 4.3  Computing the remainder  
+
+Let us introduce a fresh logical variable `R` that will denote the value printed by the program.  
+The command  
+
+```python
+R := valorA % valorB
+```
+
+is *semantically* an assignment; the `print` statement does not affect the state, so we can ignore it when reasoning about the Hoare triple.
+
+We apply the **Assignment** rule with the expression `E = valorA % valorB`.  
+We need a post‑condition \(Q'\) such that
+
+\[
+Q' \equiv Q[\;R:=\mathtt{valorA\%valorB}\;].
+\]
+
+Because \(Q\) contains the conjunct  
+
+\[
+\exists q\in\mathbb Z\;(A = B\cdot q + R)
+\]
+
+and the conjunct  
+
+\[
+0\le R < B,
+\]
+
+after the substitution we obtain
+
+\[
+Q'\;:\;
+\begin{aligned}
+& \exists q\in\mathbb Z\;.\;
+\mathtt{valorA}= \mathtt{valorB}\cdot q + (\mathtt{valorA}\% \mathtt{valorB})\\
+&\land\;0 \le (\mathtt{valorA}\% \mathtt{valorB}) < \mathtt{valorB}.
+\end{aligned}
+\]
+
+Now we invoke the **property of Python `%` for a positive divisor** (the division algorithm).  
+For any integers \(a,b\) with \(b>0\) it guarantees exactly the two conditions above, with  
+
+\[
+q = \big\lfloor a/b\big\rfloor .
+\]
+
+Because the pre‑condition \(P_2\) ensures \(\mathtt{valorB}>0\), the property is applicable and we obtain
+
+\[
+P_2 \;\Longrightarrow\; Q'.
+\]
+
+Thus we have proved the Hoare triple for the third command:
+
+\[
+\{\,P_2\,\}\;R:=\mathtt{valorA\%valorB}\;\{\,Q'\,\}.
+\]
+
+### 4.4  Putting the pieces together  
+
+Using the **Composition** rule we chain the three triples:
+
+\[
+\begin{aligned}
+&\{P\}\;\mathtt{valorA}= \text{input()}\;\{P_1\}\\
+&\{P_1\}\;\mathtt{valorB}= \text{input()}\;\{P_2\}\\
+&\{P_2\}\;R:=\mathtt{valorA\%valorB}\;\{Q'\}
+\end{aligned}
+\quad\Longrightarrow\quad
+\{P\}\;
+\begin{array}{c}
+\mathtt{valorA}= \text{input()}\\
+\mathtt{valorB}= \text{input()}\\
+R:=\mathtt{valorA\%valorB}
+\end{array}
+\;\{Q'\}.
+\]
+
+Since `print(R)` does not modify the state, the same post‑condition holds after the actual line 3 of the program.  
+
+Finally we apply the **Consequence** rule to replace the logical variable `R` by the concrete output of the program (the value that is printed).  
+The post‑condition we obtain is exactly the original specification \(Q\):
+
+\[
+Q \equiv
+\bigl(R\in\mathbb Z\bigr)\;\land\;
+\bigl(\exists q\in\mathbb Z\;.\;A = B\cdot q + R\bigr)\;\land\;
+\bigl(0\le R < B\bigr).
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Conclusion  
+
+We have shown, step‑by‑step, that the Python program
+
+```python
+valorA = int(input())
+valorB = int(input())
+print(valorA % valorB)
+```
+
+satisfies the Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\texttt{program}\;\{\,Q\,\}}
+\]
+
+with  
+
+* **Pre‑condition** \(P\): the two input integers lie in the interval \([1,100\,000]\);  
+* **Post‑condition** \(Q\): the printed value `R` is the unique integer remainder of the Euclidean division of `A` by `B`, i.e. \(R = A \bmod B\) and \(0\le R < B\).
+
+The proof rests on:
+
+1. The **input** rule, which records that after each `input()` the corresponding program variable equals the value read and respects the bounds stated in \(P\);
+2. The **assignment** rule together with the **division‑algorithm property** of Python’s `%` operator for a positive divisor (the language guarantees `0 ≤ a % b < b`);
+3. The **composition** of the three statements and a final **consequence** step to match the abstract post‑condition \(Q\).
+
+Hence the program is *correct* with respect to the given Hoare‑logic specification.

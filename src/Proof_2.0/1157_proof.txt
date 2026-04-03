@@ -1,0 +1,331 @@
+**Answer – a Hoare‑logic proof that the program prints *exactly* the positive divisors of the
+input integer \(N\) in increasing order**
+
+---
+
+### 1.  The program (rewritten in a Hoare‑logic friendly syntax)
+
+```
+1   read N                     #   input  (pre‑condition guarantees N∈ℕ⁺)
+2   i := 1
+3   while i ≤ N do
+4       if N mod i = 0 then
+5           print i
+6       fi
+7       i := i + 1
+8   od
+```
+
+The only observable effect of the program is the sequence of
+numbers that are printed – we denote this sequence by `out`.  
+The statement “`print i`” is a *write* of the current value of `i`
+as the next element of `out`.  Formally we can view it as
+
+```
+out := out ⧺ [i]           #  “concatenate i at the end of out”
+```
+
+where `⧺` is list concatenation.  In the Hoare proof we will treat
+the command “`print i`” as this assignment to the logical variable
+`out`.
+
+---
+
+### 2.  Specification (the Hoare triple)
+
+\[
+\boxed{\{\,P(N)\,\}\;\texttt{Program}\;\{\,Q(N,\operatorname{out})\,\}}
+\]
+
+with  
+
+*Pre‑condition*  
+
+\[
+P(N) \; \equiv\; N\in\mathbb Z\land N>0\land
+\text{“the input file contains exactly the integer }N\text{”.}
+\]
+
+*Post‑condition*  
+
+\[
+\begin{aligned}
+Q(N,\operatorname{out})\equiv &
+\operatorname{len}(\operatorname{out})=|\operatorname{Div}(N)|                                   \\
+&\land\;\forall i\;(1\le i\le \operatorname{len}(\operatorname{out})\Rightarrow
+   \operatorname{out}[i]\in\mathbb N^{+}\land N\operatorname{mod}\operatorname{out}[i]=0)        \\
+&\land\;\forall i\neq j\;(\operatorname{out}[i]\neq\operatorname{out}[j])                       \\
+&\land\;\forall d\in\operatorname{Div}(N)\;\exists i\;(\operatorname{out}[i]=d)                \\
+&\land\;\forall i<j\;(\operatorname{out}[i]<\operatorname{out}[j])                              \\
+&\land\;\text{the program terminates.}
+\end{aligned}
+\]
+
+---
+
+### 3.  Loop invariant
+
+The heart of the proof is the invariant that holds at the head of the
+`while` loop (just before the test `i ≤ N`).  Let  
+
+\[
+\begin{aligned}
+I(i,\operatorname{out}) \;\equiv\;
+& 1\le i\le N+1                                            \\
+&\land\;\operatorname{out}\text{ is a (possibly empty) list }   \\
+&\quad\text{containing exactly the divisors } d\text{ of }N
+   \text{ that satisfy } d < i,                           \\
+&\quad\text{in strictly increasing order}.
+\end{aligned}
+\]
+
+Formally we can write the “exactly the divisors < i” part as  
+
+\[
+\operatorname{out} = \bigl[\, d\in\operatorname{Div}(N)\mid d<i \,\bigr]_{\uparrow},
+\]
+
+where the subscript \(\uparrow\) denotes that the list is sorted
+ascending.
+
+---
+
+### 4.  Proof structure (Hoare‑logic rules)
+
+We shall prove the Hoare triple by the standard rule for **while**
+loops:
+
+\[
+\frac{\{I\land B\}\;S\;\{I\}}{\{I\}\;\texttt{while }B\texttt{ do }S\;\{I\land\neg B\}}
+\tag{WH}
+\]
+
+where  
+
+* \(B\) is the loop guard (`i ≤ N`);
+* \(S\) is the loop body (the `if` and the increment).
+
+The proof consists of three obligations:
+
+1. **Initialization** – show that the invariant holds immediately after
+   line 2 (`i := 1`).
+2. **Maintenance** – show that if the invariant holds before an
+   iteration and the guard is true, then after executing the body it
+   holds again.
+3. **Termination** – show that when the guard becomes false the
+   invariant together with `¬B` implies the post‑condition.
+
+We also need to prove termination (the loop is bounded) and to
+handle the conditional `if` inside the loop (the Hoare rule for
+conditionals).
+
+Below each step we write the Hoare triple that we prove.
+
+---
+
+#### 4.1  Initialization
+
+```
+{ P(N) }                     (pre‑condition)
+i := 1
+{ I(1,out) }
+```
+
+*Proof.*  
+`P(N)` tells us that `N>0`.  After the assignment `i:=1` we have
+`i=1`.  The list `out` is still empty (no `print` has been executed yet).
+Consequently
+
+* `1 ≤ i = 1 ≤ N+1`  (because `N ≥ 1`);
+* there is no divisor `d < 1`, so the set `{ d∈Div(N) | d < i }` is empty,
+  which matches the current empty list `out`;
+* the empty list is trivially sorted.
+
+Hence `I(1,out)` holds. ∎
+
+
+
+#### 4.2  Maintenance – the body of the loop
+
+We need to prove
+
+\[
+\{\,I(i,\operatorname{out})\land i\le N\,\}\;S\;\{\,I(i+1,\operatorname{out}')\,\}
+\tag{M}
+\]
+
+where `out'` denotes the list after the body finishes.  
+`S` consists of the conditional and the increment:
+
+```
+if N mod i = 0 then out := out ⧺ [i] fi;
+i := i + 1
+```
+
+We treat the two statements separately.
+
+---
+
+##### 4.2.1  The conditional
+
+Hoare rule for conditionals:
+
+\[
+\frac{\{I\land C\}\;S_1\;\{I'\}\qquad\{I\land\neg C\}\;S_2\;\{I'\}}
+      {\{I\}\; \texttt{if }C\texttt{ then }S_1\texttt{ else }S_2\;\{I'\}}
+\tag{IF}
+\]
+
+In our case  
+
+* \(C \equiv (N\operatorname{mod} i = 0)\);
+* \(S_1\) is `out := out ⧺ [i]`;
+* \(S_2\) is the *skip* command (nothing is done);
+* \(I\) is the invariant *before* the conditional, i.e.  
+  \(I(i,\operatorname{out})\land i\le N\);
+* \(I'\) is the same invariant **except that** the bound on `i` is not
+  changed (the increment will be handled later).
+
+We must show two triples.
+
+*Case 1 – divisor found (`C` true).*  
+
+```
+{ I(i,out) ∧ i≤N ∧ N mod i = 0 }
+out := out ⧺ [i]
+{ I(i,out') }
+```
+
+Because `C` holds, `i` is a positive divisor of `N`.  
+The invariant tells us that before the assignment `out` already contains
+all divisors `< i`.  Adding `i` at the end yields a list that now
+contains **all** divisors `< i` **plus** `i`.  Since `i` is larger than
+every divisor already present (they are all `< i`), the list stays
+strictly increasing.  Therefore the invariant with the same `i` holds
+for the new list `out'`.
+
+*Case 2 – `i` is not a divisor (`C` false).*
+
+```
+{ I(i,out) ∧ i≤N ∧ N mod i ≠ 0 }
+skip
+{ I(i,out) }
+```
+
+Nothing changes, so the invariant is preserved trivially.
+
+Thus the conditional respects the invariant.
+
+---
+
+##### 4.2.2  The increment `i := i + 1`
+
+Now we must prove
+
+```
+{ I(i,out) ∧ i≤N }   i := i + 1   { I(i+1,out) }
+```
+
+From the definition of `I` we have
+
+* `1 ≤ i ≤ N+1` (the left part of the invariant);
+* `out` contains exactly the divisors `d` of `N` with `d < i`,
+  sorted increasingly.
+
+After the assignment `i` becomes `i+1`.  
+We need to check the two conjuncts of `I(i+1,out)`:
+
+1. **Bound**:  
+   Since `i ≤ N`, we get `i+1 ≤ N+1`.  Also `i ≥ 1` implies `i+1 ≥ 2`,
+   so `1 ≤ i+1 ≤ N+1` holds.
+
+2. **Divisor set**:  
+   The set `{ d∈Div(N) | d < i+1 }` is exactly the union of  
+   `{ d∈Div(N) | d < i }` (the divisors already recorded) and possibly the
+   element `i` itself.  The conditional that precedes the increment has
+   already added `i` to `out` **iff** `i` is a divisor.  Consequently
+   after the increment `out` contains precisely the divisors `< i+1`,
+   still in increasing order.
+
+Thus the invariant is re‑established with the new value of `i`.
+
+Putting the two parts together we have proved (M).
+
+---
+
+#### 4.3  Termination of the loop
+
+The loop guard is `i ≤ N`.  The loop variable `i` is a natural number that
+starts at `1` and is increased by `1` on every iteration (line 7).  Hence
+`i` forms a *decreasing* variant for the negated guard:
+
+\[
+t(i) = N+1-i \;\;\text{ is a natural‑number variant that
+strictly increases on each iteration.}
+\]
+
+Because a natural‑number variant cannot increase indefinitely,
+the loop must eventually reach a state where `i = N+1`, i.e. the guard
+becomes false.  This establishes the **termination** clause required
+by the post‑condition.
+
+---
+
+#### 4.4  Post‑condition (when the loop ends)
+
+When the guard is false we have `¬(i ≤ N)`, i.e. `i = N+1`.  
+From the invariant `I(i,out)` we obtain, with `i = N+1` :
+
+* `1 ≤ N+1 ≤ N+1` – trivial;
+* `out` contains **exactly** the divisors `d` of `N` such that `d < N+1`,
+  i.e. all positive divisors of `N`;
+* the list is strictly increasing and has no repetitions.
+
+Consequently
+
+* `len(out) = |Div(N)|`;
+* every element of `out` is a positive divisor of `N`;
+* no divisor appears twice;
+* every divisor of `N` appears somewhere in `out`;
+* the ordering condition `out[i] < out[j]` for `i<j` holds.
+
+Together with the termination argument proved above we have shown that
+the final state satisfies the whole post‑condition `Q(N,out)`.
+
+---
+
+### 5.  Summary of the Hoare proof
+
+\[
+\begin{array}{l}
+\{P(N)\} \\
+\;\;\; \texttt{read } N; \\
+\;\;\; i := 1; \\
+\;\;\; \texttt{while } i\le N \texttt{ do } \\
+\qquad\; \{ I(i,out) \} \\
+\qquad\; \texttt{if } N\operatorname{mod} i = 0 \texttt{ then } out := out\!\;\!\!\!\!\;\;\!\!\!\!\!\;\;\;\;\; \texttt{else skip fi;}\\
+\qquad\; i := i+1; \\
+\;\;\; \texttt{od} \\
+\{ Q(N,out) \}
+\end{array}
+\]
+
+Each line obeys a Hoare rule:
+
+* **read** – satisfies the pre‑condition `P(N)`;
+* **assignment** `i:=1` – establishes the invariant (`Init`);
+* **while** – uses rule (WH) with invariant `I`;
+* **if** – uses rule (IF) and the two cases proved in 4.2.1;
+* **increment** – uses the assignment rule and the invariant maintenance
+  proved in 4.2.2;
+* **termination** – follows from the natural‑number variant `N+1-i`.
+
+Therefore the Hoare triple  
+
+\[
+\{\,P(N)\,\}\;\texttt{Program}\;\{\,Q(N,\operatorname{out})\,\}
+\]
+
+is proved correct: the program reads a positive integer \(N\) and, upon
+termination, prints **exactly** the set of its positive divisors, each
+once and in strictly increasing order. ∎

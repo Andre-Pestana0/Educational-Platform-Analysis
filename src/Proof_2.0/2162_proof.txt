@@ -1,0 +1,254 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,\text{Pre}\,\}\;\;P\;\;\{\,\text{Post}\,\}
+\]
+
+where  
+
+* `Pre` is the input‑size/‑range condition given in the statement,  
+
+* `P` is the whole Python fragment that reads the data, iterates with  
+
+  ```python
+  for anterior, atual in zip(medidas, medidas[1:]): …
+  ```  
+
+  and finally prints either `0` or `1`,  
+
+* `Post` says that the printed value `ans` belongs to `{0,1}` and that  
+
+  \[
+  ans = 1\;\Longleftrightarrow\;\mathit{Alt}(H)
+  \]
+
+  with  
+
+  \[
+  \mathit{Alt}(H)\equiv
+    \bigl(\forall i\in\{2,\dots ,N\}\;:\; H[i]\neq H[i-1]\bigr)\;\land\;
+    \bigl(\forall i\in\{3,\dots ,N\}\;:\;
+        \operatorname{sgn}(H[i]-H[i-1]) = -\operatorname{sgn}(H[i-1]-H[i-2])\bigr).
+  \]
+
+The proof proceeds in the usual Hoare‑logic fashion:
+
+* a **loop invariant** `I(k)` that is true before the first iteration, is preserved by one iteration, and together with the loop‑exit condition yields the desired post‑condition;  
+
+* a **case analysis** for the two possible early exits (`print(0); exit()`).  
+
+Below we give the invariant, prove the three Hoare steps, and finally tie everything together.
+
+--------------------------------------------------------------------
+
+## 2.  Notation that mirrors the program  
+
+* `medidas` is the list `H[1‥N]` (Python indices start at 0, but we keep the mathematical 1‑based view).  
+
+* The `for` loop iterates over the *pairs*  
+
+  \[
+  (\text{anterior},\text{atual}) = (H[i], H[i+1]),\qquad i = 1,\dots ,N-1 .
+  \]
+
+* The variable `pico` stores the sign of the **last processed difference**  
+
+  \[
+  \text{pico}= 
+  \begin{cases}
+     0 &\text{no difference processed yet},\\[2pt]
+     +1 &\text{the last processed }\Delta = H[i+1]-H[i] > 0,\\[2pt]
+     -1 &\text{the last processed }\Delta = H[i+1]-H[i] < 0 .
+  \end{cases}
+  \]
+
+  (The comment in the source code uses the same convention.)
+
+* `ans` is the value that will finally be printed (`1` if the loop finishes, `0` otherwise).
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+For a given iteration index `i` (the loop has already examined the pairs  
+\((H[1],H[2]),\dots ,(H[i],H[i+1])\)) we define  
+
+\[
+\boxed{
+\begin{aligned}
+I(i) \; \equiv\; &\bigl(\forall j\in\{2,\dots ,i+1\}\;:\; H[j]\neq H[j-1]\bigr)                     &&\text{(no equal neighbours)}\\
+                 &\;\land\;
+   \bigl(\forall j\in\{3,\dots ,i+1\}\;:\; \operatorname{sgn}(H[j]-H[j-1]) = 
+                                    -\operatorname{sgn}(H[j-1]-H[j-2])\bigr)                &&\text{alternation so far}\\
+                 &\;\land\;
+   \bigl(\text{pico}= \operatorname{sgn}(H[i+1]-H[i])\bigr)                                         &&\text{pico stores the last sign}
+\end{aligned}}
+\tag{I}
+\]
+
+When `i = 1` the second conjunct is vacuous (there is only one difference
+processed), so `I(1)` merely states that `H[2]≠H[1]` and that `pico` equals the sign of that first difference – exactly what the program establishes in the *first* iteration.
+
+--------------------------------------------------------------------
+
+## 4.  Proof that the invariant holds  
+
+### 4.1  Initialization  
+
+Before the loop we have `pico = 0`.  
+The first iteration examines the pair `(H[1],H[2])`.
+
+* If `H[1] == H[2]` the program executes  
+
+  ```python
+  print(0); exit()
+  ```
+
+  and terminates. In Hoare logic this corresponds to the *early‑exit* case
+  that we treat later, so the invariant does **not** need to hold after the
+  first iteration in that branch.
+
+* Otherwise `H[1] ≠ H[2]`.  
+  The program enters the `if pico == 0` block, decides whether the
+  sequence starts with a peak (`H[1] < H[2]`) or a valley (`H[1] > H[2]`) and
+  assigns `pico = 1` or `pico = –1` respectively.  
+  Thus after the first iteration we have  
+
+  * `H[2] ≠ H[1]` (first conjunct of `I(1)`),  
+  * the alternation condition is vacuously true (second conjunct),  
+  * `pico = sgn(H[2]-H[1])` (third conjunct).
+
+  Hence `I(1)` holds.
+
+### 4.2  Preservation  
+
+Assume that before an arbitrary iteration `i` (with `1 ≤ i ≤ N‑2`) the invariant
+`I(i)` holds and that the loop has not exited early.  
+The current pair is `(anterior, atual) = (H[i+1], H[i+2])`.
+
+We consider the three possible branches of the program.
+
+| Branch | Guard (true?) | What the program does | Consequence for the invariant |
+|--------|----------------|----------------------|--------------------------------|
+| **A**   | `pico == 0`   | **Impossible** – `pico` was set in the first iteration and never reset to `0`. | – |
+| **B**   | `pico ≠ 0` and `anterior < atual` **and** `pico == -1` | `pico ← 1` | The previous difference had sign `-1` (valley). Because `anterior < atual`, the new difference is `+1`. The product `(+1)·(-1) < 0`, i.e. the sign flips – exactly the alternation required for index `i+2`. Moreover `H[i+2] ≠ H[i+1]` (otherwise the guard would be false). After the assignment we have `pico = sgn(H[i+2]-H[i+1])`. All three conjuncts of `I(i+1)` are satisfied. |
+| **C**   | `pico ≠ 0` and `anterior > atual` **and** `pico == 1` | `pico ← -1` | Symmetric to **B** – the sign flips from `+1` to `-1`. The invariant is preserved for the same reasons. |
+| **D**   | none of the above (i.e. either the signs are equal *or* a plateau occurs) | `print(0); exit()` | This is the **early‑exit** case, treated later. No need to maintain `I`. |
+
+Thus, whenever the loop continues to the next iteration, `I(i+1)` follows from `I(i)`. By induction, `I(k)` holds for every `k` that the loop actually reaches.
+
+### 4.3  Termination  
+
+The loop stops in two possible ways:
+
+1. **Normal termination** after processing the last pair  
+   `(H[N‑1], H[N])`.  
+   At that moment `i = N‑2`, hence `I(N‑2)` holds.  
+   Unfolding the invariant for `i = N‑2` we obtain  
+
+   * `H[j] ≠ H[j‑1]` for **all** `j = 2 … N` (first conjunct),  
+   * `sgn(H[j]-H[j‑1]) = -sgn(H[j‑1]-H[j‑2])` for **all** `j = 3 … N` (second conjunct),  
+
+   which is precisely the definition of `Alt(H)`.  
+   Moreover `pico = sgn(H[N]-H[N‑1])`, but the value of `pico` is irrelevant after the loop.  
+   Consequently the program executes `print(1)`.  
+
+2. **Early exit** (`print(0); exit()`).  
+   This occurs in two distinct situations:
+
+   * **Plateau** – a pair with `anterior == atual`.  
+     Then `H[i+1] = H[i]` for some `i`, violating the first conjunct of `Alt(H)`.  
+
+   * **Wrong sign** – the current difference has the same sign as the previous one, i.e. `pico` and the guard `anterior < atual` (or `>`) are inconsistent.  
+     Then `Δ[i+1]·Δ[i] > 0`, violating the second conjunct of `Alt(H)`.  
+
+   In both cases `Alt(H)` is false, and the program prints `0`.
+
+--------------------------------------------------------------------
+
+## 5.  Deriving the post‑condition  
+
+From the discussion above we have the following logical equivalences, each provable inside the Hoare calculus:
+
+* **(Normal termination)**  
+
+  \[
+  \bigl(\text{loop finishes normally}\bigr) \;\Longrightarrow\; I(N-2) \;\Longrightarrow\; \mathit{Alt}(H)
+  \]
+
+  and the program prints `1`.
+
+* **(Early termination)**  
+
+  \[
+  \bigl(\text{early exit occurs}\bigr) \;\Longrightarrow\; \neg\mathit{Alt}(H)
+  \]
+
+  and the program prints `0`.
+
+Putting the two implications together gives  
+
+\[
+\bigl(\text{program prints }1\bigr) \;\Longleftrightarrow\; \mathit{Alt}(H).
+\]
+
+The program never prints any other integer, therefore  
+
+\[
+\text{ans}\in\{0,1\}\;\land\; ( \text{ans}=1 \leftrightarrow \mathit{Alt}(H) )
+\]
+
+holds, which is exactly the **Post** condition.
+
+--------------------------------------------------------------------
+
+## 6.  Full Hoare‑logic derivation (sketch)
+
+```
+{ Pre } 
+    input()          // discards N, but we know 1 < N ≤ 100
+    medidas = [...]
+    pico = 0
+    for anterior, atual in zip(medidas, medidas[1:]):
+        { I(i) ∧ 1 ≤ i ≤ N‑2 }               // loop invariant holds at entry
+        if pico == 0:                         // cannot happen after i≥1
+            …                                 // (handled in init)
+        else:
+            if anterior < atual and pico == -1:
+                pico := 1                     // preserves I(i+1)
+            elif anterior > atual and pico == 1:
+                pico := -1                    // preserves I(i+1)
+            else:
+                print(0); exit()              // leads to ¬Alt(H)
+        { I(i+1) }                           // invariant restored
+    { I(N‑2) }                               // after last iteration
+    print(1)                                 // because I(N‑2) ⇒ Alt(H)
+{ Post }
+```
+
+All Hoare triples used in the sketch are justified by the invariant proof
+in § 4.2 and by the simple case analysis for the two `else` branches.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have exhibited a precise loop invariant `I(i)` and shown:
+
+* it is **established** before the first iteration,
+* it is **preserved** by every iteration that does not cause an early exit,
+* together with the loop‑exit condition it **implies** the alternating‑peak/valley predicate `Alt(H)`,
+* the two possible early‑exit branches occur **only** when `Alt(H)` is false.
+
+Consequently the program prints `1` **iff** the input sequence satisfies the
+alternating peak/valley pattern, and prints `0` otherwise.  
+Therefore the Hoare triple  
+
+\[
+\{\,\text{Pre}\,\}\;P\;\{\,\text{Post}\,\}
+\]
+
+holds, i.e. the Python implementation is **correct** with respect to the
+formal specification given in the problem.

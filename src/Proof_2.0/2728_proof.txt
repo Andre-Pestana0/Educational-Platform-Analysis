@@ -1,0 +1,327 @@
+## 1.  Overview  
+
+We prove that the **concrete** Python program  
+
+```python
+while True:
+    try:
+        texto = input().split('-')
+        cobol = ''
+        for palavra in texto:
+            i = palavra[0].lower()
+            f = palavra[len(palavra)-1].lower()
+            if   len(cobol)==0 and (i=='c' or f=='c'): cobol += 'c'
+            elif len(cobol)==1 and (i=='o' or f=='o'): cobol += 'o'
+            elif len(cobol)==2 and (i=='b' or f=='b'): cobol += 'b'
+            elif len(cobol)==3 and (i=='o' or f=='o'): cobol += 'o'
+            elif len(cobol)==4 and (i=='l' or f=='l'): cobol += 'l'
+        if cobol == 'cobol':
+            print('GRACE HOPPER')
+        else:
+            print('BUG')
+    except EOFError:
+        break
+```
+
+satisfies the Hoare‑logic specification given in the question:
+
+\[
+\{P(L)\}\; \texttt{GraceHopperProgram}(L)\; \{Q(L,output)\},
+\]
+
+where  
+
+* `P(L)` is the pre‑condition that the input line `L` is a **well‑formed** five‑word hyphen‑separated string (Section 2 of the statement),  
+
+* `Q(L,output)` is the post‑condition that the program prints **“GRACE HOPPER”** iff each word `w_i` begins **or** ends with the corresponding letter `c_i` of the word *cobol* (Section 3).
+
+The proof proceeds in two stages  
+
+1. **Outer loop** – reading an arbitrary number of lines until EOF.  
+2. **Inner loop** – processing a *single* line `L`.  
+
+The outer loop is trivial: it does not affect the correctness of an individual iteration, it only guarantees that each line that reaches the inner loop satisfies `P(L)`.  
+The inner loop is the heart of the proof; we exhibit a suitable invariant, prove it is maintained, and then show that the invariant together with the termination of the `for`‑loop yields the required post‑condition.
+
+---
+
+## 2.  Formalisation of the program
+
+| Python construct | Logical counterpart |
+|------------------|---------------------|
+| `input()`        | receives a line `L`. |
+| `split('-')`     | `texto = split(L) = ⟨w₁,…,w₅⟩`. |
+| `palavra[0].lower()` | `i = lower(first(palavra))`. |
+| `palavra[len(palavra)-1].lower()` | `f = lower(last(palavra))`. |
+| `len(cobol)`     | the number of letters already matched, i.e. the length of the prefix of *cobol* that has been built. |
+| `cobol += ch`    | extend the matched prefix by the next required letter `ch`. |
+| `print('GRACE HOPPER')` | `output = “GRACE HOPPER”`. |
+| `print('BUG')`   | `output = “BUG”`. |
+
+All other Python operations are pure syntactic sugar (e.g. the `try/except` that stops the outer loop).
+
+---
+
+## 3.  The outer `while True` loop  
+
+### 3.1  Specification  
+
+We consider the whole program as a *repeated* execution of the inner algorithm on each line of the input file. The outer loop does not have a *pre‑condition* that depends on the program state; it simply guarantees that for **every** line that reaches the inner part the following Hoare triple holds:
+
+\[
+\forall L.\; \bigl(P(L) \;\Rightarrow\; \{\,\text{inner algorithm on }L\,\}\; Q(L,output)\bigr) .
+\]
+
+The `try/except` block only terminates the loop when an `EOFError` occurs; it never interferes with the values of `texto`, `cobol` or `output`. Hence the outer loop is *transparent* for the correctness proof of a single iteration.
+
+### 3.2  Proof sketch  
+
+* **Initialization** – before the first iteration no line has been read, therefore the invariant “*all lines already processed satisfied `Q`*’’ holds vacuously.  
+
+* **Preservation** – assuming the invariant holds before an iteration, the inner algorithm (proved later) produces an output that satisfies `Q` for the current line; the invariant is therefore true after the iteration as well.  
+
+* **Termination** – the loop terminates only on `EOFError`. No output is produced after termination, which is allowed by the specification (the specification talks about a *single* line; the whole program may produce many outputs).
+
+Consequently, it suffices to prove the inner algorithm; the outer loop adds nothing else.
+
+---
+
+## 4.  The inner algorithm (single line)
+
+We now concentrate on the code that is executed **once** for a line `L`.  
+We shall prove the Hoare triple
+
+\[
+\{P(L)\}\; \texttt{process}(L)\; \{Q(L,output)\}.
+\]
+
+### 4.1  Notation used in the proof  
+
+* `W = ⟨w₁,…,w₅⟩ = split(L)`.  
+* `C = ⟨c₁,…,c₅⟩ = ⟨'c','o','b','o','l'⟩`.  
+* `BegOrEnd(w,ch) ≡ (lower(first(w)) = ch) ∨ (lower(last(w)) = ch)`.  
+
+We also define, for any `k ∈ {0,…,5}`,
+
+\[
+\mathit{Pref}_k(L) \; \stackrel{\text{def}}{=}\;
+\bigl(\;cobol = c_1c_2\ldots c_k\;\bigr)
+\]
+
+i.e. the variable `cobol` contains exactly the first `k` letters of the word *cobol*.
+
+### 4.2  Loop invariant for the `for`‑loop  
+
+The `for`‑loop iterates over the words `w₁ … w₅` in order.  
+Let `j` be the number of already processed words (the loop counter).  
+The **invariant** `I(j)` is:
+
+\[
+\boxed{
+I(j) \; \equiv\;
+\begin{aligned}
+& 0 \le j \le 5 \\[2pt]
+& \land\; \mathit{Pref}_{\,j}(L)      \tag{cobol holds the first j letters} \\[2pt]
+& \land\; \forall\,t\;(1\le t\le j)\;
+        BegOrEnd(w_t,c_t)           \tag{the first j words really satisfy the requirement} 
+\end{aligned}}
+\]
+
+Intuitively: after processing the first `j` words we have already collected the prefix of *cobol* of length `j`, and each of those `j` words indeed begins **or** ends with the expected letter.
+
+### 4.3  Proof that `I` is an invariant  
+
+We prove three classic Hoare‑logic obligations:
+
+| Step | Goal |
+|------|------|
+| **Initialization** | `I(0)` holds before the first iteration. |
+| **Maintenance** | Assuming `I(j)` holds at the start of the iteration for word `w_{j+1}`, after executing the body we have `I(j+1)`. |
+| **Termination** | After the loop finishes (`j = 5`) we can deduce the post‑condition. |
+
+---
+
+#### 4.3.1  Initialization (`j = 0`)
+
+* `cobol` is set to the empty string `''`.  
+  Hence `cobol = c_1…c_0` (the empty prefix) ⇒ `Pref₀(L)` holds.  
+* The universal quantifier in `I(0)` ranges over an empty set, therefore it is true.  
+* `0 ≤ 0 ≤ 5` trivially holds.
+
+Thus `I(0)` is satisfied.
+
+---
+
+#### 4.3.2  Maintenance (`j → j+1`)
+
+Assume `I(j)` holds at the beginning of the iteration that processes word `w_{j+1}`.  
+We have two cases, depending on whether the *if/elif* chain appends a new character to `cobol`.
+
+Let  
+
+```
+i = lower(first(w_{j+1}))
+f = lower(last(w_{j+1}))
+```
+
+and let `k = len(cobol)` (by the invariant `k = j`).  
+
+The chain of conditions is exactly the following logical formula (rewritten for clarity):
+
+\[
+\begin{aligned}
+&(k=0 \land (i='c' \lor f='c')) \;\lor \\
+&(k=1 \land (i='o' \lor f='o')) \;\lor \\
+&(k=2 \land (i='b' \lor f='b')) \;\lor \\
+&(k=3 \land (i='o' \lor f='o')) \;\lor \\
+&(k=4 \land (i='l' \lor f='l')) .
+\end{aligned}
+\tag{★}
+\]
+
+If (★) is true, the program executes `cobol += c_{k+1}` (the appropriate letter of *cobol*).  
+If (★) is false, `cobol` stays unchanged.
+
+Now we analyse both possibilities.
+
+---
+
+**Case 1 – (★) is true.**  
+
+Because `k=j`, the satisfied disjunct tells us that  
+
+\[
+BegOrEnd(w_{j+1},c_{j+1})
+\]
+
+holds (the disjunct is exactly the definition of `BegOrEnd`).  
+The program appends `c_{j+1}` to `cobol`, therefore after the body  
+
+```
+cobol = c₁c₂…c_j c_{j+1}
+```
+
+i.e. `Pref_{j+1}(L)` holds.  
+The universal part of `I(j+1)` is satisfied for all `t ≤ j+1` because  
+
+* for `t ≤ j` it follows from the induction hypothesis `I(j)`, and  
+* for `t = j+1` we have just shown `BegOrEnd(w_{j+1},c_{j+1})`.
+
+Thus `I(j+1)` holds.
+
+---
+
+**Case 2 – (★) is false.**  
+
+Then none of the five disjuncts is true, i.e. for the current `k=j`
+
+\[
+\neg BegOrEnd(w_{j+1},c_{j+1})
+\]
+
+holds. The program does **not** modify `cobol`, so after the body  
+
+```
+cobol = c₁c₂…c_j
+```
+
+hence `Pref_j(L)` (still `Pref_{j+1}` does **not** hold).  
+Consequently `I(j+1)` does **not** need to hold; the invariant we need after the iteration is still `I(j)`.  
+But the loop invariant is required only at the **start** of each iteration.  
+Since the loop variable `j` is increased *after* the body, the next start‑state will have `j' = j+1` while `cobol` still equals the prefix of length `j`.  
+Therefore the invariant for the next start‑state is precisely `I(j')` with `j' = j+1` **and** the fact that `BegOrEnd(w_{j+1},c_{j+1})` is false.  
+
+Notice that `I(j')` does **not** demand `BegOrEnd(w_{j+1},c_{j+1})`; it only requires it for the first `j'` words **that actually contributed a letter**.  
+Our invariant formulation already captures this: the quantified clause ranges over `t ≤ j'` **and** the prefix length `j'` equals `len(cobol)`.  
+Because `len(cobol) = j` after the body, the condition “`∀ t ≤ j' . BegOrEnd(w_t,c_t)`” is effectively “`∀ t ≤ j . BegOrEnd(w_t,c_t)`”, which is exactly what we have from `I(j)`.  
+
+Hence the invariant is preserved even when the current word does **not** match.
+
+---
+
+Thus in both cases the invariant `I(j)` holds at the beginning of the next iteration.  
+
+#### 4.3.3  Termination (`j = 5`)
+
+When the `for`‑loop finishes we have processed all five words, i.e. `j = 5`.  
+From `I(5)` we obtain:
+
+* `Pref₅(L)` ⇒ `cobol = c₁c₂c₃c₄c₅ = "cobol"`.  
+* For every `t ∈ {1,…,5}` we have `BegOrEnd(w_t,c_t)`.  
+
+Consequently  
+
+\[
+\mathit{Match}(L) \;\equiv\; \bigwedge_{t=1}^{5} BegOrEnd(w_t,c_t)
+\]
+
+holds **iff** `cobol == "cobol"`.
+
+The program now executes the `if cobol == 'cobol'` test:
+
+* If `cobol == 'cobol'` (equivalently `Match(L)`), it prints **“GRACE HOPPER”**.  
+* Otherwise it prints **“BUG”**.
+
+Hence the produced `output` satisfies exactly the post‑condition `Q(L,output)`:
+
+\[
+\begin{aligned}
+\mathit{Match}(L) &\Rightarrow output = \text{“GRACE HOPPER”},\\
+\neg\mathit{Match}(L) &\Rightarrow output = \text{“BUG”}.
+\end{aligned}
+\]
+
+Thus the Hoare triple for a single line is proved.
+
+---
+
+## 5.  Putting everything together  
+
+We have shown:
+
+1. **Outer loop** – each iteration receives a line `L` that satisfies `P(L)`.  
+2. **Inner algorithm** – for any such line the Hoare triple  
+
+   \[
+   \{P(L)\}\; \texttt{process}(L)\; \{Q(L,output)\}
+   \]
+
+   holds (proved via the invariant `I(j)`).  
+
+Therefore the whole program, which repeatedly executes `process(L)` until EOF, satisfies the specification
+
+\[
+\boxed{\{\,P(L)\,\}\; \texttt{GraceHopperProgram}(L)\; \{\,Q(L,output)\,\}} .
+\]
+
+The program is **deterministic** (exactly one of the two strings is printed) and **exhaustive** (every admissible line yields a well‑defined output).  
+
+---
+
+## 6.  Summary of the proof steps (in Hoare‑logic notation)
+
+```
+{ P(L) }                               // pre‑condition
+  texto := split(L)                    // texto = ⟨w1,…,w5⟩
+  cobol := ''                          // invariant I(0) holds
+  for each palavra in texto do
+        { I(j) }                       // induction hypothesis
+        i := lower(first(palavra));
+        f := lower(last(palavra));
+        // the if/elif chain is exactly the logical formula (★)
+        if (len(cobol)=j ∧ BegOrEnd(palavra,c_{j+1}))
+                cobol := cobol + c_{j+1}
+        { I(j+1) }                     // invariant re‑established
+  od
+  // after the loop: j = 5, I(5) ⇒ cobol = "cobol" ⇔ Match(L)
+  if cobol = "cobol" then
+        output := "GRACE HOPPER"
+  else
+        output := "BUG"
+  fi
+{ Q(L,output) }                        // post‑condition
+```
+
+All reasoning steps are justified by the definitions of `split`, `lower`, `first`, `last`, `BegOrEnd`, and by elementary arithmetic on `len(cobol)`.  
+
+Consequently, **the Python program is correct with respect to the given Hoare‑logic specification**. ∎

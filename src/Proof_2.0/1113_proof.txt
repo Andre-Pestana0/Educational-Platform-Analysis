@@ -1,0 +1,305 @@
+## 1.  What has to be proved  
+
+We have to show the **Hoare triple**
+
+\[
+\{P\}\;\texttt{read‑pairs‑and‑print}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;
+\begin{cases}
+\text{`Input` is a non‑empty finite list of integer pairs }   
+\langle (X_{1},Y_{1}),\dots ,(X_{n},Y_{n})\rangle ,\\[1mm]
+\exists n\ge 1.\;X_{n}=Y_{n}\land\forall i\;(1\le i<n).\,X_{i}\neq Y_{i}.
+\end{cases}
+\]
+
+* **Post‑condition**  
+
+\[
+Q\;:\;
+\begin{cases}
+|\mathit{Output}| = |\mathit{Input}|-1,\\[1mm]
+\forall i\;(1\le i<n).\;
+\bigl(O_{i}=``\text{Crescente}''\iff X_{i}<Y_{i}\bigr)\land
+\bigl(O_{i}=``\text{Decrescente}''\iff X_{i}>Y_{i}\bigr).
+\end{cases}
+\]
+
+The program is
+
+```text
+1  x, y = 0, 1                # (initialisation)
+2  while x != y:              # (loop guard)
+3      x, y = map(int, input().split(' '))
+4      if x != y:
+5          print("Crescente" if x < y else "Decrescente")
+```
+
+The only observable actions are the reads on line 3 and the prints on line 5.  
+All the other statements are *internal* – they just move data from the
+environment to the variables `x` and `y`.
+
+--------------------------------------------------------------------
+
+## 2.  Loop invariant  
+
+For a proof by induction on the number of processed pairs we introduce the
+following invariant, indexed by the number `k` of pairs that have already been
+read (the invariant is true **after** the body of the loop has been executed
+`k` times).
+
+\[
+\boxed{I(k)}\;:\;
+\begin{cases}
+\text{The first }k\text{ input pairs have already been consumed,}\\[1mm]
+\text{the program has produced exactly }k\text{ output strings } 
+\langle O_{1},\dots ,O_{k}\rangle ,\\[1mm]
+\forall i\;(1\le i\le k).\;
+\bigl(O_{i}=``\text{Crescente}''\iff X_{i}<Y_{i}\bigr)\land
+\bigl(O_{i}=``\text{Decrescente}''\iff X_{i}>Y_{i}\bigr).
+\end{cases}
+\]
+
+Notice that the invariant does **not** say anything about the pair
+\((X_{k+1},Y_{k+1})\) that is about to be read; it only talks about the pairs
+already processed.
+
+--------------------------------------------------------------------
+
+## 3.  Proof structure (Hoare‑logic rules)
+
+We shall use the standard Hoare‑logic rules:
+
+* **Assignment**  
+
+  \[
+  \frac{}{ \{Q[x:=E]\}\;x:=E\;\{Q\} }
+  \]
+
+* **Conditional**  
+
+  \[
+  \frac{\{P\land B\}\;S_{1}\;\{Q\}\qquad
+        \{P\land\neg B\}\;S_{2}\;\{Q\}} 
+       {\{P\}\;\textbf{if }B\textbf{ then }S_{1}\textbf{ else }S_{2}\;\{Q\}}
+  \]
+
+* **While**  
+
+  \[
+  \frac{\{I\land B\}\;S\;\{I\}}{\{I\}\;\textbf{while }B\textbf{ do }S\;\{I\land\neg B\}}
+  \]
+
+* **Consequence** (strengthening pre‑condition / weakening post‑condition).
+
+--------------------------------------------------------------------
+
+## 4.  The invariant holds initially  
+
+The loop is entered **once** because line 1 sets `x = 0`, `y = 1` and therefore
+`x != y` is true.
+
+At that moment **no input pair has been read** and **no output** has been
+produced, i.e. `k = 0`.  
+Hence `I(0)` is true:
+
+* “the first 0 pairs have been consumed’’ – vacuously true;
+* “the first 0 output strings satisfy …’’ – also vacuously true.
+
+Thus we have the Hoare triple  
+
+\[
+\{P\}\;x,y:=0,1\;\{I(0)\}
+\tag{Init}
+\]
+
+(the pre‑condition `P` certainly implies that the input is non‑empty, so the
+initialisation does not violate `P`).
+
+--------------------------------------------------------------------
+
+## 5.  Preservation of the invariant  
+
+Assume the invariant `I(k)` holds **before** an iteration of the loop
+(`0 ≤ k < n`).  
+We must show that after executing the body of the loop we obtain `I(k+1)`.
+
+### 5.1  The read (line 3)
+
+```
+x, y = map(int, input().split(' '))
+```
+
+By the semantics of `input()` we receive exactly the next pair of the
+environment, i.e.  
+
+\[
+(x,y) = (X_{k+1},Y_{k+1}).
+\]
+
+Using the assignment rule we get
+
+\[
+\{ I(k) \}\;x,y:=X_{k+1},Y_{k+1}\;\{ I(k)\land x=X_{k+1}\land y=Y_{k+1}\}.
+\tag{R}
+\]
+
+### 5.2  The conditional (lines 4–5)
+
+The guard of the `if` statement is `x != y`.  
+Two cases have to be considered.
+
+* **Case 1 – `x != y`** (i.e. `X_{k+1} \neq Y_{k+1}`).
+
+  The body executed is  
+
+  ```python
+  print("Crescente" if x < y else "Decrescente")
+  ```
+
+  By the functional definition of `print` we obtain a *new* output string
+  `O_{k+1}` such that
+
+  \[
+  O_{k+1}= \begin{cases}
+          \text{``Crescente''}      &\text{iff }x<y,\\[1mm]
+          \text{``Decrescente''}    &\text{iff }x>y .
+          \end{cases}
+  \]
+
+  Substituting `x = X_{k+1}` and `y = Y_{k+1}` we obtain exactly the required
+  relation between `O_{k+1}` and the pair \((X_{k+1},Y_{k+1})\).
+
+  Consequently
+
+  \[
+  \{I(k)\land x\neq y\}\;
+        \textbf{print}\;
+  \{ I(k+1)\}.
+  \tag{C1}
+  \]
+
+* **Case 2 – `x = y`** (i.e. `X_{k+1}=Y_{k+1}`).
+
+  The `if` body is **not** executed, no output is produced, and the
+  invariant still holds with the same number of outputs:
+
+  \[
+  \{I(k)\land x = y\}\;
+        \textbf{skip}\;
+  \{ I(k)\}.
+  \tag{C2}
+  \]
+
+Putting the two cases together, the conditional rule yields
+
+\[
+\{I(k)\land x\neq y\lor x=y\}\;
+        \textbf{if }x\neq y\textbf{ then …}\;
+\{ I(k+1)\lor I(k)\}.
+\tag{Cond}
+\]
+
+Because the loop guard `x != y` guarantees that the iteration is entered only
+when `x != y` holds, the *actual* execution follows **Case 1** and therefore
+the invariant is upgraded from `I(k)` to `I(k+1)`.
+
+### 5.3  Summary of preservation
+
+Combining (R) and (Cond) we obtain the Hoare triple required by the
+*while‑rule*:
+
+\[
+\{I(k)\land x\neq y\}\;
+        \textbf{body of the loop}\;
+\{I(k+1)\}.
+\tag{Pres}
+\]
+
+Thus the invariant is **preserved** from one iteration to the next.
+
+--------------------------------------------------------------------
+
+## 6.  Loop exit yields the post‑condition  
+
+The loop terminates when its guard becomes false, i.e. when `x == y`.  
+At that moment we have processed exactly `k = n‑1` pairs (the last read pair is
+\((X_{n},Y_{n})\) with `X_n = Y_n`).  
+From the invariant `I(n‑1)` we know:
+
+* exactly `n‑1` output strings have been produced;
+* for each `i = 1,…,n‑1` the string satisfies the required “Crescente /
+  Decrescente’’ condition.
+
+Together with the loop‑exit condition `x = y` we obtain
+
+\[
+I(n-1)\land x = y \;\Longrightarrow\; Q .
+\]
+
+Formally, using the *while* rule:
+
+\[
+\frac{\{I(k)\land x\neq y\}\;S\;\{I(k+1)\}}%
+     {\{I(0)\}\;\textbf{while }x\neq y\textbf{ do }S\;
+      \{I(k)\land x = y\}}
+\]
+
+and instantiating `k = n‑1` we get the desired post‑condition.
+
+--------------------------------------------------------------------
+
+## 7.  Termination  
+
+The specification `P` guarantees that the input list is **finite** and that it
+contains a *terminating pair* \((X_{n},Y_{n})\) with equal components.
+Each iteration of the loop consumes exactly one pair from the input
+( line 3 ).  
+Therefore after at most `n` iterations the terminating pair will be read,
+the guard `x != y` becomes false, and the loop stops.  
+Consequently the program **terminates** for every state satisfying `P`.
+
+--------------------------------------------------------------------
+
+## 8.  Whole‑program Hoare triple  
+
+Putting all the pieces together:
+
+1. **Initialization** – (Init) gives `{P} x,y:=0,1 {I(0)}`.  
+2. **Loop** – the while‑rule with the preservation proof (Pres) yields  
+
+   \[
+   \{I(0)\}\;\textbf{while }x\neq y\textbf{ do body}\;
+   \{I(k)\land x = y\}
+   \]
+
+   for some `k` (in fact `k = n‑1`).
+3. **Exit** – `I(k) ∧ x = y` implies `Q` (Section 6).
+
+Hence we have derived
+
+\[
+\boxed{\; \{P\}\; \texttt{read‑pairs‑and‑print}\; \{Q\}\;}
+\]
+
+which is exactly the required Hoare triple.
+
+--------------------------------------------------------------------
+
+## 9.  Informal summary (what the program really does)
+
+* The program reads the input pairs one after another until it meets a pair
+  with equal components.
+* For every earlier pair it prints **“Crescente’’** when the first number is
+  smaller than the second, otherwise **“Decrescente’’**.
+* No line is printed for the terminating pair, and the number of printed
+  lines is precisely one less than the number of input pairs.
+
+Thus the program satisfies the specification given by the pre‑condition `P`
+and the post‑condition `Q`. ∎

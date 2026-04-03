@@ -1,0 +1,267 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{P\}\; \texttt{read }N;\;\texttt{read }a;\;\texttt{read }b;
+\; \texttt{if }(a+b\le N)\;\texttt{then print “Farei hoje!” else print “Deixa para amanha!”}
+\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; (2\le N\le 100)\;\land\;(0\le a\le N)\;\land\;(0\le b\le N)
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\; \equiv\;&\bigl(out = “Farei hoje!” \;\Longleftrightarrow\; a+b\le N\bigr)\\
+            &\land\bigl(out = “Deixa para amanha!” \;\Longleftrightarrow\; a+b> N\bigr)
+\end{aligned}
+\]
+
+The program that we are analysing is the Python fragment
+
+```python
+faltam = int(input())          # N
+A, B   = map(int, input().split())
+if A + B > faltam:
+    print('Deixa para amanha!')
+else:
+    print('Farei hoje!')
+```
+
+For the proof we rename the variables in the specification to the
+identifiers that appear in the program:
+
+```
+N   := faltam
+a   := A
+b   := B
+out := the string that is printed
+```
+
+The *read* statements are assumed to be **atomic input actions** that
+store the entered value in the corresponding variable.  In Hoare logic
+they are treated as *skip* statements that only strengthen the
+knowledge we have about the variables – they do **not** change any
+other part of the state.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic rules that will be used  
+
+| Rule | Shape |
+|------|-------|
+| **(Skip)** | \(\{P\}\; \texttt{skip}\; \{P\}\) |
+| **(Assignment)** | \(\{P[E/x]\}\; x:=E\; \{P\}\) |
+| **(Composition)** | \(\{P\}\; S_1\; \{R\},\;\{R\}\; S_2\; \{Q\}\)  ⇒  \(\{P\}\; S_1;S_2\; \{Q\}\) |
+| **(If‑then‑else)** | \(\{P\land C\}\; S_1\; \{Q\},\;\{P\land\neg C\}\; S_2\; \{Q\}\)  ⇒  \(\{P\}\; \texttt{if }C\texttt{ then }S_1\texttt{ else }S_2\; \{Q\}\) |
+| **(Consequence)** | If \(P'\Rightarrow P\) and \(\{P\}\;S\;\{Q\}\) and \(Q\Rightarrow Q'\) then \(\{P'\}\;S\;\{Q'\}\). |
+
+--------------------------------------------------------------------
+
+## 3.  Proof structure  
+
+The program consists of three parts:
+
+1. **Input** – `read N; read a; read b`.  
+   We will treat this as a single *skip* because the specification already
+   tells us that after the three reads the variables satisfy the
+   pre‑condition \(P\).
+
+2. **Conditional test** – `C ≡ (a+b ≤ N)`.  
+   The `if` statement has two branches:
+
+   * **Then‑branch** (`C` false, i.e. `a+b > N`) prints *“Deixa para amanha!”*.
+   * **Else‑branch** (`C` true, i.e. `a+b ≤ N`) prints *“Farei hoje!”*.
+
+3. **Printing** – the two `print` commands.  
+   Printing does not modify any program variable; it only sets the
+   logical variable `out` to the string that is emitted.
+
+The proof therefore proceeds by the **if‑rule**.  
+We must show two Hoare triples, one for each branch:
+
+* **T₁** (then‑branch)  
+
+  \[
+  \{P\land a+b> N\}\;\texttt{print “Deixa para amanha!”}\;\{Q\}
+  \]
+
+* **T₂** (else‑branch)  
+
+  \[
+  \{P\land a+b\le N\}\;\texttt{print “Farei hoje!”}\;\{Q\}
+  \]
+
+--------------------------------------------------------------------
+
+## 4.  Proving the then‑branch (T₁)
+
+### 4.1  The command “print …”
+
+The `print` statement does not change the program variables `N,a,b`.  
+In Hoare logic we model it as the *skip* command together with an
+assignment to the logical variable `out`:
+
+```
+out := "Deixa para amanha!"
+```
+
+Hence we can apply the **assignment rule**.
+
+### 4.2  Assignment rule for `out`
+
+Take as post‑condition the part of `Q` that talks about `out` when the
+condition `a+b > N` holds:
+
+\[
+R\; \equiv\;  out = “Deixa para amanha!” \;\land\;
+               (out = “Farei hoje!” \Longleftrightarrow a+b\le N)\;
+               \land\;
+               (out = “Deixa para amanha!” \Longleftrightarrow a+b> N)
+\]
+
+Because the right‑hand side of the assignment is a **constant string**, the
+pre‑condition required by the assignment rule is simply `R` with
+`out` replaced by that constant:
+
+\[
+R[out\!:=\!“Deixa\;para\;amanha!”] \;=\;
+   ( “Deixa\;para\;amanha!” = “Deixa\;para\;amanha!” )\;\land\;
+   ( “Deixa\;para\;amanha!” = “Farei\;hoje!” \Longleftrightarrow a+b\le N )\;
+   \land\;
+   ( “Deixa\;para\;amanha!” = “Deixa\;para\;amanha!” \Longleftrightarrow a+b> N )
+\]
+
+The first conjunct is trivially true; the second conjunct is *false*,
+but it is not required for the pre‑condition because it is a conjunct of a
+conjunction that we are allowed to drop (any stronger condition implies a
+weaker one).  The third conjunct simplifies to
+
+\[
+a+b > N .
+\]
+
+Thus the **pre‑condition for the assignment** is exactly  
+
+\[
+P\land a+b> N .
+\]
+
+Consequently the assignment rule yields  
+
+\[
+\{P\land a+b> N\}\; out := “Deixa para amanha!”\; \{R\}.
+\]
+
+Since `R` is logically equivalent to the original post‑condition `Q`
+(both describe the same relationship between `out` and the inequality),
+we have  
+
+\[
+\{P\land a+b> N\}\; \texttt{print “Deixa para amanha!”}\; \{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Proving the else‑branch (T₂)
+
+The reasoning is symmetric.
+
+* The command executed is `print “Farei hoje!”`, modelled as
+  `out := “Farei hoje!”`.
+* The required post‑condition is again `Q`.  The only relevant part of `Q`
+  when the branch is taken is  
+
+  \[
+  out = “Farei hoje!” \Longleftrightarrow a+b\le N .
+  \]
+
+* Substituting the constant string for `out` in `Q` we obtain the pre‑
+  condition  
+
+  \[
+  ( “Farei\;hoje!” = “Farei\;hoje!” )\;\land\;
+  ( “Farei\;hoje!” = “Deixa\;para\;amanha!” \Longleftrightarrow a+b> N )\;
+  \land\;
+  ( “Farei\;hoje!” = “Farei\;hoje!” \Longleftrightarrow a+b\le N )
+  \]
+
+  which simplifies to the conjunct `a+b\le N`.  Adding the original
+  pre‑condition we obtain exactly  
+
+  \[
+  P\land a+b\le N .
+  \]
+
+* By the assignment rule we therefore have  
+
+  \[
+  \{P\land a+b\le N\}\; \texttt{print “Farei hoje!”}\; \{Q\}.
+  \]
+
+--------------------------------------------------------------------
+
+## 6.  Assembling the whole proof
+
+We have established the two required triples:
+
+\[
+\begin{aligned}
+&\{P\land a+b> N\}\; \texttt{print “Deixa para amanha!”}\; \{Q\} \quad\text{(T₁)}\\[2mm]
+&\{P\land a+b\le N\}\; \texttt{print “Farei hoje!”}\; \{Q\} \quad\text{(T₂)}
+\end{aligned}
+\]
+
+Apply the **if‑rule** with condition  
+
+\[
+C \equiv (a+b\le N)
+\]
+
+(the program actually tests the opposite (`a+b > N`) but the rule works
+identically for either polarity).  The rule tells us that
+
+\[
+\{P\}\;\texttt{if }(a+b\le N)\;\texttt{then print “Farei hoje!” else print “Deixa para amanha!”}\;\{Q\}
+\]
+
+holds.
+
+Finally we prepend the three input actions.  Since they are treated as
+*skip* statements that only **constrain** the state to satisfy `P`,
+the **composition rule** gives
+
+\[
+\{P\}\; \texttt{read }N;\;\texttt{read }a;\;\texttt{read }b;\;
+\texttt{if }(a+b\le N)\;\texttt{then … else …}\; \{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+Using the axioms and inference rules of Hoare logic we have derived the
+Hoare triple
+
+\[
+\boxed{\{P\}\; \texttt{read }N;\texttt{read }a;\texttt{read }b;
+       \texttt{if }(a+b\le N)\texttt{ then print “Farei hoje!” else print “Deixa para amanha!”}
+       \; \{Q\}}
+\]
+
+which states precisely that, **provided the inputs respect the bounds
+\(2\le N\le 100\) and \(0\le a,b\le N\)**, the program prints  
+
+* “Farei hoje!”  **iff**  \(a+b\le N\),  
+
+* “Deixa para amanha!” **iff**  \(a+b> N\).
+
+Hence the Python program satisfies the given specification. ∎

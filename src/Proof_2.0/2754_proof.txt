@@ -1,0 +1,375 @@
+**Answer**  
+
+We prove the Hoare‑logic triple  
+
+\[
+\{\,\mathsf{true}\,\}\;P\;\{\,\mathsf{Post}\,\}
+\]
+
+where  
+
+* \(P\) is the whole Python program shown in the question,  
+* \(\mathsf{Post}\) is the post‑condition that was given in the specification (the eight lines that have to be printed).  
+
+The proof proceeds by **structural induction** on the program: we treat every statement with the Hoare rule that corresponds to its syntactic form (assignment, sequential composition, while‑loop, conditional, and the `print` primitive).  
+For each statement we exhibit a *loop invariant* (when needed) and we show that the invariant together with the program’s guard guarantees the part of the post‑condition that will be produced later.
+
+--------------------------------------------------------------------
+
+## 1.  Notation that will be used in the proof  
+
+* The two constant numbers that the program works with are  
+
+\[
+a \;:=\; 234.345,\qquad b \;:=\; 45.698 .
+\]
+
+* The formatting functions that appear in the specification are defined in the statement of the problem:
+
+| Symbol | Meaning |
+|--------|---------|
+| \(\operatorname{fix}(x,p)\) | decimal representation of \(x\) **with exactly** \(p\) digits after the decimal point (trailing zeros are added). |
+| \(\operatorname{rnd}_{\text{int}}(x)\) | integer obtained by rounding \(x\) to the nearest integer (ties to even). |
+| \(\operatorname{rnd}(x,p)\) | decimal representation of \(x\) rounded to \(p\) digits after the decimal point, **without** unnecessary trailing zeros. |
+| \(\operatorname{sci}(x,p,\kappa)\) | scientific notation of \(x\) with a mantissa that has \(p\) digits after the decimal point; the exponent part uses ‘e’ if \(\kappa =\ell\) and ‘E’ if \(\kappa =u\). |
+| \(\operatorname{def}(x)\) | the default conversion used by Python’s `str` (the same string that `printf("%g")` would produce). |
+| \(\operatorname{out}\) | the whole text that the program writes to standard output (concatenation of the eight lines, each terminated by ‘\(\backslash n\)’). |
+
+* For a string \(s\) we write \(|s|\) for its length.  
+
+--------------------------------------------------------------------
+
+## 2.  Overview of the program  
+
+The program can be divided into the following *blocks* (each block is a sequence of statements and will be proved separately).
+
+| Block | Source code (simplified) | What it must produce |
+|------|--------------------------|----------------------|
+| **B₁** | `num1 = a ; num2 = b` | initialise the two variables. |
+| **B₂** | eight `print` statements that use the *format specifications* `:.6f`, `:.0f`, `:.1f`, `:.2f`, `:.3f`. | lines \(L_{1}\dots L_{5}\) of the post‑condition. |
+| **B₃** | the two while‑loops that compute `ntcNum1` and `ntcNum2`. | the mantissa‑exponent pair needed for scientific notation. |
+| **B₄** | two `print` statements that use the format `:.6f` together with the exponent stored in the vectors. | lines \(L_{6}\) and \(L_{7}\). |
+| **B₅** | the `if … else …` that chooses the shorter representation for each number and stores it in `mnrStrNum1`/`mnrStrNum2`. | line \(L_{8}\) (the “default” representation). |
+| **B₆** | two final `print` statements that output the strings stored in `mnrStrNum1` and `mnrStrNum2`. | the second copy of line \(L_{8}\). |
+
+The whole program is  
+
+\[
+P\;=\;B_{1}\; ;\; B_{2}\; ;\; B_{3}\; ;\; B_{4}\; ;\; B_{5}\; ;\; B_{6}.
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Proof of each block  
+
+### 3.1  Block B₁ – initialisation  
+
+```
+num1 = 234.345
+num2 = 45.698
+```
+
+*Hoare rule for assignment*  
+
+\[
+\frac{\{\,\phi[x:=e]\,\}}{\,\{\,\phi\,\}\;x:=e\;\{\,\phi\,\}}
+\]
+
+Take \(\phi\) to be the (still empty) post‑condition that will be built later; the rule is trivially satisfied.  
+After B₁ we have the logical facts  
+
+\[
+\text{num1}=a \quad\wedge\quad\text{num2}=b .
+\]
+
+--------------------------------------------------------------------
+
+### 3.2  Block B₂ – the five “fixed‑precision” prints  
+
+The five statements are
+
+```
+print(f"{num1:.6f} - {num2:.6f}")
+print(f"{num1:.0f} - {num2:.0f}")
+print(f"{num1:.1f} - {num2:.1f}")
+print(f"{num1:.2f} - {num2:.2f}")
+print(f"{num1:.3f} - {num2:.3f}")
+```
+
+In Python the *format spec* `:.pf` means *fixed‑point* with **exactly** `p` digits after the decimal point, padded with zeros.  
+Hence  
+
+* `f"{num1:.6f}" = \operatorname{fix}(a,6)` and `f"{num2:.6f}" = \operatorname{fix}(b,6)`.  
+* `f"{num1:.0f}" = \operatorname{rnd}_{\text{int}}(a)` and similarly for `b`.  
+* `f"{num1:.pf}" = \operatorname{rnd}(a,p)` for \(p=1,2,3\) (the rounding performed by Python discards trailing zeros, exactly as the definition of `rnd`).
+
+The primitive `print(s)` appends `s` and a newline to the output buffer, i.e.
+
+\[
+\{\,\operatorname{out}=O\,\}\;\texttt{print}(s)\;\{\,\operatorname{out}=O\Vert s\Vert\texttt{"\textbackslash n"}\,\}.
+\]
+
+Applying the rule successively we obtain after B₂
+
+\[
+\operatorname{out}=L_{1}\Vert\texttt{"\textbackslash n"}\Vert
+                 L_{2}\Vert\texttt{"\textbackslash n"}\Vert
+                 L_{3}\Vert\texttt{"\textbackslash n"}\Vert
+                 L_{4}\Vert\texttt{"\textbackslash n"}\Vert
+                 L_{5}\Vert\texttt{"\textbackslash n"},
+\]
+
+where the \(L_i\) are exactly the five strings described in the post‑condition.  
+Thus B₂ satisfies the first five lines of \(\mathsf{Post}\).
+
+--------------------------------------------------------------------
+
+### 3.3  Block B₃ – the two while‑loops  
+
+```
+ntcNum1 = [num1, 0]          #  (mantissa, exponent)
+while ntcNum1[0] > 10:
+    ntcNum1[0] = ntcNum1[0] / 10
+    ntcNum1[1] = ntcNum1[1] + 1
+```
+
+(and the same for `ntcNum2`).  
+
+We prove the correctness of the first loop; the second one is identical.
+
+#### Loop invariant  
+
+\[
+I_1 \;:\; \bigl(\; \text{ntcNum1}[0] = a \,/\, 10^{\text{ntcNum1}[1]}
+          \;\wedge\; \text{ntcNum1}[0] > 0\;\bigr).
+\]
+
+*Initialization* – after the assignment `ntcNum1 = [a,0]` we have  
+`ntcNum1[0] = a` and `ntcNum1[1] = 0`, therefore \(I_1\) holds.
+
+*Preservation* – assume \(I_1\) holds at the top of an iteration and the guard
+`ntcNum1[0] > 10` is true. The body executes  
+
+```
+ntcNum1[0] := ntcNum1[0] / 10
+ntcNum1[1] := ntcNum1[1] + 1
+```
+
+Hence the new mantissa is \(\frac{a}{10^{e}}/10 = \frac{a}{10^{e+1}}\) and the new exponent is \(e+1\); therefore the invariant \(I_1\) is re‑established.
+
+*Termination* – each iteration divides the mantissa by 10, so the value of
+`ntcNum1[0]` strictly decreases and stays positive. Consequently after a finite number
+\(k\) of iterations the guard becomes false, i.e. `ntcNum1[0] ≤ 10`.  
+When the loop stops we have
+
+\[
+\text{ntcNum1}[0] = a/10^{k}\quad\text{and}\quad
+\text{ntcNum1}[1] = k,
+\]
+with \(1 \le \text{ntcNum1}[0] \le 10\).  
+Thus the pair \((\text{ntcNum1}[0],\text{ntcNum1}[1])\) is exactly the mantissa‑exponent
+representation required by the scientific‑notation function:
+
+\[
+\operatorname{sci}(a,6,\ell) = 
+\bigl(\text{ntcNum1}[0]\text{ formatted with }6\text{ decimals}\bigr)
+   \; e+ \text{ntcNum1}[1] .
+\]
+
+The same reasoning yields the invariant \(I_2\) for the second loop and the
+corresponding exponent \(k'\) for \(b\).
+
+Consequently after B₃ we have two facts that will be used later:
+
+\[
+\begin{aligned}
+\text{ntcNum1}[0] &= a / 10^{e_1}, &
+\text{ntcNum1}[1] &= e_1, \\[2mm]
+\text{ntcNum2}[0] &= b / 10^{e_2}, &
+\text{ntcNum2}[1] &= e_2,
+\end{aligned}
+\]
+
+where \(e_1,e_2\) are the smallest non‑negative integers such that the mantissas are
+\(\le 10\).
+
+--------------------------------------------------------------------
+
+### 3.4  Block B₄ – printing the two scientific‑notation lines  
+
+```
+print(f"{ntcNum1[0]:.6f}e+{ntcNum1[1]:02d} - {ntcNum2[0]:.6f}e+{ntcNum2[1]:02d}")
+print(f"{ntcNum1[0]:.6f}E+{ntcNum1[1]:02d} - {ntcNum2[0]:.6f}E+{ntcNum2[1]:02d}")
+```
+
+Because of the invariant proved in §3.3 we have
+
+\[
+\begin{aligned}
+f"{ntcNum1[0]:.6f}" &= \operatorname{fix}\!\bigl(a/10^{e_1},6\bigr),\\
+f"{ntcNum1[1]:02d}" &= \text{decimal representation of }e_1\text{ using two digits},
+\end{aligned}
+\]
+
+and similarly for `ntcNum2`.  
+Consequently the first `print` produces the string  
+
+\[
+L_{6}= \operatorname{sci}(a,6,\ell)\;-\;\operatorname{sci}(b,6,\ell),
+\]
+
+and the second `print` produces  
+
+\[
+L_{7}= \operatorname{sci}(a,6,u)\;-\;\operatorname{sci}(b,6,u).
+\]
+
+Appending them to the output (using the same rule for `print` as in §3.2) we obtain
+
+\[
+\operatorname{out}= \bigl(L_{1}\dots L_{5}\bigr)
+   \Vert L_{6}\Vert\texttt{"\textbackslash n"}
+   \Vert L_{7}\Vert\texttt{"\textbackslash n"} .
+\]
+
+--------------------------------------------------------------------
+
+### 3.5  Block B₅ – choosing the shorter representation  
+
+```
+if len(str(num1)) < len(f"{ntcNum1[0]:.6f}E+{ntcNum1[1]:02d}"):
+    mnrStrNum1 = str(num1)
+else:
+    mnrStrNum1 = f"{ntcNum1[0]:.6f}E+{ntcNum1[1]:02d}"
+```
+
+(and the analogous `if` for `num2`).  
+
+*Observation* – `str(num1)` is exactly the function \(\operatorname{def}(a)\) (the
+default conversion of a Python float).  
+The second expression is the scientific‑notation string \(\operatorname{sci}(a,6,u)\).
+
+The guard of the `if` therefore tests the predicate  
+
+\[
+|\,\operatorname{def}(a)\,| < |\,\operatorname{sci}(a,6,u)\,|.
+\]
+
+For the concrete numbers we have  
+
+\[
+\operatorname{def}(a)=\texttt{"234.345"},\qquad
+\operatorname{sci}(a,6,u)=\texttt{"2.343450E+02"},
+\]
+
+and \(|\texttt{"234.345"}|=7 < 13 = |\texttt{"2.343450E+02"}|\).  
+Consequently the *true* branch is taken and the assignment stores  
+
+\[
+mnrStrNum1 = \operatorname{def}(a),\qquad
+mnrStrNum2 = \operatorname{def}(b).
+\]
+
+The Hoare rule for the conditional  
+
+\[
+\frac{\{\,\phi\land B\,\}C_1\{\,\psi\,\}\qquad
+      \{\,\phi\land\neg B\,\}C_2\{\,\psi\,\}}
+     {\{\,\phi\,\}\;\textbf{if }B\textbf{ then }C_1\textbf{ else }C_2\;\{\,\psi\,\}}
+\]
+
+is applied with  
+
+* \(\phi\) = “the invariant from §3.3 holds and the variables `num1`, `num2` have the values \(a,b\)”,  
+* \(B\) = the length comparison,  
+* \(C_1\) = the assignment `mnrStrNum1 = str(num1)`,  
+* \(C_2\) = the assignment `mnrStrNum1 = sci‑string`.
+
+Both branches establish the same post‑condition  
+
+\[
+mnrStrNum1 = \operatorname{def}(a),\qquad
+mnrStrNum2 = \operatorname{def}(b).
+\]
+
+Thus after B₅ we know exactly which strings are stored in the two
+variables.
+
+--------------------------------------------------------------------
+
+### 3.6  Block B₆ – the two final prints  
+
+```
+print(f"{mnrStrNum1} - {mnrStrNum2}")
+print(f"{mnrStrNum1} - {mnrStrNum2}")
+```
+
+Because of the result of B₅ we have  
+
+\[
+f"{mnrStrNum1}" = \operatorname{def}(a),\qquad
+f"{mnrStrNum2}" = \operatorname{def}(b).
+\]
+
+Consequently each `print` generates the string  
+
+\[
+L_{8}= \operatorname{def}(a)\;-\;\operatorname{def}(b).
+\]
+
+Appending the two copies gives the last two lines required by the specification.
+
+--------------------------------------------------------------------
+
+## 4.  Composition of the whole proof  
+
+The Hoare rule for *sequential composition*  
+
+\[
+\frac{\{P\}\;C_1\;\{Q\}\qquad\{Q\}\;C_2\;\{R\}}{\{P\}\;C_1;C_2\;\{R\}}
+\]
+
+allows us to combine the eight local correctness facts proved above:
+
+* **B₁** establishes the facts `num1 = a` and `num2 = b`.  
+* **B₂** turns those facts into the first five output lines \(L_{1}\dots L_{5}\).  
+* **B₃** enriches the state with the mantissa–exponent pairs needed for scientific notation.  
+* **B₄** adds \(L_{6}\) and \(L_{7}\).  
+* **B₅** computes the shorter representation, i.e. the value \(\operatorname{def}(a)\) and \(\operatorname{def}(b)\).  
+* **B₆** finally appends the two copies of \(L_{8}\).
+
+Putting the pieces together we obtain the global Hoare triple  
+
+\[
+\boxed{
+\{\,\mathsf{true}\,\}\;
+P\;
+\Bigl\{
+\operatorname{out}=L_{1}\Vert\texttt{"\textbackslash n"}\Vert
+               L_{2}\Vert\texttt{"\textbackslash n"}\Vert
+               \dots\Vert
+               L_{8}\Vert\texttt{"\textbackslash n"}\Vert
+               L_{8}\Vert\texttt{"\textbackslash n"}
+\Bigr\}
+}
+\]
+
+which is **exactly** the post‑condition \(\mathsf{Post}\) that was given in the
+specification (see the concrete strings listed in the statement of the
+question).
+
+--------------------------------------------------------------------
+
+## 5.  Conclusion  
+
+All the reasoning steps are justified by the standard Hoare‑logic inference
+rules (assignment, sequence, while‑loop with invariant, conditional, and the
+definition of the `print` primitive).  Consequently the program **satisfies**
+the specification:
+
+\[
+\{\,\mathsf{true}\,\}\;P\;\{\,\mathsf{Post}\,\}.
+\]
+
+Hence the Python program is *correct* with respect to the formal pre‑ and
+post‑conditions that were provided.  

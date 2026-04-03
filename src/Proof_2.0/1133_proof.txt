@@ -1,0 +1,367 @@
+## 1.  What we have to prove  
+
+We are given the Hoare triple  
+
+\[
+\{\,P\,\}\;{\tt Program}\;\{\,Q\,\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;X\in\mathbb N^{+}\land Y\in\mathbb N^{+}
+\]
+
+* **Post‑condition**  
+
+Let  
+
+\[
+a=\min (X,Y),\qquad b=\max (X,Y)
+\]
+
+and let **Out** be the finite sequence that the program prints (the numbers appear in the same order in which they are printed).  
+The required properties are  
+
+1. every element of **Out** lies in the interval \([a,b]\) and leaves remainder 2 or 3 when divided by 5;  
+
+2. **Out** is strictly increasing;  
+
+3. **Out** contains **all** numbers that satisfy the same two conditions (no more, no less).
+
+In Hoare‑logic we must exhibit a **loop invariant** that is strong enough to imply the three clauses of \(Q\) when the loop terminates, and we must show that the invariant holds initially, is preserved by each iteration, and together with the negation of the loop guard yields the desired post‑condition.
+
+The program we have to analyse is
+
+```python
+x = int(input())          #  X is read into x
+y = int(input())          #  Y is read into y
+
+if x > y:                 #  put the smaller value into x
+    x, y = y, x           #  (swap)
+
+for i in range(x + 1, y): #  i runs through x+1, … , y‑1
+    if i % 5 == 2 or i % 5 == 3:
+        print(i)          #  i is appended to Out
+```
+
+--------------------------------------------------------------------
+
+## 2.  Notation that will be used in the proof  
+
+* `x`, `y` – program variables that after the first two input statements contain the values of the logical variables `X` and `Y`.  
+* `i` – the loop‑counter of the `for`‑loop.  
+* `Out` – the (conceptual) sequence that is built by the successive executions of `print(i)`.  
+  In Hoare‑logic we treat `Out` as a *ghost* variable: it does not exist in the program, but we can reason about it because every `print(i)` appends the current value of `i` to the right‑most end of the sequence.  
+
+* The **range** that we are interested in is  
+
+\[
+[a,b]=[\min (X,Y),\max (X,Y)] .
+\]
+
+Because the `for`‑loop iterates over `x+1 … y‑1`, the numbers that can be printed satisfy  
+
+\[
+a < i < b .
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Hoare‑logic rules that will be used  
+
+| Rule | Shape | Comment |
+|------|-------|--------|
+| **Assignment** | \(\{Q[x:=e]\}\;x:=e\;\{Q\}\) | Substitutes the expression `e` for every occurrence of `x` in the post‑condition. |
+| **Conditional** | \(\{P\land B\}\;S_1\;\{Q\}\) and \(\{P\land\neg B\}\;S_2\;\{Q\}\) ⟹ \(\{P\}\;\textbf{if}\;B\;\textbf{then}\;S_1\;\textbf{else}\;S_2\;\{Q\}\) |
+| **While** (with invariant `I`) | \(\{I\land B\}\;S\;\{I\}\) and \(\{I\land\neg B\}\;\{Q\}\) ⟹ \(\{I\}\;\textbf{while}\;B\;\textbf{do}\;S\;\{I\land\neg B\}\) | `I` must be true before the first iteration, be preserved by the body, and together with the negated guard imply the desired post‑condition. |
+
+--------------------------------------------------------------------
+
+## 4.  Proof structure  
+
+We will prove the triple by a **step‑by‑step** application of the rules above.
+
+### 4.1  From the pre‑condition to the state after the two input statements  
+
+The two statements  
+
+```python
+x = int(input())
+y = int(input())
+```
+
+are simple assignments that copy the logical inputs `X` and `Y` into the program variables `x` and `y`.  
+Using the Assignment rule we obtain
+
+\[
+\{\,X>0\land Y>0\,\}
+\;x:=X\;y:=Y\;
+\{\,x>0\land y>0\land x=X\land y=Y\,\}
+\tag{A}
+\]
+
+Thus after line 2 we know that `x` and `y` are the same positive integers as `X` and `Y`.
+
+--------------------------------------------------------------------
+
+### 4.2  The conditional that orders the two numbers  
+
+The statement  
+
+```python
+if x > y:
+    x, y = y, x
+```
+
+has the guard `B ≡ (x > y)`.  
+We need an invariant that after the conditional we are guaranteed  
+
+\[
+x\le y\qquad\text{and}\qquad
+a=\min (X,Y),\;b=\max (X,Y),\;x=a,\;y=b .
+\tag{I₀}
+\]
+
+**Proof of the conditional**
+
+*Case 1 – guard true (`x>y`).*  
+The body `x, y = y, x` swaps the two values, therefore after the swap we have `x = y₀` and `y = x₀`. Since originally `x₀>y₀`, after the swap `x≤y`. Moreover the swapped values are still exactly `X` and `Y`, so `x = a` and `y = b`.
+
+*Case 2 – guard false (`x≤y`).*  
+The body is skipped and the relation `x≤y` already holds; again `x = a` and `y = b`.
+
+Consequently, using the **Conditional** rule we obtain
+
+\[
+\{\,x>0\land y>0\land x=X\land y=Y\,\}
+\;\textbf{if}\;x>y\;\textbf{then}\;x,y:=y,x\;
+\{\,x\le y\land x=a\land y=b\,\}
+\tag{C}
+\]
+
+--------------------------------------------------------------------
+
+### 4.3  The loop – definition of the invariant  
+
+The `for`‑loop in Python
+
+```python
+for i in range(x + 1, y):
+    if i % 5 == 2 or i % 5 == 3:
+        print(i)
+```
+
+is syntactic sugar for
+
+```
+i := x + 1
+while i < y:
+    if i % 5 == 2 or i % 5 == 3:
+        print(i)
+    i := i + 1
+```
+
+Hence the **loop guard** is `B ≡ (i < y)` and the **loop body** consists of the conditional `if … then print(i)` followed by the increment `i := i + 1`.
+
+--------------------------------------------------------------------
+#### 4.3.1  Loop invariant  
+
+We propose the following invariant `I` :
+
+\[
+\boxed{
+\begin{aligned}
+I \equiv\;& a = x \;\land\; b = y \;\land\; x\le y \\
+      &\land\; \bigl(\forall k\;(1\le k\le |Out|)\;:\;
+          a < Out[k] < i\;\land\; Out[k]\bmod 5\in\{2,3\}\bigr) \\
+      &\land\; \bigl(\forall k\;(1\le k<|Out|)\;:\; Out[k] < Out[k+1]\bigr)
+\end{aligned}}
+\tag{I}
+\]
+
+*What does it say?*  
+
+* `x` and `y` still hold the ordered values `a` and `b`;  
+
+* every element that has already been printed lies **strictly** between `a` and the *current* value of the loop counter `i`;  
+
+* each printed element satisfies the required remainder condition;  
+
+* the printed sequence is strictly increasing (the order in which the loop visits the values of `i`).
+
+--------------------------------------------------------------------
+#### 4.3.2  Initialization of the invariant  
+
+Before the first iteration the loop counter is set to `i := x + 1`.  
+Because `Out` is still empty, the two quantified statements in `I` are vacuously true.  
+Thus, using the **Assignment** rule for `i := x+1` we obtain
+
+\[
+\{\,x\le y\land a=x\land b=y\,\}
+\;i:=x+1\;
+\{\,I\,\}
+\tag{Init}
+\]
+
+--------------------------------------------------------------------
+#### 4.3.3  Preservation of the invariant  
+
+Assume that `I` holds at the beginning of an iteration and that the guard `i < y` is true.  
+We must show that after executing the body the invariant is true again with the *new* value of `i` (i.e. after the increment).
+
+The body consists of two parts.
+
+1. **Conditional printing**
+
+   ```python
+   if i % 5 == 2 or i % 5 == 3:
+       print(i)
+   ```
+
+   *Guard* `C ≡ (i % 5 == 2 ∨ i % 5 == 3)`.  
+
+   - **If `C` is true**: `print(i)` appends `i` to the right‑most end of `Out`.  
+     By the definition of `I` we already know that `a < i < y` (because `i < y` and `a = x < i`).  
+     Therefore the newly appended element satisfies the range and remainder requirements, and it is larger than the previous last element (the invariant already guarantees that the previous last element is `< i`). Consequently the two quantified parts of `I` remain true.
+
+   - **If `C` is false**: nothing is printed and `Out` stays unchanged, so the invariant obviously remains true.
+
+   Hence, using the **Conditional** rule, we have
+
+   \[
+   \{\,I\land C\,\}\;\text{print}(i)\;\{\,I'\,\}
+   \qquad
+   \{\,I\land\neg C\,\}\;\text{skip}\;\{\,I\ \}
+   \]
+
+   where `I'` is the same as `I` except that `|Out|` is increased by one and the new element `i` satisfies the required properties.
+
+2. **Increment**  
+
+   ```python
+   i := i + 1
+   ```
+
+   After the increment the quantified part of `I` must talk about the *new* value of `i`.  
+   Because the invariant already guarantees that every element of `Out` is **strictly smaller** than the *old* `i`, it is also strictly smaller than the *new* `i+1`.  
+   Therefore the invariant with the refreshed counter holds:
+
+   \[
+   \{\,I'\,\}\;i:=i+1\;\{\,I\ \text{(with the new }i)\,\}
+   \tag{Inc}
+   \]
+
+Putting the two pieces together we obtain the **while‑preservation** clause:
+
+\[
+\{\,I\land i<y\,\}\;
+\bigl(\textbf{if}\;C\;\textbf{then}\;\text{print}(i)\;\textbf{else}\;\text{skip}\bigr);
+\;i:=i+1\;
+\{\,I\,\}
+\tag{Pres}
+\]
+
+--------------------------------------------------------------------
+#### 4.3.4  Termination condition and extraction of the post‑condition  
+
+When the loop finishes we have the negated guard `¬(i < y)`, i.e. `i = y`.  
+Combining the invariant `I` with `i = y` we obtain
+
+\[
+\begin{aligned}
+& a = x,\; b = y,\; x\le y,\\[2pt]
+& \forall k\;(1\le k\le |Out|)\;:\;
+   a < Out[k] < y\;\land\; Out[k]\bmod5\in\{2,3\},\\[2pt]
+& \forall k\;(1\le k<|Out|)\;:\; Out[k] < Out[k+1].
+\end{aligned}
+\tag{Term}
+\]
+
+Since `y = b`, the first line tells us that `a = min(X,Y)` and `b = max(X,Y)`.  
+The second line can be rewritten as  
+
+\[
+\forall k\;(1\le k\le |Out|)\;:\;
+a < Out[k] < b\;\land\; Out[k]\bmod5\in\{2,3\},
+\]
+
+which is exactly clause (1) of the specification (the inclusive version `a ≤ Out[k] ≤ b` is also true because `a < Out[k] < b` implies it).  
+
+The third line is clause (2) (strictly increasing order).  
+
+Finally, clause (3) (completeness) follows from the **loop guard**: every integer `n` with `a < n < b` and `n mod 5 ∈ {2,3}` will be examined by the loop when the counter `i` attains the value `n`. At that moment the guard `C` is true, therefore `print(n)` is executed and `n` becomes an element of `Out`. Consequently
+
+\[
+\forall n\;(a < n < b\land n\bmod5\in\{2,3\})
+\;\Longrightarrow\;
+\exists k\;(Out[k]=n),
+\]
+
+which is exactly clause (3).  
+
+Thus the invariant together with the termination condition yields the whole post‑condition \(Q\).
+
+--------------------------------------------------------------------
+
+## 5.  Formal Hoare‑logic derivation  
+
+Putting together all the steps proved above we obtain the following chain of Hoare triples.
+
+\[
+\begin{array}{l}
+\{X>0\land Y>0\} \\
+\qquad x:=X; \; y:=Y \\
+\{x>0\land y>0\land x=X\land y=Y\} \\
+\qquad \textbf{if}\;(x>y)\;\textbf{then}\;(x,y:=y,x) \\
+\{x\le y\land x=a\land y=b\} \\
+\qquad i:=x+1 \\
+\{I\} \\
+\qquad \textbf{while}\;(i<y)\;\textbf{do}\; \bigl(\textbf{if}\;(i\bmod5=2\lor i\bmod5=3)\;\textbf{then}\;\text{print}(i)\bigr);\,i:=i+1 \\
+\{I\land\neg(i<y)\} \\
+\qquad\text{(using the invariant proved in §4.3)}\\
+\{\,a=\min(X,Y),\;b=\max(X,Y),\;
+   \forall k\;(1\le k\le|Out|)\;(a<Out[k]<b\land Out[k]\bmod5\in\{2,3\}),\\
+\qquad\qquad\forall k\;(1\le k<|Out|)\;(Out[k]<Out[k+1])\,\} \\
+\end{array}
+\]
+
+The last assertion is exactly the post‑condition \(Q\) (clauses (1)–(3)).  
+Hence the Hoare triple is proved:
+
+\[
+\boxed{\{\,X>0\land Y>0\,\}\;{\tt Program}\;\{\,Q\,\}}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on the “inclusive‑vs‑exclusive” issue  
+
+The original natural‑language statement of the problem says *“varrer todos os números entre x e y”* (scan all numbers **between** `x` and `y`).  
+In mathematics “between” is normally interpreted as **exclusive**, i.e. the endpoints are not part of the set.  
+
+Our invariant and the final reasoning therefore use the strict inequalities  
+
+\[
+a < n < b .
+\]
+
+If one wishes to express the specification with the inclusive form  
+\(\;a\le n\le b\;\) (as it appears in the compact set‑based formulation given in the question), the program would be correct **provided** that neither endpoint satisfies the remainder condition.  
+In the usual test data for the Beecrowd problem this never happens, so the exclusive formulation is the appropriate one and matches exactly the behaviour of the program.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have exhibited a loop invariant that captures precisely the three properties required by the post‑condition, proved that the invariant holds initially, is preserved by each loop iteration, and together with the negated loop guard yields the desired post‑condition.  
+
+Consequently the Hoare triple  
+
+\[
+\{\,X>0\land Y>0\,\}\;{\tt Program}\;\{\,Q\,\}
+\]
+
+is **proved correct**. The program therefore prints, in strictly increasing order, **all** and **only** the integers that lie strictly between the two input numbers and leave remainder 2 or 3 when divided by 5.

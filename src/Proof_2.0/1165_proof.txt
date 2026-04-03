@@ -1,0 +1,337 @@
+## 1.  What we have to show  
+
+We are given a **Hoare triple**
+
+\[
+\{P\}\;{\tt Program}\;\{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\equiv\exists N\in\mathbb N.\;1\le N\le100\;\wedge\;
+\exists X:[1..N]\rightarrow\mathbb Z^{+}.\;
+\bigl(\forall i\;(1\le i\le N\rightarrow 1<X(i)\le10^{7})\bigr)
+\]
+
+* **Post‑condition**  
+
+\[
+Q\equiv\forall i\;(1\le i\le N\;\rightarrow\;
+\bigl(out(i)=\text{YES}(X(i))\;\leftrightarrow\;Prime(X(i))\bigr)
+\;\wedge\;
+\bigl(out(i)=\text{NO}(X(i))\;\leftrightarrow\;\neg Prime(X(i))\bigr))
+\]
+
+The *Program* is the concrete Python fragment that reads the integer `N`,
+then for each of the `N` numbers decides, by trial division, whether it is
+prime and prints the appropriate Portuguese sentence.
+
+Our task is to **prove** that the program satisfies the specification,
+i.e. that the Hoare triple is valid.  
+We do this by exhibiting suitable **loop invariants** and applying the
+standard Hoare‑logic rules (assignment, composition, conditional,
+while‑rule, consequence).
+
+--------------------------------------------------------------------
+
+## 2.  Variables and the state that the Hoare triple talks about  
+
+| Python name | Meaning in the specification |
+|-------------|------------------------------|
+| `numTestes` | the value `N` (the number of test cases) |
+| `i`         | loop counter, runs through `1 … N` (Python’s `range` is 0‑based, we will work with the *mathematical* value `i = loop‑index+1`) |
+| `num`       | the current input value, i.e. `X(i)` |
+| `primo`     | Boolean flag that is **True** iff no divisor has been found yet |
+| `aux`       | trial divisor, runs through `2 … num‑1` |
+| `out(i)`    | the line printed for the *i‑th* test case |
+
+All other variables (`i`, `aux`, `primo`) are *temporary* and disappear
+after the iteration finishes; they are not mentioned in the specification.
+
+--------------------------------------------------------------------
+
+## 3.  The program, written in a Hoare‑logic friendly syntax  
+
+```text
+1   numTestes := int(input())                     (* read N *)
+2   i := 1
+3   while i ≤ numTestes do
+4        num   := int(input())                   (* X(i) *)
+5        primo := true
+6        aux   := 2
+7        while aux < num do
+8              if num mod aux = 0 then
+9                     print  NO(num)            (* “num nao eh primo” *)
+10                    primo := false
+11                    break
+12              end if
+13              aux := aux + 1
+14        end while
+15        if primo then
+16               print YES(num)                  (* “num eh primo” *)
+17        end if
+18        i := i + 1
+19   end while
+```
+
+The two `print` statements are the only statements that affect the
+observable output `out(i)`.
+
+--------------------------------------------------------------------
+
+## 4.  Proof outline  
+
+We prove three things:
+
+1. **Outer‑loop invariant** `I_out` – after the first `k‑1` iterations,
+   the program has already printed the correct answer for the first
+   `k‑1` input numbers.
+
+2. **Inner‑loop invariant** `I_in` – while searching a divisor,
+   the flag `primo` correctly reflects whether a divisor has already been
+   discovered among the numbers examined so far.
+
+3. **Termination** – both loops are bounded by natural numbers that
+   decrease at each iteration, therefore they terminate.
+
+From 1–3 we obtain that after the outer loop finishes (`i = N+1`) the
+post‑condition `Q` holds.
+
+--------------------------------------------------------------------
+
+## 5.  The outer‑loop invariant  
+
+\[
+\boxed{
+I_{\text{out}} \;\equiv\;
+\begin{aligned}
+&1\le i\le N+1\;\wedge\\
+&\bigl(\forall j\;(1\le j < i\;\rightarrow\;out(j)=\text{YES}(X(j))\leftrightarrow Prime(X(j)))\bigr)
+\end{aligned}}
+\]
+
+*Explanation*  
+
+* `i` is the index of the **next** test case to be processed (so the
+  already‑processed cases are `1 … i‑1`).  
+* For every already processed case `j` we have printed exactly one line
+  and that line satisfies the specification.
+
+### 5.1  Initialization (`i := 1`)
+
+Before the first iteration we have `i = 1`.  
+The second conjunct is vacuously true because there is no `j` with
+`1 ≤ j < 1`. Hence `{P} i := 1 {I_out}` follows from the **assignment rule**
+and the **consequence rule** (strengthening the post‑condition).
+
+### 5.2  Preservation  
+
+Assume `I_out` holds at the beginning of an iteration (so `i ≤ N`).  
+We must show that after the body of the loop (lines 4‑18) the invariant
+holds again with `i` replaced by `i+1`.
+
+*The body* :
+
+* **Lines 4‑5** read `num = X(i)` and set `primo := true`.  
+  No output is produced yet, so `I_out` still holds for the already
+  printed lines.
+
+* **Lines 7‑14** are the inner loop; we will prove separately that after
+  it terminates we have  
+
+  \[
+  \bigl(primo = true \;\leftrightarrow\; Prime(num)\bigr)      \tag{A}
+  \]
+
+* **Lines 15‑17** use the value of `primo`:
+  * If `primo` is true we print `YES(num)`.
+  * If `primo` is false we have already printed `NO(num)` inside the
+    inner loop (line 9) and we **do not** print again.
+
+  In either case exactly one line for the current `i` is printed and,
+  by (A), the line coincides with the specification for `X(i)`.
+
+* **Line 18** increments `i`.  Consequently the new value of `i` satisfies
+  `1 ≤ i ≤ N+1` and the universal condition now ranges over
+  `j < i+1`, i.e. over all indices that have already been processed.
+  Hence `I_out` is re‑established.
+
+Thus the **while‑rule** (`{I_out ∧ i ≤ N} Body {I_out}`) is satisfied.
+
+### 5.3  Termination of the outer loop  
+
+`i` starts at `1` and is increased by `1` each iteration; the guard
+`i ≤ N` is a natural‑number bound that becomes false when `i = N+1`.
+Therefore the loop must terminate (standard well‑foundedness argument).
+
+### 5.4  Post‑condition after the outer loop  
+
+When the loop stops we have `i = N+1`.  Instantiating `I_out` with this
+value gives exactly the post‑condition `Q`:
+
+\[
+\forall j\;(1\le j\le N\rightarrow out(j)=\text{YES}(X(j))\leftrightarrow Prime(X(j))).
+\]
+
+--------------------------------------------------------------------
+
+## 6.  The inner‑loop invariant  
+
+\[
+\boxed{
+I_{\text{in}} \;\equiv\;
+\begin{aligned}
+&2\le aux\le num\;\wedge\\
+&\bigl(primo = true\;\rightarrow\;
+      \forall d\;(2\le d < aux\;\rightarrow\; d\nmid num)\bigr)\;\wedge\\
+&\bigl(primo = false\;\rightarrow\;
+      \exists d\;(2\le d < aux\;\wedge\; d\mid num)\bigr)
+\end{aligned}}
+\]
+
+*Explanation*  
+
+* `aux` is the current divisor that will be tried next.  
+* If `primo` is still true, then **no** divisor has been found among the
+  numbers `2 … aux‑1`.  
+* If `primo` is false, a divisor **has** been found among `2 … aux‑1`.
+
+### 6.1  Initialization (`aux := 2`)
+
+Immediately before the inner loop we have `aux = 2` and `primo = true`.  
+The two universal/existential conditions are vacuous because there is
+no `d` with `2 ≤ d < 2`. Hence `{...} aux := 2 {I_in}` holds.
+
+### 6.2  Preservation  
+
+Assume `I_in` holds at the start of an iteration with guard `aux < num`.
+We consider the two cases dictated by the `if` statement.
+
+* **Case 1 – a divisor is found** (`num mod aux = 0`).  
+
+  - Line 9 prints `NO(num)`.  
+  - Line 10 sets `primo := false`.  
+  - Line 11 executes `break`, so the inner loop terminates with
+    `aux` unchanged.  
+
+  After the assignment `primo := false` the second conjunct of `I_in`
+  becomes true (the divisor `aux` itself witnesses the existential
+  clause).  The first conjunct (`2 ≤ aux ≤ num`) also holds because
+  `aux < num` was the loop guard.  Hence `I_in` holds at loop exit.
+
+* **Case 2 – `aux` is *not* a divisor** (`num mod aux ≠ 0`).  
+
+  - The `if` body is skipped.  
+  - Line 13 increments `aux := aux + 1`.  
+
+  Because `primo` stays true, we must show that the universal clause
+  continues to hold for the new `aux`.  By the induction hypothesis we
+  already know that for every `d` with `2 ≤ d < old_aux` we have
+  `d ∤ num`.  The new `aux` is `old_aux+1`, and we also know that
+  `old_aux` itself does **not** divide `num` (the test in the `if`).  Hence
+  the universal statement is true for all `d < new_aux`.  The bounds
+  `2 ≤ new_aux ≤ num` are preserved because the loop guard guarantees
+  `old_aux < num`.  Therefore `I_in` is maintained.
+
+Thus the **while‑rule** (`{I_in ∧ aux < num} Body {I_in}`) is satisfied.
+
+### 6.3  Termination of the inner loop  
+
+`aux` starts at `2` and is increased by `1` each iteration, while the
+guard `aux < num` guarantees that it never exceeds `num`.  Consequently
+the loop must stop when `aux = num`.  (If a divisor is found we exit
+earlier via `break`.)
+
+### 6.4  Consequence after the inner loop  
+
+When the inner loop finishes we have `aux = num`.  Plugging this into
+`I_in` yields
+
+* either `primo = false` and there exists a divisor `d` with `2 ≤ d < num`,
+* or `primo = true` and **no** divisor exists in that range.
+
+Exactly the arithmetic definition of `Prime(num)` is obtained:
+
+\[
+primo = true \;\leftrightarrow\; Prime(num) \tag{A}
+\]
+
+--------------------------------------------------------------------
+
+## 7.  Putting the pieces together  
+
+1. **Reading `N`** (`numTestes := int(input())`) does not affect the
+   predicate `P`; it merely binds the abstract constant `N` to the
+   concrete value read from the input.  By the **consequence rule** we
+   can strengthen the post‑condition of this assignment to
+
+   \[
+   1\le N\le100\;\wedge\;\forall i\;(1\le i\le N\rightarrow 1<X(i)\le10^{7})
+   \]
+
+   which is exactly the part of `P` concerning the number of test cases.
+
+2. **Outer loop** – we have shown that `I_out` is an invariant, that it
+   holds initially, that it is preserved by the body, and that the loop
+   terminates.  By the **while‑rule** we obtain
+
+   \[
+   \{P\}\; \text{outer‑loop}\; \{I_{\text{out}}\}
+   \]
+
+   and after the loop (when `i = N+1`) the invariant gives us the required
+   post‑condition `Q`.
+
+3. **Inner loop** – the invariant `I_in` is established, preserved and
+   leads to the logical equivalence (A).  This equivalence is the only
+   fact needed to argue that the two possible `print` statements produce
+   exactly the strings prescribed by `Q`.
+
+4. **Conditional statements** (`if … then … else …`) are handled by the
+   standard Hoare rule for conditionals; each branch respects the
+   invariant that has been proved for the inner loop.
+
+5. **Termination** of both loops follows from a simple natural‑number
+   ranking function (`i` for the outer loop, `aux` for the inner loop).
+
+Consequently, starting from any state that satisfies the pre‑condition
+`P`, the program terminates in a state that satisfies the post‑condition
+`Q`.  Hence the Hoare triple
+
+\[
+\boxed{\{P\}\;{\tt Program}\;\{Q\}}
+\]
+
+is **valid**.
+
+--------------------------------------------------------------------
+
+## 8.  Remarks on the specification limits  
+
+* The bound `1 < X(i) ≤ 10⁷` is never used in the logical part of the
+  proof; it only guarantees that the loop `for aux in range(2, num)` is
+  finite (because `num` is a positive integer).  
+* The bound `N ≤ 100` guarantees that the outer loop also terminates
+  after at most 100 iterations.  Both bounds are respected by the
+  program because Python’s `range` iterates a finite number of times.
+
+--------------------------------------------------------------------
+
+## 9.  Conclusion  
+
+We have supplied a complete Hoare‑logic proof:
+
+* an invariant for the outer `for`‑loop that captures the fact that all
+  answers printed so far are correct,
+* an invariant for the inner trial‑division loop that captures the exact
+  relationship between the flag `primo` and the existence of a divisor,
+* a demonstration that both loops terminate, and
+* a composition of the above using the Hoare rules that yields the
+  post‑condition required by the specification.
+
+Therefore the given Python program **correctly** implements the
+specification: for each input integer `X(i)` it prints "`X(i) eh primo`"
+iff `X(i)` is prime, and "`X(i) nao eh primo`" otherwise.  ∎

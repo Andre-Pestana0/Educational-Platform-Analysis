@@ -1,0 +1,221 @@
+**Proof of correctness of the Python program**  
+
+We prove that the program  
+
+```python
+a, b = map(int, input().split(' '))
+r = a % abs(b)          # 1
+q = (a - r) / b          # 2
+print(int(q), r)        # 3
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{P(a,b)\}\;S\;\{Q(a,b,q,r)\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+  \[
+  P(a,b) \;:\; a,b\in\mathbb Z\;\wedge\; -1000\le a<1000\;\wedge\; -1000\le b<1000\;\wedge\; b\neq0 .
+  \]
+
+* **Post‑condition**  
+
+  \[
+  Q(a,b,q,r) \;:\; \exists q,r\in\mathbb Z\;.\;
+         \bigl(a=bq+r\;\wedge\;0\le r<|b|\bigr)\;\wedge\;
+         \text{output}(q,r) .
+  \]
+
+The proof proceeds by **structural induction on the program statements** using the Hoare‑logic rules for
+* assignment,
+* composition,
+* the rule of consequence,
+* and a small arithmetic lemma about Python’s remainder operator.
+
+--------------------------------------------------------------------
+### 1. Lemma (Euclidean remainder in Python)
+
+For any integers `x` and `y` with `y>0`
+
+```
+r = x % y
+```
+
+yields an integer `r` such that  
+
+\[
+0\le r < y\qquad\text{and}\qquad \exists k\in\mathbb Z:\;x = y\cdot k + r .
+\]
+
+*Proof.* Python defines `x % y` as `x - y*floor(x/y)`.  
+Since `y>0`, `floor(x/y)` is an integer `k`.  
+Hence `r = x - yk`. By definition of `floor`,  
+
+\[
+k \le \frac{x}{y} < k+1 \Longrightarrow 0 \le x-yk < y .
+\]
+
+∎
+
+--------------------------------------------------------------------
+### 2. Hoare triples for the individual statements  
+
+We write the program as the sequence  
+
+\[
+S\;=\;S_1;S_2;S_3
+\]
+
+with  
+
+* \(S_1\) : `r = a % abs(b)`  
+* \(S_2\) : `q = (a - r) / b`  
+* \(S_3\) : `print(int(q), r)`  
+
+All variables are ordinary Python integers; the conversion `int(q)` does not change the value because `q` is already an integer (see the reasoning below).
+
+--------------------------------------------------------------------
+#### 2.1. Triple for `S₁`
+
+Let  
+
+\[
+R_1 \;:\; 0 \le r < |b| \;\wedge\; \exists k\in\mathbb Z:\; a = |b|\cdot k + r .
+\]
+
+Using the Lemma with `x = a` and `y = |b| = abs(b) (>0)` we obtain
+
+\[
+\{P(a,b)\}\; r = a \% \text{abs}(b) \;\{R_1\}
+\tag{T₁}
+\]
+
+*Explanation.*  
+`abs(b)` is guaranteed to be positive because `b≠0`.  
+The Lemma guarantees the two properties that constitute `R₁`.  
+All other variables (`a,b`) stay unchanged, therefore the pre‑condition part of `P` is still true after the assignment.
+
+--------------------------------------------------------------------
+#### 2.2. Triple for `S₂`
+
+From `R₁` we know that there exists an integer `k` with  
+
+\[
+a = |b|\cdot k + r .
+\tag{1}
+\]
+
+Because `|b| = b·\operatorname{sgn}(b)` where `\operatorname{sgn}(b)∈\{1,-1\}`, we can rewrite (1) as  
+
+\[
+a = b\cdot (k\cdot\operatorname{sgn}(b)) + r .
+\tag{2}
+\]
+
+Define  
+
+\[
+q \;:=\; \frac{a-r}{b}.
+\]
+
+Using (2) we have  
+
+\[
+\frac{a-r}{b}=k\cdot\operatorname{sgn}(b) \in\mathbb Z .
+\]
+
+Thus `q` is an integer and  
+
+\[
+a = b\cdot q + r .
+\tag{3}
+\]
+
+Consequently we obtain the following Hoare triple
+
+\[
+\{R_1\}\; q = (a - r) / b \;\{ R_2 \}
+\tag{T₂}
+\]
+
+with  
+
+\[
+R_2 \;:\; a = b\cdot q + r \;\wedge\; 0 \le r < |b| .
+\]
+
+*Explanation.*  
+The right‑hand side of the assignment is a rational expression, but because of (3) it evaluates to an integer; Python therefore stores that integer in `q`.  The triple follows from the **assignment rule** (the post‑condition is obtained by substituting the right‑hand side for `q` in `R₂`).
+
+--------------------------------------------------------------------
+#### 2.3. Triple for `S₃`
+
+`S₃` does not modify any program variable; it only produces an observable effect (`output`).  
+Hence the standard Hoare rule for *output* statements yields
+
+\[
+\{R_2\}\; \text{print(int(q), r)} \;
+\{\,R_2 \;\wedge\; \text{output}(q,r)\,\}
+\tag{T₃}
+\]
+
+The conversion `int(q)` is a no‑op because `q` is already an integer (as proved in the previous step).
+
+--------------------------------------------------------------------
+### 3. Composition of the three triples  
+
+Using the **rule of composition**  
+
+\[
+\frac{\{P\}S_1\{R_1\}\qquad\{R_1\}S_2\{R_2\}\qquad\{R_2\}S_3\{R_3\}}
+     {\{P\}S_1;S_2;S_3\{R_3\}}
+\]
+
+with  
+
+* `P = P(a,b)`,
+* `R₁` from (T₁),
+* `R₂` from (T₂),
+* `R₃ = R₂ ∧ output(q,r)` from (T₃),
+
+we obtain
+
+\[
+\{P(a,b)\}\; S_1;S_2;S_3\;
+\Bigl\{\exists q,r\in\mathbb Z.\; a = bq + r \wedge 0\le r<|b| \wedge
+       \text{output}(q,r)\Bigr\}.
+\]
+
+The existential quantifiers are introduced because the variables `q` and `r` appear only after the execution of `S`.  This is exactly the post‑condition `Q(a,b,q,r)` required by the specification.
+
+--------------------------------------------------------------------
+### 4. Use of the rule of consequence (optional)
+
+The derived post‑condition matches `Q` verbatim; thus no additional strengthening or weakening is necessary.  The proof is complete.
+
+--------------------------------------------------------------------
+## 5. Conclusion  
+
+Starting from the admissible input range  
+
+\[
+-1000\le a<1000,\qquad -1000\le b<1000,\qquad b\neq0
+\]
+
+the program computes
+
+* `r = a % |b|` – the Euclidean remainder, satisfying `0 ≤ r < |b|`,
+* `q = (a‑r)/b` – the Euclidean quotient, satisfying `a = b·q + r`,
+
+and finally prints the pair `(q,r)`.  By the Hoare‑logic derivation above we have shown that
+
+\[
+\{P(a,b)\}\;S\;\{Q(a,b,q,r)\}
+\]
+
+holds, i.e. the program is **correct with respect to the given Hoare‑logic specification**.

@@ -1,0 +1,303 @@
+## 1.  What has to be proved  
+
+We have to show that the program **solve()** (the whole source fragment) satisfies  
+
+\[
+\{\,P(\mathbf {in})\,\}\;{\rm solve()}\;\{\,Q(\mathbf {in},\mathbf {out})\,\}
+\tag{1}
+\]
+
+where  
+
+* the **pre‑condition**  
+
+\[
+P(\mathbf{in})\;\equiv\;
+\bigl(1\le T\le 10\,000\bigr)\ \land\ 
+\forall i\in\{1,\dots ,T\}\;
+\bigl(R_{1}^{(i)}\in\mathbb N\land R_{2}^{(i)}\in\mathbb N\bigr)
+\tag{P}
+\]
+
+* the **post‑condition**  
+
+\[
+Q(\mathbf{in},\mathbf{out})\;\equiv\;
+|\,\mathbf{out}\,| = T\ \land\ 
+\forall i\in\{1,\dots ,T\}\;
+\bigl(S^{(i)} = R_{1}^{(i)}+R_{2}^{(i)}\bigr)
+\tag{Q}
+\]
+
+The proof is carried out in the usual Hoare‑logic calculus (assignment
+axiom, composition rule, consequence rule, while‑rule).  
+All variables that appear in the logical assertions are the *program
+variables* (`T`, `i`, `R1`, `R2`, `S`) together with the *auxiliary* logical
+variable `out` that records every value printed by the program.
+
+--------------------------------------------------------------------
+
+## 2.  The program written as a sequence of commands  
+
+```
+1  T := read()                                    (read the number of tests)
+2  i := 1                                         (loop counter)
+3  out := []                                      (initially no output)
+4  while i ≤ T do
+5        R1,R2 := read_pair()                    (read one test case)
+6        S    := R1 + R2
+7        print(S)                               (append S to out)
+8        out := out ++ [S]                       (logical description of print)
+9        i   := i + 1
+10   od
+```
+
+The statements on lines 5–9 constitute the **body** of the outer loop.
+Lines 5–7 are the *inner* part that works on a *single* test case; the
+assignment on line 8 is not a real instruction, it is only a logical
+description of the effect of `print`.
+
+--------------------------------------------------------------------
+
+## 3.  Hoare triple for a *single* iteration  
+
+Fix an arbitrary iteration index `i` (the value of the loop counter **before**
+the body is executed).  
+Define
+
+\[
+\begin{aligned}
+P_i &\equiv\; R_{1}^{(i)}\in\mathbb N\ \land\ R_{2}^{(i)}\in\mathbb N ,\\[1mm]
+Q_i &\equiv\; S^{(i)} = R_{1}^{(i)}+R_{2}^{(i)} .
+\end{aligned}
+\]
+
+The body of the loop (lines 5–7) must satisfy  
+
+\[
+\boxed{\{\,P_i\,\}\; \texttt{S = R1 + R2; print(S)}\; \{\,Q_i\,\}} \tag{2}
+\]
+
+*Proof of (2).*  
+
+* Assignment axiom (for `S := R1+R2`)
+
+\[
+\{\,P_i\;\land\; S = R_{1}^{(i)}+R_{2}^{(i)}\ \}\; S := R1+R2\;
+\{\,S = R_{1}^{(i)}+R_{2}^{(i)}\ \}
+\]
+
+Since `P_i` does not mention `S`, we can weaken the pre‑condition and obtain  
+
+\[
+\{\,P_i\ \}\; S := R1+R2\; \{\,S = R_{1}^{(i)}+R_{2}^{(i)}\ \}
+\tag{A}
+\]
+
+* The command `print(S)` does not modify any of the logical variables that
+appear in `P_i` or `Q_i`.  By the **skip‑rule** (or the rule *“print does not
+affect the state”*) we have  
+
+\[
+\{\,S = R_{1}^{(i)}+R_{2}^{(i)}\ \}\; \texttt{print(S)}\;
+\{\,S = R_{1}^{(i)}+R_{2}^{(i)}\ \}
+\tag{B}
+\]
+
+* Composition of (A) and (B) yields (2). ∎
+
+
+
+--------------------------------------------------------------------
+
+## 4.  Loop invariant for the **outer** `while`  
+
+Let  
+
+\[
+k \;=\; i-1 \qquad\text{(the number of test cases already processed)}
+\]
+
+Define the invariant  
+
+\[
+\begin{aligned}
+I \equiv\;&\bigl(0\le k\le T\bigr)\ \land\\
+          &\bigl|\,out\,\bigr| = k\ \land\\
+          &\forall j\in\{1,\dots ,k\}\;
+            \bigl(out[j] = R_{1}^{(j)}+R_{2}^{(j)}\bigr) .
+\end{aligned}
+\tag{Inv}
+\]
+
+Intuitively, after the loop has executed `k` times, `out` contains exactly the
+first `k` required sums and the loop counter `i` points to the next test case.
+
+--------------------------------------------------------------------
+
+### 4.1  Initialization  
+
+Before the loop (`i = 1`, `out = []`) we have `k = 0`.  
+Consequently  
+
+* `0 ≤ k ≤ T` holds because of the pre‑condition `1 ≤ T`.  
+* `|out| = 0 = k`.  
+* The universal quantifier in `Inv` is vacuous (there is no `j` with  
+  `1 ≤ j ≤ 0`).  
+
+Thus `{P}`  `i := 1; out := []`  `{Inv}` is proved by **consequence** from the
+assignment axioms.
+
+--------------------------------------------------------------------
+
+### 4.2  Preservation  
+
+Assume `Inv` holds at the *beginning* of an iteration and that the loop guard
+`i ≤ T` is true, i.e. `k < T`.  
+We have to show that after executing the body (lines 5–9) the invariant holds
+again, now with `k' = k+1`.
+
+* From `Inv` we already know that the first `k` outputs are correct.
+* By the loop guard we know that a *new* pair `(R1,R2)` will be read; this pair
+  satisfies `P_i` (the pre‑condition of (2)) because the overall pre‑condition
+  guarantees that **every** input pair consists of natural numbers.
+* By (2) we obtain after line 7  
+
+  \[
+  S = R_{1}^{(i)}+R_{2}^{(i)} .
+  \]
+
+* Line 8 (`out := out ++ [S]`) appends exactly this value to the logical list
+  `out`. Consequently  
+
+  \[
+  |out| = k+1\quad\text{and}\quad
+  out[k+1] = R_{1}^{(i)}+R_{2}^{(i)} .
+  \]
+
+* Finally line 9 (`i := i+1`) makes the new loop counter `i' = i+1`,
+  therefore `k' = i'-1 = (i+1)-1 = i = k+1`.
+
+Collecting the four facts we obtain precisely `Inv` with `k' = k+1`.  
+Hence  
+
+\[
+\{\,Inv\land i\le T\,\}\;\texttt{body}\;\{\,Inv\,\}
+\tag{3}
+\]
+
+is proved by **composition** of the Hoare triple (2) with the trivial
+assignments for `out` and `i`.
+
+--------------------------------------------------------------------
+
+### 4.3  Termination condition  
+
+When the loop finishes we have `¬(i ≤ T)`, i.e. `i = T+1`.  
+Thus `k = i-1 = T`.  Instantiating `Inv` with `k = T` gives  
+
+\[
+|out| = T\quad\land\quad
+\forall j\in\{1,\dots ,T\}\;
+out[j] = R_{1}^{(j)}+R_{2}^{(j)} .
+\tag{4}
+\]
+
+Equation (4) is exactly the **post‑condition** `Q` (the list `out` is the
+program output, therefore `out = (S^{(1)},\dots ,S^{(T)})`).  
+
+The **while‑rule** therefore yields  
+
+\[
+\{\,Inv\,\}\;\texttt{while}\ i\le T\ \texttt{do body od}\;
+\{\,Q\,\}
+\tag{5}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Whole program  
+
+We now put together the three parts:
+
+1. **Reading `T`**  
+   By the *input axiom* we have  
+
+   \[
+   \{\,P\,\}\;T := \texttt{read()}\;\{\,1\le T\le 10\,000\ \land\ P\}
+   \]
+
+   (the part of `P` concerning the radii is unchanged).
+
+2. **Initialisation of the loop variables** (`i := 1; out := []`)  
+   By consequence we obtain `{P}` `i := 1; out := []` `{Inv}`.
+
+3. **The while loop** – already proved in (5).
+
+Using the **sequencing rule** (composition) we finally get  
+
+\[
+\{\,P\,\}\;
+\bigl(
+   T:=\texttt{read()};\;
+   i:=1;\;out:=[];\;
+   \texttt{while } i\le T\ \texttt{do body od}
+\bigr)
+\;
+\{\,Q\,\}
+\]
+
+which is exactly the Hoare triple (1). ∎
+
+
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on the auxiliary logical variable `out`
+
+* In the real Python program the command `print(S)` writes `S` to the standard
+  output.  For the purpose of a Hoare‑logic proof we model this effect by an
+  *abstract* assignment `out := out ++ [S]`.  The rule for `print` is therefore
+  the **skip‑rule**: it does not modify any of the logical variables that appear
+  in the assertions, it only extends the observable output.
+
+* The invariant `Inv` talks about the **length** of `out` and about the value
+  stored at each position; this is sufficient to express the required
+  property `Q` without having to refer to the concrete I/O channel.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have exhibited a complete Hoare‑logic proof that the program
+
+```python
+T = int(input())
+for _ in range(T):
+    R1, R2 = map(int, input().split())
+    print(R1 + R2)
+```
+
+conforms to the formal specification
+
+*pre‑condition* `P` (the input consists of a natural number `T` between 1 and 10 000
+followed by `T` pairs of natural numbers) and
+
+*post‑condition* `Q` (the program produces exactly `T` natural numbers,
+the *i*‑th one being the sum of the *i*‑th input pair).
+
+The proof proceeds by:
+
+* a Hoare triple for the *single* iteration of the loop,
+* a loop invariant for the outer `while`/`for`,
+* initialization, preservation, and termination arguments,
+* composition of the three program fragments.
+
+Hence the Hoare triple  
+
+\[
+\boxed{\{\,P(\mathbf{in})\,\}\;{\rm solve()}\;\{\,Q(\mathbf{in},\mathbf{out})\,\}}
+\]
+
+holds, i.e. the algorithm is **correct** with respect to the given
+formal specification.  

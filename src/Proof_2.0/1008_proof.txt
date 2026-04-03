@@ -1,0 +1,297 @@
+**Goal**  
+
+Show that the Python fragment  
+
+```python
+numero_funcionario = int(input())
+horas_trabalhadas = int(input())
+valor_hora        = float(input())
+salario = horas_trabalhadas * valor_hora
+print(f'NUMBER = {numero_funcionario}')
+print(f'SALARY = U$ {salario:.2f}')
+```
+
+satisfies the Hoare triple  
+
+\[
+\{P\}\; \textbf{program}\; \{Q\}
+\]
+
+where the pre‑condition \(P\) and the post‑condition \(Q\) are the ones that appear in the specification of the question (Section 2.1‑2.2 above).
+
+---------------------------------------------------------------------
+
+## 1.  Translation of the concrete program to the abstract one  
+
+The abstract program that appears in the specification is  
+
+```
+read n
+read h
+read r
+s ← round2(h * r)               // s is the salary that will be printed
+print "NUMBER = "  ++ n ++ "\n"
+print "SALARY = U$ " ++ fmt2(s)
+```
+
+The Python code implements exactly the same steps:
+
+| abstract step | Python statement | explanation |
+|---------------|------------------|-------------|
+| `read n` | `numero_funcionario = int(input())` | `int` converts the first token of the input file to a non‑negative integer `n`. |
+| `read h` | `horas_trabalhadas = int(input())` | idem, yielding `h`. |
+| `read r` | `valor_hora = float(input())` | converts the third token to a non‑negative real `r`. |
+| `s ← round2(h * r)` | `salario = horas_trabalhadas * valor_hora`  (the rounding is performed later, at output) | The variable `salario` holds the exact product `h·r`. The `:.2f` conversion in the following `print` statement applies the same rounding function `round2`. |
+| `print "NUMBER = " ++ n ++ "\n"` | `print(f'NUMBER = {numero_funcionario}')` | The f‑string prints the literal “NUMBER = ”, the decimal representation of `n`, and a line‑break (the `print` built‑in always appends `\n`). |
+| `print "SALARY = U$ " ++ fmt2(s)` | `print(f'SALARY = U$ {salario:.2f}')` | The conversion specifier `:.2f` prints `round2(salario)` with exactly two decimal digits, i.e. `fmt2(s)`. |
+
+Hence the concrete program is a *refinement* of the abstract one: every statement of the abstract program is realised by a (possibly compound) Python statement that has the same logical effect.
+
+---------------------------------------------------------------------
+
+## 2.  Proof in Hoare‑logic  
+
+We prove the triple by a succession of applications of the **assignment axiom**, the **composition rule**, and the **consequence rule**.  
+For readability we write  
+
+* `n`, `h`, `r` for the values read from the input (the same names used in the specification).  
+* `sal` for the variable `salario` that stores the exact product `h·r`.  
+* `s` for the rounded value `round2(h·r)`.  
+
+The invariant that will be maintained after each statement is
+
+\[
+I \; \equiv\; 
+\bigl(\operatorname{input}=(n,h,r)\bigr) \;\land\;
+\bigl(sal = h\cdot r\bigr) .
+\tag{1}
+\]
+
+The final post‑condition \(Q\) can be expressed as  
+
+\[
+Q \equiv \exists s\bigl(s = \operatorname{round2}(h\cdot r)
+   \land \operatorname{out}= 
+   \operatorname{concat}(\operatorname{concat}(\text{“NUMBER = ”},
+          \text{toString}(n)),\#)
+   \operatorname{concat}(\text{“SALARY = U$ ”},
+          \operatorname{fmt2}(s))\bigr) .
+\tag{2}
+\]
+
+---------------------------------------------------------------------
+
+### 2.1  Reading the three values  
+
+1. **First read**  
+
+   \[
+   \{P\}\;
+   numero\_funcionario = int(input())\;
+   \{\,\operatorname{input}=(n,h,r) \land n = numero\_funcionario\,\}
+   \]
+
+   *Proof*:  The assignment axiom with the substitution
+   \(n := numero\_funcionario\) yields the post‑condition above; together with the premise \(P\) (which asserts that the input indeed contains three values) we obtain the required condition.
+
+2. **Second read**  
+
+   \[
+   \{\,\operatorname{input}=(n,h,r) \land n = numero\_funcionario\,\}
+   \;horas\_trabalhadas = int(input())\;
+   \{\,\operatorname{input}=(n,h,r) \land n = numero\_funcionario 
+          \land h = horas\_trabalhadas\,\}
+   \]
+
+   Same reasoning as before.
+
+3. **Third read**  
+
+   \[
+   \{\,\operatorname{input}=(n,h,r) \land n = numero\_funcionario 
+          \land h = horas\_trabalhadas\,\}
+   \;valor\_hora = float(input())\;
+   \{\,\operatorname{input}=(n,h,r) \land n = numero\_funcionario 
+          \land h = horas\_trabalhadas \land r = valor\_hora\,\}
+   \]
+
+   After the three assignments we have the **state**  
+
+   \[
+   \sigma_1 \;=\; 
+   \bigl(\operatorname{input}=(n,h,r),\;
+         numero\_funcionario=n,\;
+         horas\_trabalhadas = h,\;
+         valor\_hora = r \bigr) .
+   \tag{3}
+   \]
+
+   This state satisfies invariant (1) because `sal` has not been defined yet, therefore the conjunct `sal = h·r` is vacuously true.
+
+---------------------------------------------------------------------
+
+### 2.2  Computing the (un‑rounded) salary  
+
+4. **Multiplication**  
+
+   \[
+   \{\,\sigma_1\,\}\;
+   salario = horas\_trabalhadas * valor\_hora\;
+   \{\,\sigma_2 \equiv 
+      (\operatorname{input}=(n,h,r),\;
+       salario = h\cdot r,\;
+       numero\_funcionario=n,\;
+       horas\_trabalhadas = h,\;
+       valor\_hora = r )\,\}
+   \]
+
+   *Proof*:  Assignment axiom with the substitution  
+   `salario := horas_trabalhadas * valor_hora`.  
+   The right‑hand side evaluates to `h·r` under the current bindings, giving the post‑condition shown.
+
+   At this point we may rename `salario` to the abstract variable `sal`; thus invariant (1) holds:
+
+   \[
+   I \equiv (\operatorname{input}=(n,h,r) \land sal = h\cdot r)
+   \tag{4}
+   \]
+
+---------------------------------------------------------------------
+
+### 2.3  First output line  
+
+5. **Print employee number**  
+
+   The semantics of the Python `print` statement is  
+
+   \[
+   \operatorname{out} := 
+   \operatorname{concat}\bigl(
+       \operatorname{concat}(\text{“NUMBER = ”},
+                             \text{toString}(numero\_funcionario)),
+       \#\bigr) .
+   \]
+
+   Consequently we have the Hoare triple  
+
+   \[
+   \{I\}\;
+   print(f'NUMBER = {numero\_funcionario}')\;
+   \{\,I \land
+      \operatorname{out}= 
+      \operatorname{concat}\bigl(
+          \operatorname{concat}(\text{“NUMBER = ”},
+                               \text{toString}(n)),\#\bigr)
+   \,\} .
+   \tag{5}
+   \]
+
+   The invariant \(I\) is preserved because the printed line does not modify any program variable besides the *output* buffer.
+
+---------------------------------------------------------------------
+
+### 2.4  Second output line (the rounded salary)  
+
+6. **Print salary**  
+
+   The format specification `:.2f` in Python implements exactly the function  
+
+   \[
+   \operatorname{round2} : \mathbb R_{\ge 0}\rightarrow\mathbb R_{\ge 0}
+   \]
+
+   and the conversion `fmt2` described in the specification.  
+   Hence the statement
+
+   ```python
+   print(f'SALARY = U$ {salario:.2f}')
+   ```
+
+   has the logical effect  
+
+   \[
+   \operatorname{out} :=
+   \operatorname{concat}\bigl(
+       \operatorname{out\_previous},
+       \operatorname{concat}(\text{“SALARY = U$ ”},
+                            \operatorname{fmt2}(\operatorname{round2}(sal)))\bigr)
+   \]
+
+   where `out_previous` denotes the string already produced by the first `print`.  
+   Using the invariant (4) we can replace `sal` by `h·r`.  Therefore we obtain the Hoare triple  
+
+   \[
+   \begin{aligned}
+   \{&I \land
+      \operatorname{out}= 
+      \operatorname{concat}\bigl(
+          \operatorname{concat}(\text{“NUMBER = ”},
+                               \text{toString}(n)),\#\bigr)\}\\
+   &\text{print(f'SALARY = U$ {salario:.2f}') }\\
+   \{&\exists s\bigl(
+        s = \operatorname{round2}(h\cdot r)\;
+        \land\;
+        \operatorname{out}= 
+        \operatorname{concat}\bigl(
+            \operatorname{concat}(\text{“NUMBER = ”},
+                                 \text{toString}(n)),\#\bigr)
+        \operatorname{concat}(\text{“SALARY = U$ ”},
+                             \operatorname{fmt2}(s))\bigr)\}
+   \end{aligned}
+   \tag{6}
+   \]
+
+   The existence of the intermediate variable `s` follows from the definition  
+
+   \[
+   s \stackrel{\text{def}}{=} \operatorname{round2}(h\cdot r) .
+   \]
+
+---------------------------------------------------------------------
+
+### 2.5  Composition of the whole program  
+
+The program is a **sequence** of the six statements proved above.  
+Applying the **composition rule** repeatedly we obtain
+
+\[
+\{P\}\; \textbf{program}\; \{Q\}
+\]
+
+where the final post‑condition is exactly the one denoted by (2).  
+
+All intermediate steps satisfy the **consequence rule** because each
+intermediate post‑condition logically implies the next pre‑condition.
+
+---------------------------------------------------------------------
+
+## 3.  Termination  
+
+* The three `input()` calls each read a finite token from the input file, which is guaranteed to exist by the pre‑condition \(P\).  
+* The multiplication and the two `print` statements are total, deterministic operations on finite data.  
+* Therefore the execution always reaches the final state; the Hoare triple is a **total correctness** triple.
+
+---------------------------------------------------------------------
+
+## 4.  Conclusion  
+
+We have exhibited a formal Hoare‑logic proof that the Python fragment satisfies the specification
+
+\[
+\boxed{\{P\}\;\textbf{program}\;\{Q\}}
+\]
+
+with  
+
+* **Pre‑condition** \(P\): the input file contains three values \((n,h,r)\) with \(n,h\in\mathbb N\) and \(r\in\mathbb R_{\ge 0}\).  
+
+* **Post‑condition** \(Q\): the output consists of the line  
+  `NUMBER = n` followed by a newline and the line  
+  `SALARY = U$ s` where \(s = \operatorname{round2}(h\cdot r)\) is printed with exactly two decimal digits.
+
+The proof uses the standard Hoare‑logic axioms (assignment, composition,
+consequence) and the semantics of Python’s `print` with the `:.2f` format
+specifier, which coincides with the rounding function \(\operatorname{round2}\) defined in the specification.  
+
+Hence the program is **correct** with respect to the given formal
+pre‑ and post‑conditions.

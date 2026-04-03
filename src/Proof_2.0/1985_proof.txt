@@ -1,0 +1,343 @@
+## 1.  What we have to prove  
+
+We are given a **Hoare‑logic specification**
+
+\[
+\{\,\textbf{Pre}\,\}\; \texttt{Program}\; \{\,\textbf{Post}\,\}
+\]
+
+with  
+
+* **Pre**  
+
+\[
+\begin{aligned}
+1\le p\le 5 \;\land\;
+\forall i\in\{1,\dots ,p\}\;(id[i]\in\{1001,1002,1003,1004,1005\})\;\land\;
+\forall i\;(1\le q[i]\le 500) .
+\end{aligned}
+\]
+
+* **Post**  
+
+\[
+\begin{aligned}
+total = \sum_{i=1}^{p}\! \text{PRICE}(id[i])\;q[i] 
+\;\land\;
+output = \text{format}(total,2) .
+\end{aligned}
+\]
+
+The concrete Python program that implements the specification is
+
+```python
+n = int(input())                # p
+valor = 0.0                     # total
+for i in range(n):              # i = 1 … p
+    entrada = input()
+    item, quantidade = entrada.split(' ')
+    if int(item) == 1001:
+        valor += int(quantidade) * 1.50
+    elif int(item) == 1002:
+        valor += int(quantidade) * 2.50
+    elif int(item) == 1003:
+        valor += int(quantidade) * 3.50
+    elif int(item) == 1004:
+        valor += int(quantidade) * 4.50
+    elif int(item) == 1005:
+        valor += int(quantidade) * 5.50
+print('%.2f' % valor)           # output
+```
+
+Our goal is to **prove**  
+
+\[
+\{\,\textbf{Pre}\,\}\;\texttt{program}\;\{\,\textbf{Post}\,\}
+\]
+
+by means of the usual Hoare‑logic inference rules (assignment, composition, conditional, while‑loop, consequence).
+
+---
+
+## 2.  Mapping the abstract variables to the concrete program  
+
+| Abstract variable | Concrete Python name | Comment |
+|-------------------|----------------------|---------|
+| `p`               | `n`                  | number of distinct items (first input line) |
+| `id[i]`           | `item` (after conversion to `int`) | product code read on the *i‑th* iteration |
+| `q[i]`            | `quantidade` (after conversion to `int`) | quantity read on the *i‑th* iteration |
+| `total`           | `valor` (type `float`) | accumulated monetary amount |
+| `output`          | the string printed by `print('%.2f' % valor)` | exactly two decimal digits |
+
+The *price table* used by the specification is hard‑coded in the program:
+
+\[
+\begin{array}{c|c}
+\text{code} & \text{price used in the program} \\ \hline
+1001 & 1.50 \\
+1002 & 2.50 \\
+1003 & 3.50 \\
+1004 & 4.50 \\
+1005 & 5.50
+\end{array}
+\]
+
+Hence we can identify  
+
+\[
+\text{PRICE}(100k)=p_k\quad\text{with}\quad p_1=1.50,\;p_2=2.50,\dots ,p_5=5.50 .
+\]
+
+All other constants (`1.0`, `0.0`, the format string) are pure syntactic sugar and do not affect the logical reasoning.
+
+---
+
+## 3.  Proof outline  
+
+The proof follows the **structure of the program**:
+
+1. **Read `n`** – an assignment from input.  
+2. **Initialize `valor` to `0.0`.**  
+3. **Loop** `for i in range(n): …` – we will give a **loop invariant** that captures the partial sum of the first `i` items.  
+4. **Inside the loop** we have a chain of `if/elif` statements – each branch is a simple assignment (`valor := valor + q * price`).  
+5. **After the loop** we print the value with two decimal digits – a single assignment to the observable `output`.
+
+The only non‑trivial part is the **loop invariant**; everything else is a straightforward application of the assignment rule.
+
+---
+
+## 4.  Loop invariant  
+
+Let  
+
+\[
+\begin{aligned}
+\mathit{Inv}(i) \;\equiv\;
+& 0\le i\le n\;\land \\
+& \forall j\in\{1,\dots ,i\}\; \bigl(
+      id[j]\in\{1001,\dots ,1005\}\;\land\;1\le q[j]\le 500
+   \bigr) \;\land \\
+& \;valor = \sum_{j=1}^{i}\text{PRICE}(id[j])\;q[j].
+\end{aligned}
+\]
+
+Interpretation  
+
+* `i` is the number of iterations already performed (the loop variable in Python is `i` ranging from `0` to `n‑1`; we will use the *mathematical* counter `i` that counts how many input lines have been processed, i.e. after the `k`‑th iteration we have `i = k`).  
+* The first conjunct guarantees that we never go out of bounds.  
+* The second conjunct recapitulates the **input restrictions** – they are already true by the pre‑condition and never change, so they are harmlessly carried over.  
+* The third conjunct states the **partial sum invariant**: after having processed the first `i` items, `valor` equals exactly the sum of the corresponding price·quantity products.
+
+---
+
+## 5.  Formal Hoare derivation  
+
+We write the program in a pseudo‑imperative syntax that matches Hoare logic, then we annotate each step with the rule that justifies it.
+
+### 5.1  Reading `n`
+
+```
+read n;                     (1)
+```
+
+*Rule*: **Input rule** – we may assume that the value read satisfies the part of the pre‑condition that mentions `p`.  
+Thus after (1) we have  
+
+\[
+\{\,1\le n\le5\;\land\;\dots\,\}
+\]
+
+which is exactly the first conjunct of **Pre** (with `p` renamed to `n`).  
+
+### 5.2  Initialisation of `valor`
+
+```
+valor := 0.0;               (2)
+```
+
+*Rule*: **Assignment**  
+
+\[
+\{\,\textbf{Pre}\,\}\; \texttt{valor := 0.0}\; \{\,\textbf{Pre}\land valor = 0\,\}
+\]
+
+Because `0 = \sum_{j=1}^{0} PRICE(id[j])·q[j]`, the invariant `Inv(0)` holds after (2).
+
+### 5.3  Loop header  
+
+```
+i := 0;                     (3)
+while i < n do
+    … body …
+    i := i + 1;            (4)
+od
+```
+
+We will prove the usual **while‑rule**:
+
+\[
+\frac{\{\,Inv(i)\land i<n\,\}\; \text{Body}\; \{\,Inv(i+1)\,\}}
+     {\{\,Inv(0)\,\}\; \text{while }i<n\text{ do Body od}\; \{\,Inv(n)\,\}} .
+\]
+
+Thus we need to show that the **body** transforms `Inv(i)` (with `i<n`) into `Inv(i+1)`.
+
+### 5.4  Body of the loop  
+
+The body consists of three steps:
+
+1. **Read the next line**  
+
+   ```
+   read item, quantidade;          (5)
+   id[i+1] := int(item);
+   q[i+1]  := int(quantidade);
+   ```
+
+   By the *input rule* the values read satisfy the constraints of the pre‑condition, i.e.  
+
+   \[
+   id[i+1]\in\{1001,\dots ,1005\},\qquad 1\le q[i+1]\le 500 .
+   \]
+
+   Therefore after (5) the invariant still holds, except that it now mentions the newly introduced indices `i+1` in the universal quantifiers.  
+
+2. **The chain of `if/elif`** – each branch is of the form  
+
+   ```
+   valor := valor + q[i+1] * price_k
+   ```
+
+   where `price_k` is the constant `p_k`.  
+   *Rule*: **Conditional**  
+
+   \[
+   \frac{\{\,Inv(i)\land \text{cond}_k\,\}\; \text{valor := valor + q[i+1]*p_k}\; \{\,Inv(i+1)\,\}}
+        {\{\,Inv(i)\,\}\; \text{if…elif…}\; \{\,Inv(i+1)\,\}} .
+   \]
+
+   Let us verify the assignment rule for a **single branch** (the others are identical).  
+   Assume the guard `int(item) == 100k` holds, i.e. `id[i+1] = 100k`.  
+   The assignment transforms `valor` as follows:
+
+   \[
+   \begin{aligned}
+   valor_{\text{new}}
+   &= valor_{\text{old}} + q[i+1]\;p_k \\
+   &= \Bigl(\sum_{j=1}^{i} PRICE(id[j])\,q[j]\Bigr) + q[i+1]\;PRICE(100k) \\
+   &= \sum_{j=1}^{i+1} PRICE(id[j])\,q[j] .
+   \end{aligned}
+   \]
+
+   Hence after the assignment the third conjunct of `Inv(i+1)` is true.  
+   The first two conjuncts are unchanged (they do not involve `valor`).  
+
+   Consequently each branch guarantees `Inv(i+1)`. By the conditional rule the whole `if/elif` chain does as well.
+
+3. **Increment the loop counter**  
+
+   ```
+   i := i + 1;                     (4)
+   ```
+
+   This is a plain assignment; it changes the *syntactic* variable `i` from `i` to `i+1`.  
+   Because `Inv(i+1)` already talks about the *new* value of `i` (the sum now ranges up to the new `i`), the invariant is preserved trivially.
+
+Putting the three steps together we have proved  
+
+\[
+\{\,Inv(i)\land i<n\,\}\; \text{Body}\; \{\,Inv(i+1)\,\}.
+\]
+
+Therefore, by the **while‑rule**, after the loop terminates (`i = n`) we obtain  
+
+\[
+Inv(n) \equiv
+\Bigl(
+   valor = \sum_{j=1}^{n} PRICE(id[j])\,q[j]
+\Bigr)
+\land
+\bigl(\forall j\le n\;(\dots)\bigr)
+\land
+0\le n\le5 .
+\]
+
+The universal part is exactly the part of the pre‑condition that concerns the inputs, so we can drop it (using the **consequence rule**) and keep only the essential equality:
+
+\[
+\{\,\textbf{Pre}\,\}\; \text{loop}\; \{\,valor = \sum_{j=1}^{n} PRICE(id[j])\,q[j]\,\}.
+\]
+
+### 5.5  Final output  
+
+The last statement of the program is
+
+```python
+print('%.2f' % valor)
+```
+
+In Hoare‑logic we model it as an assignment to the *observable* variable `output`:
+
+```
+output := format(valor,2);          (6)
+```
+
+*Rule*: **Assignment**  
+
+\[
+\{\,valor = \sum_{j=1}^{n} PRICE(id[j])\,q[j]\,\}\;
+   output := format(valor,2)\;
+\{\,output = format\bigl(\sum_{j=1}^{n} PRICE(id[j])\,q[j],2\bigr)\,\}.
+\]
+
+Because `format` does not change the numeric value, we may rename the expression inside `format` to `total`.  Hence after (6) we have exactly the two conjuncts required by **Post**:
+
+* `total = \sum_{j=1}^{p} PRICE(id[j])·q[j]` (here `total` is just a synonym for the value stored in `valor`);
+* `output = format(total,2)`.
+
+---
+
+## 6.  Putting everything together  
+
+The derivation can be summarised as a chain of Hoare triples:
+
+1. **Read `n`** – establishes the part of **Pre** concerning `p`.  
+2. **`valor := 0.0`** – yields `Inv(0)`.  
+3. **While‑loop** – by the invariant proof we obtain `Inv(n)`.  
+4. **`output := format(valor,2)`** – turns the invariant into the exact post‑condition.
+
+Formally:
+
+\[
+\begin{aligned}
+&\{\,\textbf{Pre}\,\}
+   \; n:=\text{read}();\;
+   \; valor:=0.0;\;
+   \; \textbf{while }i<n\textbf{ do Body od};\\
+&\qquad\qquad\qquad\qquad\qquad
+   \; output:=\text{format}(valor,2)\\
+&\{\,\textbf{Post}\,\}.
+\end{aligned}
+\]
+
+Each step follows from an inference rule that has been justified above, therefore the whole triple is **proved**.
+
+---
+
+## 7.  Conclusion  
+
+We have shown, **by means of Hoare logic**, that the Python program
+
+* reads a number `n` (1 ≤ n ≤ 5) of distinct product codes,
+* for each line reads a code belonging to `{1001,…,1005}` and a quantity between 1 and 500,
+* accumulates in `valor` exactly the sum  
+  \(\displaystyle\sum_{i=1}^{n}\text{PRICE}(id[i])\cdot q[i]\),
+* and finally prints that sum with two decimal digits.
+
+Consequently the program satisfies the specification  
+
+\[
+\{\,\textbf{Pre}\,\}\; \texttt{Program}\; \{\,\textbf{Post}\,\},
+\]
+
+i.e. it is **correct** with respect to the given Hoare‑logic pre‑ and post‑conditions. ∎

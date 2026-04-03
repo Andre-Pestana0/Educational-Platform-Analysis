@@ -1,0 +1,164 @@
+Below we give a **full Hoare‑logic proof** that the Python program  
+
+```python
+while input() != "2002":
+    print("Senha Invalida")
+print("Acesso Permitido")
+```  
+
+satisfies the pre‑condition \(P_{\text{pre}}\) and the post‑condition \(P_{\text{post}}\) that were given in the statement.  
+The proof follows the usual three‑step structure:
+
+1. **Introduce the program variables that appear in the specification** (`idx` and `out`) and rewrite the concrete Python program as a small imperative program that makes the state explicit.  
+2. **State a loop invariant** (`Inv`) and a termination metric (`t`).  
+3. **Show the Hoare triples** for initialization, invariant preservation (maintenance) and exit (termination).  
+
+When every triple is discharged, the outermost Hoare triple  
+
+\[
+\{P_{\text{pre}}\}\;\text{program}\;\{P_{\text{post}}\}
+\]
+
+holds, i.e. the program is correct w.r.t. the specification.
+
+--------------------------------------------------------------------
+
+### 1.  Program written in “Hoare‑logic friendly” form  
+
+We model the (potentially infinite) input as the sequence  
+
+\[
+I = \langle i_0,i_1,i_2,\dots\rangle,\qquad i_k\in\mathbb Z .
+\]
+
+The statement `input()` reads the element `I[idx]` and then increments `idx`.  
+The statement `print(s)` appends the string `s` to the output sequence `out`.  
+
+Hence the Python fragment is equivalent to the following pseudo‑code (the two extra assignments that appear in the specification are inserted for clarity):
+
+```text
+idx := 0;                     // index of the next unread element
+out := ⟨⟩;                    // no output yet
+
+while ¬P(I[idx]) do           // P(x)  ⇔  x = 2002
+    out := out ⊕ ⟨"Senha Invalida"⟩;
+    idx := idx + 1
+od;
+
+out := out ⊕ ⟨"Acesso Permitido"⟩;
+idx := idx + 1                // index after the successful read
+```
+
+In the rest of the proof we refer to this version, because it makes the state updates (`idx`, `out`) explicit and therefore can be reasoned about with Hoare logic.
+
+--------------------------------------------------------------------
+
+### 2.  Loop invariant and termination metric  
+
+*Invariant*  
+
+\[
+\boxed{
+Inv(idx,out) \;\equiv\;
+\begin{cases}
+0 \le idx \le |I|,\\[2pt]
+\forall j\;(0\le j < idx)\; \bigl( out[j] = \text{"Senha Invalida"} \;\wedge\; I[j] \neq 2002 \bigr)
+\end{cases}}
+\]
+
+The invariant says that every element that has already been consumed (`I[0] … I[idx‑1]`) is **not** the password, and for each such element the program has printed exactly one `"Senha Invalida"`.
+
+*Termination metric*  
+
+\[
+t \;=\; |I| - idx .
+\]
+
+If the input is finite (`|I| < \infty`) the metric is a non‑negative integer that strictly decreases at each loop iteration (because `idx` is increased by 1).  
+If the input is infinite (`|I| = \infty`) the metric is still a well‑founded ordinal (the natural numbers) as long as a correct password occurs; the metric then becomes `∞‑idx`, which also strictly decreases until the first occurrence of `2002`.  
+Consequently, **whenever a password exists** the loop must terminate; otherwise the program diverges, which is exactly the second clause of the post‑condition.
+
+--------------------------------------------------------------------
+
+### 3.  Hoare triples  
+
+We now prove the three verification conditions that are required for a while‑loop:
+
+| step | Hoare triple (simplified) | proof sketch |
+|------|---------------------------|--------------|
+| **(I) Initialization** | \(\{P_{\text{pre}}\}\; idx:=0;\; out:=\langle\rangle\; \{Inv\}\) | From the pre‑condition we only know that `I` is a sequence of integers. After the two assignments we have `idx = 0` and `out = ⟨⟩`. The two conjuncts of `Inv` are satisfied: `0 ≤ 0 ≤ |I|` is true, and the universal condition is vacuous because there is no `j` with `0 ≤ j < 0`. |
+| **(M) Maintenance** | \(\{Inv \land \lnot P(I[idx])\}\; \text{body}\; \{Inv\}\) | Assume the invariant holds and the guard `I[idx] ≠ 2002`. The body executes: <br>1. `out := out ⊕ ⟨"Senha Invalida"⟩`.  The new last element of `out` is `"Senha Invalida"` and corresponds to the element `I[idx]` that we have just examined, which by the guard is not the password. <br>2. `idx := idx+1`.  The new value of `idx` is still within the bounds `0 ≤ idx ≤ |I|` because we started with `idx < |I|` (otherwise the guard could not be evaluated) and we increase it by 1. <br>All other positions `j < idx` are unchanged, so the universal clause of `Inv` still holds for them, and it now also holds for the newly added position `j = old(idx)`. Hence `Inv` is re‑established. |
+| **(T) Termination** | \(\{Inv \land P(I[idx])\}\; \text{after‑loop}\; \{P_{\text{post}}\}\) | The guard is false, i.e. `I[idx] = 2002`. By the invariant we know that for every `j < idx` we have printed `"Senha Invalida"` and `I[j] ≠ 2002`. Let  
+
+\[
+n = \min\{k \mid 0\le k < |I| \wedge I[k]=2002\}.
+\]
+
+Because the guard succeeded at `idx`, `idx` is exactly this first occurrence, i.e. `idx = n`.  
+
+The statements after the loop are  
+
+```
+out := out ⊕ ⟨"Acesso Permitido"⟩;
+idx := idx + 1
+```  
+
+Consequently  
+
+* `out` now consists of `n` copies of `"Senha Invalida"` followed by a single `"Acesso Permitido"` (definition of `⊕`).  
+* `idx` has been increased to `n+1`.  
+
+These two facts are precisely the first conjunct of `P_{\text{post}}`.  
+If the guard **never** becomes false, the loop never exits, which matches the second conjunct of `P_{\text{post}}`.  The termination metric `t = |I|‑idx` guarantees that the only way the loop can run forever is when no index `k` with `I[k]=2002` exists (otherwise `t` would eventually become `0`). |
+
+--------------------------------------------------------------------
+
+### 4.  Assembling the proof  
+
+1. **Start** with the pre‑condition \(P_{\text{pre}}\).  
+2. Apply the **initialisation** triple → we obtain `Inv`.  
+3. Apply the **while‑rule**:
+
+\[
+\frac{\{Inv\land\lnot P(I[idx])\}\; \text{body}\; \{Inv\}
+       \qquad
+       \{Inv\land P(I[idx])\}\; \text{after‑loop}\; \{P_{\text{post}}\}}
+      {\{Inv\}\; \text{while } \lnot P(I[idx])\; \text{do body od}\; \{P_{\text{post}}\}}
+\]
+
+   The first premise is exactly the maintenance triple proved above; the second premise is the termination triple.  
+4. By the **consequence rule** we can replace the pre‑condition `Inv` of the while‑rule with the weaker `P_{\text{pre}}` (since we have already shown `P_{\text{pre}} ⟹ Inv` after the two initial assignments).  
+
+Thus we have derived the outermost Hoare triple  
+
+\[
+\boxed{\{P_{\text{pre}}\}\;\text{program}\;\{P_{\text{post}}\}}
+\]
+
+which is the formal statement of **partial correctness** (the program does what it is required to do whenever it terminates) together with **total correctness** for the cases where a password exists (termination follows from the decreasing metric).
+
+--------------------------------------------------------------------
+
+### 5.  Discussion of the two cases in the post‑condition  
+
+* **Password present** (`n ≠ ⊥`).  
+  The metric `t` reaches `|I|‑(n+1)=0` after the `n` iterations of the loop, so the loop stops.  The invariant guarantees that exactly `n` wrong passwords have been consumed and that each generated the message `"Senha Invalida"`.  The final two statements add the single `"Acesso Permitido"` and set `idx = n+1`.  Hence the concrete output matches the description in \(P_{\text{post}}\).
+
+* **Password absent** (`n = ⊥`).  
+  The guard `I[idx] ≠ 2002` is true for every reachable `idx`.  Consequently the metric `t` never reaches `0`; the loop iterates forever.  The specification allows this divergence, and the Hoare triple we proved is **partial** (it does not claim termination in this case).  
+
+--------------------------------------------------------------------
+
+### 6.  Conclusion  
+
+We have exhibited a **loop invariant** that captures exactly the relationship between the part of the input already examined and the output produced so far, proved that the invariant is established before the loop, preserved by each iteration, and together with the guard yields the required post‑condition when the loop exits.  A simple natural‑number termination metric shows that the loop must stop as soon as the first occurrence of the password `2002` is encountered; otherwise the program diverges, which is precisely the behaviour prescribed by the specification.
+
+Therefore the Python program
+
+```python
+while input() != "2002":
+    print("Senha Invalida")
+print("Acesso Permitido")
+```
+
+is **correct** with respect to the given Hoare‑logic pre‑ and post‑conditions. ∎

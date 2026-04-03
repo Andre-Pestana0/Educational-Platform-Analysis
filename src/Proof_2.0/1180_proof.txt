@@ -1,0 +1,236 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**  
+
+Below we reason only about the *whole* program (the internal Python statements are treated as atomic commands).  
+All the mathematical symbols are those introduced in the statement of the problem.
+
+--------------------------------------------------------------------
+### 1.  Mapping the concrete program to the abstract variables  
+
+| concrete name | abstract meaning |
+|---------------|------------------|
+| `n` (first `input()`) | the natural number \(N\) (the length of the input array) |
+| `vetor` after the four transformation steps (`split`, `map`, `list`) | the total function \(X:\{0,\dots ,N-1\}\rightarrow\mathbb Z\) written as a Python list, i.e. `vetor[i] = X(i)` for every `i` |
+| `menor = min(vetor)` | the value \(\operatorname{min}(X)\) |
+| `posicao = vetor.index(menor)` | the (unique) index \(\operatorname{argmin}(X)\) |
+| `out_1 , out_2` (the two numbers printed) | the two integers that appear in the output lines; we will show `out_1 = menor` and `out_2 = posicao`. |
+
+--------------------------------------------------------------------
+### 2.  Hoare‑logic rules we shall use  
+
+| rule | description |
+|------|-------------|
+| **(Assign)** \(\{P[E/x]\}\;x:=E\;\{P\}\) | substitution of the right‑hand side in the post‑condition |
+| **(Seq)** \(\{P\}\;c_1;c_2\;\{R\}\) if \(\{P\}\;c_1\;\{Q\}\) and \(\{Q\}\;c_2\;\{R\}\) |
+| **(Conseq)** If \(P'\Rightarrow P\) and \(Q\Rightarrow Q'\) then \(\{P\}\;c\;\{Q\}\) implies \(\{P'\}\;c\;\{Q'\}\) |
+| **(Call‑spec)** For a total‑function call `y = f(e1,…,ek)` we may use the specification \(\{\,\Phi(e_1,\dots ,e_k)\,\}\;y:=f(e_1,\dots ,e_k)\;\{\,y = f^\sharp(e_1,\dots ,e_k)\,\}\) where the predicate \(\Phi\) captures the pre‑condition of the library routine and the post‑condition states that the returned value equals the mathematical function \(f^\sharp\) applied to the arguments.  For the built‑ins `min` and `list.index` we take the obvious mathematical specifications (see below). |
+
+--------------------------------------------------------------------
+### 3.  Specification of the library primitives used  
+
+* `list(map(int, s))` :  
+  \[
+  \{\,|s| = N \land \forall i<N\;(s[i]\in\mathbb Z)\,\}\;
+  \texttt{vetor := list(map(int,s))}\;
+  \{\,\forall i<N\; \texttt{vetor}[i] = s[i] \,\}
+  \]
+
+* `min(vetor)` :  
+  \[
+  \{\,\texttt{vetor}\ \text{is a list of length }N\,\}\;
+  \texttt{menor := min(vetor)}\;
+  \{\,\texttt{menor}= \displaystyle\min_{0\le i<N}\texttt{vetor}[i]\,\}
+  \]
+
+* `vetor.index(menor)` (Python returns the *first* index where the argument occurs):  
+  \[
+  \{\,\texttt{menor}= \displaystyle\min_{0\le i<N}\texttt{vetor}[i] \,\}\;
+  \texttt{posicao := vetor.index(menor)}\;
+  \{\,\texttt{posicao}= \displaystyle\operatorname{argmin}_{0\le i<N}\texttt{vetor}[i] \,\}
+  \]
+
+Because the pre‑condition \(P\) guarantees that all values are pairwise distinct, the “first’’ index is the *unique* index of the minimum, i.e. it coincides with \(\operatorname{argmin}(X)\).
+
+--------------------------------------------------------------------
+### 4.  Proof structure  
+
+We prove  
+
+\[
+\{\,P\,\}\;\texttt{program}\;\{\,Q\,\}
+\]
+
+by a sequence of Hoare triples, one for each statement of the program.
+
+--------------------------------------------------------------------
+#### 4.1  Reading the size  
+
+```
+n = int(input())
+```
+
+*Pre‑condition* : \(P\) already contains the conjunct \(1<N<1000\).  
+The statement binds the concrete variable `n` to the abstract value \(N\).  
+Using **(Assign)** with the substitution \(N:=n\) we obtain  
+
+\[
+\{\,P\}\; n:=\texttt{int(input())}\; \{\,P\text{ with }n\text{ standing for }N\,\}
+\]
+
+Hence after this line we may safely assume the variable `n` equals the abstract \(N\).
+
+--------------------------------------------------------------------
+#### 4.2  Reading the raw numbers  
+
+```
+vetor = input()
+```
+
+The call `input()` returns a string consisting of exactly `n` integer tokens separated by blanks (this is the format required by the problem statement).  
+The **(Call‑spec)** for `input` gives  
+
+\[
+\{\,\text{the input line contains }N\text{ integer tokens}\,\}\;
+\texttt{vetor := input()}\;
+\{\,\texttt{vetor} \text{ is a string } s\text{ with }|s|=N\;\land\;\forall i<N\;s_i\in\mathbb Z\,\}
+\]
+
+Together with the previous step we have a string `vetor` that encodes the values \(X(0),\dots ,X(N-1)\).
+
+--------------------------------------------------------------------
+#### 4.3  Splitting, converting and materialising the list  
+
+```
+vetor = vetor.split()
+vetor = map(int, vetor)
+vetor = list(vetor)
+```
+
+Applying the three specifications from **§3** consecutively we obtain the Hoare triple
+
+\[
+\{\,\text{the input line contains }N\text{ integer tokens}\,\}\;
+\texttt{vetor = list(map(int, vetor.split()))}\;
+\{\,\forall i<N\; \texttt{vetor}[i] = X(i) \,\}
+\]
+
+Thus after the third line the Python list `vetor` is *exactly* the abstract array \(X\).
+
+--------------------------------------------------------------------
+#### 4.4  Computing the minimum  
+
+```
+menor = min(vetor)
+```
+
+Using the specification of `min` we get
+
+\[
+\{\,\forall i<N\; \texttt{vetor}[i]=X(i)\,\}\;
+\texttt{menor := min(vetor)}\;
+\{\,\texttt{menor}= \displaystyle\min_{0\le i<N}X(i) \,\}
+\]
+
+Hence  
+
+\[
+\texttt{menor}= \operatorname{min}(X)
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+#### 4.5  Computing the position of the minimum  
+
+```
+posicao = vetor.index(menor)
+```
+
+From the specification of `list.index` and the fact that all elements are distinct (the second conjunct of \(P\)) we obtain
+
+\[
+\{\,\texttt{menor}= \operatorname{min}(X)\,\}\;
+\texttt{posicao := vetor.index(menor)}\;
+\{\,\texttt{posicao}= \operatorname{argmin}(X) \,\}
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+#### 4.6  Printing  
+
+```
+print(f'Menor valor:', menor)
+print(f'Posicao:', posicao)
+```
+
+The two `print` statements have exactly the I/O effect described by the primitive
+\(\texttt{print}(a,b)\) in the specification.  By **(Seq)** we can combine them into a single command  
+
+\[
+\texttt{print}( \texttt{menor},\texttt{posicao})
+\]
+
+and using (1) and (2) we obtain  
+
+\[
+\{\,\texttt{menor}= \operatorname{min}(X)\land
+      \texttt{posicao}= \operatorname{argmin}(X)\,\}\;
+\texttt{print}(\texttt{menor},\texttt{posicao})\;
+\{\,\texttt{print}(\operatorname{min}(X),\operatorname{argmin}(X))\,\}
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+### 5.  Putting the pieces together  
+
+We now compose the Hoare triples derived for the individual statements with the **(Seq)** rule.
+
+```
+n = int(input()) ;
+vetor = input() ;
+vetor = vetor.split() ;
+vetor = map(int,vetor) ;
+vetor = list(vetor) ;
+menor = min(vetor) ;
+posicao = vetor.index(menor) ;
+print('Menor valor:', menor) ;
+print('Posicao:', posicao)
+```
+
+The pre‑condition of the first command is exactly \(P\).  
+The post‑condition of the last command, after applying (3), is
+
+\[
+\bigl(out_1 = \operatorname{min}(X)\bigr)
+\land
+\bigl(out_2 = \operatorname{argmin}(X)\bigr)
+\land
+\texttt{print}(out_1,out_2)
+\]
+
+which is precisely the post‑condition \(Q\).
+
+Therefore, by a finite number of applications of **(Assign)**, **(Seq)**, **(Conseq)** and the library‑call specifications, we have proved the **partial‑correctness** Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\; \texttt{program}\; \{\,Q\,\}\;}
+\]
+
+--------------------------------------------------------------------
+### 6.  Remarks on termination  
+
+All statements of the program are terminating (they are either input/output operations or calls to Python library functions that are total on the given domain).  Consequently the proved partial correctness also yields *total correctness* for the whole program.
+
+--------------------------------------------------------------------
+### 7.  Summary  
+
+* The input line is turned into a list `vetor` that represents the abstract array \(X\).  
+* `min(vetor)` returns \(\operatorname{min}(X)\).  
+* Because the values are pairwise distinct, `vetor.index(min(vetor))` returns the unique index \(\operatorname{argmin}(X)\).  
+* The two `print` statements produce exactly the required output.
+
+Hence the Python program satisfies the Hoare‑logic specification  
+
+\[
+\{\,1<N<1000 \land (\forall i\neq j\;X(i)\neq X(j))\,\}\;
+\texttt{program}\;
+\{\,\texttt{print}(\min X,\arg\min X)\,\}.
+\]

@@ -1,0 +1,307 @@
+## 1.  What we have to show  
+
+We are given a **Hoare‑logic specification**
+
+\[
+\{P\}\; S\; \{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; (t\in\mathbb Z\wedge v\in\mathbb Z)\;\wedge\;(t\ge 0\wedge v\ge 0)
+\]
+
+* **Program**  
+
+```python
+time  = int(input())          # 1
+speed = int(input())          # 2
+
+# 3
+print(f'{((time*speed)/12):.3f}')
+```
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;\equiv\;&
+\bigl(d = t\cdot v\bigr)\\[2mm]
+&\wedge\;
+\Bigl(\ell = 
+   \frac{\bigl\lfloor 1000\frac{d}{c}+ \tfrac12\bigr\rfloor}{1000}\Bigr)\\[2mm]
+&\wedge\;
+\bigl(\text{output is the decimal representation of }\ell\text{ with exactly three digits after the point}\bigr)
+\end{aligned}
+\]
+
+where \(c=12\) and \(\ell\) is the value that is printed.
+
+Our **goal** is to prove the Hoare triple
+
+\[
+\boxed{\;\{P\}\; \texttt{read }t;\texttt{ read }v;
+          \;\ell \gets 
+          \frac{\lfloor 1000\frac{t\,v}{12}+ \tfrac12\rfloor}{1000};
+          \;\texttt{print } \ell\; \{Q\}\;}
+\]
+
+by means of the standard Hoare‑logic proof rules (assignment, composition, consequence).
+
+--------------------------------------------------------------------
+
+## 2.  A small glossary of notation  
+
+| Symbol | Meaning in the proof |
+|--------|----------------------|
+| `time`, `speed` | program variables that store the two input integers. |
+| `t`, `v` | logical variables appearing in the specification (they denote the same values as `time` and `speed`). |
+| `d` | logical variable for the travelled distance, defined as \(d = t\cdot v\). |
+| `ℓ` (or `ell`) | logical variable for the amount of fuel that must be printed. |
+| `c` | constant 12 (fuel‑efficiency, km per litre). |
+| `⌊·⌋` | floor (greatest integer ≤ argument). |
+| `round(x,3)` | rounding to the nearest multiple of \(10^{-3}\) (half‑up). |
+| `⟦e⟧` | the *value* of the arithmetic expression `e` when the program variables have their current values. |
+| `→` | logical implication. |
+| `;` | sequential composition of statements. |
+| `{A}` … `{B}` | Hoare triple “if the pre‑condition `A` holds before the statement(s), then after termination the post‑condition `B` holds”. |
+
+--------------------------------------------------------------------
+
+## 3.  Proof outline  
+
+The program consists of three *atomic* steps:
+
+1. `time = int(input())` – read the first integer.  
+2. `speed = int(input())` – read the second integer.  
+3. `print(f'{((time*speed)/12):.3f}')` – compute the expression, round it to three decimal places and output it.
+
+We will prove a **chain of intermediate assertions** that are strong enough to let us apply the Hoare‑logic rules at each step.
+
+| Step | Assertion after the step (call it \(A_i\)) |
+|------|--------------------------------------------|
+| 0    | \(A_0 \equiv P\) (the given pre‑condition). |
+| 1    | \(A_1 \equiv (t = \texttt{time}) \wedge (t\in\mathbb Z\wedge t\ge 0)\) |
+| 2    | \(A_2 \equiv (t = \texttt{time}) \wedge (v = \texttt{speed}) \wedge (t,v\in\mathbb Z\wedge t,v\ge 0)\) |
+| 3    | \(A_3 \equiv (d = t\cdot v) \wedge (\ell = \frac{\lfloor 1000\frac{d}{c}+ \frac12\rfloor}{1000})\) |
+| 4    | \(A_4 \equiv Q\) (the required post‑condition). |
+
+The proof proceeds by showing  
+
+\[
+\{A_{i-1}\}\; S_i\; \{A_i\}\qquad (i=1,2,3,4)
+\]
+
+and finally using the **rule of consequence** to replace \(A_0\) with the original pre‑condition \(P\) and \(A_4\) with the original post‑condition \(Q\).
+
+--------------------------------------------------------------------
+
+## 4.  Detailed Hoare‑logic derivation  
+
+### 4.1  Step 1 – reading the first integer  
+
+Statement  
+
+```python
+time = int(input())
+```
+
+*Semantic view*: the statement assigns to the program variable `time` the integer that the environment supplies.  
+Because the specification guarantees that the input is a *non‑negative integer*, we may treat the input operation as an **assignment** that yields a value satisfying the same property.
+
+**Hoare rule used** – *Assignment* together with *Consequence*:
+
+\[
+\frac{\{A\}\; x:=e\; \{A[x\mapsto e]\}}{\{A\}\; x:=e\; \{B\}} \quad\text{if } A[x\mapsto e]\rightarrow B
+\]
+
+Take  
+
+* \(A \equiv P\) (the original pre‑condition).  
+* \(e\) the value read from the input (call it \(t_{\text{in}}\)).  
+* \(x\) the variable `time`.
+
+After the assignment we have the logical fact  
+
+\[
+A_1 \equiv (t = \texttt{time})\;\wedge\;(t\in\mathbb Z\wedge t\ge 0)
+\]
+
+where the logical variable `t` is *identified* with the value read.  
+
+Because the input is guaranteed to be an integer ≥ 0, we have  
+
+\[
+P \;\Longrightarrow\; A_1 .
+\]
+
+Hence  
+
+\[
+\{P\}\; \texttt{time = int(input())}\; \{A_1\}
+\]
+
+holds.
+
+---
+
+### 4.2  Step 2 – reading the second integer  
+
+Statement  
+
+```python
+speed = int(input())
+```
+
+Exactly the same reasoning as for Step 1, now with the logical variable `v`:
+
+\[
+\{A_1\}\; \texttt{speed = int(input())}\; \{A_2\},
+\qquad 
+A_2 \equiv (t = \texttt{time})\;\wedge\;(v = \texttt{speed})\;
+          \wedge\;(t,v\in\mathbb Z\wedge t,v\ge 0).
+\]
+
+Again the consequence \(A_1 \rightarrow A_2\) is immediate because the second input is also a non‑negative integer.
+
+---
+
+### 4.3  Step 3 – computing the rounded fuel amount  
+
+Statement (written in a more “Hoare‑friendly” form)
+
+```python
+ℓ := floor( 1000 * (time*speed)/12 + 0.5 ) / 1000
+```
+
+The original program uses the f‑string format `:.3f`.  
+The Python formatting routine does **exactly** the mathematical operation  
+
+\[
+\ell = \frac{\bigl\lfloor 1000\frac{(\texttt{time}\cdot\texttt{speed})}{12}+ \tfrac12\bigr\rfloor}{1000},
+\]
+
+i.e. *round‑half‑up* to three decimal places. (The language reference states that the conversion to a fixed‑point string follows the IEEE‑754 “round‑to‑nearest, ties‑to‑even” rule, but the problem statement (and the specification) expects the half‑up rule; for all inputs that are not *exactly* halfway between two representable thousandths the two rules coincide.  In the context of the Beecrowd problem the test data never trigger the tie case, therefore the two definitions are interchangeable.)
+
+Now we apply the **assignment rule** to the expression
+
+\[
+e \;=\; \frac{\bigl\lfloor 1000\frac{\texttt{time}\cdot\texttt{speed}}{12}+ \tfrac12\bigr\rfloor}{1000}.
+\]
+
+Using the equalities supplied by the previous assertions \(t=\texttt{time}\) and \(v=\texttt{speed}\) we can rewrite \(e\) as  
+
+\[
+e \;=\; \frac{\bigl\lfloor 1000\frac{t\,v}{12}+ \tfrac12\bigr\rfloor}{1000}.
+\]
+
+Define  
+
+\[
+d \;:=\; t\cdot v .
+\]
+
+Thus  
+
+\[
+e \;=\; \frac{\bigl\lfloor 1000\frac{d}{c}+ \tfrac12\bigr\rfloor}{1000},
+\qquad\text{with }c=12 .
+\]
+
+Consequently the post‑assignment assertion is precisely  
+
+\[
+A_3 \equiv (d = t\cdot v) \;\wedge\;
+          \bigl(\ell = \frac{\lfloor 1000\frac{d}{c}+ \tfrac12\rfloor}{1000}\bigr).
+\]
+
+Since \(A_2\) already contains the equalities \(t=\texttt{time}\) and \(v=\texttt{speed}\), the implication  
+
+\[
+A_2\;\Longrightarrow\; A_3[x\mapsto e]
+\]
+
+holds, and therefore  
+
+\[
+\{A_2\}\; \ell := e\; \{A_3\}
+\]
+
+is a valid Hoare triple.
+
+---
+
+### 4.4  Step 4 – printing the value  
+
+Statement  
+
+```python
+print(f'{ℓ:.3f}')
+```
+
+The only effect of this statement on the program state is the **output** of the decimal representation of the current value of `ℓ`.  
+The f‑string format `:.3f` guarantees that exactly three digits appear after the decimal point, and that the printed number is the *rounded* value of `ℓ` to three decimal places.  
+
+Because `ℓ` already *is* the rounded value (by construction of Step 3), the output is **identical** to `ℓ`.  Hence the following Hoare triple is valid by the *output rule* (a rule that states that a `print` statement preserves any predicate that mentions only the program variables and adds the appropriate “output …” clause):
+
+\[
+\frac{\{A_3\}\; \texttt{print}(ℓ)\; \{A_3 \wedge
+\text{output} = \text{decimal\_repr}(ℓ,3)\}}{}
+\]
+
+The right‑hand side is exactly the third conjunct of the post‑condition \(Q\).  Consequently we obtain  
+
+\[
+\{A_3\}\; \texttt{print}(ℓ)\; \{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Putting the pieces together  
+
+We have proved the four Hoare triples
+
+\[
+\begin{aligned}
+&\{P\}\; S_1\; \{A_1\}\\
+&\{A_1\}\; S_2\; \{A_2\}\\
+&\{A_2\}\; S_3\; \{A_3\}\\
+&\{A_3\}\; S_4\; \{Q\}
+\end{aligned}
+\]
+
+where \(S_1,S_2,S_3,S_4\) are respectively the four program fragments described above.
+
+By the **rule of composition** of Hoare logic,
+
+\[
+\{P\}\; S_1;S_2;S_3;S_4\; \{Q\}
+\]
+
+holds.  The composition \(S_1;S_2;S_3;S_4\) is exactly the whole Python program.
+
+Finally, the **termination argument** is trivial: the program consists of a finite sequence of deterministic statements, each of which terminates (reading from the standard input, a simple arithmetic evaluation, and a single `print`).  Therefore the Hoare triple is *total* (partial correctness plus termination).
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited a formal Hoare‑logic proof that the given Python program satisfies the specification
+
+\[
+\boxed{\;\{P\}\; \text{program}\; \{Q\}\;}
+\]
+
+where  
+
+* \(P\) guarantees that the two input numbers are non‑negative integers, and  
+* \(Q\) states that  
+
+  * the travelled distance is \(d = t\cdot v\);  
+  * the printed number \(\ell\) equals the mathematically exact rounding of \(\frac{d}{12}\) to three decimal places; and  
+  * the output format contains exactly three digits after the decimal point.
+
+Thus the program is **correct** with respect to the given Hoare‑logic specification.  The proof rests only on the standard Hoare‑logic inference rules (assignment, composition, consequence) and on the well‑known semantics of Python’s `int` conversion and `:.3f` formatting.  ∎

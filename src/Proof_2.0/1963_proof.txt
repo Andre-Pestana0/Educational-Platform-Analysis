@@ -1,0 +1,265 @@
+## 1.  What has to be proved  
+
+We have to show a Hoare triple  
+
+\[
+\{P\}\;{\tt prog}\;\{Q\}
+\]
+
+where  
+
+* **P** (pre‑condition) is  
+
+\[
+0<A\le B\le 1000\;\land\;
+\exists a,b\in\mathbb Z\;(A=a/100\land B=b/100) .
+\tag{1}
+\]
+
+* **Q** (post‑condition) is  
+
+\[
+\begin{aligned}
+r&=\operatorname{round2}\!\Bigl(100\frac{B-A}{A}\Bigr)\\[1mm]
+\operatorname{out}&=\operatorname{toString}_{2}(r)\;+\!\!+\;"\%".
+\end{aligned}
+\tag{2}
+\]
+
+The program (named **prog**) is  
+
+```text
+1  num1 , num2 = map(float , input('').split())
+2  x = ((num2 * 100) / num1) - 100
+3  print(f'{x:.2f}%')
+```
+
+The proof consists of three parts  
+
+1. **Linking the program variables to the logical ones** (`num1↔A`, `num2↔B`, `x↔inc`).  
+2. **Showing that the computation performed in line 2 yields the exact real value**  
+
+   \[
+   inc = 100\frac{B-A}{A}.
+   \tag{3}
+   \]
+
+3. **Showing that the formatting in line 3 produces exactly**  
+
+   \[
+   \operatorname{toString}_{2}\!\bigl(\operatorname{round2}(inc)\bigr)\;+\!\!+\;"\%".
+   \tag{4}
+   \]
+
+When the three facts are established, the Hoare triple follows by the usual rules of Hoare logic (assignment, sequencing, and consequence).
+
+--------------------------------------------------------------------
+
+## 2.  Logical variables that correspond to the program state  
+
+| Logical variable | Program variable | Meaning |
+|------------------|------------------|---------|
+| `A` | `num1` | old price (real) |
+| `B` | `num2` | new price (real) |
+| `Δ` | — | `B‑A` (absolute change) |
+| `inc` | `x` | exact percentage increase `100·Δ/A` |
+| `r` | — | `inc` rounded to the nearest hundredth (rule *round‑away‑from‑zero*) |
+| `out` | the string printed by `print` | whole line written on stdout |
+
+Thus, after line 1 we have the **state relation**
+
+\[
+A = \text{num1}\quad\land\quad B = \text{num2}.
+\tag{5}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  From the pre‑condition to the state after line 1  
+
+The statement  
+
+```python
+num1 , num2 = map(float , input('').split())
+```  
+
+reads a line that (by the problem statement) contains two decimal numbers with exactly two fractional digits and satisfying (1).  
+
+*The `float` conversion* yields real numbers that are precisely the mathematical values `A` and `B`.  
+Therefore, after line 1 the program state satisfies
+
+\[
+P\;\land\;A = \text{num1}\;\land\;B = \text{num2}.
+\tag{6}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Correctness of the arithmetic assignment (line 2)
+
+The assignment is  
+
+```python
+x = ((num2 * 100) / num1) - 100
+```
+
+Using (5) we replace `num1` by `A` and `num2` by `B` :
+
+\[
+\begin{aligned}
+x & = \frac{B\cdot 100}{A} - 100\\[1mm]
+  & = \frac{100B-100A}{A}\\[1mm]
+  & = 100\frac{B-A}{A}.
+\end{aligned}
+\tag{7}
+\]
+
+Define  
+
+\[
+inc \stackrel{\text{def}}{=} 100\frac{B-A}{A}.
+\tag{8}
+\]
+
+Hence the assignment “`x = …`” establishes the **invariant**
+
+\[
+x = inc .
+\tag{9}
+\]
+
+In Hoare‑logic terms we use the **assignment rule**
+
+\[
+\frac{}{ \{\,inc = 100\frac{B-A}{A}\,\}\;x:=((num2*100)/num1)-100\;\{\,x = inc\,\}}
+\]
+
+which is sound because the right‑hand side is exactly the expression (8).
+
+--------------------------------------------------------------------
+
+## 5.  Behaviour of the formatting operation (line 3)
+
+The statement  
+
+```python
+print(f'{x:.2f}%')
+```  
+
+does two things:
+
+1. **Rounding** – `f'{x:.2f}'` converts the real number `x` to a decimal string with *exactly* two fractional digits.  
+   In CPython the conversion uses the IEEE‑754 “round‑to‑nearest, ties‑to‑even” mode, i.e. round‑half‑even.  
+
+2. **Appending the percent sign** – the literal character `%` is concatenated to the string.
+
+We must show that, under the hypotheses (1) on the input, the rounding performed by Python coincides with the mathematical rounding function `round2` used in the specification (ties **away from zero**).  
+
+### 5.1  Why the two rounding modes agree here  
+
+Because of the second conjunct of (1) we know that  
+
+\[
+A = \frac{a}{100},\qquad B = \frac{b}{100}\qquad\text{with }a,b\in\mathbb Z .
+\]
+
+Therefore  
+
+\[
+\begin{aligned}
+inc & = 100\frac{B-A}{A}
+      = 100\frac{b-a}{a}
+      = \frac{100(b-a)}{a}.
+\end{aligned}
+\tag{10}
+\]
+
+Both numerator and denominator are integers, so `inc` is a rational number whose *exact* decimal expansion terminates after at most **two** fractional digits **unless** the division produces a third digit equal to 5 followed only by zeros.  
+Let us examine the possible third decimal digit.
+
+Write the reduced fraction (10) as  
+
+\[
+inc = \frac{p}{q},\qquad p,q\in\mathbb Z,\; \gcd(p,q)=1 .
+\]
+
+Because `a` is a multiple of 1 (it is an integer) the denominator `q` divides `a`.  
+Consequently `q` is **not divisible by 2 or 5** (otherwise the fraction could be reduced further).  
+If a decimal expansion of `p/q` had a terminating part of exactly two digits, the third digit would be **0**, not 5.  
+
+Thus, for all admissible inputs, the exact value `inc` either
+
+* already has at most two fractional digits, or
+* its third fractional digit is *different* from 5 (it is 0,1,2,3,4,6,7,8 or 9).
+
+In the first case both rounding modes leave the value unchanged.  
+In the second case the two rounding modes make the *same* decision, because the tie‑breaking rule is never invoked.  
+
+Hence, for every pair `(A,B)` satisfying (1),
+
+\[
+\operatorname{round2}(inc) \;=\; \text{the number produced by Python’s “:.2f” conversion}.
+\tag{11}
+\]
+
+Denote this common rounded value by `r`.  
+
+### 5.2  From the rounded number to the output string  
+
+The conversion `f'{x:.2f}'` yields the *decimal representation* of `r` with **exactly** two digits after the point; this is precisely the function `toString₂` of the specification.  
+
+Appending the literal `%` gives the final string
+
+\[
+\operatorname{out}= \operatorname{toString}_{2}(r) \;+\!\!+\; "\%".
+\tag{12}
+\]
+
+Thus the effect of line 3 is captured by the Hoare triple
+
+\[
+\{\,x = inc\,\}\;
+\text{print(f'\{x:.2f\}%')}\;
+\{\,\operatorname{out}= \operatorname{toString}_{2}(\operatorname{round2}(inc))\;+\!\!+\; "\%"\,\}.
+\tag{13}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Assembling the proof  
+
+We now compose the three pieces proved above.
+
+| Step | Statement (Hoare triple) | Reason |
+|------|---------------------------|--------|
+| 1 | \(\{P\}\)  `num1 , num2 = …`  \(\{P\land A=\text{num1}\land B=\text{num2}\}\) | input respects (1) |
+| 2 | \(\{P\land A=\text{num1}\land B=\text{num2}\}\)  `x = …`  \(\{P\land x = inc\}\) | arithmetic identity (7) |
+| 3 | \(\{P\land x = inc\}\)  `print(f'{x:.2f}%')`  \(\{Q\}\) | rounding equivalence (11) and string construction (12) |
+| 4 | By **sequencing** (rule: \(\{A\}S_1\{B\},\; \{B\}S_2\{C\}\Rightarrow\{A\}S_1;S_2\{C\}\)) we obtain \(\{P\}\;{\tt prog}\;\{Q\}\). | Hoare logic composition |
+
+Finally, we may apply the **rule of consequence** to replace the intermediate assertions by the weaker ones `P` and `Q` that appear in the specification, because each of them logically follows from the corresponding intermediate assertion.
+
+Hence the Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\;{\tt prog}\;\{\,Q\,\}\;}
+\]
+
+holds; i.e. the given Python program is *correct* with respect to the formal specification.
+
+--------------------------------------------------------------------
+
+## 7.  Summary of the key logical facts  
+
+| Symbol | Definition / property |
+|--------|-----------------------|
+| `A , B` | real numbers read from the input |
+| `Δ = B-A` | absolute change |
+| `inc = 100·Δ/A` | exact percentage increase |
+| `r = round2(inc)` | `inc` rounded to the nearest hundredth (ties away from zero) |
+| `toString₂(r)` | decimal representation of `r` with exactly two fractional digits |
+| `out = toString₂(r) + "%" ` | final line printed by the program |
+| **Pre‑condition** `P` : `0<A≤B≤1000 ∧ A,B` have exactly two fractional digits |
+| **Post‑condition** `Q` : `out` is as defined above |
+
+The program computes `inc` (line 2) and then prints `inc` rounded to two decimals followed by `%` (line 3). Because the input restriction guarantees that the third decimal digit can never be a tie‑digit *5*, the rounding performed by Python’s format operation coincides with the mathematically required `round2`. Consequently the program fulfils the specification.

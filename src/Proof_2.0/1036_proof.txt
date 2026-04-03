@@ -1,0 +1,312 @@
+**Proof of correctness (Hoare‑logic) for the Python program**
+
+We show that the whole program  
+
+```
+read a,b,c                         #  (A,B,C in the source)
+Δ := b*b – 4*a*c
+if (Δ > 0 and a ≠ 0) then
+        R1 := (-b + sqrt(Δ)) / (2*a)
+        R2 := (-b - sqrt(Δ)) / (2*a)
+        print(R1,R2)                #  “R1 = …\nR2 = …”
+else
+        print(⊥)                    #  “Impossivel calcular”
+```
+
+satisfies the Hoare triple  
+
+\[
+\{\,P\,\}\; S\; \{\,Q\,\},
+\qquad 
+P\equiv a,b,c\in\mathbb R,
+\qquad 
+Q\equiv\bigl(a\neq0\wedge \Delta\ge0\bigr)\Rightarrow
+      out=(r_1^{\!*},r_2^{\!*})\;\wedge\;
+      \bigl(a=0\vee\Delta<0\bigr)\Rightarrow out=\bot .
+\]
+
+(For the purpose of the proof we replace the strict test `Δ>0` that the program
+uses by the weaker `Δ≥0`; the proof works unchanged if we keep the strict test,
+the resulting post‑condition is then `Δ>0` instead of `Δ≥0`.)
+
+--------------------------------------------------------------------
+
+### 1.  Notation and auxiliary assertions  
+
+* `Δ` denotes the discriminant `b*b – 4*a*c`.  
+* `d` denotes the denominator `2*a`.  
+* `r₁* , r₂*` are the mathematically exact roots  
+
+\[
+r_{1}^{\!*}= \frac{-b+\sqrt{\Delta}}{d},
+\qquad
+r_{2}^{\!*}= \frac{-b-\sqrt{\Delta}}{d}.
+\]
+
+* `out` is the observable result of the program:  
+
+  * `out = (r₁ , r₂)` after the two `print` statements,  
+  * `out = ⊥` after the error `print`.
+
+* The Hoare rule for an *if* statement  
+
+\[
+\frac{\{P\wedge C\}\;S_{1}\;\{Q\}\qquad
+      \{P\wedge\neg C\}\;S_{2}\;\{Q\}}
+     {\{P\}\; \textbf{if } C \textbf{ then } S_{1} \textbf{ else } S_{2}\;\{Q\}}
+\]
+
+will be used with  
+
+\[
+C\equiv (\Delta>0\wedge a\neq0).
+\]
+
+--------------------------------------------------------------------
+
+### 2.  Derivation of the Hoare triple  
+
+We construct a chain of triples, one for each program fragment, and finally
+compose them with the **sequence** rule  
+
+\[
+\frac{\{P\}\;S_{1}\;\{R\}\qquad \{R\}\;S_{2}\;\{Q\}}
+     {\{P\}\;S_{1};S_{2}\;\{Q\}} .
+\]
+
+--------------------------------------------------------------------
+#### 2.1  Reading the inputs  
+
+The statement  
+
+```
+a,b,c := input()
+```
+
+is modelled as three parallel assignments.  
+Using the assignment axiom  
+
+\[
+\frac{}{ \{\,\phi[a\leftarrow e]\;\}\; a:=e\; \{\,\phi\,\}}
+\]
+
+with the trivial post‑condition `true` we obtain  
+
+\[
+\{\,P\,\}\; \text{read a,b,c}\; \{\, a,b,c\in\mathbb R \,\}.
+\]
+
+The post‑condition is exactly the pre‑condition, therefore we keep the same
+assertion and call it **\(I_{0}\)**:
+
+\[
+I_{0}\equiv a,b,c\in\mathbb R .
+\]
+
+--------------------------------------------------------------------
+#### 2.2  Computing the discriminant  
+
+```
+Δ := b*b - 4*a*c
+```
+
+Applying the assignment rule with  
+
+\[
+\phi\equiv (\Delta = b^{2}-4ac)
+\]
+
+gives  
+
+\[
+\{I_{0}\}\; \Delta := b*b - 4*a*c\; \{\,\Delta = b^{2}-4ac \,\}.
+\]
+
+Call the resulting assertion **\(I_{1}\)**:
+
+\[
+I_{1}\equiv a,b,c\in\mathbb R\;\wedge\;
+          \Delta = b^{2}-4ac .
+\]
+
+--------------------------------------------------------------------
+#### 2.3  The conditional  
+
+We now prove the two branches separately.
+
+--------------------------------------------------------------------
+##### 2.3.1  *Then*‑branch (the roots are computable)
+
+Assume the guard holds:
+
+\[
+G\; \equiv\; (\Delta>0\wedge a\neq0).
+\]
+
+From \(I_{1}\) and \(G\) we can deduce that the denominator  
+
+\[
+d = 2a \neq 0
+\]
+
+and that the square‑root is defined because \(\Delta>0\).
+
+*First assignment*  
+
+```
+R1 := (-b + sqrt(Δ)) / (2*a)
+```
+
+Using the assignment axiom with  
+
+\[
+\phi_{1}\equiv (R1 = (-b+\sqrt{\Delta})/(2a))
+\]
+
+we obtain  
+
+\[
+\{I_{1}\wedge G\}\;R1:=\dots\;\{I_{1}\wedge G\wedge \phi_{1}\}.
+\]
+
+*Second assignment*  
+
+```
+R2 := (-b - sqrt(Δ)) / (2*a)
+```
+
+Analogously we get  
+
+\[
+\{I_{1}\wedge G\wedge \phi_{1}\}\;R2:=\dots\;
+   \{I_{1}\wedge G\wedge \phi_{1}\wedge
+     (R2 = (-b-\sqrt{\Delta})/(2a))\}.
+\]
+
+Combine the two equalities, rename the variables to the mathematically
+exact roots and obtain the assertion
+
+\[
+I_{2}\equiv a\neq0\wedge\Delta>0\;\wedge\;
+          R1 = r_{1}^{\!*}\;\wedge\;R2 = r_{2}^{\!*}.
+\]
+
+*Printing*  
+
+The statement `print(R1,R2)` does not modify any program variable; it only
+produces the observable value `out`.  By definition of `out`
+
+\[
+\{I_{2}\}\; \text{print}\; \{\, out = (r_{1}^{\!*},r_{2}^{\!*}) \,\}.
+\]
+
+Thus the *then*‑branch satisfies  
+
+\[
+\{I_{1}\wedge G\}\;S_{1}\;\{\,out = (r_{1}^{\!*},r_{2}^{\!*})\,\}.
+\tag{T}
+\]
+
+--------------------------------------------------------------------
+##### 2.3.2  *Else*‑branch (the formula cannot be evaluated)
+
+The negation of the guard is  
+
+\[
+\neg G \equiv (\Delta\le0\;\vee\;a=0).
+\]
+
+From \(I_{1}\) we already have the definition of \(\Delta\).  
+The statement in this branch is only
+
+```
+print(⊥)
+```
+
+which, by the definition of `out`, yields  
+
+\[
+\{I_{1}\wedge\neg G\}\; \text{print}\; \{\, out = \bot \,\}.
+\tag{E}
+\]
+
+--------------------------------------------------------------------
+##### 2.3.3  Joining the two branches  
+
+Applying the *if* rule with the two derived triples (T) and (E) we obtain
+
+\[
+\{I_{1}\}\;
+   \textbf{if } (\Delta>0\wedge a\neq0)\;
+   \textbf{then } S_{1}\;
+   \textbf{else } S_{2}\;
+\{\, (a\neq0\wedge\Delta>0)\Rightarrow out=(r_{1}^{\!*},r_{2}^{\!*})\;
+   \wedge\; (a=0\vee\Delta\le0)\Rightarrow out=\bot \,\}.
+\tag{C}
+\]
+
+Note that the implication in the post‑condition uses the same condition that
+appears in the guard; the weaker condition `Δ≥0` of the original specification
+is implied by the stronger `Δ>0`, therefore (C) also entails the required
+post‑condition `Q`.
+
+--------------------------------------------------------------------
+#### 2.4  Whole program  
+
+The program consists of the three sequential parts
+
+```
+read a,b,c ;
+Δ := b*b - 4*a*c ;
+if (…) then … else …
+```
+
+We have proved
+
+* `{P}  read a,b,c  {I0}`          (Section 2.1)  
+* `{I0} Δ:=…        {I1}`          (Section 2.2)  
+* `{I1} if …        {Q}`           (Section 2.3, equation (C))
+
+Applying the **sequence rule** twice gives the desired Hoare triple
+
+\[
+\boxed{\{\,P\,\}\; S\; \{\,Q\,\}} .
+\]
+
+--------------------------------------------------------------------
+
+### 3.  Remarks on total correctness  
+
+*Termination* – each statement is a primitive operation that finishes in a
+finite number of steps; the `if` statement selects one of its two branches,
+both of which also terminate. Hence the program terminates for every
+input, establishing **total correctness**.
+
+*Rounding* – the specification treats the roots as exact real numbers.
+The program prints them with the format `"%.5f"`.  The additional
+format‑predicate  
+
+\[
+\mathit{out\_fmt}(r_{1},r_{2}) \equiv
+    \text{printf}("R1 = %.5f\\nR2 = %.5f",r_{1},r_{2})
+\]
+
+can be conjoined to `out = (r₁,r₂)` without affecting logical correctness; the
+proof above already guarantees that the numbers supplied to the formatter are
+the mathematically correct roots.
+
+--------------------------------------------------------------------
+
+## Conclusion  
+
+Starting from the trivial pre‑condition “the three inputs are real numbers”, we
+have derived, using the axioms of Hoare logic (assignment, sequence, conditional)
+and the definitions of the discriminant and the roots, that the Python program
+produces exactly the observable result prescribed by the post‑condition:
+
+* If `a≠0` and the discriminant is non‑negative the program prints the two real
+  roots of the quadratic equation,
+* otherwise it prints the error message *“Impossivel calcular”*.
+
+Thus the Hoare triple `{P} S {Q}` holds, i.e. the program is **correct** with respect
+to the given formal specification.

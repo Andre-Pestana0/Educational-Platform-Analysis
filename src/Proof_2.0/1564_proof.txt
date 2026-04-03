@@ -1,0 +1,335 @@
+## 1.  What we have to show  
+
+We are given a **Hoare triple**
+
+\[
+\{P\}\;\; \texttt{read‑until‑EOF‑and‑print}\;\; \{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+P\;:\; I=\langle N_1,\dots ,N_k\rangle\ \wedge\ 
+\forall i\in\{1,\dots ,k\}\;.\;N_i\in\mathbb N_{0..100}
+\tag{1}
+\]
+
+* **Post‑condition**  
+
+\[
+Q\;:\; O=\langle O_1,\dots ,O_k\rangle\ \wedge\ 
+\forall i\in\{1,\dots ,k\}\;.\;
+O_i=
+\begin{cases}
+\text{``vai ter copa!''} &\text{iff } N_i=0\\[1mm]
+\text{``vai ter duas!''} &\text{iff } N_i>0
+\end{cases}
+\tag{2}
+\]
+
+The concrete Python program is  
+
+```python
+while True:
+    try:
+        reclamacoes = int(input())
+        if reclamacoes == 0:
+            print("vai ter copa!")
+        else:
+            print("vai ter duas!")
+    except EOFError:
+        break
+```
+
+Our task is to **prove** that the program satisfies the triple, i.e. that starting from any input that fulfills (1) it terminates with an output that fulfills (2).
+
+In Hoare‑logic terms we will:
+
+1. **Introduce a loop invariant**  \(\mathcal I(j)\) that captures the state of the computation after the first \(j\) numbers have been processed.
+2. Prove **initialisation**, **maintenance**, and **termination** of the invariant.
+3. Use the **while‑rule** to obtain the triple for the whole loop.
+4. Show that the invariant together with the fact that the loop ends exactly when the input stream is exhausted yields the post‑condition (2).
+
+---
+
+## 2.  Formal model of the program  
+
+We model the program as a *while* loop that repeatedly executes a *body* \(B\) until an **EOF** flag becomes true.
+
+```
+j := 0                # number of already processed items
+while ¬EOF do
+    N := read()       # the next integer from the input stream
+    if N = 0 then
+        out := "vai ter copa!"
+    else
+        out := "vai ter duas!"
+    print(out)        # append out to the output sequence
+    j := j + 1
+od
+```
+
+The `try/except` construct in Python merely transforms the *read* primitive into a *partial* operation that raises `EOFError` when the stream is empty; in Hoare‑logic we treat it as setting the boolean variable `EOF` to **true** and exiting the loop. All other statements are pure assignments, a conditional and a `print` (which we model as appending a value to the output sequence).
+
+---
+
+## 3.  Loop invariant  
+
+\[
+\boxed{
+\mathcal I(j)\; \equiv\;
+\begin{aligned}
+&\text{(i) } 0\le j\le k \\[1mm]
+&\text{(ii) } \bigl\langle N_1,\dots ,N_j\bigr\rangle
+   \text{ have already been consumed from the input stream }\\[1mm]
+&\text{(iii) } \bigl\langle O_1,\dots ,O_j\bigr\rangle
+   \text{ have already been produced, and }\\[1mm]
+&\qquad\forall i\in\{1,\dots ,j\}\;.\;
+   O_i=\operatorname{out}(N_i)
+\end{aligned}}
+\tag{3}
+\]
+
+Intuitively, after \(j\) iterations the program has read exactly the first \(j\) numbers of the input, printed exactly the first \(j\) strings prescribed by the function `out`, and nothing else.
+
+---
+
+## 4.  Proof of the invariant  
+
+### 4.1  Initialisation (\(j=0\))
+
+Before the loop starts we have executed only the assignment `j := 0`.  
+* (i) `0 ≤ 0 ≤ k` holds trivially.  
+* (ii) No input has been consumed, so the “first 0 numbers” are exactly the empty prefix of \(I\).  
+* (iii) No output has been produced, i.e. the empty prefix of \(O\).  
+Thus \(\mathcal I(0)\) holds.
+
+Formally, using the **assignment rule**  
+
+\[
+\frac{\{\,\mathcal I(0)[j:=0]\,\}\;j:=0\;\{\,\mathcal I(0)\,\}}{}
+\]
+
+the pre‑condition of the rule is simply *true*, because \(\mathcal I(0)\) does not mention any variable that is changed by the assignment.
+
+### 4.2  Maintenance  
+
+Assume \(\mathcal I(j)\) holds at the beginning of an iteration, with \(j<k\).  
+We must show that after executing the body \(B\) we obtain \(\mathcal I(j+1)\).
+
+The body consists of the following steps (in Hoare‑logic notation, each step is a command separated by a semicolon):
+
+```
+N := read();                     (R)
+if N = 0 then out := "copa!" else out := "duas!";   (C)
+print(out);                      (P)
+j := j + 1;                      (U)
+```
+
+We treat each step separately.
+
+#### 4.2.1  The read command  
+
+`read()` removes the first element of the remaining input stream and stores it in `N`.  
+Because the pre‑condition guarantees that the whole input is a finite list of numbers in \(\mathbb N_{0..100}\), the call is always defined while `j<k`.  
+
+Formally we use the **axiom for a deterministic read**:
+
+\[
+\{\,\text{input}= \langle N_{j+1},\dots ,N_k\rangle\;\}\;
+N:=\text{read()}\;
+\{\,N=N_{j+1}\;\land\;\text{input}= \langle N_{j+2},\dots ,N_k\rangle\;\}
+\tag{R}
+\]
+
+The antecedent of (R) is satisfied because \(\mathcal I(j)\) tells us that the first \(j\) numbers have already been removed, leaving exactly the suffix \(\langle N_{j+1},\dots ,N_k\rangle\).
+
+#### 4.2.2  The conditional  
+
+The conditional command is
+
+```
+if N = 0 then out := "vai ter copa!"
+else          out := "vai ter duas!"
+```
+
+The Hoare rule for conditionals is
+
+\[
+\frac{\{P\land B\}\;C_1\;\{Q\}\qquad\{P\land\neg B\}\;C_2\;\{Q\}}
+     {\{P\}\; \text{if }B\text{ then }C_1\text{ else }C_2\; \{Q\}}
+\]
+
+Here  
+
+* \(P\) is the assertion that we have just executed (R), i.e. \(N=N_{j+1}\).  
+* \(B\) is the boolean expression `N = 0`.  
+
+We must show two sub‑derivations.
+
+* **Case 1** (`N = 0`): then the command `out := "vai ter copa!"` assigns exactly the string prescribed by \(\operatorname{out}(N_{j+1})\) because \(\operatorname{out}(0)=\) “vai ter copa!”.  
+  The assignment rule gives  
+
+  \[
+  \{\,N_{j+1}=0\,\}\; \text{out}:="copa!"\; \{\,\text{out}= \operatorname{out}(N_{j+1})\,\}
+  \]
+
+* **Case 2** (`N ≠ 0`): analogously we obtain  
+
+  \[
+  \{\,N_{j+1}>0\,\}\; \text{out}:="duas!"\; \{\,\text{out}= \operatorname{out}(N_{j+1})\,\}
+  \]
+
+Thus, regardless of the branch, after the conditional we have  
+
+\[
+\{\,\text{out}= \operatorname{out}(N_{j+1})\,\}
+\tag{C}
+\]
+
+#### 4.2.3  The print command  
+
+`print(out)` appends the current value of `out` to the output sequence.  
+We model the output buffer as a list variable `outSeq`. The Hoare axiom for `print` is
+
+\[
+\{\,\text{out}=v\,\}\;
+\text{print(out)}\;
+\{\,\text{outSeq}= \text{old(outSeq)}\!\!\frown\!\langle v\rangle\,\}
+\tag{P}
+\]
+
+where \(\frown\) denotes list concatenation and `old(outSeq)` is the value of `outSeq` before the command.
+
+Using (C) we get  
+
+\[
+\{\,\text{out}= \operatorname{out}(N_{j+1})\,\}\;
+\text{print(out)}\;
+\{\,\text{outSeq}= \langle O_1,\dots ,O_j\rangle\frown\langle\operatorname{out}(N_{j+1})\rangle\,\}
+\]
+
+But by the invariant \(\mathcal I(j)\) we already know that  
+
+\[
+\langle O_1,\dots ,O_j\rangle = \langle \operatorname{out}(N_1),\dots ,\operatorname{out}(N_j)\rangle .
+\]
+
+Consequently after the print we have  
+
+\[
+\text{outSeq}= \langle \operatorname{out}(N_1),\dots ,\operatorname{out}(N_{j+1})\rangle .
+\tag{P'}
+\]
+
+#### 4.2.4  The increment of the loop counter  
+
+Finally `j := j + 1` is a standard assignment. Using the assignment rule we obtain
+
+\[
+\{\,j=j\;\}\;j:=j+1\;\{\,j=j+1\,\}.
+\]
+
+Together with (P') we get after the whole body
+
+\[
+\begin{aligned}
+&\bigl\langle N_1,\dots ,N_{j+1}\bigr\rangle \text{ have been consumed},\\
+&\bigl\langle O_1,\dots ,O_{j+1}\bigr\rangle
+   =\bigl\langle \operatorname{out}(N_1),\dots ,\operatorname{out}(N_{j+1})\bigr\rangle .
+\end{aligned}
+\]
+
+All three parts of \(\mathcal I(j+1)\) are satisfied, therefore
+
+\[
+\{\mathcal I(j)\}\;B\;\{\mathcal I(j+1)\}
+\tag{M}
+\]
+
+holds. This is the **maintenance** step.
+
+### 4.3  Termination  
+
+The loop condition is `¬EOF`.  By construction `EOF` becomes true **exactly** when the input stream is empty.  
+Because the input is a finite list of length \(k\), after the iteration that processes the \(k\)-th element we have consumed the whole list; consequently `EOF` becomes true and the loop stops.
+
+Formally we have the **variant**  
+
+\[
+V = k-j
+\]
+
+which is a non‑negative integer that strictly decreases in every iteration (by the assignment `j := j+1`). By the **well‑foundedness** of the natural numbers the loop must eventually terminate.
+
+When the loop stops we have `j = k`.  Using \(\mathcal I(k)\) we obtain
+
+* the whole input \(\langle N_1,\dots ,N_k\rangle\) has been read,
+* the whole output \(\langle O_1,\dots ,O_k\rangle\) has been produced,
+* and for each \(i\) the relation \(O_i = \operatorname{out}(N_i)\) holds.
+
+Thus the **post‑condition** \(Q\) follows directly from \(\mathcal I(k)\).
+
+---
+
+## 5.  Hoare‑logic derivation of the whole program  
+
+The **while‑rule** (also called the *rule of invariant*), in its classic form, is
+
+\[
+\frac{\{\,\mathcal I \land B\,\}\;C\;\{\,\mathcal I\,\}}
+     {\{\,\mathcal I\,\}\;\textbf{while }B\textbf{ do }C\;\{\,\mathcal I \land \neg B\,\}}
+\]
+
+We instantiate it with  
+
+* \(B \equiv \neg\text{EOF}\) (the loop guard),  
+* \(C \equiv B\) (the body described in Section 4.2),  
+* \(\mathcal I \equiv \mathcal I(j)\) (the invariant of (3)).
+
+We have already proved the premise \(\{\,\mathcal I\land B\,\}C\{\mathcal I\}\) as the **maintenance** step (M).  
+The **initialisation** step gave us \(\mathcal I(0)\) before the loop.  
+
+Therefore the while‑rule yields
+
+\[
+\{\,\mathcal I(0)\,\}\;
+\textbf{while }\neg\text{EOF}\textbf{ do }C\;
+\{\,\mathcal I(j)\land\text{EOF}\,\}.
+\]
+
+Because `EOF` holds precisely when the input stream is exhausted, `EOF` together with \(\mathcal I(j)\) forces \(j=k\).  Hence the post‑condition of the while statement is
+
+\[
+\{\,\mathcal I(k)\,\} \equiv Q .
+\]
+
+Finally, the outermost `while True: … except EOFError: break` is just a syntactic wrapper that implements the same guard; it does not change the logical reasoning.  Consequently we have derived the original Hoare triple
+
+\[
+\boxed{\{P\}\;\; \texttt{read‑until‑EOF‑and‑print}\;\; \{Q\}}
+\]
+
+where \(P\) is (1) and \(Q\) is (2).
+
+---
+
+## 6.  Summary of the proof  
+
+| Step | What is shown | Hoare rule used |
+|------|----------------|-----------------|
+| **Pre‑condition** | Input is a finite list \(\langle N_1,\dots ,N_k\rangle\) with each \(N_i\in\mathbb N_{0..100}\). | – |
+| **Invariant init** | \(\mathcal I(0)\) holds (empty prefixes). | Assignment rule (trivial). |
+| **Invariant maint.** | Assuming \(\mathcal I(j)\) and `¬EOF`, after one execution of the body we have \(\mathcal I(j+1)\). | Sequence of rules: read axiom → conditional rule → print axiom → assignment rule. |
+| **Termination** | Variant \(V=k-j\) decreases, so the loop ends when `EOF` becomes true, i.e. when \(j=k\). | Well‑foundedness of ℕ (loop‑variant rule). |
+| **Post‑condition** | From \(\mathcal I(k)\) we get the exact correspondence `out_i = out(N_i)` for all i. | Consequence of invariant + `EOF`. |
+| **Whole program** | \(\{P\}\) program \(\{Q\}\) holds. | While‑rule + the previous steps. |
+
+Thus the Python program **conforms to the specification**: for every integer read from the input (0 ≤ n ≤ 100) it prints exactly one line, printing
+
+* “vai ter copa!” when the integer is 0, and  
+* “vai ter duas!” when the integer is positive,
+
+and it stops precisely when the input reaches EOF.  This completes the Hoare‑logic correctness proof.

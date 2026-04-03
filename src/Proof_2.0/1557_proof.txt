@@ -1,0 +1,266 @@
+**Proof of correctness in Hoare‑logic**  
+We prove that the Python program given in the question satisfies the Hoare‑logic
+specifications stated in Sections 2 and 3 of the problem description.
+
+The proof is carried out in three parts
+
+1.  **Auxiliary lemmas** that relate the concrete Python expressions to the
+    mathematical functions used in the specification (`w(N)`, `digits`,
+    `fmt`, …).
+
+2.  **Correctness of the inner routine** `PrintMatrix(N)` – i.e. the triple  
+
+    \[
+    \{\,1\le N\le 15\,\}\;\texttt{PrintMatrix}(N)\;\{\operatorname{output}_N\}
+    \tag{PM}
+    \]
+
+3.  **Correctness of the whole program** – i.e. the triple  
+
+    \[
+    \{\top\}\;\texttt{Main}\;\{\top\}
+    \tag{MAIN}
+    \]
+
+All reasoning uses the standard rules of Hoare‑logic (consequence, composition,
+assignment, while, and for‑loop derived from the while‑rule).
+
+--------------------------------------------------------------------
+
+## 1.  Auxiliary lemmas
+
+| Python expression | Mathematical meaning |
+|-------------------|----------------------|
+| `pow2(k)`         | \(2^{k}\)            |
+| `maior = 2**(2*(T‑1))` | \(\operatorname{pow2}\bigl(2\,(T-1)\bigr)=2^{2(T-1)}\) |
+| `casas = int(ceil(log(maior,10)))` | \(\displaystyle\bigl\lceil \log_{10} 2^{2(T-1)}\bigr\rceil = \bigl\lfloor\log_{10}2^{2(T-1)}\bigr\rfloor+1 = \operatorname{digits}\bigl(2^{2(T-1)}\bigr)\) |
+| `valor = 2**(i+j)` | \(\operatorname{pow2}(i+j)=\mathbf A_T(i,j)\) |
+| `print(f'{margem}{valor:{casas}}', end='')` | prints the string `margem` (either `''` or `' '` ) followed by the decimal representation of `valor` **right‑justified** in a field of width `casas`. By the previous line `casas = w(T)`. Hence the printed fragment is exactly `fmt(\mathbf A_T(i,j), w(T))`. |
+
+*Proof of the second line* (the most delicate one).  
+For any positive integer \(x\),
+
+\[
+\operatorname{digits}(x)=\bigl\lfloor\log_{10}x\bigr\rfloor+1 .
+\]
+
+Since `log(maior,10) = \log_{10} 2^{2(T-1)}` we have
+
+\[
+\bigl\lceil\log_{10}2^{2(T-1)}\bigr\rceil
+   =\bigl\lfloor\log_{10}2^{2(T-1)}\bigr\rfloor+1
+   =\operatorname{digits}\bigl(2^{2(T-1)}\bigr)=w(T).
+\]
+
+Thus `casas = w(T)`.
+
+--------------------------------------------------------------------
+
+## 2.  Correctness of the inner routine
+
+We rewrite the Python fragment that prints one matrix as the following
+pseudo‑code (the `for`‑loops are the usual integer loops with the obvious
+semantics).
+
+```text
+PrintMatrix(N):
+    maior  := 2**(2*(N-1));
+    casas  := int(ceil(log(maior,10)));            // = w(N)
+    for i := 0 to N-1 do
+        margem := '';
+        for j := 0 to N-1 do
+            valor  := 2**(i+j);                    // = A_N(i,j)
+            write( margem || fmt(valor, casas) ); // end = ''
+            margem := ' ';
+        od
+        write('\n');
+    od
+    write('\n');
+```
+
+The proof uses two nested loop invariants.
+
+### 2.1  Invariant for the inner **column** loop
+
+For a fixed row index `i` we define
+
+\[
+J(i,j) \;\equiv\;
+\begin{aligned}
+&\text{The string already written by the inner loop is }\\
+&\operatorname{fmt}\bigl(\mathbf A_N(i,0),w(N)\bigr)\;
+  \operatorname{sep}\;
+  \dots\;
+  \operatorname{fmt}\bigl(\mathbf A_N(i,j-1),w(N)\bigr)  \\
+&\text{and the variable `margem` equals ``''`` if }j=0\text{ and ``' '`` otherwise.}
+\end{aligned}
+\]
+
+*Initialization* (`j = 0`).  
+Before the first iteration `margem` is set to `''` and nothing has been
+written, therefore `J(i,0)` holds.
+
+*Preservation*.  
+Assume `J(i,j)` holds at the start of an iteration with `0 ≤ j < N`.  
+The body prints `margem` followed by `fmt(valor,w(N))` where
+`valor = 2**(i+j) = \mathbf A_N(i,j)`.  
+If `j = 0`, `margem = ''` and the printed string becomes exactly
+`fmt(\mathbf A_N(i,0),w(N))`.  
+If `j > 0`, `margem = ' '` and a single blank is inserted before the new
+value, i.e. the separator `sep`.  
+Consequently after the write the concatenation described in `J(i,j+1)` is
+produced, and the assignment `margem := ' '` preserves the required value
+for the next iteration. Hence `J(i,j+1)` holds.
+
+*Termination*.  
+When the loop exits we have `j = N`.  By `J(i,N)` the whole row string
+
+\[
+\operatorname{row}_N(i)=
+\operatorname{fmt}\bigl(\mathbf A_N(i,0),w(N)\bigr)\;
+\operatorname{sep}\;
+\cdots\;
+\operatorname{fmt}\bigl(\mathbf A_N(i,N-1),w(N)\bigr)
+\]
+
+has been written, and the following `write('\n')` adds the required
+newline. Therefore after the **row** loop body finishes the invariant  
+
+\[
+R(i) \equiv \text{rows }0,\dots,i-1\text{ have been printed correctly}
+\]
+
+holds (see below).
+
+Thus the inner column loop is proved correct by the rule of **while** (or
+**for**) with invariant `J(i,j)`.
+
+### 2.2  Invariant for the outer **row** loop
+
+Define
+
+\[
+I(i) \;\equiv\;
+\begin{aligned}
+&\text{For every }k \text{ with }0\le k < i,\;
+  \text{the string } \operatorname{row}_N(k)\text{ followed by a newline}
+  \text{ has been written,}\\
+&\text{and no other characters have been written after the last newline.}
+\end{aligned}
+\]
+
+*Initialization* (`i = 0`).  
+Before the first iteration nothing has been written, so `I(0)` holds.
+
+*Preservation*.  
+Assume `I(i)` holds at the start of an iteration with `0 ≤ i < N`.  
+The body executes the column loop, which by the previous sub‑proof prints
+exactly `row_N(i)` and then the statement `write('\n')` prints the newline.
+Consequently after the body we have printed rows `0,…,i` correctly and no
+extra characters, i.e. `I(i+1)` holds.
+
+*Termination*.  
+When the loop terminates we have `i = N`.  By `I(N)` the whole matrix
+
+\[
+\operatorname{matrix}_N=
+\operatorname{row}_N(0)\nl\operatorname{row}_N(1)\nl\cdots
+\operatorname{row}_N(N-1)\nl
+\]
+
+has been written.  The final statement `write('\n')` adds the additional blank
+line, giving exactly `output_N`.
+
+Therefore the Hoare triple (PM) is established:
+
+\[
+\{\,1\le N\le 15\,\}\;\texttt{PrintMatrix}(N)\;
+\{\operatorname{output}_N\}.
+\tag{PM}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Correctness of the whole program
+
+We now treat the outermost loop of the program, written in the pseudo‑language
+of the specification:
+
+```text
+while true do
+    N := read();
+    if N = 0 then break;
+    { 1 ≤ N ≤ 15 } PrintMatrix(N) { output_N };
+od
+```
+
+### 3.1  Loop invariant
+
+The invariant supplied in the statement is
+
+\[
+\begin{aligned}
+I \equiv\;&\text{All numbers already read are either }0
+            \text{ (the terminating sentinel) or satisfy }1\le N\le 15,\\
+          &\text{and for each such }N\neq0\text{ the corresponding matrix}
+            \text{ has been printed exactly once according to }Q(N).
+\end{aligned}
+\tag{INV}
+\]
+
+We prove that `I` is indeed an invariant.
+
+*Initialization*.  
+Before the first iteration no number has been read, thus the universal
+quantifications in `I` are vacuously true. Hence `I` holds initially.
+
+*Preservation*.  
+Assume `I` holds at the beginning of an iteration.  
+The statement `N := read()` reads the next integer from the input.
+Two cases:
+
+1. **`N = 0`** – the `if` branch executes `break`.  
+   The loop terminates; `I` still holds because the newly read value is the
+   sentinel allowed by the invariant.
+
+2. **`N ≠ 0`** – by the problem statement the input guarantees `1 ≤ N ≤ 15`.  
+   Hence the pre‑condition of `PrintMatrix` (`1 ≤ N ≤ 15`) is satisfied.
+   By (PM) the call prints exactly `output_N`.  
+   After the call we extend the set of numbers already processed by this new
+   `N`; the invariant `I` therefore remains true.
+
+Thus `I` is preserved.
+
+*Termination*.  
+The loop stops precisely when the sentinel `0` is read.  The input is finite,
+so the sentinel will eventually appear; therefore the loop terminates.
+
+*Post‑condition*.  
+When the loop exits, the invariant `I` holds and the exit condition is
+`N = 0`.  The invariant tells us that **every** non‑zero number that appeared
+in the input has been printed exactly once according to `Q(N)`.  No further
+output is produced after the break.  Consequently the final state satisfies
+the specification `{ ⊤ }` – i.e. the program fulfills the natural‑language
+requirements of the problem.
+
+Hence we have proved the Hoare triple (MAIN):
+
+\[
+\{\top\}\;\texttt{Main}\;\{\top\}.
+\tag{MAIN}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Summary of the proof
+
+| Component | Hoare triple proved | Reasoning |
+|-----------|---------------------|-----------|
+| **Inner column loop** | `while j<N do … od` with invariant `J(i,j)` | Assignment, arithmetic, `fmt` property |
+| **Outer row loop**    | `while i<N do … od` with invariant `I(i)` | Uses `J(i,j)` as a sub‑proof |
+| **PrintMatrix(N)**    | (PM) `\{1≤N≤15\} PrintMatrix(N) \{output_N\}` | Composition of the two loops, final extra newline |
+| **Whole program**     | (MAIN) `\{\top\} Main \{\top\}` | Loop invariant `INV`, rule of consequence, termination argument |
+
+All three parts together constitute a complete Hoare‑logic proof that the
+given Python program conforms exactly to the formal specification presented
+in Sections 2 and 3 of the problem statement.

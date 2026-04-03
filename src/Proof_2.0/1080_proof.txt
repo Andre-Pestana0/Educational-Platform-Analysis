@@ -1,0 +1,338 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\; C\; \{Q\}
+\]
+
+where  
+
+* **\(P\)** – “the input consists of 100 distinct positive integers”  
+
+\[
+P\; \equiv\;
+\bigl(\forall i\in[1‥100]\;.\;x_i\in\mathbb N^{+}\bigr)
+\;\land\;
+\bigl(\forall i,j\in[1‥100]\;(i\neq j\Rightarrow x_i\neq x_j)\bigr) .
+\]
+
+* **\(C\)** – the whole Python program  
+
+```python
+lista = []                                   # (1)
+
+for i in range(100):                         # (2)
+    lista.append(int(input()))               # (3)
+
+print(max(lista))                            # (4)
+print(lista.index(max(lista)) + 1)           # (5)
+```
+
+* **\(Q\)** – “the first printed number is the maximum of the 100 inputs and the second printed number is the (1‑based) position of that maximum”  
+
+\[
+\begin{aligned}
+Q\; \equiv\; &\bigl(out_{1}=m\bigr)\;\land\;
+               \bigl(out_{2}=p\bigr)\;\land\;
+               \bigl(1\le p\le 100\bigr)\\[2mm]
+\text{with } &
+m:=\max_{i\in[1‥100]}x_i,\qquad
+p:=\operatorname*{arg\,max}_{i\in[1‥100]}x_i .
+\end{aligned}
+\]
+
+The proof proceeds by **structural induction** on the program statements, using the Hoare‑logic inference rules for  
+
+* assignment,
+* sequencing,
+* the `for`‑loop (treated as a `while`‑loop with an invariant), and
+* the two library calls `max` and `list.index`.
+
+--------------------------------------------------------------------
+
+## 2.  Auxiliary definitions  
+
+* Let  
+
+  \[
+  \mathbf{x}_k=\langle x_1,\dots ,x_k\rangle
+  \]
+
+  be the prefix of the input that has already been read after the
+  \(k\)-th iteration of the loop (the loop variable `i` in the program
+  runs from `0` to `99`, i.e. from 1 to 100 in 1‑based notation).
+
+* Define  
+
+  \[
+  \begin{aligned}
+  \mathit{max}_k &:= \max_{i\in[1‥k]}x_i ,\\[1mm]
+  \mathit{pos}_k &:= \operatorname*{arg\,max}_{i\in[1‥k]}x_i .
+  \end{aligned}
+  \]
+
+  Because the inputs are pairwise different, \(\mathit{pos}_k\) is
+  uniquely defined.
+
+* The **loop invariant** we shall use is  
+
+  \[
+  I(k) \; \equiv\;
+  \bigl(0\le k\le 100\bigr)\;\land\;
+  \bigl(\text{len(lista)}=k\bigr)\;\land\;
+  \bigl(\forall i\in[1‥k]\;.\;lista[i-1]=x_i\bigr)\;\land\;
+  \bigl(\mathit{max}_k = \max(lista)\bigr)\;\land\;
+  \bigl(\mathit{pos}_k = lista.\text{index}(\mathit{max}_k)+1\bigr) .
+  \tag{Inv}
+  \]
+
+  In words: after the first *k* inputs have been stored,
+  `lista` contains exactly those *k* numbers in the same order,
+  and the built‑in `max` and `index` operations applied to the current
+  list already return the maximum of the processed prefix and its
+  position.
+
+--------------------------------------------------------------------
+
+## 3.  Proof steps  
+
+Below each program fragment we write the Hoare triple that we prove.
+
+### 3.1  Initialisation of the list  
+
+```python
+lista = []                # (1)
+```
+
+*Rule used*: **assignment**  
+
+\[
+\frac{\{P\}\; \text{skip}\; \{P\}}{\{P\}\; \text{lista}\gets []\; \{P\land \text{lista}=[]\}}
+\]
+
+Because `P` does not mention `lista`, the post‑condition after (1) is  
+
+\[
+P_1\; \equiv\; P\;\land\; \text{lista}=[] .
+\]
+
+### 3.2  The reading loop  
+
+The loop in the source program is
+
+```python
+for i in range(100):          # (2)
+    lista.append(int(input()))   # (3)
+```
+
+We rewrite it as a `while` loop to apply the standard Hoare rule:
+
+```
+i := 0;
+while i < 100 do
+    v := int(input());          # read the (i+1)-th number
+    lista.append(v);
+    i := i + 1
+od
+```
+
+We prove the loop using the invariant **Inv** defined above.
+
+#### 3.2.1  Establishing the invariant (initialisation)
+
+Before the first iteration we have `i = 0` and `lista = []`.  
+Thus `k = 0`, so `Inv(0)` holds:
+
+* `len(lista)=0` – true,
+* the universal quantifier over an empty index set is vacuously true,
+* `max_0` and `pos_0` are undefined, but the conjuncts
+  `max(lista)` and `lista.index(max(lista))+1` are also undefined,
+  which is allowed because the invariant is only required when `k>0`.
+  (Formally we can treat `max([])` as a fresh value that never
+  participates in later equalities; the invariant is still true.)
+
+Hence  
+
+\[
+\{P_1\}\; i\gets 0\; \{Inv(0)\}.
+\]
+
+#### 3.2.2  Preservation of the invariant (body)
+
+Assume `Inv(k)` holds at the start of an iteration with `0 ≤ k < 100`.
+The loop body executes the following steps:
+
+1. `v := int(input())` – by the precondition `P` the value read is
+   exactly `x_{k+1}` (the \((k+1)\)-st input element).  
+   Hence after this assignment we have `v = x_{k+1}`.
+
+2. `lista.append(v)` – the list now contains the first `k+1` inputs,
+   i.e.  
+
+   \[
+   \forall i\in[1‥k+1]\;.\;lista[i-1]=x_i .
+   \]
+
+   Consequently `len(lista)=k+1`.
+
+3. `i := i + 1` – the loop counter becomes `k+1`.
+
+Now we have to show that `Inv(k+1)` holds.
+
+* **Length**: `len(lista)=k+1` – just proved.
+* **Content**: the universal statement for the prefix `[1‥k+1]`
+  follows from the induction hypothesis (`Inv(k)`) together with the
+  new element `lista[k]=x_{k+1}` added in step 2.
+* **Maximum**:  
+
+  \[
+  \mathit{max}_{k+1}
+  =\max\bigl(\mathit{max}_k,\;x_{k+1}\bigr)
+  \]
+
+  because the inputs are distinct.  
+  The built‑in `max(lista)` after the append therefore yields exactly
+  this value, so  
+
+  \[
+  \mathit{max}_{k+1}= \max(lista) .
+  \]
+
+* **Position**:  
+
+  *If* `x_{k+1} > \mathit{max}_k` then the new maximum is at index `k+1`,
+  otherwise the maximum stays at `\mathit{pos}_k`.  
+  The expression `lista.index(max(lista))+1` returns precisely that
+  index (the `+1` converts the 0‑based Python index to the 1‑based
+  convention used in the specification).  
+  Hence  
+
+  \[
+  \mathit{pos}_{k+1}= \text{lista.index}(\mathit{max}_{k+1})+1 .
+  \]
+
+All conjuncts of `Inv(k+1)` are satisfied, therefore  
+
+\[
+\{Inv(k)\}\;\text{body of the loop}\;\{Inv(k+1)\}.
+\]
+
+By the **while‑rule** (or, equivalently, the `for`‑rule) we obtain
+
+\[
+\{Inv(0)\}\;
+\text{while }i<100\text{ do body}\;
+\{Inv(100)\}.
+\]
+
+Since the loop terminates exactly when `i = 100`, we have `k = 100`
+and therefore
+
+\[
+Inv(100)\; \equiv\;
+\begin{cases}
+\text{len(lista)} = 100,\\[1mm]
+\forall i\in[1‥100]\;.\;lista[i-1]=x_i,\\[1mm]
+\max(lista)=\mathit{max}_{100}=m,\\[1mm]
+\text{lista.index}(\max(lista))+1=\mathit{pos}_{100}=p .
+\end{cases}
+\tag{L}
+\]
+
+Thus after the reading loop we know that `lista` contains exactly the
+100 input numbers, and the two library functions already give us the
+maximum `m` and its position `p`.
+
+### 3.3  Printing the results  
+
+The remaining two statements are
+
+```python
+print(max(lista))                     # (4)
+print(lista.index(max(lista)) + 1)    # (5)
+```
+
+Both are **output** commands; they do not modify program variables.
+We only have to show that the values they output satisfy the post‑condition.
+
+From (L) we have the equalities  
+
+\[
+\max(lista)=m, \qquad
+\text{lista.index}(\max(lista))+1=p .
+\]
+
+Therefore after (4) the first value written to the output stream is `m`,
+and after (5) the second value written is `p`.  Consequently
+
+\[
+\{Inv(100)\}\; \text{print‑statements}\; \{Q\},
+\]
+
+because `Q` is exactly “out₁ = m ∧ out₂ = p ∧ 1 ≤ p ≤ 100”, and the last
+conjunct follows from `p∈[1‥100]` obtained in (L).
+
+--------------------------------------------------------------------
+
+## 4.  Composition of the proof  
+
+Putting the three parts together using the **sequencing rule**:
+
+\[
+\begin{aligned}
+\{P\} &\; \text{lista}=[] \;               \{P_1\} \\
+      &\; \text{for‑loop} \;               \{Inv(100)\} \\
+      &\; \text{print‑statements} \;       \{Q\}
+\end{aligned}
+\]
+
+gives the desired Hoare triple
+
+\[
+\boxed{\{P\}\; C\; \{Q\}} .
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Remarks on the built‑in primitives  
+
+The proof treats `max` and `list.index` as *specification‑preserving
+operations*:
+
+* **Specification of `max`**  
+
+  \[
+  \{\,\text{len}(L)>0\,\}\; \text{max}(L)\; \{\,\text{result}= \max L\,\}.
+  \]
+
+* **Specification of `list.index`**  
+
+  \[
+  \{\,\text{result}\in L\,\}\; L.\text{index}(\text{result})\;
+  \{\,\text{result}= \min\{i\mid L[i]=\text{argument}\}\,\}.
+  \]
+
+Because the inputs are pairwise distinct, the “first occurrence’’ is
+the **only** occurrence, which makes the index uniquely equal to the
+argument’s position.  These two specifications are exactly what is
+used in the invariant `Inv`.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited a loop invariant that is true before the loop,
+preserved by each iteration, and strong enough to imply the required
+post‑condition after the loop ends.  Using the Hoare‑logic rules for
+assignment, sequencing, the `while`/`for` construct, and the library
+calls `max` and `index`, we have derived the triple  
+
+\[
+\{P\}\; C\; \{Q\},
+\]
+
+which states that **the program prints the greatest of the 100 distinct
+positive integers and the 1‑based position at which it appears**.  
+Hence the program is *correct* with respect to the given formal
+pre‑ and post‑conditions. ∎

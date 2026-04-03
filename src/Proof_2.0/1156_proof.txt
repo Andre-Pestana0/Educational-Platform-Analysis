@@ -1,0 +1,292 @@
+**Goal**  
+
+Prove the Hoare triple  
+
+\[
+\{\,\top\,\}\;\;{\tt
+soma = 0; \;
+for\;i\;in\;range(0,20):\;
+\;soma\;+=\;(2*i+1)/(2**i);\;
+print("{:.2f}".format(soma))}\;\;
+\{\,\text{out}= \operatorname{fmt}_{2}(S)\,\},
+\]
+
+where  
+
+\[
+S=\sum_{k=0}^{19}\frac{2k+1}{2^{k}},\qquad   
+\operatorname{fmt}_{2}(x)=\frac{\big\lfloor 100\,x+\tfrac12\big\rfloor}{100}.
+\]
+
+The proof proceeds in two parts  
+
+* **(A)**  Show that after the loop `soma` contains exactly the sum \(S\).  
+* **(B)**  Show that the `print` statement prints the value of `soma` rounded to two
+  decimal places, i.e. `fmt₂(soma)`; because `soma=S` this yields the required
+  post‑condition.
+
+--------------------------------------------------------------------
+
+## 1.  Loop invariant
+
+Let  
+
+\[
+I(i,s)=\Bigl(0\le i\le 20\;\land\;
+s=\sum_{k=0}^{i-1}\frac{2k+1}{2^{k}}\Bigr)
+\tag{Inv}
+\]
+
+(the empty sum for \(i=0\) is defined as \(0\)).  
+\(I\) relates the loop variable `i` and the accumulator `soma`.
+
+--------------------------------------------------------------------
+
+## 2.  Proof that the loop computes the sum  
+
+We use the Hoare rule for `while` loops  
+
+\[
+\frac{\{I\land B\}\;C\;\{I\}}
+     {\{I\}\;\textbf{while }B\textbf{ do }C\;\{I\land\neg B\}}
+\tag{WH}
+\]
+
+with  
+
+* **loop guard**   \(B\equiv i<20\)  
+* **loop body**    \(C\equiv\)  
+
+  ```
+  soma += (2*i+1) / (2**i)
+  i    += 1
+  ```
+
+--------------------------------------------------------------------
+### 2.1  Initialization  
+
+Before the loop we have the two assignments  
+
+```
+soma = 0
+i    = 0
+```
+
+Using the assignment axiom  
+
+\[
+\frac{}{\{\;P[E/x]\;\}\;x:=E\;\{P\}}
+\]
+
+with \(P\equiv I(i,s)\) we obtain  
+
+\[
+\{\,I(0,0)\,\}\;{\tt soma}=0;\;i=0\;\{\,I\,\}
+\]
+
+because  
+
+\[
+I(0,0)\;\equiv\;0\le 0\le 20\land 0=\sum_{k=0}^{-1}\frac{2k+1}{2^{k}} 
+\quad\text{(empty sum = 0).}
+\]
+
+Thus the invariant holds immediately before the first test of the guard.
+
+--------------------------------------------------------------------
+### 2.2  Maintenance  
+
+Assume the invariant holds at the beginning of an iteration and the guard is true, i.e.
+
+\[
+\{\,I(i,s)\land i<20\,\}
+\]
+
+We must show that after executing the body the invariant holds with the
+new values \(i' = i+1\) and \(s' = s+(2i+1)/2^{i}\).
+
+\[
+\begin{aligned}
+s'&=s+\frac{2i+1}{2^{i}}\\
+   &=
+   \sum_{k=0}^{i-1}\frac{2k+1}{2^{k}}+\frac{2i+1}{2^{i}}
+   =\sum_{k=0}^{i}\frac{2k+1}{2^{k}} .
+\end{aligned}
+\]
+
+Consequently  
+
+\[
+I(i',s')\; \equiv\;
+\Bigl(0\le i+1\le 20\;\land\;
+s'=\sum_{k=0}^{i}\frac{2k+1}{2^{k}}\Bigr)
+\]
+
+which is exactly the invariant with the updated loop variable.
+Hence  
+
+\[
+\{\,I\land B\,\}\;C\;\{\,I\,\}
+\]
+
+holds.  By the **while** rule (WH) we obtain  
+
+\[
+\{\,I\,\}\;\textbf{while }i<20\textbf{ do }C\;\{\,I\land i\ge 20\,\}.
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+### 2.3  Termination  
+
+When the loop exits we have \(i\ge 20\) and, because the invariant guarantees
+\(i\le 20\), we get \(i=20\).  Substituting \(i=20\) in the invariant yields  
+
+\[
+soma=\sum_{k=0}^{19}\frac{2k+1}{2^{k}} = S .
+\tag{2}
+\]
+
+Thus after the loop the variable `soma` contains the exact mathematical sum
+required by the specification.
+
+--------------------------------------------------------------------
+
+## 3.  Rounding and output  
+
+The statement that prints the result is  
+
+```python
+print("{:.2f}".format(soma))
+```
+
+### 3.1  Lemma about the format specifier  
+
+For any real number \(x\) let  
+
+\[
+\operatorname{py2}(x)=\text{the value printed by }"{:.2f}".\text{format}(x).
+\]
+
+Python’s formatting follows the IEEE‑754 “round‑to‑nearest, ties‑to‑even”
+rule.  Define  
+
+\[
+\operatorname{rnd}_{2}(x)=\frac{\big\lfloor 100x+0.5\big\rfloor}{100}
+\]
+
+(the “round‑half‑up” rule used in the statement of the problem).  
+
+**Lemma 1**  
+If the third decimal digit of \(x\) is **not** exactly 5, then  
+
+\[
+\operatorname{py2}(x)=\operatorname{rnd}_{2}(x)=\operatorname{fmt}_{2}(x).
+\]
+
+*Proof.*  
+Both rounding modes round down when the fractional part after the second
+decimal place is < 0.5 and round up when it is > 0.5; they differ only when the
+fractional part equals exactly 0.5 (a “tie”).  The premise excludes this case,
+hence the two functions coincide. ∎
+
+
+
+### 3.2  No tie occurs for the concrete value \(S\)
+
+From (2) we have `soma = S`.  Compute \(S\) analytically (optional, but it
+shows the third decimal digit is not a tie).
+
+\[
+\begin{aligned}
+S &=\sum_{k=0}^{19}\frac{2k+1}{2^{k}}
+   =2\sum_{k=0}^{19}\frac{k}{2^{k}}+\sum_{k=0}^{19}\frac{1}{2^{k}}\\[2mm]
+\sum_{k=0}^{n-1}\frac{k}{2^{k}}
+   &=2-\frac{n+1}{2^{\,n-1}},\qquad
+\sum_{k=0}^{n-1}\frac{1}{2^{k}}=2-\frac{1}{2^{\,n-1}} .
+\end{aligned}
+\]
+
+With \(n=20\) we obtain  
+
+\[
+S = 6-\frac{2\cdot20+3}{2^{19}}
+   =6-\frac{43}{524\,288}
+   =5.999917984\ldots
+\]
+
+Multiplying by 100 gives  
+
+\[
+100S = 599.9917984\ldots
+\]
+
+The third decimal digit after the point is **9**, certainly not a tie.
+Hence Lemma 1 applies and  
+
+\[
+\operatorname{py2}(S)=\operatorname{fmt}_{2}(S).
+\tag{3}
+\]
+
+### 3.3  Hoare triple for the `print` statement  
+
+Using the assignment axiom for the auxiliary variable `out` that stores the
+string printed by `print`, we have  
+
+\[
+\{\,soma=S\,\}\;
+\texttt{out := "{:.2f}".format(soma)}\;
+\{\,\text{out}= \text{string\_of}(\operatorname{fmt}_{2}(S))\,\}.
+\]
+
+The premise `soma=S` follows from (2); the conclusion follows from (3) and
+the definition of `string_of`.  
+
+Thus the whole program satisfies  
+
+\[
+\{\,\top\,\}\;\text{Algorithm}\;\{\,\text{out}= \operatorname{fmt}_{2}(S)\,\}.
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Summary of the formal proof  
+
+| Step | Hoare rule used | Assertion after the step |
+|------|-----------------|--------------------------|
+| 1.   | Assignment      | `soma = 0`  ⇒  `soma = 0` |
+| 2.   | Assignment      | `i = 0`    ⇒  `i = 0`   |
+| 3.   | Consequence     | `I(i,s)` holds (`i=0`, `soma=0`) |
+| 4.   | While (WH) with invariant `I` | after loop: `I ∧ i≥20` |
+| 5.   | Consequence     | from `i≥20` and invariant ⇒ `i=20 ∧ soma=S` |
+| 6.   | Assignment (print) + Lemma 1 | `out = string_of(fmt₂(S))` |
+
+All premises of the Hoare rules are discharged, therefore the Hoare triple
+is proved.
+
+--------------------------------------------------------------------
+
+## 5.  Concrete output  
+
+Evaluating the closed form of \(S\) gives  
+
+\[
+S = 5.999917984\ldots
+\]
+
+Rounding to two decimal places yields  
+
+\[
+\operatorname{fmt}_{2}(S)=6.00 .
+\]
+
+Consequently the program prints the string  
+
+```
+6.00
+```
+
+which is exactly the decimal representation required by the post‑condition.  
+
+∎

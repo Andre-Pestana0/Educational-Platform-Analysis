@@ -1,0 +1,240 @@
+**Proof that the program satisfies the Hoare‑style specification**
+
+\[
+\{\,\top\,\}\;P\;\{\,\text{out}= \mathcal S\,\}
+\]
+
+where  
+
+* `out` is the list of strings that the program writes, in the order they are produced,  
+*  
+
+\[
+\begin{aligned}
+i(k) &:= 2\Big\lfloor\frac{k}{3}\Big\rfloor + 1,\\[2mm]
+j(k) &:= i(k)+6-(k\bmod 3),\\[2mm]
+\mathcal S &:= \big\langle (i(k),j(k))\mid k=0,\dots ,14\big\rangle .
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+
+## 1.  Program written as a Hoare‑style command
+
+For the proof we treat the program as an *annotated* command that manipulates
+the logical variables `i`, `j` and a logical accumulator `out` (initially `⟨⟩`).
+
+```
+i := 1;                     (* 1 *)
+j := 7;                     (* 2 *)
+
+out := ⟨⟩;                  (* 3 *)
+
+for contador1 = 0 … 4 do   (* outer loop, 5 iterations *)
+    for contador2 = 0 … 2 do   (* inner loop, 3 iterations *)
+        out := out · ⟨"I="·i·" J="·j·"\n"⟩;   (* print *)
+        j := j-1;                                 (* 4 *)
+    od;
+    i := i+2;                                   (* 5 *)
+    j := j+5;                                   (* 6 *)
+od
+```
+
+The only observable effect is the concatenation to `out`; the two `print`
+statements in the original Python program are modelled by the single
+assignment `out := out·⟨…⟩`.
+
+--------------------------------------------------------------------
+
+## 2.  Invariants
+
+### 2.1  Inner‑loop invariant  
+
+Let  
+
+\[
+\mathsf{Inv}_{\text{inner}}(t) \;:\;\;
+\begin{cases}
+0\le t\le 3,\\[1mm]
+\text{out}=L\;\land\;|L|=3\cdot s + t,\\[1mm]
+\displaystyle\forall r\;(0\le r<t\;\rightarrow\;
+      L[3s+r]=\texttt{"I="}\;i\;\texttt{" J="}\;(i+6-r)\;\texttt{"\n"})\\[2mm]
+j = i+6-t .
+\end{cases}
+\]
+
+* `s` is the number of completed **outer** iterations (the value of
+`contador1` when the inner loop starts).  
+* `t` is the number of already executed inner‑loop iterations
+(`contador2`).
+
+Intuitively, after `t` steps of the inner loop we have already printed
+the first `t` pairs for the current `i`, and the current value of `j` is
+exactly the next value that has to be printed.
+
+### 2.2  Outer‑loop invariant  
+
+\[
+\mathsf{Inv}_{\text{outer}}(s) \;:\;\;
+\begin{cases}
+0\le s\le 5,\\[1mm]
+\text{out}=L\;\land\;|L|=3s,\\[1mm]
+\displaystyle\forall q\;(0\le q<s\;\rightarrow\;
+      \forall r\;(0\le r<3\;\rightarrow\;
+        L[3q+r]=\texttt{"I="}\;(2q+1)\;
+               \texttt{" J="}\;(2q+1+6-r)\;\texttt{"\n"}))\\[2mm]
+i = 2s+1,\\[1mm]
+j = i+6 .
+\end{cases}
+\]
+
+Thus after `s` outer iterations the list `out` already contains exactly the
+first `3s` elements of `𝒮`, the current `i` is the next odd number,
+and `j` is the first `J` value that must be printed for that `i`.
+
+--------------------------------------------------------------------
+
+## 3.  Proof obligations
+
+We use the Hoare rule for **while/for loops** (the same rule works for a
+`for … in range(N)` because the loop variable runs over the finite set
+`{0,…,N‑1}`).
+
+### 3.1  Initialization of the outer loop  
+
+Before the outer loop we have
+
+```
+i = 1            (by line 1)
+j = 7            (by line 2)
+out = ⟨⟩
+```
+
+Since `s = 0` we obtain
+
+* `|out| = 0 = 3·0`,
+* the universal condition in `Inv_outer` is vacuously true,
+* `i = 2·0+1 = 1`,
+* `j = i+6 = 7`.
+
+Hence `Inv_outer(0)` holds.
+
+### 3.2  Preservation of the outer‑loop invariant  
+
+Assume `Inv_outer(s)` holds at the beginning of an outer iteration
+(`0 ≤ s < 5`).  
+The body of the outer loop consists of the inner loop followed by the two
+updates `i:=i+2; j:=j+5`.  
+
+#### 3.2.1  Inner‑loop preservation  
+
+At the start of the inner loop we have `t = 0` and `j = i+6`
+(because of `Inv_outer`).  
+Thus `Inv_inner(0)` is true.
+
+* **Loop‑body**: we assume `Inv_inner(t)` with `t < 3`.  
+  The body executes  
+
+  ```
+  out := out·⟨"I="·i·" J="·j·"\n"⟩;
+  j   := j-1;
+  ```
+
+  By the induction hypothesis the element appended to `out` is exactly
+  `"I=" i " J=" (i+6‑t) "\n"`. Consequently after the concatenation
+  `|out|` becomes `3s + t + 1` and the universal clause holds for
+  `r = t`.  
+  The assignment `j := j‑1` changes `j` from `i+6‑t` to `i+6‑(t+1)`,
+  which is precisely the required expression for `t+1`.  
+  Therefore `Inv_inner(t+1)` holds.
+
+* **Termination**: when `t = 3` the inner loop stops.  
+  From `Inv_inner(3)` we obtain `j = i+6‑3 = i+3`.
+
+Hence after the inner loop we have printed the three required pairs for the
+current `i` and the logical state satisfies
+
+```
+out = L   with   |L| = 3s+3,
+i   = 2s+1,
+j   = i+3 .
+```
+
+#### 3.2.2  The two updates after the inner loop  
+
+```
+i := i+2;      // i becomes 2s+3 = 2(s+1)+1
+j := j+5;      // j becomes (i+3)+5 = i+8 = (2s+3)+6 = (2(s+1)+1)+6
+```
+
+Thus after these assignments we obtain exactly the values required by
+`Inv_outer(s+1)`:
+
+* `i = 2(s+1)+1`,
+* `j = i+6`,
+* `|out| = 3(s+1)`,
+* the universal clause now holds for all `q ≤ s` (the newly added
+  three elements are already guaranteed by `Inv_inner(3)`).
+
+Consequently `Inv_outer(s+1)` holds.
+
+### 3.3  Termination of the outer loop  
+
+The outer `for` iterates over `range(5)`, i.e. the set `{0,1,2,3,4}`.
+Hence after the fifth iteration we have `s = 5` and the loop terminates.
+
+--------------------------------------------------------------------
+
+## 4.  Post‑condition
+
+When the outer loop finishes we have `s = 5`.  
+Instantiating `Inv_outer(5)` yields
+
+* `|out| = 3·5 = 15`,
+* for every `q ∈ {0,…,4}` and `r ∈ {0,1,2}`  
+
+  \[
+  out[3q+r] = \texttt{"I="}\;(2q+1)\;
+             \texttt{" J="}\;(2q+1+6-r)\;\texttt{"\n"} .
+  \]
+
+Define `k = 3q+r`.  Because `0 ≤ k < 15` we have a unique decomposition  
+
+\(q = \big\lfloor k/3\big\rfloor\) and \(r = k\bmod 3\).  
+Substituting `i(k) = 2⌊k/3⌋+1` and `j(k) = i(k)+6-(k\bmod 3)` we obtain
+
+\[
+out[k] = \texttt{"I="}\;i(k)\;\texttt{" J="}\;j(k)\;\texttt{"\n"} .
+\]
+
+Thus the list `out` is exactly the sequence `𝒮` defined in the
+specification.  Formally,
+
+\[
+\exists L\;( \text{out}=L \land |L|=15 \land
+   \forall k\;(0\le k<15 \rightarrow
+        L[k]=\texttt{"I="}\;i(k)\;\texttt{" J="}\;j(k)\;\texttt{"\n"}))
+\]
+
+which is precisely the expanded post‑condition given in the problem
+statement.
+
+--------------------------------------------------------------------
+
+## 5.  Conclusion  
+
+We have exhibited:
+
+* a **loop invariant** for the inner loop and proved its
+  initialization, preservation and termination,
+* a **loop invariant** for the outer loop and proved the same,
+* shown that after the outer loop terminates the logical state satisfies
+  the formal post‑condition `out = 𝒮`.
+
+Therefore the Hoare triple  
+
+\[
+\{\,\top\,\}\;P\;\{\,\text{out}= \mathcal S\,\}
+\]
+
+is proved correct for the given Python program. ∎

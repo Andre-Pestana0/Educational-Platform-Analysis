@@ -1,0 +1,256 @@
+## 1.  What we have to prove  
+
+We must show that the whole program **S**
+
+```
+read x , y                #  (1)
+if x == 0 and y == 0:    #  (2)
+        out = "Origem"
+elif x == 0:             
+        out = "Eixo Y"
+elif y == 0:             
+        out = "Eixo X"
+elif x > 0 and y > 0:    
+        out = "Q1"
+elif x > 0 and y < 0:    
+        out = "Q4"
+elif x < 0 and y > 0:    
+        out = "Q2"
+else:                    #  (x < 0 and y < 0)
+        out = "Q3"
+print(out)                #  (3)
+```
+
+satisfies the Hoare triple  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P \; \equiv\; x\in\mathbb R\;\land\;y\in\mathbb R
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q \equiv\;& (x=0\land y=0      \land out="Origem")\;\lor\\
+         & (x=0\land y\neq0   \land out="Eixo Y")\;\lor\\
+         & (y=0\land x\neq0   \land out="Eixo X")\;\lor\\
+         & (x>0\land y>0      \land out="Q1")\;\lor\\
+         & (x<0\land y>0      \land out="Q2")\;\lor\\
+         & (x<0\land y<0      \land out="Q3")\;\lor\\
+         & (x>0\land y<0      \land out="Q4").
+\end{aligned}
+\]
+
+The proof proceeds by applying the standard Hoare‑logic inference rules:
+
+* **(Assign)** \(\displaystyle \frac{}{ \{Q[x:=E]\}\;x:=E\;\{Q\}}\)
+* **(If‑then‑else)** \(\displaystyle \frac{\{P\land B\}\;S_1\;\{Q\}\qquad\{P\land\neg B\}\;S_2\;\{Q\}}{\{P\}\;\mathbf{if}\;B\;\mathbf{then}\;S_1\;\mathbf{else}\;S_2\;\{Q\}}\)
+* **(Seq)** \(\displaystyle \frac{\{P\}\;S_1\;\{R\}\qquad\{R\}\;S_2\;\{Q\}}{\{P\}\;S_1;S_2\;\{Q\}}\)
+* **(Conseq)** \(\displaystyle \frac{P'\Rightarrow P\qquad\{P\}\;S\;\{Q\}\qquad Q\Rightarrow Q'}{\{P'\}\;S\;\{Q'\}}\)
+
+Below we give a **structured proof tree** that shows how each rule is instantiated for the program.
+
+---
+
+## 2.  Proof of the reading step  
+
+The statement *“read x , y”* is, for the purpose of a Hoare proof, just an assignment that stores the two numbers supplied by the environment.
+
+\[
+\{\,P\,\}\;\;x:=\mathsf{input}_1\; ;\; y:=\mathsf{input}_2\;\;\{\,P\,\}
+\]
+
+Indeed, by the **Assign** rule
+
+\[
+\{P[x:=\mathsf{input}_1]\}\;x:=\mathsf{input}_1\;\{P\},
+\qquad
+\{P[y:=\mathsf{input}_2]\}\;y:=\mathsf{input}_2\;\{P\},
+\]
+
+and because \(P\) does not constrain the actual values of \(x\) and \(y\) (it only requires them to be real numbers, which the input guarantees), the **Conseq** rule lets us weaken the pre‑condition back to \(P\).  
+Thus after line (1) we still have \(P\).
+
+---
+
+## 3.  Proof of the conditional chain  
+
+The chain of `if / elif / else` is a *nested* series of binary `if‑then‑else` statements.  
+For readability we treat it as a single **multi‑way** conditional whose guards are mutually exclusive and collectively exhaustive:
+
+| Guard (B)                               | Assignment to `out`                     |
+|----------------------------------------|------------------------------------------|
+| \(B_1 : x = 0 \land y = 0\)            | `out := "Origem"`                        |
+| \(B_2 : x = 0 \land y \neq 0\)         | `out := "Eixo Y"`                        |
+| \(B_3 : y = 0 \land x \neq 0\)         | `out := "Eixo X"`                        |
+| \(B_4 : x > 0 \land y > 0\)            | `out := "Q1"`                            |
+| \(B_5 : x > 0 \land y < 0\)            | `out := "Q4"`                            |
+| \(B_6 : x < 0 \land y > 0\)            | `out := "Q2"`                            |
+| \(B_7 : x < 0 \land y < 0\)            | `out := "Q3"`                            |
+
+We prove, for **each** guard \(B_i\), that  
+
+\[
+\{\,P\land B_i\,\}\;\; \text{out := s_i}\;\; \{\,Q\,\},
+\]
+
+where \(s_i\) is the literal string that appears on the right‑hand side of the assignment.
+
+### 3.1  The assignment rule for a single branch  
+
+Take a generic branch \(i\).  
+Let  
+
+\[
+R_i \equiv (x\;\text{relation}_i\;0 \;\land\; y\;\text{relation}_i\;0 \;\land\; out = s_i).
+\]
+
+The **Assign** rule tells us that if we can show  
+
+\[
+Q[\,out:=s_i\,] \;\equiv\; (x\;\text{relation}_i\;0 \;\land\; y\;\text{relation}_i\;0 \;\land\; s_i = s_i) \;\lor\; \dots
+\]
+
+i.e. that the post‑condition **after** the assignment is true, then the Hoare triple for that branch holds.
+
+Because the guard \(B_i\) is exactly the conjunction of the two relational atoms that appear in the corresponding clause of \(Q\), the substitution `out:=s_i` makes the *relevant* clause of \(Q\) true and all the other clauses false. Consequently  
+
+\[
+\{\,P\land B_i\,\}\;\text{out := s_i}\;\{\,R_i\,\}
+\]
+
+holds by **Assign**.  
+
+Since \(R_i \Rightarrow Q\) (the clause \(R_i\) is one of the disjuncts that compose \(Q\)), we obtain the required triple for the branch by the **Conseq** rule:
+
+\[
+\boxed{\{\,P\land B_i\,\}\;\text{out := s_i}\;\{\,Q\,\}} \qquad (1\le i\le 7).
+\]
+
+### 3.2  The multi‑way `if` rule  
+
+The Hoare‑logic rule for a *multi‑way* conditional (or, equivalently, a cascade of binary `if‑then‑else`) states:
+
+\[
+\frac{
+   \{P\land B_1\}S_1\{Q\}\;\; \dots\;\;
+   \{P\land B_7\}S_7\{Q\}
+}{
+   \{P\}\; \mathbf{if}\;B_1\;\mathbf{then}\;S_1\;
+   \mathbf{elif}\;B_2\;\mathbf{then}\;S_2\; \dots\;
+   \mathbf{else}\;S_7\; \{Q\}
+}
+\]
+
+Because we have proved (1) for each branch, we can infer
+
+\[
+\boxed{\{\,P\,\}\;\text{multi‑way‑if}\;\{\,Q\,\}}.
+\]
+
+---
+
+## 4.  Proof of the final `print`  
+
+The statement `print(out)` has **no effect** on the logical variables used in the specification; it only produces a side‑effect on the external world. In Hoare logic we treat it as the command `skip` with respect to the variables:
+
+\[
+\{\,Q\,\}\; \text{print(out)}\; \{\,Q\,\}.
+\]
+
+(If one wants to be formal, we use the rule  
+
+\[
+\frac{}{ \{R\}\; \text{skip}\; \{R\}}
+\]
+
+and note that `print(out)` is observationally equivalent to `skip` for the purpose of the program state.)
+
+---
+
+## 5.  Putting the pieces together (sequencing)
+
+We have three consecutive fragments:
+
+1. **Read**                                                 \(\{P\}\; \text{read}\; \{P\}\)
+2. **Conditional**                                   \(\{P\}\; \text{if‑chain}\; \{Q\}\)
+3. **Print**                                              \(\{Q\}\; \text{print}\; \{Q\}\)
+
+Applying the **Seq** rule twice we obtain
+
+\[
+\boxed{\{\,P\,\}\; \text{read};\; \text{if‑chain};\; \text{print}\; \{\,Q\,\}}.
+\]
+
+That is exactly the Hoare triple \(\{P\}\;S\;\{Q\}\) required by the specification.
+
+---
+
+## 6.  Remarks on the mathematical assumptions  
+
+* The specification uses the *real* relations `=` , `≠` , `<` , `>` .  
+  In a real implementation the numbers are floating‑point approximations, but the problem statement (Beecrowd 1041) treats the input as exact decimal numbers and expects the program to compare them with `==`.  
+  Hence we adopt the idealised model in which the comparison operators are **exact** (the usual assumption when proving correctness of such textbook programs).
+
+* The seven guards are **pairwise disjoint**:
+
+\[
+\begin{aligned}
+& B_1\Rightarrow \neg B_2\land\neg B_3\land\neg B_4\land\neg B_5\land\neg B_6\land\neg B_7,\\
+& B_2\Rightarrow \neg B_1\land\neg B_3\land\neg B_4\land\neg B_5\land\neg B_6\land\neg B_7,\\
+&\dots
+\end{aligned}
+\]
+
+and **collectively exhaustive**:
+
+\[
+\bigl(B_1\lor B_2\lor B_3\lor B_4\lor B_5\lor B_6\lor B_7\bigr) \;\equiv\; \text{true},
+\]
+
+because every real pair \((x,y)\) satisfies exactly one of the seven relational patterns.  
+These facts guarantee that the conditional covers all possible states, a prerequisite for the `if‑then‑else` rule to be applicable.
+
+---
+
+## 7.  Conclusion  
+
+We have exhibited a complete Hoare‑logic proof that the Python program
+
+```python
+x, y = map(float, input().split())
+if x == 0 and y == 0:
+    out = "Origem"
+elif x == 0:
+    out = "Eixo Y"
+elif y == 0:
+    out = "Eixo X"
+elif x > 0 and y > 0:
+    out = "Q1"
+elif x > 0 and y < 0:
+    out = "Q4"
+elif x < 0 and y > 0:
+    out = "Q2"
+else:                # x < 0 and y < 0
+    out = "Q3"
+print(out)
+```
+
+satisfies the specification  
+
+\[
+\{\,x\in\mathbb R\land y\in\mathbb R\,\}\;S\;
+\{\,Q\,\},
+\]
+
+where \(Q\) is the disjunction of the seven mutually exclusive cases that correctly describe the geometric location of the point \((x,y)\).  
+
+Thus the program is **correct** with respect to the given Hoare‑logic pre‑ and post‑conditions.

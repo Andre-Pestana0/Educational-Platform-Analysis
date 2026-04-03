@@ -1,0 +1,353 @@
+Below is a **complete Hoare‑logic proof** that the Python program shown in the question satisfies the specification  
+
+\[
+\{\,P\}\; \texttt{roman\_converter}\; \{\,Q\}
+\]
+
+with  
+
+* **Pre‑condition** \(P\equiv 0<N<1000\) (the input variable we call `N`).  
+* **Post‑condition** \(Q\) is the long formula that characterises the *canonical* Roman‑numeral string `R` printed by the program (alphabet, value, canonical form, monotonicity and the six allowed subtractive pairs).
+
+The proof is split into three parts  
+
+1. **Correctness of the auxiliary function `romano`.**  
+2. **Loop invariant for the outer‑most `for`‑loop (which contains the inner `while`).**  
+3. **Termination arguments** (both loops) and the final composition of the Hoare triples.
+
+All reasoning is carried out in the language of Hoare logic:  
+
+* Assignment rule \(\{\,\phi[E/x]\,\}\;x:=E\;\{\,\phi\,\}\)  
+* Composition \(\{P\}S_{1}\{R\},\;\{R\}S_{2}\{Q\}\;\Rightarrow\;\{P\}S_{1};S_{2}\{Q\}\)  
+* Consequence \(\{P\}S\{Q\},\;P'\Rightarrow P,\;Q\Rightarrow Q' \;\Rightarrow\; \{P'\}S\{Q'\}\)  
+* While‑rule \(\{I\land B\}\;S\;\{I\}\;\Rightarrow\;\{I\}\;\texttt{while }B\texttt{ do }S\;\{I\land\lnot B\}\)  
+
+The program (renamed for the proof) is
+
+```
+read N                              # input
+numero := N                         # mutable copy
+out    := ""                        # the string that will be printed
+for i in [1000,900,500,400,100,90,50,40,10,9,5,4,1] do
+        while numero >= i do
+                out := out ⧺ romano(i)      # ⧺ = concatenation
+                numero := numero - i
+        od
+od
+print out
+print newline
+```
+
+--------------------------------------------------------------------
+### 1.  The function `romano`
+
+```
+def romano(k):
+        if k == 1000: return 'M'
+        if k ==  900: return 'CM'
+        …
+        if k ==    1: return 'I'
+```
+
+*Specification*  
+
+\[
+\forall k\in\{1,4,5,9,10,40,50,90,100,400,500,900,1000\}\;
+\bigl(\operatorname{romano}(k)=\sigma_k\bigr)
+\]
+
+where \(\sigma_k\) is the Roman symbol (or pair) that represents the value \(k\) (e.g. \(\sigma_{900}=``CM"\)).  
+
+*Proof* – a pure case analysis. For each possible argument `k` the body contains exactly one `return` statement that yields the required string. Hence the Hoare triple
+
+\[
+\{\;k\in\mathcal V\;\}\;\texttt{romano(k)}\;
+\{\,\operatorname{val}(\operatorname{romano}(k)) = k\;\land\; 
+   \operatorname{romano}(k)\in\Sigma^{*}\,\}
+\]
+
+holds, where \(\mathcal V\) is the finite set of the 13 admissible values. No further reasoning is needed.
+
+--------------------------------------------------------------------
+### 2.  Loop invariant for the **inner** `while`
+
+We first introduce two auxiliary notions that will appear in the invariant.
+
+* `prefix` – the string already stored in `out`.  
+* `rest`   – the part of the original number that has **not yet** been converted, i.e. the current value of `numero`.
+
+For a *fixed* outer‑loop value `i` we define the invariant  
+
+\[
+\boxed{I_{\text{while}}(i)\; \equiv\;
+\begin{array}{l}
+\text{out} = \operatorname{canon}(N-\text{numero})\; \land \\[1mm]
+0\le \text{numero} < i\; \land \\[1mm]
+\text{all symbols that appear in }\text{out}\text{ are taken from the set }
+\{\operatorname{romano}(v)\mid v\in\mathcal V,\;v\ge i\}.
+\end{array}}
+\tag{Inv‑while}
+\]
+
+Intuitively: after we have processed the current value `i` as many times as possible, the remainder `numero` is **strictly smaller** than `i`, and everything already printed is a concatenation of the Roman symbols belonging to values **not smaller** than `i`.  
+Because the list of `i`’s is strictly decreasing, the third conjunct guarantees that the symbols are printed in the required non‑increasing order.
+
+--------------------------------------------------------------------
+#### 2.1  Establishing the invariant before the inner loop
+
+When the `while` loop is entered for a particular `i` we have, by construction of the outer loop, the following facts:
+
+* `out` contains only symbols that belong to values **greater** than the current `i` (they were produced in previous outer‑loop iterations).  
+* `numero` is the remainder after subtracting all those greater values, therefore \(0\le\text{numero}<i\) is *not* yet true – it may be larger than `i`.  
+
+Thus the *pre‑condition* of the `while` is  
+
+\[
+\operatorname{pre\_while}(i) \;\equiv\;
+\begin{array}{l}
+\text{out}= \operatorname{canon}(N-\text{numero})\; \land\\
+0\le\text{numero}\; \land\\
+\text{all symbols of out belong to }\{\operatorname{romano}(v)\mid v\in\mathcal V,\;v>i\}.
+\end{array}
+\]
+
+From `pre_while(i)` we can **strengthen** to `I_while(i)` by the simple observation that the third conjunct of `I_while(i)` is weaker (it also allows the value `i` itself). Hence  
+
+\[
+\operatorname{pre\_while}(i) \;\Rightarrow\; I_{\text{while}}(i)
+\]
+
+and the *consequence rule* yields  
+
+\[
+\{\,\operatorname{pre\_while}(i)\,\}\;\texttt{while numero >= i do …}\;
+\{\,I_{\text{while}}(i)\land\lnot(\text{numero}\ge i)\,\}.
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+#### 2.2  Preservation of the invariant
+
+Assume \(I_{\text{while}}(i)\) holds **and** the guard `numero >= i` is true.  
+The body of the `while` executes the two statements
+
+```
+out    := out ⧺ romano(i)
+numero := numero - i
+```
+
+*First statement* – by the specification of `romano` we know  
+\(\operatorname{val}(\operatorname{romano}(i)) = i\).  
+Consequently  
+
+\[
+\operatorname{val}(\text{out}⧺\operatorname{romano}(i))
+  = \operatorname{val}(\text{out}) + i
+  = (N-\text{numero}) + i .
+\]
+
+*Second statement* – `numero` is decreased by exactly `i`.  
+
+Putting the two together, after the two assignments we have
+
+\[
+\begin{aligned}
+\text{out}_{\text{new}} 
+   &= \text{out}_{\text{old}} \;⧺\; \operatorname{romano}(i)\\
+\text{numero}_{\text{new}} &= \text{numero}_{\text{old}}-i .
+\end{aligned}
+\]
+
+Therefore  
+
+\[
+\text{out}_{\text{new}} 
+   = \operatorname{canon}\bigl(N-\text{numero}_{\text{new}}\bigr)
+\]
+
+(the canonical representation of the *new* remainder) because the added symbol
+represents exactly the amount we have subtracted.  
+Moreover the new remainder satisfies  
+
+\[
+0\le\text{numero}_{\text{new}} < \text{numero}_{\text{old}} \le N
+\]
+
+and the third conjunct of the invariant still holds, because we have only
+added the symbol belonging to the current `i`.  
+
+Thus  
+
+\[
+\{\,I_{\text{while}}(i)\land \text{numero}\ge i\,\}
+\;\; \texttt{out:=out⧺romano(i); numero:=numero-i}
+\;\; \{\,I_{\text{while}}(i)\,\}.
+\tag{2}
+\]
+
+By the **while‑rule** (2) together with (1) we obtain
+
+\[
+\{\,I_{\text{while}}(i)\,\}\;
+\texttt{while numero >= i do …}\;
+\{\,I_{\text{while}}(i)\land \text{numero}<i\,\}.
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+### 3.  Invariant for the **outer** `for`‑loop
+
+The outer loop iterates over the fixed decreasing list  
+
+\[
+L = [1000,900,500,400,100,90,50,40,10,9,5,4,1].
+\]
+
+Let `i_k` denote the *k*‑th element of `L` (starting at *k = 0*).  
+We define a global invariant that relates the state *after* the inner `while`
+has finished for the current `i_k`:
+
+\[
+\boxed{
+I_{\text{for}}(k)\;\equiv\;
+\begin{array}{l}
+\text{out}= \operatorname{canon}(N-\text{numero})\; \land\\[1mm]
+0\le\text{numero}< i_k\; \land\\[1mm]
+\text{all symbols of out belong to }\{\operatorname{romano}(v)\mid v\in\mathcal V,\;v\ge i_k\}.
+\end{array}}
+\tag{Inv‑for}
+\]
+
+When the loop starts (`k = 0`) we have `i_0 = 1000`.  
+Because of the pre‑condition \(0<N<1000\) we know `numero = N < 1000`, therefore the guard `numero >= i_0` is false and the inner `while` is skipped. Consequently
+
+* `out` is still the empty string, which is the canonical representation of `N-N = 0`.  
+* `numero = N < i_0`.  
+
+Hence the **initialisation** of the outer loop satisfies `I_for(0)`.
+
+--------------------------------------------------------------------
+#### 3.1  Preservation across one outer iteration
+
+Assume `I_for(k)` holds at the beginning of the iteration with `i = i_k`.  
+Inside the body we execute the inner `while`. By (3) we obtain
+
+\[
+\{\,I_{\text{for}}(k)\,\}\;
+\texttt{while numero >= i_k do …}\;
+\{\,I_{\text{while}}(i_k)\land \text{numero}<i_k\,\}.
+\]
+
+But `I_while(i_k)` is *identical* to `I_for(k+1)`, because the definition of
+`I_for(k+1)` replaces the bound `i_k` by the **next** element `i_{k+1}`,
+which is *strictly smaller*.  The three conjuncts of `I_for(k+1)` are
+exactly the three conjuncts of `I_while(i_k)` after the loop terminates:
+
+* the printed part is still the canonical representation of the amount already
+  subtracted,
+* the remainder is now `< i_k`,
+* all symbols printed belong to values `≥ i_k`, and therefore also to values
+  `≥ i_{k+1}`.
+
+Thus we have proved the **preservation** clause
+
+\[
+\{\,I_{\text{for}}(k)\,\}\;
+\texttt{while numero >= i_k do …}\;
+\{\,I_{\text{for}}(k+1)\,\}.
+\tag{4}
+\]
+
+--------------------------------------------------------------------
+#### 3.2  Termination of the outer loop
+
+The list `L` has length 13, therefore the loop executes at most 13 iterations.
+Formally we can use a variant  
+
+\[
+V(k) = 13-k
+\]
+
+which is a natural number that strictly decreases at each iteration, guaranteeing termination.
+
+--------------------------------------------------------------------
+### 4.  End of the program
+
+When the outer loop finishes we have reached `k = 13`, i.e. we have processed
+the last element `i_{12}=1`.  
+From `I_for(13)` we obtain
+
+* `numero < 1`.  Since `numero` is a non‑negative integer, we must have `numero = 0`.  
+* `out = \operatorname{canon}(N-0) = \operatorname{canon}(N)`.
+
+The final two `print` statements only write `out` (followed by a newline) to the
+standard output and do not modify any program variable.  Consequently the
+observable result `R` of the whole program is exactly the string stored in
+`out`.
+
+--------------------------------------------------------------------
+### 5.  Assembling the Hoare triples
+
+1. **Reading the input**  
+
+   \[
+   \{\,\top\,\}\; \texttt{read }N\; \{\,0<N<1000\,\}
+   \tag{A}
+   \]
+
+2. **Initialisation**  
+
+   \[
+   \{\,0<N<1000\,\}\; \texttt{numero:=N; out:=''}\; \{\,I_{\text{for}}(0)\,\}
+   \tag{B}
+   \]
+
+3. **Outer loop** – by (4) and the variant argument we have  
+
+   \[
+   \{\,I_{\text{for}}(0)\,\}\;
+   \texttt{for i in L do …}\;
+   \{\,I_{\text{for}}(13)\,\}.
+   \tag{C}
+   \]
+
+4. **Final state** – `I_for(13)` yields `out = canon(N)` and `numero = 0`.  
+
+   The two `print` statements preserve the string, therefore  
+
+   \[
+   \{\,I_{\text{for}}(13)\,\}\;
+   \texttt{print out; print newline}\;
+   \{\,R = \operatorname{canon}(N)\,\}.
+   \tag{D}
+   \]
+
+5. **Linking the pieces** – using composition (A)–(D) we obtain  
+
+   \[
+   \{\,0<N<1000\,\}\;
+   \texttt{roman\_converter}\;
+   \{\,R\in\Sigma^{*}\land \operatorname{val}(R)=N\land R=\operatorname{canon}(N)
+      \land\text{order‑rule}\land\text{subtractive‑rule}\,\}.
+   \]
+
+The right‑hand side is precisely the post‑condition \(Q\) given in the
+specification.  Hence the Hoare triple \(\{P\}\;\texttt{roman\_converter}\;\{Q\}\) is proved.
+
+--------------------------------------------------------------------
+## 6.  Remarks on the specification clauses
+
+* **Alphabet clause** – every value returned by `romano` belongs to \(\Sigma\); concatenation cannot introduce other characters, therefore `R∈Σ*`.
+* **Value clause** – each iteration adds a symbol whose value equals the amount subtracted; the invariant guarantees that the sum of values of all printed symbols is exactly the original input `N`.  Consequently `val(R)=N`.
+* **Canonical clause** – the greedy choice “always subtract the largest possible atomic value’’ is known to produce the *unique* canonical Roman representation (the standard proof is a simple induction on `N`).  Our invariant forces the algorithm to follow exactly that greedy order, so the produced string coincides with `canon(N)`.
+* **Monotonicity and subtractive‑pair clauses** – because the list `L` is ordered decreasingly and the inner `while` never skips a value, symbols are emitted in non‑increasing order, with the only possible increase occurring when a subtractive pair (`CM, CD, XC, XL, IX, IV`) is emitted (each of those pairs is returned by `romano` as a *single* two‑character string, so inside the string the smaller symbol never appears alone before a larger one).  Hence the two remaining conjuncts of \(Q\) hold.
+
+--------------------------------------------------------------------
+## 7.  Conclusion
+
+We have exhibited a **formal Hoare‑logic proof** that the given Python program
+
+* terminates for every admissible input \(N\) with \(0<N<1000\), and  
+* prints exactly the canonical Roman‑numeral representation of \(N\),
+
+i.e. it satisfies the specification \(\{P\}\;\texttt{roman\_converter}\;\{Q\}\).  The proof rests on a simple loop invariant for the greedy subtraction loop, a case‑analysis proof for the auxiliary function `romano`, and a variant argument for termination.  Consequently the program is *correct* with respect to the supplied pre‑ and post‑conditions.

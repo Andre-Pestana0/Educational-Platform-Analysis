@@ -1,0 +1,275 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\;{\tt MontyHallSimulation}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+  \[
+  P\; \equiv\;
+  1\le N\le 10^{4}\ \land\ 
+  \bigl(\forall i\in\{1,\dots ,N\}\;:\;C[i]\in\{1,2,3\}\bigr)
+  \]
+
+* **Program** (the Python fragment that you gave – we rename the program
+variables so that they match the specification)
+
+```text
+n = int(input())                #  n  ←  N
+partidas_perdidas = 0           #  p  ←  0
+i = 0
+while i < n:                    #  while i < N
+    if int(input()) == 1:      #  if C[i+1] = 1
+        partidas_perdidas += 1 #      p ← p+1
+    i += 1                      #  i ← i+1
+wins = n - partidas_perdidas    #  wins ← N – p
+print(wins)
+```
+
+* **Post‑condition**  
+
+  \[
+  Q\; \equiv\;
+  \text{wins}= \bigl|\{\,i\mid 1\le i\le N\land C[i]\neq 1\,\}\bigr|
+  \;=\;\sum_{i=1}^{N}\mathbf 1_{\{C[i]\neq 1\}} .
+  \]
+
+Thus we must show that, starting from a legal input, the program prints exactly
+the number of indices whose door number is **different** from 1.
+
+--------------------------------------------------------------------
+
+## 2.  Mapping between the program and the specification  
+
+| Specification | Program variable / expression |
+|---------------|------------------------------|
+| \(N\)         | `n` (the first integer read) |
+| \(C[i]\)      | the `i`‑th integer read inside the loop (`int(input())`) |
+| `partidas_perdidas` (the number of *lost* games) | \(|\{j\mid 1\le j\le i\land C[j]=1\}|\) after the loop has processed `i` items |
+| `wins`        | `n - partidas_perdidas` after the loop terminates |
+
+With this correspondence we will prove that `wins` satisfies `Q`.
+
+--------------------------------------------------------------------
+
+## 3.  Loop invariant  
+
+A classic invariant for a “scan‑an‑array” loop is  
+
+\[
+\boxed{\operatorname{inv}(i,p)\; \equiv\;
+\begin{cases}
+0\le i\le N,\\[2mm]
+p =\bigl|\{\,j\mid 1\le j\le i\land C[j]=1\,\}\bigr|
+\end{cases}}
+\tag{I}
+\]
+
+Intuitively: after the first `i` inputs have been read, `p` counts exactly how
+many of them were equal to 1.  
+From (I) we can also derive the useful equivalence
+
+\[
+i-p = \bigl|\{\,j\mid 1\le j\le i\land C[j]\neq 1\,\}\bigr|
+\tag{1}
+\]
+
+which is precisely the number of “wins” among the first `i` games.
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the invariant  
+
+We use the Hoare‑logic rules for **assignment**, **while**, **if**, and **composition**.
+
+### 4.1  Initialization  
+
+Before the loop we have  
+
+```
+i = 0
+partidas_perdidas = 0
+```
+
+From the pre‑condition we know `0 ≤ N`.  
+Hence  
+
+* `0 ≤ i ≤ N` holds (because `i = 0`);
+* the set `{ j | 1≤j≤0 ∧ C[j]=1 }` is empty, therefore its cardinality is `0`,
+  which equals `partidas_perdidas`.
+
+Thus `inv(i,p)` holds before the first iteration.
+
+### 4.2  Maintenance  
+
+Assume `inv(i,p)` holds at the *top* of an iteration, i.e.
+
+\[
+p = |\{j\mid 1\le j\le i\land C[j]=1\}|
+\tag{IH}
+\]
+
+The body of the loop is
+
+```text
+if int(input()) == 1:
+    partidas_perdidas += 1
+i += 1
+```
+
+Let `c` be the value read in the current iteration (`c = C[i+1]`).
+
+* **Case 1** – `c = 1`  
+
+  The `if`‑branch is taken, so `p` becomes `p+1`.  
+  Using (IH),
+
+  \[
+  p_{\text{new}} = p+1 = 
+  |\{j\mid 1\le j\le i\land C[j]=1\}| + 1
+  = |\{j\mid 1\le j\le i+1\land C[j]=1\}|.
+  \]
+
+* **Case 2** – `c ≠ 1`  
+
+  The branch is skipped, `p` stays unchanged, and
+
+  \[
+  p_{\text{new}} = p = |\{j\mid 1\le j\le i\land C[j]=1\}|
+  = |\{j\mid 1\le j\le i+1\land C[j]=1\}|,
+  \]
+
+  because the newly examined element does **not** belong to the set.
+
+In both cases, after the `if` the invariant holds for the same `i`.  
+Finally the statement `i += 1` changes `i` to `i+1`.  
+Consequently after the whole body we have
+
+\[
+p_{\text{new}} = |\{j\mid 1\le j\le i+1\land C[j]=1\}|
+\quad\text{and}\quad
+0\le i+1\le N,
+\]
+
+i.e. `inv(i+1,p_new)` holds.  
+Thus the invariant is preserved.
+
+### 4.3  Termination  
+
+The loop guard is `i < N`.  
+When the loop exits we have `i = N`.  
+Applying the invariant with `i = N` we obtain
+
+\[
+p = |\{j\mid 1\le j\le N\land C[j]=1\}|.
+\tag{2}
+\]
+
+Using equation (1) with `i = N` we also have
+
+\[
+N-p = |\{j\mid 1\le j\le N\land C[j]\neq 1\}|.
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Deriving the post‑condition  
+
+After the loop the program executes
+
+```text
+wins = n - partidas_perdidas   #  wins ← N – p
+```
+
+Because `n = N` (the first input) and `partidas_perdidas = p`,
+the assignment yields  
+
+\[
+\text{wins}= N-p .
+\]
+
+By (3) this equals the cardinality of the set of indices whose door number is
+different from 1, i.e.
+
+\[
+\text{wins}=|\{i\mid 1\le i\le N\land C[i]\neq 1\}|
+\]
+
+which is exactly the post‑condition `Q`.
+
+The final `print` statement does not modify any variable, therefore `Q`
+remains true when the program terminates.
+
+--------------------------------------------------------------------
+
+## 6.  Formal Hoare‑logic derivation (outline)
+
+1. **Assignment of `n`**  
+
+   \[
+   \{P\}\; n := \text{input}()\; \{P\land n=N\}
+   \]
+
+2. **Assignment of `partidas_perdidas`**  
+
+   \[
+   \{P\land n=N\}\; p := 0\; \{P\land n=N\land p=0\}
+   \]
+
+3. **While rule** (using invariant (I))
+
+   \[
+   \frac{
+     \{ \operatorname{inv}(i,p)\land i<N\}\; \text{body}\; \{ \operatorname{inv}(i,p)\}
+     \qquad
+     \operatorname{inv}(0,0)
+   }{
+     \{P\land n=N\land p=0\}\;
+     \textbf{while}\ i<N\ \textbf{do}\ \text{body}\;
+     \{ \operatorname{inv}(i,p)\land \lnot(i<N)\}
+   }
+   \]
+
+   The *body* proof consists of the two cases analysed in § 4.2.
+   The exit condition `¬(i<N)` gives `i = N`, therefore the post‑condition of
+   the loop is `inv(N,p)` which is (2) above.
+
+4. **Final assignment**  
+
+   \[
+   \{\operatorname{inv}(N,p)\}\; \text{wins} := n-p\; \{Q\}
+   \]
+
+   because `inv(N,p)` together with `n=N` yields (3).
+
+5. **Composition**  
+
+   By the composition rule, concatenating the steps 1–4 gives
+
+   \[
+   \{P\}\;\texttt{MontyHallSimulation}\;\{Q\}.
+   \]
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have identified a loop invariant that holds initially, is preserved by each
+iteration, and after the loop gives precisely the relationship required by the
+post‑condition.  Using the Hoare‑logic rules for assignment, conditional, while,
+and composition we derived the Hoare triple  
+
+\[
+\boxed{\{\,1\le N\le10^{4}\ \land\ \forall i\;C[i]\in\{1,2,3\}\,\}\;
+       \texttt{MontyHallSimulation}\;
+       \{\,\text{wins}=|\{i\mid C[i]\neq1\}|\;\}}
+\]
+
+which proves that the Python program is *correct* with respect to the given
+formal specification. ∎

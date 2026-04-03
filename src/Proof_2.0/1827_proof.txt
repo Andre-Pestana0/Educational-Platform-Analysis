@@ -1,0 +1,446 @@
+## 1.  What has to be proved  
+
+We have to show the **Hoare triple**
+
+\[
+\{\,\mathbf{Pre}(N)\,\}\;\texttt{GenerateMatrix}(N)\;\{\,\mathbf{Post}(N)\,\}
+\]
+
+where  
+
+* `Pre(N)` is the conjunction  
+
+  \[
+  N\in\mathbb N\;\wedge\;5\le N\le 101\;\wedge\; N\equiv 1\pmod 2
+  \]
+
+  (the program may assume that the integer read from the input satisfies these
+  constraints).
+
+* `Post(N)` says that the program prints an \(N\times N\) matrix `A` such that  
+
+  \[
+  A[i,j]=\mathit{val}(i,j)\qquad\forall i,j\in\{0,\dots ,N-1\}
+  \]
+
+  with  
+
+  \[
+  \mathit{val}(i,j)=
+  \begin{cases}
+  4 & i=j=c\\[1mm]
+  2 & i=j\neq c\\[1mm]
+  3 & i+j=N-1\neq 2c\\[1mm]
+  1 & 0<i<N-1\land 0<j<N-1\land i\neq j\land i+j\neq N-1\\[1mm]
+  0 & \text{otherwise}
+  \end{cases}
+  \qquad c:=\frac{N-1}{2}.
+  \]
+
+The whole program reads an arbitrary (finite) sequence
+\(\langle N_{1},\dots ,N_{k}\rangle\) of such numbers and prints a matrix for each
+one, separated by a blank line.  
+The proof is therefore a composition of three parts  
+
+1. a **while‑loop invariant** for the outer `while tam := …` that processes the
+   whole file;
+2. a **for‑loop invariant** for the inner `for i in range(tam)` that prints the
+   rows of a single matrix;
+3. a **row‑construction invariant** that guarantees the contents of the list
+   `linha` before the `print(''.join(linha))` statement.
+
+The last two invariants together give the post‑condition for a single test case;
+the first invariant lifts it to the whole file.
+
+Below the three invariants are stated, proved (initialisation, preservation,
+termination) and finally combined to obtain the required Hoare triples.
+
+
+
+--------------------------------------------------------------------
+
+## 2.  Notation used in the proof  
+
+* `N` – the value read for the current test case (the program stores it in the
+  variable `tam`);
+* `c = (N‑1)//2` – the centre index (integer division in Python yields the floor);
+* `i` – the current row index of the `for`‑loop;
+* `linha` – the Python list of length `N` that represents the row that will be
+  printed;
+* `A[i,j]` – the value that has already been printed in row `i` column `j`;
+  because the program prints rows in order, after the iteration `i` finishes we
+  know that `A[0..i,·]` is completely fixed.
+
+The auxiliary predicates that appear in the invariants are written in the
+mathematical language of the specification (quantifiers, logical connectives,
+etc.).  When we speak about “the value stored in `linha[j]`” we mean the
+mathematical value of the corresponding entry of the matrix row that will be
+printed.
+
+
+
+--------------------------------------------------------------------
+
+## 3.  Outer‑loop invariant (processing the whole file)
+
+```
+while tam := sys.stdin.readline():
+    …
+```
+
+The loop reads one line, converts it to an integer `tam` (which we denote by
+`N` in the specification) and executes the body that generates the matrix.
+The loop terminates when `readline()` returns the empty string (EOF).
+
+### Invariant  \(I_{\text{file}}\)
+
+> After the execution of the loop body for the first `t‑1` input numbers
+> (\(t\ge 1\)) the following holds:
+> 
+> 1. **All matrices that correspond to the first `t‑1` numbers have been printed
+>    correctly** (i.e. they satisfy `Post(N_j)` for every `j<t`);
+> 2. **A blank line has been printed after each of those matrices**;
+> 3. **The variable `tam` contains the next unread integer `N_t`** (or the loop
+>    condition is false when EOF is reached).
+
+Formally  
+
+\[
+I_{\text{file}} \; \equiv\;
+\bigl(\forall j< t:\; \text{matrix for }N_j\text{ printed correctly}\bigr)
+\;\wedge\;
+\bigl(\text{blank line after each matrix}\bigr)
+\;\wedge\;
+\bigl(t\le k+1\;\wedge\;(\,t\le k\Rightarrow \text{tam}=N_t\,)\bigr)
+\]
+
+where `k` is the total number of test cases in the input file.
+
+#### 3.1  Initialisation  
+
+Before the first iteration `t=1`. No matrix has been printed yet, therefore
+the first two conjuncts are vacuously true.  The assignment `tam := …` reads the
+first line of the file, so `tam = N_1` (if the file is non‑empty).  Hence
+`I_file` holds.
+
+#### 3.2  Preservation  
+
+Assume `I_file` holds at the beginning of an iteration with current value
+`tam = N_t`.  
+The body executes `GenerateMatrix(N_t)`.  
+By the **inner proof** (Sections 4–5) we will have shown that this call
+establishes `Post(N_t)`.  Afterwards the statement `print('')` prints the
+required blank line.  Consequently the first two conjuncts of `I_file` are
+true for `t` instead of `t‑1`.  The next `readline()` call puts the next
+integer `N_{t+1}` (or EOF) into `tam`, which is exactly the third conjunct.
+Thus `I_file` is preserved.
+
+#### 3.3  Termination  
+
+The loop condition becomes false only when `readline()` returns the empty
+string, i.e. when the end of the file is reached.  At that moment `t = k+1`
+and the first conjunct of `I_file` tells us that *all* `k` matrices have been
+printed correctly and separated by a blank line.  Hence the whole program
+satisfies `Post_file`.
+
+--------------------------------------------------------------------
+
+## 4.  Inner‑loop invariant (printing the rows of one matrix)
+
+```
+for i in range(N):
+    …
+    print(''.join(linha))
+```
+
+The loop iterates over the row indices `i = 0,1,…,N‑1`.  
+The invariant describes the state **just before** the `print` statement of the
+current iteration.
+
+### Invariant  \(I_{\text{row}}(i)\)
+
+> When the loop variable has the value `i` (0 ≤ i ≤ N) the following holds:
+> 
+> 1. **Rows `0 … i‑1` have already been printed and they are correct**,
+>    i.e. for every `r < i` and every column `j` we have  
+>    `A[r,j] = val(r,j)`.
+> 2. **The list `linha` represents the row `i` that will be printed next**, i.e.  
+
+\[
+\forall j\in\{0,\dots ,N-1\}\;:\; \text{linha}[j]=\mathit{val}(i,j).
+\]
+
+Formally  
+
+\[
+I_{\text{row}}(i) \;\equiv\;
+\bigl(\forall r<i,\; \forall j:\;A[r,j]=\mathit{val}(r,j)\bigr)
+\;\wedge\;
+\bigl(\forall j:\;\text{linha}[j]=\mathit{val}(i,j)\bigr).
+\]
+
+#### 4.1  Initialisation (i = 0)
+
+Before the first iteration the program creates  
+
+```python
+linha = ['0']*N
+```
+
+so every entry of `linha` is the character `'0'`.  
+For `i = 0` the specification says `val(0,j) = 0` for all `j` (the top border
+has no diagonal cells because `N` is odd and ≥ 5).  Hence the second part of
+`I_row(0)` holds.  The first part is vacuous because there is no row
+`r < 0`.  Thus `I_row(0)` is true.
+
+#### 4.2  Preservation  
+
+Assume `I_row(i)` holds at the start of the iteration with current index `i`.
+We must show that after the body finishes and the loop variable is incremented
+to `i+1`, the invariant `I_row(i+1)` holds.
+
+The body consists of three successive sections:
+
+1. **Selection of the region**  
+
+   ```python
+   if i >= N//3 and i < N - N//3:
+       linha[N//3:-(N//3)] = ['1']*(N-2*(N//3))
+       if i == N//2:
+           linha[i] = '4'
+   else:
+       linha[i] = '2'
+       linha[N-1-i] = '3'
+   ```
+
+2. **Printing**  
+
+   ```python
+   print(''.join(linha))
+   ```
+
+3. **Implicit re‑initialisation for the next row** – the next iteration
+   starts by executing `linha = ['0']*N` again (the statement appears at the top
+   of the loop, **outside** the `if`).  
+
+We analyse the effect of the three statements on the contents of `linha`.
+
+---
+
+##### 4.2.1  Case  `i` is a **border row** (`i < N//3`  or  `i ≥ N - N//3`)
+
+The `else`‑branch is executed.
+
+* `linha[i] = '2'` puts a `2` on the main diagonal cell `(i,i)`.  
+  Because `i` is a border row, the condition `i=j` can hold only for this
+  column, so `val(i,i)=2` (the centre cell cannot belong to a border row).
+
+* `linha[N-1-i] = '3'` puts a `3` on the secondary diagonal cell
+  `(i,N-1-i)`.  The same reasoning gives `val(i,N-1-i)=3`.
+
+* All other positions of `linha` keep the value `'0'` that was set when the
+  list was created.  For a border row these positions are exactly the cells
+  that are **not** on any diagonal, and the definition of `val` assigns `0`
+  to them.
+
+Consequently after the two assignments we have  
+
+\[
+\forall j:\; \text{linha}[j]=\mathit{val}(i,j).
+\]
+
+The subsequent `print` therefore outputs the correct row `i`.  The loop then
+increments `i` and re‑creates `linha` as a fresh list of `'0'`s, which is the
+exact state required for the invariant `I_row(i+1)` (the first conjunct is
+preserved because row `i` has just been printed correctly).
+
+---
+
+##### 4.2.2  Case  `i` is an **inner row** (`N//3 ≤ i < N - N//3`)
+
+The `if`‑branch is executed.
+
+* The slice assignment  
+
+  ```python
+  linha[N//3:-(N//3)] = ['1']*(N-2*(N//3))
+  ```
+
+  replaces all columns whose index `j` satisfies  
+
+  \[
+  N//3 \le j \le N-1-N//3 .
+  \]
+
+  By elementary integer‑division properties (`N` is odd) this interval is
+  precisely the set of **non‑border columns**.  Therefore every cell
+  `(i,j)` that is *strictly inside* the matrix (neither on the border nor on a
+  diagonal) receives the character `'1'`.  For such a cell the definition of
+  `val` gives exactly `1`.
+
+* If `i` is the **central row** (`i == N//2`) the statement  
+
+  ```python
+  linha[i] = '4'
+  ```
+
+  overwrites the centre column `j=i` with `'4'`.  The centre cell is the only
+  one that must contain `4`, and `val(c,c)=4`.  For all other rows the test
+  fails, so the centre column stays `'1'` (which is correct because those
+  cells are interior but not the centre).
+
+* No other assignment touches `linha`.  In particular the border columns keep
+  the value `'0'` that was present when the list was created, and the two
+  diagonal cells `(i,i)` and `(i,N-1-i)` are **not** in the slice
+  `N//3:-(N//3)` (they are either border columns or, when `i` is the centre
+  row, they have already been overwritten by the `'4'`).  Consequently they
+  retain the `'0'` that was set at list creation, which matches `val(i,i)=0`
+  and `val(i,N-1-i)=0` for an inner row that is not the centre row.
+
+Putting the three facts together we obtain for every column `j`
+
+\[
+\text{linha}[j]=\mathit{val}(i,j).
+\]
+
+Again the row printed by `print(''.join(linha))` is correct, and after the
+iteration the loop variable becomes `i+1` and `linha` is re‑initialised to a
+list of `'0'`s, satisfying the invariant for the next iteration.
+
+---
+
+Thus in **both** cases the body of the loop transforms a list that satisfies
+the invariant for index `i` into a list that satisfies the invariant for
+index `i+1`.  Hence `I_row` is preserved.
+
+#### 4.3  Termination  
+
+When the loop finishes we have `i = N`.  The invariant then states
+
+* rows `0 … N‑1` have been printed correctly – this is exactly the whole
+  matrix;
+* there is no “next row” to talk about, so the second conjunct is irrelevant.
+
+Therefore after the `for`‑loop the program has printed a matrix that satisfies
+`Post(N)`.
+
+--------------------------------------------------------------------
+
+## 5.  Row‑construction invariant (the heart of the inner loop)
+
+The reasoning in Section 4.2 used a *local* property of the statements that
+modify `linha`.  For a formal Hoare‑logic proof we can isolate it as a
+separate invariant for the **conditional block** that decides how a row is
+filled.
+
+### Invariant  \(I_{\text{fill}}(i)\)
+
+> Immediately before the `print` statement of iteration `i` we have  
+
+\[
+\forall j\in\{0,\dots ,N-1\}:\;
+\text{linha}[j]=\mathit{val}(i,j).
+\]
+
+The invariant is proved by a case analysis on the guard `i >= N//3 and i <
+N - N//3`.
+
+* **Case 1 – outer rows** (`i` fails the guard).  
+  The two assignments `linha[i] = '2'` and `linha[N-1-i] = '3'` set precisely
+  the diagonal cells to the values required by `val`.  All other entries keep
+  the initial `'0'`.  By the definition of `val` this is exactly the desired
+  row.
+
+* **Case 2 – inner rows** (`i` satisfies the guard).  
+  The slice assignment writes `'1'` into every non‑border column, which is
+  exactly the set of interior cells that are not on a diagonal.  If `i` is
+  the centre row the additional assignment `linha[i] = '4'` overwrites the
+  centre column with `'4'`.  No other cell is changed, so border columns stay
+  `'0'` and diagonal cells stay `'0'` (they are not part of the slice).  This
+  coincides with `val(i,j)` for all `j`.
+
+Both cases prove `I_fill(i)`.  The invariant therefore holds at the moment
+the `print` statement is executed, which is precisely the second conjunct of
+`I_row(i)` used in Section 4.
+
+
+
+--------------------------------------------------------------------
+
+## 6.  Putting the pieces together  
+
+* **Outer loop** – By the invariant `I_file` and its preservation we know that
+  after the whole `while` finishes the program has produced, for each input
+  number `N_t`, a matrix that satisfies `Post(N_t)` and a blank line after it.
+
+* **Inner loop** – For a fixed `N` the invariant `I_row` guarantees that after
+  the `for`‑loop terminates the matrix rows `0 … N‑1` have all been printed
+  correctly; this is exactly `Post(N)`.
+
+* **Row construction** – The invariant `I_fill` shows that the body of the
+  inner loop really builds the correct row, which is the essential step used
+  in the preservation of `I_row`.
+
+Consequently we have proved the Hoare triple for a single test case
+
+\[
+\{\,\mathbf{Pre}(N)\,\}\;\texttt{GenerateMatrix}(N)\;\{\,\mathbf{Post}(N)\,\},
+\]
+
+and, by composition with the outer‑loop invariant, the triple for the whole
+program
+
+\[
+\{\,\mathbf{Pre}_{\text{file}}\,\}\;\texttt{Main}\;\{\,\mathbf{Post}_{\text{file}}\,\}.
+\]
+
+Thus the given Python program **correctly implements** the specification: for
+every odd integer \(N\) with \(5\le N\le 101\) it prints an \(N\times N\) matrix
+whose entries are exactly those described by the function `val`, and it prints
+a blank line after each matrix, handling an arbitrary finite list of test
+cases.   ∎
+
+
+
+--------------------------------------------------------------------
+
+## 7.  Remarks on the arithmetic used in the program  
+
+* `N//3` is the floor of \(N/3\).  Because `N` is odd and at least 5 we have  
+
+  \[
+  1 \le N//3 \le \frac{N-1}{2}=c .
+  \]
+
+  Hence the slice `N//3:-(N//3)` removes exactly the outer `N//3` columns on
+  each side, leaving the interior columns that are *not* on the border.
+
+* The test `i >= N//3 and i < N - N//3` therefore selects precisely the rows
+  that are not on the outer border (the same `N//3` rows at the top and at the
+  bottom are excluded).
+
+* For an odd `N` the centre row index is `N//2 = c`; the additional test
+  `i == N//2` is therefore equivalent to `i == c` and guarantees that the
+  centre cell receives the value `4`.
+
+All these integer‑division facts are standard lemmas that can be proved
+separately and are used implicitly in the case analysis above.
+
+
+
+--------------------------------------------------------------------
+
+### 8.  Bibliographic note  
+
+The proof follows the classic Hoare‑logic proof rules:
+
+* **Assignment axiom** for `tam = int(tam)`, `linha = ['0']*N`, etc.;
+* **Conditional rule** for the `if … else` that distinguishes border rows from
+  inner rows;
+* **While‑rule** (with invariant `I_file`);
+* **For‑rule** (treated as a bounded `while` with invariant `I_row`);
+* **Sequence rule** for putting the statements together.
+
+The auxiliary lemmas about integer division and about the equivalence of the
+program’s geometric description with the mathematical definition of `val`
+bridge the gap between the operational code and the declarative post‑condition.  

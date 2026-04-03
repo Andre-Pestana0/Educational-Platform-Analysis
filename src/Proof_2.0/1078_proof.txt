@@ -1,0 +1,273 @@
+## Proof of correctness (Hoare‑logic style)
+
+We prove the Hoare triple  
+
+\[
+\{\,P\,\}\; \mathsf{read}();\;
+        \mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;
+            \mathsf{print}\bigl(i\;\times\;N\;=\;i\cdot N\bigr)\;
+        \{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+  \[
+  P\;\equiv\; N\in\mathbb Z\ \wedge\ 2<N<1000
+  \]
+
+* **Post‑condition**  
+
+  \[
+  \begin{aligned}
+  Q\equiv &
+  \bigl(\mathit{out}= \langle s_{1},\dots ,s_{10}\rangle\bigr) \;\wedge\\
+  &\bigl(\forall i\in\{1,\dots ,10\}\;.\;
+        s_{i}= \text{``}i\;\times\;N\;=\;i\cdot N\text{''}\bigr) \;\wedge\\
+  &\text{the lines appear in the order }1,2,\dots ,10 .
+  \end{aligned}
+  \]
+
+The program is written in Python, but the proof uses the abstract commands  
+
+* `read()` – atomic command that stores the input value in the variable **N**.  
+* `print(s)` – atomic command that appends the string *s* to the output sequence **out**.  
+* `for i:=1 to 10 do C` – the usual bounded loop (equivalent to a `while` loop with a counter).
+
+--------------------------------------------------------------------
+
+### 1.  The read statement
+
+The rule for an **input** statement is  
+
+\[
+\frac{}{ \{P\}\; \mathsf{read}();\; \{P\} }
+\]
+
+because the specification tells us that the program is invoked **only** with an input integer that already satisfies the pre‑condition.  
+Thus
+
+\[
+\{P\}\;\mathsf{read}();\;\{P\}
+\tag{1}
+\]
+
+holds.
+
+--------------------------------------------------------------------
+
+### 2.  Loop invariant
+
+For a bounded `for` loop we prove partial correctness by giving an **invariant** *I* that is true
+
+* **before the first iteration**,
+* **preserved** by each iteration, and
+* **strong enough** to imply the post‑condition when the loop terminates.
+
+We choose  
+
+\[
+\boxed{
+\begin{aligned}
+I\;\equiv\;&\;1\le i\le 11 \\
+          &\;\wedge\; \mathit{out}= \langle s_{1},s_{2},\dots ,s_{i-1}\rangle \\
+          &\;\wedge\; \forall k\in\{1,\dots ,i-1\}\;.\;
+                s_{k}= \text{``}k\;\times\;N\;=\;k\cdot N\text{''}
+\end{aligned}
+}
+\tag{2}
+\]
+
+*The invariant tells us that after the loop has already executed the
+iterations `1,…,i‑1` the output sequence consists exactly of the
+corresponding lines, each line being correctly formed.*
+
+--------------------------------------------------------------------
+
+### 2.1  Initialization ( `i = 1` before the first iteration)
+
+When the loop is entered, the loop variable `i` has the value **1** and
+nothing has been printed yet, i.e. `out = ⟨ ⟩`.  
+Therefore
+
+* `1 ≤ i ≤ 11` holds,
+* `out = ⟨ s₁,…,s₀ ⟩ = ⟨ ⟩` holds,
+* the universal statement over the empty set `{1,…,0}` is trivially true.
+
+Hence `I` holds before the first iteration.
+
+\[
+\{P\}\;\mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;C\;\{I\}
+\tag{3}
+\]
+
+is established for the **initialisation** part of the loop rule.
+
+--------------------------------------------------------------------
+
+### 2.2  Maintenance (body of the loop)
+
+Assume that at the beginning of an arbitrary iteration the invariant
+holds with the current value of the loop variable equal to some
+\(j\) such that \(1\le j\le 10\).  
+Thus we have
+
+* `out = ⟨ s₁,…,s_{j-1} ⟩`,
+* for every \(k\in\{1,\dots ,j-1\}\) the line \(s_k\) is the correct string.
+
+The loop body is the single atomic command  
+
+\[
+\mathsf{print}\bigl(j\;\times\;N = j\cdot N\bigr)
+\]
+
+which appends exactly the string  
+
+\[
+s_j = \text{``}j\;\times\;N\;=\;j\cdot N\text{''}
+\]
+
+to the output.  Consequently after the execution of the body we obtain  
+
+\[
+\mathit{out}' = \langle s_{1},\dots ,s_{j-1},s_{j}\rangle .
+\]
+
+The loop control then increments `i` to `j+1`.  Substituting `i=j+1`
+in the invariant gives
+
+\[
+\begin{aligned}
+1\le i\le 11 &\quad\text{(true because }j\le 10\text{)}\\
+\mathit{out}' &= \langle s_{1},\dots ,s_{j}\rangle
+                = \langle s_{1},\dots ,s_{i-1}\rangle\\
+\forall k\in\{1,\dots ,i-1\}\!.\;
+   s_{k}&= \text{``}k\times N = k\cdot N\text{''}
+\end{aligned}
+\]
+
+which is precisely the invariant *I* with the new value of `i`.  
+Thus the invariant is **preserved**:
+
+\[
+\{I\wedge i=j\}\;\mathsf{print}(j\times N=j\cdot N);\;\{I\}
+\tag{4}
+\]
+
+holds for every \(j\in\{1,\dots ,10\}\).
+
+--------------------------------------------------------------------
+
+### 2.3  Termination (loop exit)
+
+The `for` loop stops when the control variable exceeds the upper bound,
+i.e. when `i = 11`.  At that moment the invariant (2) tells us that  
+
+\[
+\mathit{out}= \langle s_{1},s_{2},\dots ,s_{10}\rangle
+\]
+
+and that each \(s_i\) has the required lexical form.  Moreover the
+ordering of the list is exactly the order in which the loop produced the
+lines (1,2,…,10).  Hence the invariant together with the exit condition
+implies the post‑condition **Q**:
+
+\[
+I\wedge (i=11)\; \Longrightarrow\; Q .
+\tag{5}
+\]
+
+--------------------------------------------------------------------
+
+### 3.  Loop rule (partial correctness)
+
+The Hoare rule for a bounded `for` loop is a specialization of the
+`while` rule:
+
+\[
+\frac{
+   \{I\}\;C\;\{I\}
+   \qquad
+   I\wedge (i>10) \;\Longrightarrow\; Q
+}{
+   \{I\}\;\mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;C\;\{Q\}
+}
+\]
+
+Using (3) – (5) we obtain  
+
+\[
+\{I\}\;\mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;
+      \mathsf{print}(i\times N = i\cdot N)\;
+   \{Q\}.
+\tag{6}
+\]
+
+--------------------------------------------------------------------
+
+### 4.  Composition with the read statement
+
+We have the two Hoare triples
+
+* (1) \(\{P\}\;\mathsf{read}();\;\{P\}\)
+* (6) \(\{P\}\;\mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;C\;\{Q\}\)
+
+The **sequencing rule**  
+
+\[
+\frac{\{A\}\;S_1\;\{B\}\qquad \{B\}\;S_2\;\{C\}}{\{A\}\;S_1;S_2\;\{C\}}
+\]
+
+gives the Hoare triple for the whole program:
+
+\[
+\boxed{\; \{P\}\;
+        \mathsf{read}();\;
+        \mathsf{for}\;i:=1\;\mathsf{to}\;10\;\mathsf{do}\;
+            \mathsf{print}(i\times N = i\cdot N)\;
+        \{Q\}\;}
+\tag{7}
+\]
+
+--------------------------------------------------------------------
+
+### 5.  Total correctness (termination)
+
+The loop is *bounded*: the loop variable `i` ranges over the finite set
+\(\{1,\dots ,10\}\).  Consequently the loop executes exactly ten
+iterations and must terminate.  The read statement is also terminating
+(by the definition of the abstract `read` command).  Hence the program
+terminates for every input that satisfies the pre‑condition, and the
+partial‑correctness proof (7) gives **total correctness**.
+
+--------------------------------------------------------------------
+
+## Conclusion
+
+We have exhibited a formal Hoare‑logic proof that the Python program
+
+```python
+N = int(input())
+for multiplicador in range(1, 11):
+    print(f'{multiplicador} x {N} = {multiplicador * N}')
+```
+
+* starts from a state satisfying the pre‑condition  
+
+  \(P\equiv N\in\mathbb Z\land 2<N<1000\);
+* executes a terminating bounded loop;
+* maintains the invariant that after the *i‑1*‑th iteration the output
+  consists exactly of the first *i‑1* correctly formatted lines of the
+  multiplication table of *N*; and
+* upon loop termination (after the 10‑th iteration) yields an output
+  sequence  
+
+  \(\langle s_{1},\dots ,s_{10}\rangle\)  
+
+  where each \(s_i\) is the string “\(i \times N = i\cdot N\)” and the
+  lines appear in the order \(1,2,\dots ,10\).
+
+Thus the Hoare triple \(\{P\}\; \text{program}\; \{Q\}\) is proved,
+showing that the program is **correct** with respect to the given
+formal specification. ∎

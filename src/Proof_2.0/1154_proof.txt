@@ -1,0 +1,331 @@
+Below we give a **complete Hoare‑logic proof** that the Python program
+
+```python
+idade = float(input())          # first read
+soma  = 0
+i     = 0
+while idade >= 0:               # loop guard
+    soma  += idade
+    idade = float(input())
+    i     += 1
+media = float(soma / i)         # division is performed only when i>0
+print(f'{media:.2f}')
+```
+
+satisfies the specification that was stated in the question.
+
+--------------------------------------------------------------------
+### 1.  The specification in Hoare‑logic notation  
+
+| Symbol | Meaning (as in the question) |
+|--------|------------------------------|
+| `S = ⟨s₁,s₂,…⟩` | input stream of **integers** (the values that the user types) |
+| `n`            | number of **non‑negative** elements that appear **before** the first negative element |
+| `A = ⟨a₁,…,aₙ⟩` | the finite prefix of `S` consisting of those non‑negative elements (`aᵢ = sᵢ` for `1≤i≤n`) |
+| `σ`            | running sum of the ages already processed |
+| `κ`            | running count of the ages already processed |
+| `out`          | the value finally printed (a real number) |
+| `⊥`            | “undefined’’ (used for the division‑by‑zero case) |
+
+*Pre‑condition*  
+
+\[
+P \;\equiv\; \exists n\in\mathbb N.\;
+\Bigl(\;
+\bigl(\forall i\;(1\le i\le n\Rightarrow s_i\in\mathbb Z\land s_i\ge 0)\bigr)
+\land s_{n+1}\in\mathbb Z\land s_{n+1}<0\;
+\Bigr).
+\]
+
+*Loop invariant*  
+
+\[
+I \;\equiv\;
+\bigl(\sigma = \sum_{j=1}^{\kappa} a_j \bigr)\;\land\;
+\bigl(\kappa\in\mathbb N\bigr)\;\land\;
+\bigl(\forall j\;(1\le j\le\kappa\Rightarrow a_j\ge 0)\bigr).
+\]
+
+*Post‑condition*  
+
+\[
+Q\;\equiv\;
+\bigl(\kappa=n\bigr)\;\land\;
+\bigl(\sigma=\sum_{j=1}^{n}a_j\bigr)\;\land\;
+\bigl(n>0 \Rightarrow out = \sigma/n\bigr)\;\land\;
+\bigl(n=0 \Rightarrow out = \bot\bigr).
+\]
+
+(If the problem statement forbids the empty input, we may replace the
+existential quantifier in `P` by `∃ n∈ℕ⁺` and drop the last conjunct of `Q`.)
+
+--------------------------------------------------------------------
+### 2.  Mapping of program variables to the specification  
+
+| Program variable | Specification symbol |
+|------------------|----------------------|
+| `idade`          | the **next** element of the input stream (`s_k`) |
+| `soma`           | `σ` (running sum) |
+| `i`              | `κ` (running count) |
+| `media`          | the computed average (`σ/κ`) |
+| printed value    | `out` |
+
+The program reads the **first** element *before* entering the loop, therefore the loop body is executed **exactly for those elements that satisfy the guard `idade ≥ 0`**.  
+When the guard becomes false we have just read the first negative element
+(`idade < 0`). Consequently the number of loop iterations equals `n`,
+the number of non‑negative elements, and after the last iteration
+`σ` and `κ` contain the sum and the count of the whole prefix `A`.
+
+--------------------------------------------------------------------
+### 3.  Hoare triples for the individual statements  
+
+We use the standard Hoare‑logic rules (assignment, composition, while).
+
+---
+
+#### 3.1  Initialisation  
+
+```
+idade = float(input())
+```
+
+The pre‑condition `P` guarantees that the first value read is `s₁`.  
+After the assignment we have the assertion  
+
+\[
+\{P\}\; idade = s_1\; \{\, idade = s_1 \,\}.
+\]
+
+The next two statements initialise the accumulator and the counter:
+
+```
+soma = 0
+i    = 0
+```
+
+Applying the assignment rule twice we obtain  
+
+\[
+\{\, idade = s_1 \,\}\; soma=0;\; i=0\;
+\{\, soma = 0 \land i = 0 \,\}.
+\]
+
+Now the invariant `I` holds because  
+
+* `σ = soma = 0 = Σ_{j=1}^{0} a_j`,
+* `κ = i = 0 ∈ ℕ`,
+* the universal condition in `I` is vacuously true for `κ = 0`.
+
+Thus we have proved  
+
+\[
+\{P\}\; \text{initialisation}\; \{I\}.
+\]
+
+---
+
+#### 3.2  The loop  
+
+The loop in the program is
+
+```
+while idade >= 0:
+    soma  += idade
+    idade = float(input())
+    i     += 1
+```
+
+We rewrite it as the canonical Hoare‑style loop
+
+```
+while B do
+    C
+od
+```
+
+with  
+
+* guard `B ≡ (idade ≥ 0)`,
+* body `C` consisting of the three statements shown above.
+
+To use the **while‑rule** we must show
+
+\[
+\{I \land B\}\; C\; \{I\}.
+\]
+
+---
+
+##### 3.2.1  Proof of `I` preservation  
+
+Assume the invariant and the guard hold before an iteration:
+
+\[
+I\land B\; \equiv\;
+\bigl(\sigma=\!\sum_{j=1}^{\kappa} a_j\bigr)\land
+\bigl(\kappa\in\mathbb N\bigr)\land
+\bigl(\forall j\le\kappa\;a_j\ge0\bigr)\land
+\bigl(idade = s_{\kappa+1}\ge0\bigr).
+\]
+
+*First statement* – `soma += idade`  
+
+`σ` is updated to `σ' = σ + idade`.  
+Because `idade = s_{\kappa+1}` is non‑negative, we may define  
+
+\[
+a_{\kappa+1} \;:=\; idade .
+\]
+
+Hence  
+
+\[
+σ' = \sum_{j=1}^{\kappa} a_j + a_{\kappa+1}
+    = \sum_{j=1}^{\kappa+1} a_j .
+\]
+
+*Second statement* – `idade = float(input())`  
+
+This reads the next element of the input stream, i.e. `s_{\kappa+2}`.
+No property of the invariant is changed by this assignment.
+
+*Third statement* – `i += 1`  
+
+`κ` becomes `κ' = κ + 1`.
+
+Collecting the three updates we obtain after the body:
+
+\[
+\begin{aligned}
+σ' &= \sum_{j=1}^{\kappa+1} a_j,\\
+κ' &= \kappa+1 \in \mathbb N,\\
+\forall j\le κ' \; a_j &\ge 0 .
+\end{aligned}
+\]
+
+These three conjuncts are exactly the invariant `I` with the primed
+variables. Consequently  
+
+\[
+\{I\land B\}\; C\; \{I\}.
+\]
+
+---
+
+##### 3.2.2  Loop termination condition  
+
+The loop stops when the guard becomes false, i.e. when  
+
+\[
+\neg B \equiv (idade < 0).
+\]
+
+At that moment we have `I ∧ ¬B`.  From `I` we already know that
+`σ = Σ_{j=1}^{κ} a_j` and `κ ∈ ℕ`.  
+Because the only way to leave the loop is to read a *negative* value,
+the negative value is exactly the sentinel `s_{κ+1}`; therefore the
+prefix that has been processed contains **all** non‑negative elements of
+the input stream.  By definition of `n` we obtain  
+
+\[
+κ = n \qquad\text{and}\qquad σ = \sum_{j=1}^{n} a_j .
+\]
+
+Thus  
+
+\[
+I\land\neg B\; \Longrightarrow\; (\kappa=n)\land
+(\sigma=\sum_{j=1}^{n}a_j).
+\]
+
+--------------------------------------------------------------------
+### 4.  Deriving the post‑condition  
+
+After the loop we execute the two remaining statements:
+
+```python
+media = float(soma / i)
+print(f'{media:.2f}')
+```
+
+We treat them separately.
+
+*Assignment* `media = float(soma / i)`  
+
+The Hoare rule for assignment yields
+
+\[
+\{\,\kappa=n\land\sigma=\sum_{j=1}^{n}a_j\,\}\;
+media = \sigma / \kappa\;
+\{\,media = \sigma/\kappa\,\}.
+\]
+
+If `n>0` (i.e. `κ>0`) the division is defined and `media` equals the
+required arithmetic mean.  If `n=0` the division would be undefined;
+the specification allows the value `⊥` in this case, which is exactly
+what the Python runtime would raise (`ZeroDivisionError`).  The program
+does not guard against the empty case, therefore the post‑condition
+contains the clause `n=0 → out = ⊥`.
+
+*Printing*  
+
+The final `print` statement does not change any program variable, it
+only produces the external output.  Consequently the Hoare triple
+
+\[
+\{\,media = \sigma/\kappa\,\}\; \text{print}\; \{\,out = media\,\}
+\]
+
+holds, and together with the previous step we obtain
+
+\[
+\{\,\kappa=n\land\sigma=\sum_{j=1}^{n}a_j\,\}\;
+\text{media}= \sigma/\kappa;\;
+\text{print}\;
+\{\,out = \sigma/\kappa\;\text{if }n>0,\; out = \bot\text{ if }n=0\,\}.
+\]
+
+Combining this with the implication derived from the loop termination we
+get the **full post‑condition** `Q`.
+
+--------------------------------------------------------------------
+### 5.  The overall Hoare triple  
+
+Putting the three phases together (initialisation, loop, final
+computation/printing) we have the following chain of Hoare triples:
+
+\[
+\begin{aligned}
+&\{P\}\;\text{initialisation}\;\{I\} \\
+&\{I\}\;\textbf{while}\;(idade\ge0)\;\textbf{do}\;C\;\textbf{od}\;
+   \{I\land\neg B\} \\
+&\{I\land\neg B\}\;\text{media}=soma/i;\;\text{print}\;
+   \{Q\}
+\end{aligned}
+\]
+
+By the **rule of consequence** we may compose the three triples and
+obtain the desired specification
+
+\[
+\boxed{\; \{P\}\; C\; \{Q\} \;}
+\]
+
+where `C` is the whole Python program.  Hence the program is *correct* with
+respect to the Hoare‑logic specification given in the statement.
+
+--------------------------------------------------------------------
+### 6.  Intuitive interpretation  
+
+* The program reads successive integers until a negative integer is met.
+* While reading, it adds each non‑negative integer to `soma` and increments
+  `i`.  The invariant guarantees that after `k` iterations `soma` equals the
+  sum of the first `k` non‑negative inputs and `i` equals `k`.
+* When the sentinel is encountered, `i` equals the total number `n` of
+  non‑negative inputs and `soma` equals their sum.
+* Finally `media = soma / i` computes the arithmetic mean, and the program
+  prints it with two decimal digits – exactly the value required by the
+  problem statement.
+
+Thus the formal Hoare‑logic proof matches the informal reasoning and
+confirms that the Python program implements the specification correctly.

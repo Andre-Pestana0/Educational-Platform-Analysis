@@ -1,0 +1,299 @@
+**Proof of the Hoare triple**  
+
+\[
+\{\,P\,\}\;C\;\{\,Q\,\}
+\]
+
+for the program that reads a (possibly infinite) stream of integer pairs and
+writes, for each pair that is **not** on an axis, the Portuguese name of the
+quadrant in which the pair lies.
+
+-----------------------------------------------------------------------
+
+## 1.  Program as a WHILE‑loop
+
+The original Python fragment
+
+```python
+while True:
+    x, y = map(int, input().split())
+    if x*y > 0:
+        print("primeiro" if x > 0 else "terceiro")
+    elif x*y < 0:
+        print("quarto"   if x > 0 else "segundo")
+    else:
+        break
+```
+
+is equivalent to the following abstract WHILE‑command (the `break`
+is turned into the loop guard `x ≠ 0 ∧ y ≠ 0`):
+
+```
+i := 0; out := ⟨⟩;                     // i = number of already processed pairs
+while (x ≠ 0 ∧ y ≠ 0) do
+    out := out ⧺ ⟨ quad(x,y) ⟩;        // print the quadrant
+    i  := i + 1;
+    (x,y) := input(i+1);               // read the next pair
+od
+```
+
+*`⧺` denotes list concatenation, `input(k)` denotes the k‑th pair of the
+input stream, and `quad` is the function defined in the specification.*
+
+The command **C** of the Hoare triple is therefore the loop above
+together with the initialisation of the auxiliary variables `i` and `out`.
+
+-----------------------------------------------------------------------
+
+## 2.  Auxiliary definitions
+
+* **State variables**
+
+```
+i   – natural number (how many non‑null pairs have already been processed)
+out – finite list of strings
+x,y – the pair that has just been read
+```
+
+* **Input stream**  
+
+\[
+\mathsf{In}= \langle (x_{1},y_{1}), (x_{2},y_{2}),\dots\rangle .
+\]
+
+Reading a pair is modelled by the assignment  
+
+\[
+(x,y) := \mathsf{In}[i+1] .
+\]
+
+* **Termination index** (as in the specification)
+
+\[
+n = \min\{\,k\mid x_{k}=0 \lor y_{k}=0 \,\}.
+\]
+
+Because of the pre‑condition \(P\) we know that \(n\) is a finite natural
+number.
+
+-----------------------------------------------------------------------
+
+## 3.  Loop invariant
+
+\[
+\boxed{
+\begin{aligned}
+I \;\equiv\;&
+\bigl(i \ge 0\bigr) \;\land\; 
+\bigl(out = \langle \mathsf{quad}(x_{1},y_{1}),\dots ,
+               \mathsf{quad}(x_{i},y_{i})\rangle\bigr)\\[2mm]
+&\land\;
+\bigl(\forall j\;(1\le j\le i \;\Longrightarrow\; x_{j}\neq0\land y_{j}\neq0)\bigr)
+\end{aligned}}
+\]
+
+Intuitively: after the loop has executed *i* times, the list `out`
+contains exactly the quadrants of the first *i* input pairs, and all those
+pairs are non‑null.
+
+-----------------------------------------------------------------------
+
+## 4.  Proof obligations
+
+We have to show three things:
+
+1. **Initialization** – the invariant holds before the first test of the
+   loop.
+2. **Preservation** – assuming the invariant and the loop guard, the body
+   re‑establishes the invariant.
+3. **Termination** – after the loop we obtain the post‑condition \(Q\).
+
+-----------------------------------------------------------------------
+
+### 4.1  Initialization  
+
+The program starts with  
+
+```
+i := 0; out := ⟨⟩; (x,y) := input(1)
+```
+
+* `i = 0` and `out = ⟨⟩` satisfy the first two conjuncts of `I`
+  (the empty list is exactly the list of quadrants of the first 0 pairs).
+* The universal quantifier in the third conjunct is vacuous for
+  `i = 0`.  
+
+Hence `I` holds immediately after the initialisation.
+
+-----------------------------------------------------------------------
+
+### 4.2  Preservation  
+
+We must prove
+
+\[
+\{\,I \land (x\neq0\land y\neq0)\,\}\;B\;\{\,I\,\}
+\]
+
+where **B** is the loop body:
+
+```
+out := out ⧺ ⟨ quad(x,y) ⟩;
+i   := i + 1;
+(x,y) := input(i+1);
+```
+
+*Assumption*: `I ∧ (x≠0∧y≠0)` holds at the beginning of the iteration.  
+Consequently the current pair is `(x_i , y_i)` with `i` equal to the
+value stored in the variable `i`.  
+Because `x_i ≠ 0` and `y_i ≠ 0`, the guard of the loop is true and the
+body is executed.
+
+**Step 1 – printing the quadrant**  
+
+The assignment  
+
+```
+out := out ⧺ ⟨ quad(x,y) ⟩
+```
+
+adds exactly the string `quad(x_i , y_i)` to the end of the list `out`.
+The four branches of the `if‑elif‑else` in the concrete Python program
+are precisely the four cases of the definition of `quad` :
+
+| condition in the program | printed string | `quad(x_i , y_i)` |
+|--------------------------|----------------|-------------------|
+| `x*y > 0` and `x>0`      | “primeiro”    | primeiro          |
+| `x*y > 0` and `x<0`      | “terceiro”    | terceiro          |
+| `x*y < 0` and `x>0`      | “quarto”      | quarto            |
+| `x*y < 0` and `x<0`      | “segundo”     | segundo           |
+
+Thus after this assignment  
+
+\[
+out' = \langle \mathsf{quad}(x_{1},y_{1}),\dots ,
+               \mathsf{quad}(x_{i},y_{i})\rangle .
+\]
+
+**Step 2 – increment of the counter**  
+
+```
+i := i + 1
+```
+
+gives the new value `i' = i+1`.  Consequently the invariant now talks
+about the first `i'` input pairs.
+
+**Step 3 – reading the next pair**  
+
+```
+(x,y) := input(i+1)
+```
+
+stores in `x,y` the pair `(x_{i+1},y_{i+1})`.  No property about this
+pair is required for the invariant, because the invariant only asserts
+that *already processed* pairs (indices `≤ i'`) are non‑null, which is true
+by the premise `x_i ≠ 0 ∧ y_i ≠ 0`.
+
+Putting the three steps together we obtain
+
+\[
+\begin{aligned}
+out' &= out \,\!\!\!\!\underbrace{\;\!\!\!\!\;\;\;\;\;\;\;\;\;\;\;\;
+        \langle\mathsf{quad}(x_i ,y_i)\rangle}_{\text{added in Step 1}}\\
+i'   &= i+1 \qquad\text{(Step 2)}\\
+(x',y') &= (x_{i+1},y_{i+1})\quad\text{(Step 3)}
+\end{aligned}
+\]
+
+and the three conjuncts of `I` are satisfied with the new values
+`i' , out'`.  Hence `{ I ∧ (x≠0∧y≠0) } B { I }` is proved.
+
+-----------------------------------------------------------------------
+
+### 4.3  Termination (while‑rule)
+
+The while‑rule tells us that from  
+
+\[
+\{\,I\,\}\; \text{while }(x\neq0\land y\neq0)\; \text{do } B\; \text{od}
+\; \{\,I\land\neg(x\neq0\land y\neq0)\,\}
+\]
+
+the loop terminates **provided** a *variant* that strictly decreases
+every iteration and is bounded below.
+
+Take the variant  
+
+\[
+v = n - i .
+\]
+
+* `n` is a constant (the index of the first null pair) guaranteed by the
+  pre‑condition \(P\).
+* At the start of the loop we have `i < n` (otherwise the guard would be
+  false), so `v ≥ 1`.
+* Each execution of the body increments `i` by one, therefore `v` is
+  decreased by exactly one.
+* `v` can never become negative because `i` never exceeds `n`.
+
+Consequently `v` is a natural‑valued variant that strictly decreases,
+hence the loop **must** terminate.  When it stops we have
+
+\[
+\neg(x\neq0\land y\neq0) \equiv (x=0 \lor y=0) .
+\]
+
+-----------------------------------------------------------------------
+
+## 5.  Deriving the post‑condition \(Q\)
+
+When the loop finishes we know, from the while‑rule, that
+
+\[
+I \land (x=0\lor y=0)
+\]
+
+holds.  Unfolding `I` we obtain
+
+* `out = ⟨ quad(x₁,y₁),…,quad(x_{i},y_{i})⟩` with `i = n‑1`,
+* for every `j ≤ i` we have `x_j ≠ 0 ∧ y_j ≠ 0`,
+* and the current pair is exactly `(x_n , y_n)` because the loop
+  increments the counter before the next read.
+
+Thus
+
+\[
+\mathsf{Out}= \langle o_{1},\dots ,o_{n-1}\rangle
+\quad\text{with}\quad
+o_{j}= \mathsf{quad}(x_{j},y_{j})\;(1\le j<n) .
+\]
+
+Moreover the program *does not* print anything for the pair `(x_n , y_n)`
+(the `break` is taken immediately after it is read).  This is exactly the
+fourth conjunct of the specification.
+
+Consequently the state after termination satisfies the post‑condition
+\(Q\) as given in the problem statement.
+
+-----------------------------------------------------------------------
+
+## 6.  Conclusion
+
+We have exhibited
+
+* a loop invariant `I` that is true initially,
+* a proof that the loop body preserves `I`,
+* a natural‑valued variant guaranteeing termination,
+* and have shown that, after termination, `I` together with the negated
+  guard yields precisely the conditions demanded by \(Q\).
+
+Therefore the Hoare triple
+
+\[
+\boxed{\{\,P\,\}\;C\;\{\,Q\,\}}
+\]
+
+is valid: **the program reads a stream of integer pairs, stops as soon as
+the first pair containing a zero coordinate is encountered, and for every
+preceding pair prints the correct Portuguese name of its quadrant.** ∎

@@ -1,0 +1,187 @@
+**Answer – a complete Hoare‑logic proof that the Python program satisfies the
+pre‑condition \(P\) and the post‑condition \(Q\)**  
+
+Below we keep the notation that appears in the specification:
+
+* input variables \(C,N[1],\dots ,N[C]\) ( \(C\in\mathbb N,\;C\ge 1\) and
+  \(1\le N[i]\le 1000\) for every \(i\) – this is exactly the pre‑condition
+  \(P\) );
+* output variables \(S[1],\dots ,S[C]\) (the numbers that are printed);
+* the auxiliary function  
+
+\[
+\operatorname{alt}(n)=\sum_{k=1}^{n}(-1)^{k+1}=
+\begin{cases}
+1 & n\text{ odd}\\
+0 & n\text{ even}
+\end{cases}
+\]
+
+* the loop invariant  
+
+\[
+\operatorname{Inv}(i)\equiv
+\bigl(1\le i\le C+1\bigr)\;\land\;
+\bigl(\forall j\in\{1,\dots ,i-1\}\bigr)\;
+S[j]=\operatorname{alt}\bigl(N[j]\bigr)
+\tag{Inv}
+\]
+
+The program that we have to reason about is the exact translation of the
+Python fragment given in the statement:
+
+```text
+read C;                     // line 1
+i := 1;
+while i ≤ C do              // line 2
+    read N[i];              // line 3
+    if (N[i] mod 2 = 1) then// line 4
+        S[i] := 1;          // line 5
+    else                    // line 6
+        S[i] := 0;          // line 7
+    print S[i];             // line 8
+    i := i + 1;             // line 9
+od
+```
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;{\tt program}\;\{Q\}
+\]
+
+by the usual three‑step method (initialisation, preservation, termination).
+
+--------------------------------------------------------------------
+### 1.  Initialization – establishing the invariant before the first
+iteration  
+
+After the first two statements of the program we have executed
+
+* `read C`  – the variable `C` now contains the first input integer.  
+  By the pre‑condition \(P\) we know that \(C\in\mathbb N\) and \(C\ge 1\).
+
+* `i := 1` – the loop counter is set to the value 1.
+
+No `S[j]` has been defined yet, therefore the universal part of
+\(\operatorname{Inv}(i)\) is vacuously true (the set
+\(\{1,\dots ,i-1\}=\{1,\dots ,0\}\) is empty).  
+Consequently  
+
+\[
+1\le i\le C+1\quad\text{and}\quad
+\bigl(\forall j\in\{1,\dots ,i-1\}\bigr)\;S[j]=\operatorname{alt}(N[j])
+\]
+
+holds, i.e. \(\operatorname{Inv}(1)\) is true.  
+Thus the invariant is **initialized**.
+
+--------------------------------------------------------------------
+### 2.  Preservation – the invariant holds from the beginning of one
+iteration to the beginning of the next  
+
+Assume the invariant holds for some arbitrary loop counter value \(i\) with
+\(1\le i\le C\) (the loop condition `i ≤ C` is true).  
+We have to show that after executing the body (lines 3‑9) the invariant
+holds for the new value \(i' = i+1\).
+
+| line | command | effect on the state | justification for the invariant |
+|------|---------|---------------------|----------------------------------|
+| 3    | `read N[i]` | the input integer for this test case is stored in `N[i]`. The pre‑condition guarantees \(N[i]\in\mathbb N\) and \(1\le N[i]\le 1000\). | No change to any `S[j]`; the universal part of \(\operatorname{Inv}(i)\) is still valid. |
+| 4‑7  | `if (N[i] mod 2 = 1) then S[i] := 1 else S[i] := 0` | This is exactly the definition of \(\operatorname{alt}(N[i])\): <br> *If* `N[i]` is odd, `N[i] mod 2 = 1` and the `then`‑branch stores `1`. <br> *If* `N[i]` is even, the `else`‑branch stores `0`. | Hence after the `if` we have `S[i] = \operatorname{alt}(N[i])`. This adds the new index \(j=i\) to the set
+\(\{1,\dots ,i-1\}\) and therefore extends the universal quantifier in the invariant to
+\(\{1,\dots ,i\}\). |
+| 8    | `print S[i]` | The value just computed (`S[i]`) is output. | Printing does not affect the logical variables, so the invariant is unchanged. |
+| 9    | `i := i + 1` | The loop counter becomes \(i' = i+1\). | Because we have already established `S[i] = alt(N[i])`, the invariant for the **new** counter value is exactly  
+
+\[
+1\le i' \le C+1\;\land\;
+\bigl(\forall j\in\{1,\dots ,i'-1\}\bigr)\;
+S[j]=\operatorname{alt}\bigl(N[j]\bigr)
+\]
+
+which is \(\operatorname{Inv}(i+1)\).
+
+Thus, assuming \(\operatorname{Inv}(i)\) and the loop guard `i ≤ C`, the body
+preserves the invariant:  
+
+\[
+\{\,\operatorname{Inv}(i)\land i\le C\,\}\;\text{body}\;\{\operatorname{Inv}(i+1)\}.
+\]
+
+--------------------------------------------------------------------
+### 3.  Termination – the invariant together with the negated guard yields the post‑condition  
+
+The loop stops exactly when the guard `i ≤ C` becomes false, i.e. when
+\(i = C+1\).  
+At that moment we know, by the invariant, that  
+
+\[
+\operatorname{Inv}(C+1) \equiv
+\bigl(1\le C+1\le C+1\bigr)\;\land\;
+\bigl(\forall j\in\{1,\dots ,C\}\bigr)\;
+S[j]=\operatorname{alt}\bigl(N[j]\bigr).
+\]
+
+The first conjunct is trivially true; the second conjunct is precisely the
+required relation between the printed sequence and the input sequence.
+Because the program prints `S[i]` (line 8) **immediately after it has been
+assigned**, the whole output consists of the values  
+
+\[
+S[1],S[2],\dots ,S[C]
+\]
+
+each on its own line.  Hence the post‑condition \(Q\) holds:
+
+\[
+\forall i\in\{1,\dots ,C\}\;.\;S[i]=\operatorname{alt}(N[i])
+\quad\text{and the program prints the sequence }(S[1],\dots ,S[C]).
+\]
+
+--------------------------------------------------------------------
+### 4.  Putting the three parts together  
+
+We have shown
+
+* **Init** \(\{P\}\) → after line 1,2 \(\operatorname{Inv}(1)\);
+* **Pres** \(\{\operatorname{Inv}(i)\land i\le C\}\) → body → \(\operatorname{Inv}(i+1)\);
+* **Term** \(\operatorname{Inv}(C+1)\) together with the negated guard
+  (`i ≤ C` false) implies \(Q\).
+
+By the **rule of consequence** and the **while‑rule** of Hoare logic we obtain
+
+\[
+\boxed{\{P\}\;\text{program}\;\{Q\}}
+\]
+
+which is exactly the statement we were asked to prove.
+
+--------------------------------------------------------------------
+### 5.  Correspondence with the original Python code  
+
+The Python fragment
+
+```python
+C = int(input())
+for i in range(C):
+    termos = int(input())
+    if termos % 2 == 0:
+        print('0')
+    else:
+        print('1')
+```
+
+implements the same control flow:
+
+* `C = int(input())`  → `read C`;
+* the `for i in range(C):` loop is semantically equivalent to the
+  `while i ≤ C` loop with the explicit counter `i := i+1`;
+* `termos` is the variable `N[i]`;
+* the test `termos % 2 == 0` is the same as `N[i] mod 2 = 0`;
+* the two `print` statements output `0` or `1`, i.e. `alt(N[i])`.
+
+Therefore the Hoare‑logic proof above applies directly to the Python program,
+establishing that **for every test case the program prints `1` iff the input
+number is odd and `0` otherwise**, which is exactly the specification
+\(Q\). ∎

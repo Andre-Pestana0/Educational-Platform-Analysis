@@ -1,0 +1,357 @@
+## 1.  What we have to show  
+
+We are given a **Hoare triple**
+
+\[
+\{\,\text{Pre}\,\}\;\; P\;\; \{\,\text{Post}\,\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+\[
+\text{Pre}\;\equiv\; (0\le L\le 11)\;\land\;(T\in\{‘S’,‘M’\})\;\land\;(M\in\mathbb R^{12\times12})
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+\text{Post}\;\equiv\;&\bigl(T='S'\rightarrow \text{out}= \big\lfloor S(L,M)\big\rceil_{1}\bigr)\;\land\\
+                    &\bigl(T='M'\rightarrow \text{out}= \big\lfloor \tfrac{S(L,M)}{N(L)}\big\rceil_{1}\bigr)
+\end{aligned}
+\]
+
+where  
+
+\[
+\begin{aligned}
+S(L,M) &=\sum_{i=0}^{L}\;\sum_{j=0}^{L} M[i][j] \qquad\text{(sum of the “green” square)}\\[1mm]
+N(L)   &= (L+1)^2 \qquad\text{(number of elements in the green square)}\\[1mm]
+\big\lfloor x\big\rceil_{1}&\;=\; \text{round}(x\text{ to exactly one digit after the decimal point}).
+\end{aligned}
+\]
+
+The **program** that we have to analyse is the Python fragment reproduced below (the variable names are the Portuguese ones used in the original source):
+
+```python
+linha = int(input())          # L
+operacao = input()            # T
+
+matriz = []                    # M will be built here
+
+for i in range(12):           # read the 12×12 matrix
+    linhaMatriz = []
+    for j in range(12):
+        linhaMatriz.append(float(input()))
+    matriz.append(linhaMatriz)
+
+resultado = sum(matriz[linha])   # <-- current implementation
+if operacao == "M":
+    resultado = resultado / 12   # <-- current implementation
+
+print(resultado)
+```
+
+Our task is **to prove (or disprove) that this program satisfies the Hoare triple**.  
+In a Hoare‑logic proof we proceed statement by statement, exhibiting an invariant that is preserved by the statement and that, together with the pre‑condition, guarantees the post‑condition when the program terminates.
+
+---
+
+## 2.  A quick sanity check  
+
+Before launching into a formal proof we compare the **intended mathematical meaning** of the post‑condition with the **actual computation** performed by the program.
+
+* The post‑condition talks about the *sum of the whole square* `G(L) = {(i,j) | 0 ≤ i ≤ L ∧ 0 ≤ j ≤ L}`.
+* The program computes  
+
+  \[
+  \text{resultado}= \sum_{j=0}^{11} M[L][j]\;,
+  \]
+
+  i.e. **only the L‑th row** (12 elements) and, in the average case, divides this row‑sum by **12**, not by \((L+1)^2\).
+
+Consequently the program **does not compute** the quantity `S(L,M)` required by the specification, nor does it divide by the correct cardinality `N(L)`.  
+
+Hence, **as‑written the program does *not* satisfy the given Hoare triple**.  
+
+Below we first give a *formal proof of failure* (showing where the invariant needed for the post‑condition breaks down) and then present a *corrected version* of the program together with a complete Hoare‑logic proof that the corrected program **does** meet the specification.
+
+---
+
+## 3.  Formal proof that the original program violates the post‑condition  
+
+### 3.1  Variables and mapping  
+
+| Specification symbol | Program variable |
+|----------------------|------------------|
+| `L`                  | `linha`          |
+| `T`                  | `operacao`       |
+| `M`                  | `matriz`         |
+| `resultado`          | `resultado` (intermediate) |
+| `out`                | the value printed by `print` |
+
+### 3.2  Loop invariants for reading the matrix  
+
+For the outer loop `for i in range(12)` we use the invariant  
+
+\[
+I_{read}(i) \equiv
+\bigl(0\le i\le 12\bigr)\;\land\;
+\bigl(\forall k < i\;.\; \text{matriz}[k] = M[k]\bigr)
+\]
+
+*Initially* (`i = 0`) the invariant holds because `matriz` is empty.  
+
+*Preservation*: after an iteration we have appended a completely filled row `linhaMatriz`. The inner loop invariant guarantees that this row equals `M[i]`. Therefore after the `append` we have `matriz[i] = M[i]`, and the invariant holds for `i+1`.  
+
+*Termination*: when the outer loop finishes (`i = 12`) we obtain  
+
+\[
+\forall k < 12\;.\; \text{matriz}[k] = M[k],
+\]
+
+i.e. the whole matrix has been correctly read.
+
+### 3.3  Invariant for the computation of `resultado`
+
+The statement  
+
+```python
+resultado = sum(matriz[linha])
+```
+
+is a single assignment. Its effect is  
+
+\[
+\text{resultado} = \sum_{j=0}^{11} M[linha][j].
+\]
+
+Let us denote  
+
+\[
+R_{row}(L,M) \equiv \sum_{j=0}^{11} M[L][j].
+\]
+
+Thus after the assignment we have the *exact* relation  
+
+\[
+\text{resultado}=R_{row}(L,M). \tag{1}
+\]
+
+The post‑condition, however, requires  
+
+\[
+\text{resultado}=S(L,M) \; (= \sum_{i=0}^{L}\sum_{j=0}^{L} M[i][j]).
+\]
+
+Because for any \(L\ge 0\)
+
+\[
+R_{row}(L,M) \neq S(L,M) \quad\text{(except in the trivial case }L=0\text{ and the matrix has zeros outside the first row)},
+\]
+
+the equality (1) does **not** imply the equality demanded by the post‑condition.  
+
+Consequently the invariant needed to bridge the gap between the program state and the specification is **broken** at this point.
+
+### 3.4  The average branch  
+
+The subsequent conditional
+
+```python
+if operacao == "M":
+    resultado = resultado / 12
+```
+
+turns (1) into  
+
+\[
+\text{resultado}= \frac{R_{row}(L,M)}{12}.
+\]
+
+The specification for the average case requires  
+
+\[
+\text{resultado}= \frac{S(L,M)}{N(L)} = \frac{S(L,M)}{(L+1)^2}.
+\]
+
+Again the two expressions differ for every \(L\neq 3\) (since \(12=(L+1)^2\) only when \(L=3\)).  
+
+Thus the branch does **not** enforce the required post‑condition.
+
+### 3.5  Conclusion of the failure proof  
+
+Because the program never establishes the invariant  
+
+\[
+\text{resultado}= S(L,M) \quad\text{or}\quad \text{resultado}= \frac{S(L,M)}{(L+1)^2},
+\]
+
+the Hoare triple cannot be proved.  The program violates the post‑condition (except for the degenerate inputs \(L=0\) or \(L=3\) where the accidental numeric coincidence makes the two formulas equal).
+
+---
+
+## 4.  A corrected program that **does** satisfy the specification  
+
+Below is a minimal change to the original source that makes the computation match the specification:
+
+```python
+linha = int(input())          # L
+operacao = input()            # T
+
+matriz = []
+for i in range(12):
+    linhaMatriz = []
+    for j in range(12):
+        linhaMatriz.append(float(input()))
+    matriz.append(linhaMatriz)
+
+# ----------  NEW: compute the sum of the (L+1)×(L+1) square ----------
+soma = 0.0
+for i in range(linha + 1):          # i = 0 .. L
+    for j in range(linha + 1):      # j = 0 .. L
+        soma += matriz[i][j]        # S(L,M)
+
+if operacao == "M":
+    resultado = soma / ((linha + 1) * (linha + 1))   # average
+else:
+    resultado = soma                                 # sum
+
+# round to exactly one digit after the decimal point
+out = round(resultado, 1)
+
+print(out)
+```
+
+The only structural change is the **nested loop** that accumulates `soma` over the square `G(L)`.  The division now uses `(linha+1)*(linha+1)` which is precisely `N(L)`.  Finally we round to one decimal digit, as required by `⌊·⌉₁`.
+
+---
+
+## 5.  Hoare‑logic proof for the corrected program  
+
+We now present a **complete proof outline** showing that the corrected program satisfies the Hoare triple.
+
+### 5.1  Notation for the proof  
+
+* `L`, `T`, `M` – as in the specification (they are the values read from input).  
+* `matriz` – the program variable that will hold `M`.  
+* `soma` – the program variable that will hold `S(L,M)`.  
+* `resultado` – the program variable that will hold either `S(L,M)` or `A(L,M)`.  
+* `out` – the value printed (rounded to one digit).  
+
+### 5.2  Proof structure  
+
+| Step | Statement | Reason / Invariant |
+|------|-----------|--------------------|
+| **1** | `read L, T` | Establishes the values required by **Pre**. |
+| **2** | `read matrix` (outer & inner loops) | Uses invariant `I_{read}` (see §3.2) to show after the loops `matriz = M`. |
+| **3** | `soma = 0` | Initialization of accumulator. |
+| **4** | `for i in range(L+1): for j in range(L+1): soma += matriz[i][j]` | Loop invariant `I_{sum}(i,j)` :<br>```\nI_{sum}(p,q) ≡ 0 ≤ p ≤ L+1 ∧ 0 ≤ q ≤ L+1 ∧ soma = Σ_{i=0}^{p-1} Σ_{j=0}^{q-1} M[i][j]\n```<br>Preserved by each inner‑loop iteration; after termination (`p = L+1, q = L+1`) we obtain `soma = S(L,M)`. |
+| **5** | `if T == 'M' then resultado = soma / ((L+1)*(L+1)) else resultado = soma` | Branch invariant: after the `if` we have `resultado = S(L,M)` if `T='S'` and `resultado = A(L,M)` if `T='M'`. |
+| **6** | `out = round(resultado,1)` | By definition of `round` we have `out = ⌊resultado⌉₁`. |
+| **7** | `print(out)` | The program terminates, having printed `out`. |
+
+### 5.3  Detailed verification of each step  
+
+#### Step 2 – reading the matrix  
+
+*Pre* guarantees `M` exists.  
+Invariant `I_{read}(i)` (see §3.2) is established initially (`i=0`) and preserved by the body of the outer loop (the inner loop fills a complete row, which by its own invariant equals `M[i]`).  
+When the outer loop finishes `i=12`, we have `matriz = M`.  
+
+Thus after step 2 we can safely replace every occurrence of `matriz` by `M` in the subsequent reasoning.
+
+#### Step 4 – computing `soma`  
+
+We prove the invariant by induction on the pair `(p,q)` that represents the progress of the two nested loops.
+
+*Base* (`p=0, q=0`): `soma = 0` and the double sum over an empty set is also `0`.  
+
+*Inductive step* – assume `I_{sum}(p,q)` holds before the inner‑loop iteration that processes element `(p, q)`. The body executes  
+
+```
+soma := soma + M[p][q]
+```
+
+so after the assignment  
+
+\[
+\text{soma}= \Sigma_{i=0}^{p-1}\Sigma_{j=0}^{q-1}M[i][j] + M[p][q]
+          = \Sigma_{i=0}^{p}\Sigma_{j=0}^{q}M[i][j],
+\]
+
+which is exactly `I_{sum}(p+1, q+1)` (or the appropriate next pair depending on loop ordering).  
+
+When the loops terminate we have `p = L+1` and `q = L+1`; thus  
+
+\[
+\text{soma}= \sum_{i=0}^{L}\sum_{j=0}^{L} M[i][j] = S(L,M).
+\]
+
+#### Step 5 – the conditional  
+
+The conditional is a standard Hoare‑logic *case analysis*:
+
+* **Case `T = 'S'`**  
+
+  The `else` branch is taken, setting `resultado = soma`.  
+  Using the result of Step 4 we obtain  
+
+  \[
+  \text{resultado}= S(L,M).
+  \]
+
+* **Case `T = 'M'`**  
+
+  The `then` branch is taken, setting  
+
+  \[
+  \text{resultado}= \frac{\text{soma}}{(L+1)^2}
+                  = \frac{S(L,M)}{N(L)} = A(L,M).
+  \]
+
+Thus after the conditional we have the exact relation required by the post‑condition.
+
+#### Step 6 – rounding  
+
+The Python built‑in `round(x,1)` returns the value of `x` **rounded to the nearest multiple of 0.1**, i.e. precisely the mathematical operation `⌊x⌉₁`.  
+Hence  
+
+\[
+\text{out}= \big\lfloor \text{resultado}\big\rceil_{1}.
+\]
+
+Combining this with the result of Step 5 yields the two clauses of **Post**.
+
+#### Step 7 – termination  
+
+The program consists of a finite number of deterministic statements; therefore it always terminates.  The only observable effect is the printed value `out`, which we have just shown satisfies the post‑condition.
+
+### 5.4  Summary of the proof  
+
+Putting the pieces together, we have shown
+
+\[
+\begin{aligned}
+\{\,\text{Pre}\,\} &\; \text{read }L,T,M \\
+                    &\; \text{read the matrix into } \text{matriz} \\
+                    &\; \text{compute } S(L,M) \text{ by the nested loops} \\
+                    &\; \text{branch on } T \text{ to obtain either } S(L,M) \text{ or } A(L,M) \\
+                    &\; \text{round to one decimal digit and print} \\
+\{\,\text{Post}\,\}
+\end{aligned}
+\]
+
+which is exactly the Hoare triple we were asked to verify.
+
+---
+
+## 6.  Final answer  
+
+* The **original program** does **not** satisfy the given Hoare‑logic specification: it computes the sum (and average) of a *single row* instead of the sum of the whole square `G(L)`, and it divides by `12` rather than by `(L+1)^2`.  A formal Hoare‑logic proof shows that the invariant required for the post‑condition is broken at the assignment `resultado = sum(matriz[linha])`.
+
+* A **small correction**—replacing the single‑row sum by a double loop that accumulates the values of the square `G(L)` and using `(L+1)*(L+1)` as the divisor for the average—produces a program that **does** meet the specification.  The proof proceeds by the standard Hoare‑logic method: establishing loop invariants for reading the matrix and for the double‑loop sum, then showing the conditional and the final rounding preserve the required relation, and finally concluding that the printed value fulfills the post‑condition.
+
+Thus, **the specification can be proved correct for the corrected program, while the original code fails to meet it**.

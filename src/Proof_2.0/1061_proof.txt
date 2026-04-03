@@ -1,0 +1,440 @@
+## 1.  What we have to show  
+
+We are asked to **prove** that the Python program printed in the question computes, for any
+valid start‑ and end‑time of an event that lies completely inside the month of April,
+the four numbers  
+
+\[
+(d,\;h,\;m,\;s)
+\]
+
+that satisfy the Hoare‑logic post‑condition **Q** shown in the specification.  
+
+In Hoare‑logic notation we must establish the triple  
+
+\[
+\{P\}\; \texttt{ComputeDuration}\; \{Q\}
+\]
+
+where  
+
+* **P** is the pre‑condition (valid dates, lexicographic ordering, minimum duration 60 s).  
+* **ComputeDuration** is the body of the program (the fragment that reads the input,
+  computes the four components and prints them).  
+* **Q** is the post‑condition that describes exactly how the four components are obtained
+  from the total number of seconds \(\Delta_{0}=T_{e}-T_{s}\).
+
+The proof proceeds by **structural induction** on the program statements, using the
+standard Hoare‑logic rules for assignment, sequencing, and the derived rule for the
+`mod/div` pattern.  We will treat the *input* part as a “black‑box” that simply
+initialises the six logical variables  
+
+\[
+(d_s,h_s,m_s,s_s),\;(d_e,h_e,m_e,s_e)
+\]
+
+with the values read from the user.  The rest of the program is the arithmetic part
+that we verify.
+
+---
+
+## 2.  Mapping the Python variables to the logical ones  
+
+| Python name | Logical meaning | Type |
+|-------------|----------------|------|
+| `diaA`      | \(d_s\)        | `int` |
+| `horaA`     | \(h_s\)        | `int` |
+| `minutoA`   | \(m_s\)        | `int` |
+| `segundoA` | \(s_s\)        | `int` |
+| `diaB`      | \(d_e\)        | `int` |
+| `horaB`     | \(h_e\)        | `int` |
+| `minutoB`   | \(m_e\)        | `int` |
+| `segundoB` | \(s_e\)        | `int` |
+| `segundos`  | \(s\)          | `int` |
+| `minutos`   | \(m\)          | `int` |
+| `horas`     | \(h\)          | `int` |
+| `dias`      | \(d\)          | `int` |
+
+All other temporary Boolean variables (`segundoMaior`, `minutoMaior`, `horaMaior`) are
+auxiliary “borrow flags” that we will denote  
+
+\[
+b_s = (s_s > s_e),\qquad
+b_m = (m_s > m_e),\qquad
+b_h = (h_s > h_e).
+\]
+
+The Python operator `int(bool)` is exactly the conversion  
+
+\[
+\text{int}(b) = \begin{cases}
+1 &\text{if }b\text{ is true}\\[2pt]
+0 &\text{if }b\text{ is false}
+\end{cases}
+\]
+
+so we can write the program in a more mathematical style:
+
+\[
+\begin{aligned}
+s &:= (s_e-s_s)\bmod 60,                                         &(1)\\[2pt]
+b_s &:= [s_s > s_e],                                            &(2)\\[2pt]
+m &:= (m_e-m_s-b_s)\bmod 60,                                    &(3)\\[2pt]
+b_m &:= [m_s > m_e],                                            &(4)\\[2pt]
+h &:= (h_e-h_s-(b_s\lor b_m))\bmod 24,                           &(5)\\[2pt]
+b_h &:= [h_s > h_e],                                            &(6)\\[2pt]
+d &:= d_e-d_s-(b_s\lor b_m\lor b_h).                             &(7)
+\end{aligned}
+\]
+
+(Here “\(\lor\)” is the logical *or*; because the three flags are mutually exclusive
+in a well‑formed interval, `b_s or b_m or b_h` evaluates to the *single* flag that
+represents the borrow that has been propagated up to that level.)
+
+Our goal is to show that the values \((d,h,m,s)\) produced by (1)–(7) are exactly the
+quotients and remainders obtained by the successive *div‑mod* decomposition of
+\(\Delta_{0}=T_e-T_s\) described in the specification.
+
+---
+
+## 3.  Useful arithmetic facts  
+
+For any integers \(x,y\) with \(y>0\) we have the **division algorithm**
+
+\[
+x = (x\ \text{div}\ y)\cdot y + (x\ \text{mod}\ y),
+\qquad 0 \le x\ \text{mod}\ y < y .
+\tag{A}
+\]
+
+We shall also use the following “borrow” lemma, proved directly from (A):
+
+> **Lemma 1 (borrow).**  
+> Let \(a,b\) be integers with \(0\le a,b < y\).  Define  
+> \[
+> b_{\text{borrow}} = [a>b] .
+> \]  
+> Then
+> \[
+> (b-a)\bmod y = (b-a-b_{\text{borrow}}) \bmod y
+> \]
+> and the remainder lies in \([0,y-1]\). Moreover the integer  
+> \[
+> q = (b-a-b_{\text{borrow}})\ \text{div}\ y
+> \]
+> equals \(-1\) if \(a>b\) and \(0\) otherwise.  Consequently the *borrow* can be
+> expressed as the integer division
+> \[
+> b_{\text{borrow}} = -\bigl((b-a)\ \text{div}\ y\bigr).
+> \tag{B}
+> \]
+
+The lemma says that when we subtract a larger lower‑order component from a
+smaller higher‑order component we have to *borrow* exactly one unit of the next
+higher magnitude; the borrowed unit is captured by the Boolean flag.
+
+---
+
+## 4.  Proof that the Python program implements the `div‑mod` algorithm  
+
+We prove the Hoare triple by establishing a **loop‑invariant‑like** property that
+is preserved after each line (1)–(7).  Because the program contains only straight‑line
+code, the invariant can be written as a single conjunctive formula that
+relates the **remaining** part of the total duration \(\Delta\) with the values that
+have already been fixed.
+
+### 4.1  Invariant after the seconds computation  
+
+Define  
+
+\[
+\Delta_{0} = T_e-T_s .
+\]
+
+After line (1) we set  
+
+\[
+s := (s_e-s_s)\bmod 60 .
+\]
+
+Using Lemma 1 with \(y=60\) we obtain a **borrow flag**
+
+\[
+b_s = [s_s > s_e] = -\bigl((s_e-s_s)\ \text{div}\ 60\bigr) .
+\]
+
+Hence we can rewrite the division algorithm for the *seconds* component as  
+
+\[
+s_e-s_s = (s_e-s_s-b_s) + 60\cdot b_s .
+\tag{C}
+\]
+
+Adding the contributions of the higher‑order fields (hours, minutes, days) we get  
+
+\[
+\Delta_{0}= 60\cdot b_s + s .
+\tag{I\(_0\)}
+\]
+
+Thus the invariant **I\(_0\)** after line (1) is
+
+\[
+\boxed{\Delta_{0}=60\cdot b_s + s\quad\wedge\quad 0\le s<60}
+\tag{INV\(_0\)}
+\]
+
+which is exactly the first step of the `div‑mod` decomposition required by **Q**.
+
+### 4.2  Invariant after the minutes computation  
+
+Line (3) computes  
+
+\[
+m := (m_e-m_s-b_s)\bmod 60 .
+\]
+
+Apply Lemma 1 again, now with  
+
+\[
+a=m_s,\;b=m_e,\;y=60,\;b_{\text{borrow}}=b_s .
+\]
+
+We obtain a *new* borrow flag  
+
+\[
+b_m = [m_s > m_e] = -\bigl((m_e-m_s-b_s)\ \text{div}\ 60\bigr) .
+\]
+
+Using the division algorithm for the **minutes** part we have  
+
+\[
+m_e-m_s-b_s = 60\cdot b_m + m .
+\tag{D}
+\]
+
+Add (C) and (D) to the expression of \(\Delta_{0}\):
+
+\[
+\begin{aligned}
+\Delta_{0}
+   &= 60\cdot b_s + s                                      &&\text{(INV\(_0\))}\\
+   &= 60\bigl(b_s + (m_e-m_s-b_s)\bigr) + s               &&\text{add and subtract }60m_e\\
+   &= 60\bigl( (m_e-m_s) + b_m\cdot 60 \bigr) + s          &&\text{by (D)}\\
+   &= 60\cdot b_m\cdot 60 + 60\,(m_e-m_s) + s .
+\end{aligned}
+\]
+
+Dividing the whole expression by 60 we obtain a **new remainder**  
+
+\[
+\Delta_{1}= \Delta_{0}\ \text{div}\ 60 = 60\cdot b_m + (m_e-m_s) .
+\]
+
+Consequently the invariant after line (3) can be written as  
+
+\[
+\boxed{\Delta_{0}= 3600\cdot b_m + 60\cdot b_s + 60\cdot m + s
+       \quad\wedge\quad 0\le m<60}
+\tag{INV\(_1\)}
+\]
+
+which corresponds precisely to the second line of the specification
+(“hours = Δ div 3600 …”).
+
+### 4.3  Invariant after the hours computation  
+
+Line (5) computes  
+
+\[
+h := (h_e-h_s-(b_s\lor b_m))\bmod 24 .
+\]
+
+Observe that, because the start instant is not later than the end instant,
+**exactly one** of the three borrow flags can be true at any given level.
+Thus  
+
+\[
+b_s\lor b_m = b_s + b_m \quad\text{(as integers 0 or 1)} .
+\]
+
+Apply Lemma 1 with \(y=24\), \(a=h_s\), \(b=h_e\) and *borrow* \(b_h' = b_s+b_m\):
+
+\[
+h = (h_e-h_s-b_s-b_m)\bmod 24 ,
+\qquad
+b_h = [h_s > h_e] = -\bigl((h_e-h_s-b_s-b_m)\ \text{div}\ 24\bigr) .
+\]
+
+Now the division algorithm yields  
+
+\[
+h_e-h_s-b_s-b_m = 24\cdot b_h + h .
+\tag{E}
+\]
+
+Combine (E) with the previous invariant (INV\(_1\)):
+
+\[
+\begin{aligned}
+\Delta_{0}
+   &= 86400\cdot b_h + 3600\cdot b_m + 60\cdot b_s + 60\cdot m + s \\
+   &&\qquad + 24\cdot b_h\cdot 3600    &&\text{(multiply (E) by 3600)}\\
+   &= 86400\cdot b_h + 3600\cdot h + 60\cdot m + s .
+\end{aligned}
+\]
+
+Thus after line (5) we have the invariant  
+
+\[
+\boxed{\Delta_{0}= 86400\cdot b_h + 3600\cdot h + 60\cdot m + s
+       \quad\wedge\quad 0\le h<24}
+\tag{INV\(_2\)}
+\]
+
+which is exactly the third line of **Q** (the `h = Δ div 3600` step).
+
+### 4.4  Invariant after the days computation  
+
+Line (7) computes  
+
+\[
+d := d_e-d_s-(b_s\lor b_m\lor b_h) .
+\]
+
+Because at most one borrow can propagate from seconds → minutes → hours,
+the expression \((b_s\lor b_m\lor b_h)\) is simply the integer  
+
+\[
+b_d = b_s + b_m + b_h .
+\]
+
+Now we use the definition of the total number of seconds from the start of
+April :
+
+\[
+\begin{aligned}
+T_s &= ((d_s-1)\cdot24 + h_s)\cdot3600 + m_s\cdot60 + s_s ,\\
+T_e &= ((d_e-1)\cdot24 + h_e)\cdot3600 + m_e\cdot60 + s_e .
+\end{aligned}
+\]
+
+Subtracting yields  
+
+\[
+\Delta_{0}= (d_e-d_s)\cdot86400
+          + (h_e-h_s)\cdot3600
+          + (m_e-m_s)\cdot60
+          + (s_e-s_s) .
+\tag{F}
+\]
+
+Replace each parenthesised difference by the *borrow‑adjusted* version that appears
+in (C), (D) and (E).  Using the equalities  
+
+\[
+\begin{aligned}
+s_e-s_s      &= 60\cdot b_s + s ,\\
+m_e-m_s-b_s &= 60\cdot b_m + m ,\\
+h_e-h_s-b_s-b_m &= 24\cdot b_h + h ,
+\end{aligned}
+\]
+
+equation (F) becomes  
+
+\[
+\Delta_{0}= (d_e-d_s)\cdot86400
+          + 24\cdot b_h\cdot3600
+          + 60\cdot b_m\cdot3600
+          + 60\cdot b_s\cdot3600
+          + 3600\cdot h + 60\cdot m + s .
+\]
+
+Factorising the common factor \(86400\) we obtain  
+
+\[
+\Delta_{0}= 86400\bigl(d_e-d_s-b_d\bigr) + 3600\cdot h + 60\cdot m + s .
+\]
+
+Therefore after line (7) the invariant is  
+
+\[
+\boxed{\Delta_{0}= 86400\cdot d + 3600\cdot h + 60\cdot m + s
+       \quad\wedge\quad 0\le d\le N-1}
+\tag{INV\(_3\)}
+\]
+
+which is exactly the **first** line of the post‑condition **Q**,
+i.e.
+
+\[
+d = \bigl\lfloor \Delta_{0}/86400 \bigr\rfloor ,\qquad
+\Delta_{0}\bmod 86400 = 3600\cdot h + 60\cdot m + s .
+\]
+
+Together with the already proved bounds for \(h,m,s\) we have derived **all**
+clauses (7)–(10) of **Q**.
+
+---
+
+## 5.  Termination  
+
+All statements are simple assignments or input operations; none contains a loop
+or recursion.  Hence the program terminates after a **finite** number of steps
+(precisely the number of lines shown).  Termination is therefore trivial.
+
+---
+
+## 6.  Putting the Hoare proof together  
+
+We now state the proof in the classic Hoare‑logic style.
+
+| Step | Statement | Hoare rule used | Reason |
+|------|-----------|-----------------|--------|
+| 1 | `input …` | **skip** (initialisation) | Gives us variables that satisfy **P** by assumption |
+| 2 | `segundos = (segundoB - segundoA) % 60` | **Assignment** | From **INV\(_0\)** we have `Δ = 60·b_s + s` and `0≤s<60` |
+| 3 | `segundoMaior = segundoA > segundoB` | **Assignment** | Defines `b_s` as the borrow flag |
+| 4 | `minutos = (minutoB - minutoA - int(segundoMaior)) % 60` | **Assignment** | Using Lemma 1 we obtain **INV\(_1\)** |
+| 5 | `minutoMaior = minutoA > minutoB` | **Assignment** | Defines `b_m` |
+| 6 | `horas = (horaB - horaA - (int(segundoMaior) or int(minutoMaior))) % 24` | **Assignment** | Because at most one borrow is true, this implements `b_s+b_m` and yields **INV\(_2\)** |
+| 7 | `horaMaior = horaA > horaB` | **Assignment** | Defines `b_h` |
+| 8 | `dias = diaB - diaA - (int(segundoMaior) or int(minutoMaior) or int(horaMaior))` | **Assignment** | Implements `b_d = b_s+b_m+b_h` and gives **INV\(_3\)** |
+| 9 | `print …` | **skip** (output does not affect state) | The values printed are exactly the ones stored in `dias,horas,minutos,segundos` |
+| – | **Conclusion** | **Rule of Consequence** | From **P** we derived **INV\(_3\)**, which is syntactically identical to **Q**. Hence \(\{P\}\texttt{ComputeDuration}\{Q\}\) holds. |
+
+Thus every line of the Python program preserves the invariant that the
+remaining part of the duration is expressed as a linear combination of the
+already‑computed components plus a multiple of the next larger time unit.
+When the last assignment (`dias = …`) is executed the invariant is exactly the
+post‑condition **Q**.  Consequently the program is **partially correct** with respect
+to the Hoare triple.
+
+---
+
+## 7.  Remarks on the “or” trick used in the program  
+
+The Python expression  
+
+```python
+int(segundoMaior) or int(minutoMaior)
+```
+
+does **not** compute a logical *or* of the two booleans; it computes the *first*
+non‑zero integer among them.  Because the three flags `segundoMaior`,
+`minutoMaior`, `horaMaior` are mutually exclusive (the start instant is never
+later than the end instant), exactly one of them can be `1`.  Therefore the
+expression yields the **same integer** as the sum `int(segundoMaior)+int(minutoMaior)`.  
+The same reasoning applies to the three‑way chain in the computation of `dias`.  
+Hence the program’s use of `or` is harmless and matches the mathematical
+definition of the borrow flag we used in the proof.
+
+---
+
+## 8.  Final statement  
+
+We have exhibited a **complete Hoare‑logic proof** that, assuming the pre‑condition
+\(P\) (valid April dates, correct ordering, minimum duration 60 s), the Python
+program computes the four integers \((d,h,m,s)\) that satisfy the post‑condition
+\(Q\) (the successive `div‑mod` decomposition of the total number of seconds).
+Therefore the program is *correct* with respect to the given formal
+specification. ∎

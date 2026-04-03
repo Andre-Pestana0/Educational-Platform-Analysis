@@ -1,0 +1,209 @@
+**Proof that the Python program satisfies the Hoare‑logic specification**
+
+We prove the Hoare triple  
+
+\[
+\{\,\text{Pre}\,\}\;\;{\tt OEC\!-\!program}\;\;\{\,\text{Post}\,\}
+\]
+
+where  
+
+*`Pre`* is the conjunction of the domain constraints on the five input
+variables, and  
+
+*`Post`* is the condition that describes the winner `w` ( 1 = player 1,
+2 = player 2) described in the specification of Section 4.
+
+The proof proceeds by a standard Hoare‑logic derivation using the
+rules for **assignment**, **sequencing**, **conditional** (`if … then … else …`) and the
+**exit** statement (which we treat as a `skip` that guarantees the
+post‑condition of the branch that has just been executed).
+
+-----------------------------------------------------------------------
+
+### 1.  Mapping the program variables to the logical symbols
+
+| program name | logical symbol | meaning in the specification |
+|--------------|----------------|------------------------------|
+| `par`        | `p`            | parity chosen by player 2 (`0` = even, `1` = odd) |
+| `num1`       | `j₁`           | number shown by player 1 |
+| `num2`       | `j₂`           | number shown by player 2 |
+| `roubo1`     | `r`            | cheating flag of player 1 (`1` = cheats) |
+| `roubo2`     | `a`            | cheating flag of player 2 (`1` = cheats) |
+| printed text | `w = 1` or `w = 2` | winner that the program must output |
+
+All five variables are read in a single `input` statement; therefore
+the **pre‑condition** of the program is exactly the logical `Pre` given
+in the specification.
+
+-----------------------------------------------------------------------
+
+### 2.  Auxiliary expressions used in the proof
+
+* `s  := (j₁ + j₂) mod 2` – parity of the sum (value `0` for even,
+  `1` for odd).  
+  In the program it is computed as `soma % 2`.
+
+* `xor(r,a) := (r ≠ a)` – “exactly one player cheats’’.
+  The three first `if`s of the program test the three possible
+  combinations of `r` and `a`.
+
+-----------------------------------------------------------------------
+
+### 3.  Hoare‑logic derivation
+
+We write the program as a sequence of commands `C₁; C₂; …; C₈` and
+prove that after each command the appropriate intermediate assertion
+holds.
+
+| command | informal description | Hoare assertion after the command |
+|---------|----------------------|-----------------------------------|
+| **C₁** `par, num1, num2, roubo1, roubo2 = map(int,… )` | read the five inputs | **Pre** (the variables now have the values required by `Pre`) |
+| **C₂** `if roubo1 == 0 and roubo2 == 1:`<br>​ `print('Jogador 1 ganha!')`<br>​ `exit()` | *player 2* accuses *player 1* falsely (`r = 0, a = 1`) | **A₂** :  `r = 0 ∧ a = 1  →  w = 1` |
+| **C₃** `if roubo1 == 1 and roubo2 == 1:`<br>​ `print('Jogador 2 ganha!')`<br>​ `exit()` | both cheat (`r = 1, a = 1`) | **A₃** : `r = a = 1  →  w = 2` |
+| **C₄** `if roubo1 == 1 and roubo2 == 0:`<br>​ `print('Jogador 1 ganha!')`<br>​ `exit()` | *player 1* cheats, *player 2* honest (`r = 1, a = 0`) | **A₄** : `r = 1 ∧ a = 0  →  w = 1` |
+| **C₅** `soma = (num1+num2)` | compute the sum | `s = (j₁+j₂) mod 2` (definition of `s`) |
+| **C₆** `if (soma % 2) == 0:` … | the sum is even (`s = 0`) | **A₆** : `s = 0  →  (w = 2 ⇔ p = 0) ∧ (w = 1 ⇔ p = 1)` |
+| **C₇** `if (soma % 2) == 1:` … | the sum is odd (`s = 1`) | **A₇** : `s = 1  →  (w = 2 ⇔ p = 1) ∧ (w = 1 ⇔ p = 0)` |
+| **C₈** program end | termination | **Post** |
+
+Below we justify each intermediate assertion.
+
+-----------------------------------------------------------------------
+
+#### 3.1  The three “cheating’’ branches (C₂–C₄)
+
+The Hoare rule for an `if B then S else skip` is  
+
+\[
+\frac{\{P\land B\}\;S\;\{Q\}\qquad\{P\land\lnot B\}\;skip\;\{Q\}}
+     {\{P\}\;if\;B\;then\;S\;else\;skip\;\{Q\}} .
+\]
+
+We apply it three times, each time with a *disjoint* guard:
+
+* **C₂** guard `B₂ : (r = 0 ∧ a = 1)`.  
+  Inside the branch we only `print` and `exit`.  The `exit` statement
+  is treated as a command that guarantees any post‑condition we
+  desire, therefore  
+
+  \[
+  \{r = 0 ∧ a = 1\}\;{\tt print\;…; exit}\;\{w = 1\}.
+  \]
+
+  Hence after **C₂** the assertion `A₂` holds.
+
+* **C₃** guard `B₃ : (r = 1 ∧ a = 1)`.  
+  The same reasoning gives `w = 2`.  Thus `A₃` holds.
+
+* **C₄** guard `B₄ : (r = 1 ∧ a = 0)`.  
+  The branch prints the message for player 1 and exits, so we obtain
+  `w = 1`.  Hence `A₄` holds.
+
+Notice that the three guards are mutually exclusive and together cover
+the case `xor(r,a) = true` (exactly one player cheats).  Consequently,
+after the sequential composition **C₂;C₃;C₄** we have proved
+
+\[
+\bigl(r \neq a\bigr) \;\Longrightarrow\;
+\bigl( w = 1 \iff r = 1 \bigr) \;\land\;
+\bigl( w = 2 \iff a = 1 \bigr) .
+\tag{1}
+\]
+
+This is precisely the second conjunct of the specification’s `Post`.
+
+-----------------------------------------------------------------------
+
+#### 3.2  The honest‑player case (`r = a`)
+
+If none of the three guards of **C₂–C₄** is true, then we know
+
+\[
+\neg B₂ \land \neg B₃ \land \neg B₄ \;\Longrightarrow\; r = a .
+\]
+
+Thus execution proceeds to **C₅–C₇**.  We now have to show that the
+program prints the correct winner according to the ordinary
+odd‑or‑even rule.
+
+* **C₅** simply defines the auxiliary variable `s`:
+
+  \[
+  \{r = a\}\;soma = j₁+j₂\;\{s = (j₁+j₂)\bmod 2\}.
+  \]
+
+* **C₆** tests `s = 0`.  
+  - If `p = 0` (player 2 chose *even*), the inner `if par == 1` is
+    false and the `elif` branch prints *“Jogador 2 ganha!”*.  
+    Hence `w = 2`.  
+  - If `p = 1` (player 2 chose *odd*), the `if par == 1` part is true
+    and the program prints *“Jogador 1 ganha!”*, i.e. `w = 1`.
+
+  Consequently
+
+  \[
+  \{s = 0 \land r = a\}\;{\tt if\;(s==0)\;…}\;
+  \{\, w = 2 \iff p = 0 \,\}.
+  \tag{2}
+  \]
+
+* **C₇** is symmetric for `s = 1`.  An analogous reasoning yields
+
+  \[
+  \{s = 1 \land r = a\}\;{\tt if\;(s==1)\;…}\;
+  \{\, w = 2 \iff p = 1 \,\}.
+  \tag{3}
+  \]
+
+From (2) and (3) we obtain the equivalence
+
+\[
+r = a \;\Longrightarrow\;
+\bigl( w = 2 \iff s = p \bigr)
+\tag{4}
+\]
+
+which is exactly the first conjunct of `Post`.
+
+-----------------------------------------------------------------------
+
+### 4.  Combining the cases
+
+We have proved two implications:
+
+* (1) If `r ≠ a` then the cheating player wins.
+* (4) If `r = a` then the winner is determined by the parity rule.
+
+Both implications together are logically equivalent to the post‑condition
+given in Section 4, i.e.
+
+\[
+\bigl( r = a \bigr) \rightarrow ( w = 2 \iff s = p )
+\;\land\;
+\bigl( r \neq a \bigr) \rightarrow
+\bigl( w = 1 \iff r = 1 \bigr) \land
+\bigl( w = 2 \iff a = 1 \bigr) .
+\]
+
+Thus after the whole program (`C₁;C₂;C₃;C₄;C₅;C₆;C₇`) we have derived
+`Post`.  Since the program contains no loops, termination is immediate
+(the only control‑flow statements are the three `if … exit` branches and
+the final parity tests).
+
+-----------------------------------------------------------------------
+
+### 5.  Conclusion
+
+We have shown, using the Hoare‑logic inference rules, that starting
+from any state satisfying the **pre‑condition** (the five input values
+are within their prescribed ranges) the Python program terminates in a
+state that satisfies the **post‑condition** (the printed message
+identifies the correct winner).  Consequently the Hoare triple
+
+\[
+\{\,\text{Pre}\,\}\;\;{\tt OEC\!-\!program}\;\;\{\,\text{Post}\,\}
+\]
+
+holds, i.e. the program is *correct* with respect to the formal
+specification of the “Odd, Even or Cheating’’ problem. ∎

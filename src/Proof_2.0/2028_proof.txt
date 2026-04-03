@@ -1,0 +1,344 @@
+## 1.  What has to be proved  
+
+We must show that the **single‑case fragment** of the program  
+
+```text
+N = int(input())
+valores = 1
+seq = '0 '
+for i in range(1, N+1):
+    valores += i
+    seq += (str(i) + ' ') * i
+if N == 0:
+    print(f'Caso {cont}: {valores} numero')
+else:
+    print(f'Caso {cont}: {valores} numeros')
+print(seq.rstrip(), end='\n\n')
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{\,P\;\}\; \text{fragment}\; \{\,Q\;\},
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\; N\in\mathbb N\;\wedge\;N\le 200 .
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;:\;&|S| = L, \qquad
+L = 1+\frac{N(N+1)}{2}, \\[1mm]
+   &S[0]=0,\qquad
+   \forall i\in\{1,\dots ,N\}\;.\;count_S(i)=i ,\\[1mm]
+   &count_S(0)=1,\qquad
+   \forall j\in\{0,\dots ,L-2\}\;.\;S[j]\le S[j+1],\\[1mm]
+   &\text{the printed line is “Caso case: L numero(s)” and the second line is the
+   elements of }S\text{ separated by a single space.}
+\end{aligned}
+\]
+
+In the program the concrete data objects are  
+
+* `valores` – the integer that must equal `L`.  
+* `seq`      – the textual representation of the sequence `S` (each element followed by a space).  
+
+The auxiliary variable `cont` (called *case* in the specification) is increased by one after each successful execution, so the invariant  
+
+\[
+I_{\text{case}} :\; cont = \text{case}
+\]
+
+holds for every iteration of the outer `while True` loop.
+
+The proof proceeds by **structural induction on the two loops** that appear in the fragment:
+
+1. a *for‑loop* that builds the sequence,
+2. the surrounding *while‑True* that repeats the whole fragment until EOF.
+
+--------------------------------------------------------------------
+
+## 2.  Proof outline in Hoare‑logic notation  
+
+We shall exhibit a chain of Hoare triples
+
+\[
+\{P\}\; C_0\; \{I_0\},\qquad
+\{I_{k-1}\}\; C_k\; \{I_k\},\qquad
+\{I_{\text{final}}\}\; C_{\text{out}}\; \{Q\},
+\]
+
+where  
+
+* `C_0` is the **input statement** `N = int(input())`.  
+* `C_k` are the statements inside the `for` loop (including its body).  
+* `C_{\text{out}}` are the two `print` statements.  
+
+The intermediate assertions `I_k` are loop invariants that capture exactly the clauses of `Q` that have already been established after processing the first `k` values of the outer index `i`.
+
+--------------------------------------------------------------------
+
+## 3.  The outer **while‑True** loop  
+
+The whole program is wrapped in  
+
+```python
+cont = 1
+while True:
+    try:
+        …  # the fragment proved below
+        cont += 1
+    except EOFError:
+        break
+```
+
+### 3.1   Invariant for the while loop  
+
+\[
+I_{\text{while}} :\; cont = \text{case} \;\wedge\;
+\forall c<\text{case}\;.\; \text{the output for case }c\text{ satisfied }Q .
+\]
+
+* **Initialization** – before the first iteration `cont = 1` and `case = 1`, therefore `I_{\text{while}}` holds trivially (the universal quantifier is vacuous).  
+
+* **Preservation** – assume `I_{\text{while}}` holds at the beginning of an iteration and the fragment finishes successfully.  
+  By the proof that follows we obtain `Q` for the current value of `case`.  
+  The statement `cont += 1` changes `cont` to `case+1`; we also set `case ← case+1` for the next iteration. Hence the invariant is re‑established.  
+
+* **Termination** – the loop stops only when an `EOFError` is raised, i.e. when there is no more input. No further post‑condition is required; the invariant guarantees that *all* cases that have been processed satisfy `Q`.
+
+Consequently, once the fragment is proved correct for an **arbitrary** value of `case`, the whole program is correct for any number of test cases.
+
+--------------------------------------------------------------------
+
+## 4.  Proof of the **single‑case fragment**
+
+We now focus on the fragment that reads a single `N` and prints the corresponding sequence.  
+All variables are local to the iteration, so we can forget the outer `while` and reason about the following straight‑line code:
+
+```text
+1  N  = int(input())
+2  valores = 1
+3  seq = '0 '
+4  for i in range(1, N+1):
+5      valores += i
+6      seq += (str(i) + ' ') * i
+7  if N == 0:
+8      print(f'Caso {cont}: {valores} numero')
+9  else:
+10     print(f'Caso {cont}: {valores} numeros')
+11 print(seq.rstrip(), end='\n\n')
+```
+
+### 4.1  The **input statement** (line 1)
+
+* Hoare triple  
+
+  \[
+  \{P\}\; N = \texttt{int(input())}\; \{N\in\mathbb N\;\wedge\;N\le 200\},
+  \]
+
+  which is exactly the pre‑condition `P`.  
+  The statement does not change any other variable, therefore the post‑condition of this step is simply `P` again, ready for the next command.
+
+### 4.2  Initialization of the accumulating variables (lines 2‑3)
+
+Define the following **partial‑construction invariant** that will be used for the `for` loop:
+
+\[
+\boxed{
+I(i) \equiv
+\begin{aligned}
+    &\text{(i)}\; 1\le i\le N+1,\\
+    &\text{(ii)}\; valores = 1+\sum_{k=1}^{i-1}k,\\
+    &\text{(iii)}\; seq =  \underbrace{'0 '}_{\text{base}}\;
+                 \underbrace{\displaystyle\prod_{k=1}^{i-1}
+                 \bigl((\text{str}(k)+'\ ')^{k}\bigr)}_{\text{concatenation of the first }i-1\text{ blocks}} .
+\end{aligned}}
+\]
+
+* **Base case** – after line 2‑3 (i.e. before the loop starts) we have `i = 1`.  
+  - `valores = 1 = 1 + Σ_{k=1}^{0} k`.  
+  - `seq = '0 '` which is precisely the definition of the product with an empty range.  
+  Thus `I(1)` holds.
+
+### 4.3  The **for‑loop** (lines 4‑6)
+
+The loop header `for i in range(1, N+1):` iterates with the values  
+
+\[
+i = 1,2,\dots ,N .
+\]
+
+We prove that `I(i)` is a **loop invariant**:
+
+| Step | Hoare triple | Reason |
+|------|--------------|--------|
+| **Preservation** | \(\{I(i)\}\; \text{body}(i)\; \{I(i+1)\}\) | Show that the two statements of the body transform `valores` and `seq` exactly as prescribed by `I(i+1)`. |
+| **Termination** | After the last iteration we have `i = N+1`, therefore `I(N+1)` holds. | The loop ends because the range is finite (`N ≤ 200`). |
+| **Consequence** | `I(N+1) ⇒` the three clauses of `Q` concerning length, multiplicities and order. | See the calculations below. |
+
+#### 4.3.1  Preservation proof
+
+Assume `I(i)` holds at the beginning of an iteration (so `1 ≤ i ≤ N`).  
+The body consists of
+
+```
+valores += i          # line 5
+seq += (str(i)+' ') * i   # line 6
+```
+
+* **Effect on `valores`.**  
+  From (ii) of `I(i)` we have  
+
+  \[
+  valores = 1+\sum_{k=1}^{i-1}k .
+  \]
+
+  Adding `i` gives  
+
+  \[
+  valores' = valores + i = 1+\sum_{k=1}^{i}k .
+  \]
+
+  This is exactly the formula required for `I(i+1)` (where the sum now runs to `i`).  
+
+* **Effect on `seq`.**  
+  By (iii) of `I(i)` the current textual representation is  
+
+  \[
+  seq = 0\ \bigl((1\ )^{1}(2\ )^{2}\dots (i-1\ )^{i-1}\bigr) .
+  \]
+
+  Concatenating `(str(i)+' ')*i` appends the block  
+
+  \[
+  (i\ )^{i}
+  \]
+
+  to the right end, therefore after the assignment  
+
+  \[
+  seq' = 0\ \bigl((1\ )^{1}(2\ )^{2}\dots (i-1\ )^{i-1}(i\ )^{i}\bigr) ,
+  \]
+
+  which is precisely the definition of `I(i+1)`.
+
+Thus `I(i) → I(i+1)` is proved.
+
+#### 4.3.2  Consequence of the invariant after the loop
+
+When the loop terminates we have `i = N+1`.  
+Instantiating `I(N+1)` we obtain:
+
+* **Length (`valores`).**  
+
+  \[
+  valores = 1+\sum_{k=1}^{N}k = 1+\frac{N(N+1)}{2}=L .
+  \]
+
+  Hence the integer printed later (`valores`) equals the required length `L`.
+
+* **Exact content of `seq`.**  
+
+  \[
+  seq = 0\ \underbrace{1\ 1\ \dots\ 1}_{1\text{ time}}
+               \underbrace{2\ 2\ \dots\ 2}_{2\text{ times}}
+               \dots
+               \underbrace{N\ N\ \dots\ N}_{N\text{ times}} .
+  \]
+
+  If we transform this textual string into the mathematical sequence  
+
+  \[
+  S = \bigl[0, \underbrace{1,\dots ,1}_{1},
+               \underbrace{2,\dots ,2}_{2},
+               \dots ,
+               \underbrace{N,\dots ,N}_{N}\bigr],
+  \]
+
+  then:
+
+  * `|S| = L` (by construction).  
+  * `S[0]=0`.  
+  * For each `i∈{1,…,N}`, `count_S(i)=i`.  
+  * `count_S(0)=1`.  
+  * Because the blocks are appended in increasing order, the sequence is non‑decreasing: `S[j] ≤ S[j+1]` for every admissible `j`.
+
+Thus the invariant guarantees **all five logical clauses** of `Q` that talk about the sequence itself.
+
+### 4.4  The **printing part** (lines 7‑11)
+
+We have already established that, at this point,
+
+* `valores = L`,
+* `seq` is a string that contains each element of `S` followed by a single space, and
+* `cont` holds the current case number (the invariant `I_{\text{while}}` guarantees `cont = case`).
+
+Now we check the two `print` statements.
+
+| Statement | Hoare triple | Verification |
+|-----------|--------------|--------------|
+| `if N == 0: print(f'Caso {cont}: {valores} numero')`<br>`else: print(f'Caso {cont}: {valores} numeros')` | \(\{valores=L\}\; \text{print‑stmt}\; \{ \text{output line matches the specification of }Q\}\) | The condition `N==0` is exactly the distinction required by the last clause of `Q`. If `N=0` we print the singular word *numero*; otherwise we print the plural *numeros*. In both branches the printed integer is `valores = L`. |
+| `print(seq.rstrip(), end='\n\n')` | \(\{seq\text{ encodes }S\}\; \text{print‑stmt}\; \{ \text{second output line satisfies }Q\}\) | `seq.rstrip()` removes the trailing space that the construction left at the end of the string, so the printed line is `0 1 1 2 2 2 … N … N` with **exactly one space** between consecutive numbers and **no space** after the last one. This is precisely the format demanded in `Q`. The extra `'\n\n'` yields a blank line after each case, as required. |
+
+Consequently the two `print` commands together satisfy the *output‑format* part of `Q`.
+
+### 4.5  Summary of the fragment
+
+We have shown the following Hoare triples:
+
+1. \(\{P\}\; N = \texttt{int(input())}\; \{P\}\)                                  (input respects the pre‑condition)
+
+2. \(\{P\}\; \text{initialisation of `valores` and `seq`}\; \{I(1)\}\)               (base case)
+
+3. \(\forall i\;(1\le i\le N)\; \{I(i)\}\; \text{body of the for‑loop}\; \{I(i+1)\}\)  (preservation)
+
+4. \(\{I(N+1)\}\; \text{exiting the for‑loop}\; \{ \text{all clauses of }Q\text{ except the printing format}\}\)  (termination of the loop)
+
+5. \(\{ \text{previous clauses} \}\; \text{printing statements}\; \{Q\}\)                    (output format)
+
+By the **rule of consequence** we obtain the overall Hoare triple
+
+\[
+\boxed{\{P\}\; \text{fragment}\; \{Q\}} .
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Whole program (multiple cases)
+
+The outer `while True` loop repeats the fragment for each test case until an `EOFError` is raised.  
+We have already proved that, assuming the invariant `I_{\text{while}}` holds before an iteration, the fragment produces an output that satisfies `Q` and then increments `cont` so that `I_{\text{while}}` holds again.  
+
+Because the invariant is true initially (`cont = 1`) and is preserved, it follows that **every** case that the program processes fulfills the specification `Q`.  
+
+When the `EOFError` is caught, the loop terminates; no further obligations are imposed. Hence the complete program satisfies the Hoare triple
+
+\[
+\boxed{\{\,\text{(no global pre‑condition)}\,\}\;
+      \text{program}\;
+      \{\,\forall\;c\in\mathbb N_{\ge 1}\;.\;
+          \text{output of case }c\text{ satisfies }Q\,\}} .
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Formal conclusion  
+
+* The **pre‑condition** `P` is respected because the only way `N` is obtained is through `int(input())`, and the problem statement guarantees that the judge supplies values `0 ≤ N ≤ 200`.  
+
+* The **loop invariant** `I(i)` is true initially, preserved by the body of the `for` loop, and after the last iteration yields precisely the mathematical description of the required sequence (`|S| = L`, correct multiplicities, non‑decreasing order).  
+
+* The **printing statements** use the already‑computed integer `valores = L` and the string `seq` that encodes `S`; they emit exactly the textual format prescribed in `Q`.  
+
+* The **outer while loop** maintains the auxiliary invariant `cont = case`, therefore each test case is labelled correctly and the blank line after each case is produced as demanded.  
+
+Consequently, for **every** admissible input `N` the program terminates and, after each iteration, the state of the world satisfies the post‑condition `Q`. By Hoare‑logic, the program is **correct** with respect to the given formal specification. ∎

@@ -1,0 +1,293 @@
+## 1.  What we have to show  
+
+We must prove the Hoare triple  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+  \[
+  P \; \equiv\; 1\le x\le 12
+  \]
+
+* **Program**  
+
+  \[
+  S \;=\;
+  \begin{array}{l}
+  \textbf{read}(x) ;\\[1mm]
+  m \;\gets\; M(x) ;\\[1mm]
+  \textbf{print}(m)
+  \end{array}
+  \]
+
+* **Post‑condition**  
+
+  \[
+  Q \equiv m = M(x)\ \land\ \textbf{printed}(m)
+  \]
+
+The proof proceeds by **Hoare‑logic inference rules** (assignment, composition, consequence and the two I/O axioms).  
+We also have to argue that the concrete Python expression  
+
+```python
+calendar.month_name[mes]
+```  
+
+computes exactly the mathematical function `M`.  
+
+---
+
+## 2.  Hoare axioms for the three primitive commands  
+
+| command | Hoare axiom (sound) |
+|---------|--------------------|
+| **read** `read(x)` | \(\displaystyle\{\,P[x:=v]\,\}\;\textbf{read}(x)\;\{\,P\,\}\)  <br>where `v` is the integer value supplied by the environment. |
+| **assignment** `m := M(x)` | \(\displaystyle\{\,Q[m:=M(x)]\,\}\;m\gets M(x)\;\{\,Q\,\}\) |
+| **print** `print(m)` | \(\displaystyle\{\,\textbf{printed}(m) \land R\,\}\;\textbf{print}(m)\;\{\,R\,\}\)  <br>for any post‑condition `R` that does not mention the output buffer. |
+
+The **consequence rule**  
+
+\[
+\frac{\{A\}\;C\;\{B\}\qquad A'\Rightarrow A\qquad B\Rightarrow B'}{\{A'\}\;C\;\{B'\}}
+\]
+
+allows us to strengthen the pre‑condition or weaken the post‑condition.
+
+The **composition rule**  
+
+\[
+\frac{\{A\}\;C_1\;\{B\}\qquad\{B\}\;C_2\;\{C\}}{\{A\}\;C_1;C_2\;\{C\}}
+\]
+
+lets us concatenate two verified fragments.
+
+---
+
+## 3.  Step‑by‑step derivation  
+
+We will build three triples, one for each line of the program, and then compose them.
+
+### 3.1  First line – reading the integer  
+
+We want a triple whose **post‑condition** already contains the information that `x` is a legal month number (i.e. `1 ≤ x ≤ 12`).  
+Take  
+
+\[
+A_0 \;:=\; 1\le x\le 12
+\]
+
+as the **desired** post‑condition of the read.  
+The axiom for `read(x)` gives us  
+
+\[
+\{\,A_0[x:=v]\,\}\;\textbf{read}(x)\;\{\,A_0\,\}
+\tag{R1}
+\]
+
+where `v` denotes the value that the environment supplies.  
+Because we intend to run the program only when the **pre‑condition** guarantees that the value will be in the interval, we can replace the generic `v` by a fresh logical variable `v` and then *strengthen* the pre‑condition using the consequence rule:
+
+\[
+\frac{
+  \{\,A_0[x:=v]\,\}\;\textbf{read}(x)\;\{\,A_0\,\}
+  \qquad
+  (1\le v\le 12)\;\Rightarrow\;A_0[x:=v]
+}{
+  \{\,1\le v\le 12\,\}\;\textbf{read}(x)\;\{\,A_0\,\}
+}
+\tag{R1′}
+\]
+
+Now rename the quantified variable `v` to `x` (the program variable that receives the input).  
+Thus we have the verified triple
+
+\[
+\boxed{\{\,1\le x\le 12\,\}\;\textbf{read}(x)\;\{\,1\le x\le 12\,\}}
+\tag{T\_read}
+\]
+
+### 3.2  Second line – computing the month name  
+
+We need a triple whose **post‑condition** is exactly the part of `Q` that mentions `m`:
+
+\[
+B \;:=\; m = M(x)
+\]
+
+Apply the assignment axiom:
+
+\[
+\{\,B[m:=M(x)]\,\}\; m\gets M(x)\; \{\,B\,\}
+\tag{A}
+\]
+
+Since `B[m:=M(x)]` is just `M(x)=M(x)`, which is a tautology, the pre‑condition of the assignment can be weakened to **true**:
+
+\[
+\frac{
+  \{\,\text{true}\,\}\; m\gets M(x)\; \{\,m=M(x)\,\}
+}{
+  \{\,1\le x\le 12\,\}\; m\gets M(x)\; \{\,m=M(x)\,\}
+}
+\tag{T\_assign}
+\]
+
+(The consequence step uses `1≤x≤12 ⇒ true`, which is always true.)
+
+Thus we have
+
+\[
+\boxed{\{\,1\le x\le 12\,\}\; m\gets M(x)\; \{\,m = M(x)\,\}}
+\tag{T\_assign}
+\]
+
+### 3.3  Third line – printing the string  
+
+The required post‑condition after the whole program is  
+
+\[
+Q \;=\; m = M(x) \land \textbf{printed}(m)
+\]
+
+We already have `m = M(x)` from the previous step, so we only have to add the effect of the `print`.  
+Take as **intermediate** post‑condition  
+
+\[
+C \;:=\; \textbf{printed}(m) \land m = M(x)
+\]
+
+The print axiom tells us that for any `R` that does not mention the output buffer,
+
+\[
+\{\,\textbf{printed}(m) \land R\,\}\;\textbf{print}(m)\;\{\,R\,\}
+\tag{P}
+\]
+
+Choose `R` to be `m = M(x)`.  Then we obtain the triple
+
+\[
+\boxed{\{\,\textbf{printed}(m) \land m = M(x)\,\}\;\textbf{print}(m)\;\{\,m = M(x)\,\}}
+\tag{T\_print}
+\]
+
+Now we *weaken* the post‑condition of `print` (using consequence) to the desired `C`:
+
+\[
+\frac{
+  \{\,\textbf{printed}(m) \land m = M(x)\,\}\;\textbf{print}(m)\;\{\,m = M(x)\,\}
+  \qquad
+  m = M(x) \;\Rightarrow\; (\textbf{printed}(m) \land m = M(x))
+}{
+  \{\,m = M(x)\,\}\;\textbf{print}(m)\;\{\textbf{printed}(m) \land m = M(x)\}
+}
+\tag{T\_print′}
+\]
+
+(Here the implication is trivial because `m = M(x)` already holds; the rule adds the `printed(m)` component.)
+
+Thus we have a verified triple for the third line.
+
+### 3.4  Composition of the three triples  
+
+We now chain the three fragments using the composition rule.
+
+1. From **(T\_read)** we have  
+
+   \[
+   \{\,1\le x\le 12\,\}\;\textbf{read}(x)\;\{\,1\le x\le 12\,\}
+   \]
+
+2. From **(T\_assign)** we have  
+
+   \[
+   \{\,1\le x\le 12\,\}\; m\gets M(x)\; \{\,m = M(x)\,\}
+   \]
+
+   Hence the post‑condition of the first command (`1≤x≤12`) is *strong enough* to serve as the pre‑condition of the second command.
+
+3. From **(T\_print′)** we have  
+
+   \[
+   \{\,m = M(x)\,\}\;\textbf{print}(m)\;\{\textbf{printed}(m) \land m = M(x)\}
+   \]
+
+   The post‑condition of the second command (`m = M(x)`) matches the pre‑condition of the third.
+
+Applying composition twice:
+
+\[
+\begin{aligned}
+&\{\,1\le x\le 12\,\}\;
+  \bigl(\textbf{read}(x);\; m\gets M(x);\; \textbf{print}(m)\bigr)
+  \;\{\,\textbf{printed}(m) \land m = M(x)\,\}
+\end{aligned}
+\]
+
+which is exactly the Hoare triple we wanted to prove.
+
+---
+
+## 4.  Connecting the abstract function `M` with the concrete Python code  
+
+The Python statement  
+
+```python
+m = calendar.month_name[mes]
+```
+
+uses the **standard library** `calendar`.  The list `calendar.month_name` is defined (in CPython) as
+
+```python
+month_name = ["", "January", "February", "March", "April", "May",
+              "June", "July", "August", "September", "October",
+              "November", "December"]
+```
+
+Hence for every integer `i` such that `1 ≤ i ≤ 12`
+
+\[
+\text{calendar.month\_name}[i] = M(i)
+\]
+
+and for any other integer the list would raise an `IndexError`.  
+Because our **pre‑condition** guarantees `1 ≤ x ≤ 12`, the indexing is safe and the value returned by the Python expression is *identical* to the mathematical function `M`.  
+Thus the assignment `m = calendar.month_name[mes]` is a faithful implementation of the abstract command `m := M(x)` used in the proof.
+
+---
+
+## 5.  Termination  
+
+The program consists of a *finite* sequence of atomic commands (`read`, assignment, `print`).  
+Each command finishes after a bounded number of elementary steps (reading a line, evaluating an expression, writing a line).  
+Therefore the whole program **always terminates**, which satisfies the implicit termination requirement of Hoare logic.
+
+---
+
+## 6.  Summary of the formal proof  
+
+| Step | Hoare triple (derived) | Reason |
+|------|------------------------|--------|
+| 1 | \(\{1\le x\le 12\}\; \textbf{read}(x) \; \{1\le x\le 12\}\) | Input axiom + consequence |
+| 2 | \(\{1\le x\le 12\}\; m\gets M(x) \; \{m = M(x)\}\) | Assignment axiom (pre‑condition weakened to true) |
+| 3 | \(\{m = M(x)\}\; \textbf{print}(m) \; \{\textbf{printed}(m) \land m = M(x)\}\) | Print axiom + consequence |
+| 4 | \(\{1\le x\le 12\}\; \bigl(\textbf{read}(x); m\gets M(x); \textbf{print}(m)\bigr) \; \{\textbf{printed}(m) \land m = M(x)\}\) | Composition of 1‑3 |
+
+The **pre‑condition** of the whole program is exactly `1 ≤ x ≤ 12`.  
+The **post‑condition** is `m = M(x) ∧ printed(m)`, which is precisely the specification `Q`.  
+
+Consequently the Hoare triple  
+
+\[
+\boxed{\{\,1\le x\le 12\,\}\; S\; \{\,m = M(x) \land \textbf{printed}(m)\,\}}
+\]
+
+holds, establishing the *partial correctness* of the Python program with respect to the given specification.  
+
+Because the program is a finite sequence of terminating commands, we also have **total correctness**: it always terminates and, upon termination, satisfies the required post‑condition.  
+
+∎

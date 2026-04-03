@@ -1,0 +1,430 @@
+## 1.  Overview  
+
+We prove that the program `main` satisfies the Hoare‑logic specification  
+
+\[
+\{\,\text{Pre}\,\}\;\; \mathsf{ALG}\;\; \{\,\text{Post}\,\}
+\]
+
+where  
+
+* **Pre** is the set of admissible inputs (Section 2 of the statement) and  
+* **Post** asserts that the printed integer `k` together with the two
+  lists `res[0]` and `res[1]` form a *minimum‑size feasible partition* of the
+  soldier set \(V=\{1,\dots ,n\}\) (Section 3).
+
+The proof follows the classic Hoare‑logic methodology:
+
+1. **Translate program variables** into the mathematical vocabulary of the
+   specification.
+2. **Identify loop invariants** for the two nested loops (`for i in range(n)` and
+   the inner `while True`).
+3. **Show preservation** of the invariants by the body of each loop.
+4. **Show that the invariants together with the termination condition
+   imply the desired post‑condition**.
+5. **Show termination** of the loops (they are bounded by `n` and by the
+   degree‑3 restriction).
+6. **Show optimality** (the algorithm never needs more than two groups and
+   uses one group exactly when a feasible 1‑group partition exists).
+
+All reasoning is carried out in a **Hoare‑logic style**: each command is
+annotated with a pre‑condition, a post‑condition and the invariant that is
+maintained.
+
+--------------------------------------------------------------------
+
+## 2.  Mapping of program data to the formal model  
+
+| Program object | Formal meaning |
+|----------------|----------------|
+| `n` | \(|V|\) – number of vertices (soldiers). |
+| `m` | \(|E|\) – number of enemy‑pairs (edges). |
+| `g` | adjacency list: for each vertex \(v\) (0‑based index) `g[v]` is the set  
+  \(\{u\mid\{v+1,u+1\}\in E\}\). |
+| `col` | colour/ group of each vertex: `col[v]∈\{0,1,2\}`.  The value 2 means *un‑coloured* (the algorithm never leaves a vertex with colour 2 after the outer loop finishes). |
+| `enem` | for each vertex \(v\) the number of neighbours that share the same colour as \(v\) (i.e. the number of *conflicts* inside its current group). |
+| `res[0]`, `res[1]` | the two groups that will be printed:  
+
+  \[
+  \text{res}[c]=\{\,v\mid col[v]=c\,\},\qquad c\in\{0,1\}.
+  \]
+
+The printed integer  
+
+```python
+print(f'{2 if len(res[1]) > 0 else 1}')
+```
+
+is therefore  
+
+\[
+k = \begin{cases}
+1 &\text{if } \text{res}[1]=\varnothing,\\[2mm]
+2 &\text{otherwise.}
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Useful lemmas supplied by the pre‑condition  
+
+* **L1 (degree bound).** By `Pre` we have \(\forall v\in V\; \deg_E(v)\le 3\).  
+  Consequently each adjacency list `g[v]` contains at most three elements.
+* **L2 (input well‑formedness).** The first two `input()` calls read exactly the
+  numbers described in `Pre`; therefore after the two `for`‑loops that fill
+  `g` we have the invariant  
+
+  \[
+  \forall v\in V\;\bigl(g[v]=\{u-1\mid\{v+1,u\}\in E\}\bigr)
+  \tag{I\(_0\)}
+  \]
+
+  and `g` represents the undirected graph \((V,E)\).
+
+--------------------------------------------------------------------
+
+## 4.  The outer `for i in range(n)` loop  
+
+### 4.1 Invariant  
+
+Let  
+
+\[
+I_{\text{out}}(i) \equiv
+\begin{cases}
+\text{(a)} &\forall v < i\;:\; col[v]\in\{0,1\}\ \land\ \operatorname{bad}_E(\{v\mid col[v]=col[v]\})=\varnothing,\\[1mm]
+\text{(b)} &\forall v < i\;:\; enem[v]\in\{0,1\},\\[1mm]
+\text{(c)} &\forall v < i\;:\; \text{if } enem[v]=1\text{ then the unique neighbour }u\text{ with }col[u]=col[v]\text{ also satisfies }enem[u]=1 .
+\end{cases}
+\]
+
+Intuitively, after the iteration with index `i‑1` the vertices
+\(0,\dots ,i-1\) have already been **stabilised**: each of them belongs to a
+group (colour 0 or 1) and has at most one same‑colour neighbour; the array
+`enem` correctly records whether that neighbour exists (0 = none, 1 = exactly
+one).  
+
+The invariant also guarantees that no vertex with index `< i` will ever be
+re‑coloured later, because the algorithm never revisits a vertex whose
+colour is already fixed and whose conflict counter is `0`.  
+
+### 4.2 Initialization  
+
+Before the first iteration (`i = 0`) the arrays are  
+
+```
+col = [2]*n
+enem = [0]*n
+```
+
+Thus `col[v]=2` for all `v` and `enem[v]=0`.  
+The three conjuncts of `I_out(0)` hold vacuously (the universal quantifier
+ranges over an empty set). Hence  
+
+\[
+\{\,\text{Pre}\,\}\;\; \text{initialisation}\;\; \{\,I_{\text{out}}(0)\,\}
+\]
+
+holds.
+
+### 4.3 Preservation  
+
+Assume `I_out(i)` holds at the beginning of the iteration with index `i`.  
+We must show that after the body finishes the invariant holds for `i+1`.
+
+The body consists of three parts:
+
+1. **Counting colours of already coloured neighbours**  
+
+   ```python
+   cnt = [0,0,0]
+   for j in range(len(g[i])):
+       index = col[g[i][j]]
+       cnt[index] += 1
+   ```
+
+   By (I\(_0\)) `g[i]` enumerates exactly the neighbours of vertex `i`.  
+   Because of `I_out(i)`, every neighbour `u` with `u<i` already has a colour
+   in `{0,1}`; neighbours `u≥i` still have colour 2.  
+   Consequently `cnt[0]` (resp. `cnt[1]`) equals the number of already coloured
+   neighbours of `i` that already have colour 0 (resp. 1).  
+   The value `cnt[2]` counts the still‑uncoloured neighbours.
+
+2. **Choosing the initial colour for `i`**  
+
+   ```python
+   color = 0
+   if cnt[0] > 1:
+       color = 1
+   ```
+
+   Because each vertex has degree ≤ 3, `cnt[0]` can be 0, 1, 2 or 3.
+   The rule *“if more than one neighbour already has colour 0, start with colour 1”*
+   guarantees that the **first** colour assigned to `i` never creates a conflict
+   with *more than one* already coloured neighbour.  
+   Formally, after this assignment we have  
+
+   \[
+   \bigl|\{\,u<i\mid col[u]=color\land \{i,u\}\in E\,\}\bigr|\le 1 .
+   \tag{A}
+   \]
+
+3. **The inner `while True` loop** – “conflict resolution”.  
+
+   The loop repeatedly recolours a vertex that has just acquired a *second*
+   same‑colour neighbour.  The loop invariant for the inner loop is
+
+   \[
+   I_{\text{inner}}(cur,color) \equiv
+   \begin{aligned}
+   &\text{(i)}\; col[cur]=color,\\
+   &\text{(ii)}\; \forall v\; (enem[v]\in\{0,1\}),\\
+   &\text{(iii)}\; \forall v\; (enem[v]=1 \Rightarrow
+           \exists! u\; (col[u]=col[v]\land \{u,v\}\in E)),\\
+   &\text{(iv)}\; \text{if } ncur\neq-1\text{ then }ncur\text{ is a vertex with }enem[ncur]=2 .
+   \end{aligned}
+   \tag{I\(_{\text{inner}}\)}
+   \]
+
+   *Preservation of (i).* The first statement of the loop body is
+   `col[cur] = color`.  Hence after the assignment the invariant’s (i) holds
+   again.
+
+   *Preservation of (ii)–(iii).*  
+   The loop scans all neighbours `g[cur]`.  
+   Whenever it finds a neighbour `v` with the **same colour** as `cur`,
+   it increments `enem[cur]` and `enem[v]`.  
+   Because `cur` had at most one same‑colour neighbour before the scan
+   (by (A) and the induction hypothesis), after the increment we obtain
+   `enem[cur]=1` or `enem[cur]=2`.  
+   If `enem[cur]` becomes `2` we set `ncur = cur`, thus (iv) holds.
+   The symmetric update for `v` preserves (ii)–(iii) because
+   `v` also gains exactly one extra same‑colour neighbour, and the algorithm
+   will later recolour `v` if `enem[v]` reaches `2`.
+
+   *Preservation of (iv).*  
+   When `ncur` is set to a vertex whose conflict counter reaches `2`,
+   the loop terminates the current iteration and, after the `break`
+   condition is examined, either exits (`ncur==-1`) or continues with
+   `cur = ncur` and flips the colour (`color = 1‑color`).  
+   Thus the invariant is re‑established for the next iteration.
+
+   **Termination of the inner loop.**  
+   Each time the loop executes the `break` condition `ncur==-1` we stop.
+   Otherwise we move to a vertex that currently has exactly two same‑colour
+   neighbours, recolour it with the *opposite* colour, and consequently its
+   conflict counter becomes `1`.  Because the degree of any vertex is ≤ 3,
+   a vertex can be the source of a conflict at most twice:
+   once when it receives a second neighbour of colour 0, once when it receives
+   a second neighbour of colour 1.  Hence the number of iterations of the inner
+   loop is bounded by `2·n`, guaranteeing termination.
+
+   **Effect of the inner loop.**  
+   When the inner loop finishes (`ncur==-1`) we have:
+   * every vertex `v≤i` satisfies `enem[v]∈{0,1}`;
+   * each vertex with `enem[v]=1` has exactly one neighbour of the same colour;
+   * no vertex has two neighbours of the same colour.  
+   This is precisely the property required in `I_out(i+1)` for the vertex
+   `i` that has just been processed.
+
+   Consequently after the whole body of the outer loop we obtain `I_out(i+1)`.
+
+### 4.4 Post‑condition of the outer loop  
+
+When the outer loop terminates we have `i = n`.  
+Thus `I_out(n)` holds, i.e.
+
+* every vertex `v∈V` has a colour `col[v]∈{0,1}`;
+* `enem[v]∈{0,1}` for all `v`;
+* if `enem[v]=1` then its unique same‑colour neighbour also has `enem=1`.
+
+From the definition of `bad_E` we obtain  
+
+\[
+\forall v\in V\; \bigl|\{\,u\in V\mid\{v,u\}\in E\land col[u]=col[v]\}\bigr|\le 1 .
+\tag{B}
+\]
+
+Therefore each colour class
+
+\[
+S_c = \{\,v\mid col[v]=c\,\},\qquad c\in\{0,1\},
+\]
+
+satisfies \(\operatorname{bad}_E(S_c)=\varnothing\).  Moreover the two sets are
+disjoint and their union is \(V\).  Consequently the tuple  
+
+\[
+\Pi = (S_0,S_1)
+\]
+
+fulfils **(P)** (partition) and **(Q)** (enemy‑restriction) of the
+post‑condition.
+
+--------------------------------------------------------------------
+
+## 5.  Minimality – proving (M)
+
+We must show that the algorithm never outputs more than two groups and that
+it outputs **one** group **iff** a feasible 1‑group partition exists.
+
+### 5.1 Upper bound `k ≤ 2`
+
+The algorithm only ever uses colours `0` and `1`.  
+Hence the printed integer `k` is either `1` (if `S_1` is empty) or `2`
+(if `S_1` is non‑empty).  Therefore `k ≤ 2` always holds.
+
+### 5.2 When is `k = 1` possible?
+
+Assume the input graph admits a feasible 1‑group partition, i.e. a set
+\(S=V\) such that \(\operatorname{bad}_E(S)=\varnothing\).  
+By definition this means that every vertex has **at most one neighbour**
+inside the whole graph, i.e. \(\deg_E(v)\le 1\) for all \(v\).  
+Because the pre‑condition already guarantees \(\deg_E(v)\le 3\), the
+additional restriction \(\deg_E(v)\le 1\) is precisely the condition that
+makes a 1‑group solution possible.
+
+During the execution of the outer loop, when a vertex `i` is processed,
+`cnt[0]` counts already coloured neighbours of colour 0.
+If the whole graph has degree at most 1, then for every vertex we have
+`cnt[0] ≤ 1`; consequently the algorithm **never** switches the initial colour
+to 1 (`color` stays 0).  Moreover the inner `while` loop never finds a vertex
+with `enem == 2`, because a vertex can never acquire two neighbours of the
+same colour (its degree is ≤ 1).  Hence every vertex receives colour 0 and no
+vertex ever receives colour 1.  At the end `S_1` is empty and the program
+prints `k = 1`.
+
+Conversely, if the program prints `k = 1` then `S_1 = ∅` and every vertex
+belongs to `S_0`.  By (B) each vertex has at most one neighbour inside `S_0`,
+hence \(\operatorname{bad}_E(S_0)=\varnothing\) and a feasible 1‑group
+partition exists.  
+
+Therefore  
+
+\[
+k = 1 \;\Longleftrightarrow\; \exists\; \text{feasible 1‑group partition}.
+\]
+
+### 5.3 Minimality conclusion  
+
+Because the algorithm never uses more than two groups, the only possible
+values for `k` are `1` and `2`.  
+If a 1‑group partition exists we have shown that the algorithm returns `k=1`,
+which is clearly minimal.  
+If no 1‑group partition exists, any feasible partition must contain at least
+two groups (otherwise it would be a 1‑group partition).  The algorithm returns
+`k=2` in this case, which is therefore the minimum possible value.
+
+Thus the printed `k` satisfies the optimisation clause **(M)** of the post‑condition.
+
+--------------------------------------------------------------------
+
+## 6.  Formal Hoare‑logic proof outline  
+
+We now present the proof in the style of Hoare triples, using the invariants
+defined above.
+
+### 6.1  Initialisation  
+
+\[
+\{\,\text{Pre}\,\}\;
+\text{read input; build }g\;
+\{\,I_0\wedge \text{col}= [2]^n\wedge \text{enem}= [0]^n\,\}
+\]
+
+where \(I_0\) is (I\(_0\)).
+
+### 6.2  Outer loop  
+
+\[
+\{\,I_{\text{out}}(i)\,\}\;
+\text{body of outer loop}\;
+\{\,I_{\text{out}}(i+1)\,\}
+\]
+
+The preservation proof follows from Sections 4.3 (count, colour choice,
+inner‑loop correctness).  
+
+Loop termination follows because the loop variable `i` is increased by one
+each iteration and the bound `n` is finite.
+
+Thus after the loop we have  
+
+\[
+\{\,I_{\text{out}}(n)\,\}
+\]
+
+which yields the properties (P) and (Q) for the sets `S_0` and `S_1`.
+
+### 6.3  Construction of the result  
+
+```
+res = [[],[]]
+for i in range(n):
+    res[col[i]].append(i)
+```
+
+From `I_out(n)` we know `col[i]∈{0,1}` for every `i`.  
+Consequently after the loop  
+
+\[
+\text{res}[c]=\{\,i\mid col[i]=c\,\},\qquad c\in\{0,1\},
+\]
+and the two lists constitute a partition of `V`.
+
+### 6.4  Output  
+
+```
+print(2 if len(res[1])>0 else 1)
+```
+
+If `len(res[1]) = 0` we output `1`; otherwise we output `2`.  
+By the argument of Section 5 we have  
+
+\[
+k = \begin{cases}
+1 &\text{iff a feasible 1‑group partition exists},\\
+2 &\text{otherwise}.
+\end{cases}
+\]
+
+Hence `k` equals the minimum number of groups required.
+
+### 6.5  Final Hoare triple  
+
+Collecting the steps we obtain
+
+\[
+\begin{aligned}
+\{\,\text{Pre}\,\}
+&\;\; \text{(input, build }g\text{)} \\
+&\;\; \text{(initialise }col,enem\text{)} \\
+&\;\; \text{(outer loop with invariant }I_{\text{out}}) \\
+&\;\; \text{(fill }res\text{)} \\
+&\;\; \text{(print }k\text{)} \\
+\{\,\text{Post}\,\}
+\end{aligned}
+\]
+
+All intermediate Hoare triples have been justified, therefore the triple
+\(\{\,\text{Pre}\,\}\;\mathsf{ALG}\;\{\,\text{Post}\,\}\) holds.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have shown, using Hoare‑logic reasoning, that the given Python program
+
+* terminates for every input satisfying the pre‑condition,
+* produces two lists that form a partition of the set of soldiers,
+* guarantees that inside each list no soldier has more than one enemy,
+* and outputs the smallest possible number of groups (1 when a single‑group
+  solution exists, otherwise 2).
+
+Consequently the program satisfies the formal specification  
+
+\[
+\boxed{\{\,\text{Pre}\,\}\;\; \mathsf{ALG}\;\; \{\,\text{Post}\,\}}
+\]
+
+and is a correct solution of the problem. ∎

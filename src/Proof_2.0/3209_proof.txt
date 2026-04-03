@@ -1,0 +1,214 @@
+**Goal**  
+Show that the concrete Python program  
+
+```python
+n = int(input())                     # 1
+for i in range(n):                   # 2 … 6
+    k, *filtros = map(int, input().split())
+    print(sum(filtros) - k + 1)       # 5
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{P\}\;\; \texttt{solve\_max\_appliances}\;\; \{Q\}
+\]
+
+where  
+
+* **Pre‑condition** `P` (section 2) guarantees that the input is well‑formed and obeys the numeric bounds, and  
+
+* **Post‑condition** `Q` (section 3) requires that the program prints exactly `N` lines and that the *t*‑th line equals  
+
+\[
+\max(t)=\Bigl(\sum_{i=1}^{K_t} O_{t,i}\Bigr)-(K_t-1).
+\]
+
+The proof proceeds by **structural induction** on the loop that processes the `N` test cases and by a **simple arithmetic verification** of the expression that is printed for each case.
+
+--------------------------------------------------------------------
+
+## 1. Mapping of program variables to logical variables
+
+| Program identifier | Logical meaning (according to the specification) |
+|--------------------|---------------------------------------------------|
+| `n`                | `N` – number of test cases                       |
+| loop index `i`    | dummy variable, not used in the specification    |
+| `k`                | `K_t` – number of power strips of the current test case `t` |
+| `filtros` (list)  | `[O_{t,1}, … , O_{t,k}]` – the outlet counts of the `k` strips |
+| `sum(filtros)`    | \(\displaystyle\sum_{i=1}^{K_t} O_{t,i}\)        |
+| printed value     | \(\displaystyle\sum_{i=1}^{K_t} O_{t,i} - K_t + 1\) |
+
+Thus the printed value is exactly  
+
+\[
+\underbrace{\Bigl(\sum_{i=1}^{K_t} O_{t,i}\Bigr)}_{\text{sum of outlets}}
+\;-\;K_t\;+\;1
+\;=\;
+\Bigl(\sum_{i=1}^{K_t} O_{t,i}\Bigr)-(K_t-1)
+\;=\;
+\max(t).
+\]
+
+--------------------------------------------------------------------
+
+## 2. Proof that the program respects the pre‑condition
+
+The first statement `n = int(input())` reads a single integer.  
+Because the execution is *only* started when `P` holds, we already know that
+
+* `n ∈ ℕ` and `1 ≤ n ≤ 20`.  
+
+Consequently the loop `for i in range(n):` iterates exactly `n` times, i.e. once for each test case `t ∈ {1,…,N}`.
+
+Inside the loop the statement  
+
+```python
+k, *filtros = map(int, input().split())
+```
+
+splits the next input line into the first integer (`k`) and the remaining `k` integers (`filtros`).  
+`P` guarantees that for the current test case
+
+* `k ∈ ℕ` and `1 ≤ k ≤ 10`, and  
+* each element of `filtros` belongs to ℕ and lies in the interval `[2,10]`.
+
+Because the input is well‑formed (the line contains exactly `k+1` numbers), the destructuring succeeds and the program variables acquire values that satisfy the *semantic* constraints of `P`. No other program statement can change `k` or `filtros`. Hence **the loop invariant “the current iteration processes a test case that satisfies the part of `P` belonging to that case” holds** from the first iteration onward.
+
+--------------------------------------------------------------------
+
+## 3. Loop invariant and its preservation
+
+Define the following **loop invariant** `I(t)` for the *t*‑th iteration (i.e. just before the `print` statement of iteration `t`):
+
+> **I(t)**:  
+> *All input up to test case `t‑1` has already been read and printed correctly.*  
+> *For the current test case `t` the variables satisfy*  
+> \[
+> k = K_t,\qquad filtros = [O_{t,1},\dots,O_{t,k}].
+> \]
+
+### 3.1. Initialization (`t = 1`)
+
+Before the first iteration no test case has been processed, so the first part of `I(1)` holds vacuously.  
+The statement that reads the first line (`k, *filtros = …`) assigns exactly the values described in the second part of `I(1)` because the input line is, by `P`, of the form  
+
+```
+K_1 O_{1,1} O_{1,2} … O_{1,K_1}
+```
+
+Thus `I(1)` holds before the `print` of the first iteration.
+
+### 3.2. Maintenance (`t → t+1`)
+
+Assume `I(t)` holds at the beginning of iteration `t`.  
+The program executes
+
+```python
+print(sum(filtros) - k + 1)
+```
+
+*Arithmetic correctness* (proved in §4) shows that the value printed is exactly `max(t)`.  
+Therefore after the `print` statement the first part of `I(t+1)` (“all test cases up to `t` have been printed correctly”) is satisfied.
+
+The `for` loop then proceeds to the next iteration, where the line
+
+```python
+k, *filtros = map(int, input().split())
+```
+
+reads the *t+1*‑st input line. By the same argument used for initialization, the values read become  
+
+\[
+k = K_{t+1},\qquad filtros = [O_{t+1,1},\dots,O_{t+1,K_{t+1}}].
+\]
+
+Thus the second part of `I(t+1)` holds, and the whole invariant `I(t+1)` is re‑established.
+
+### 3.3. Termination
+
+The loop runs `n` times, i.e. for `t = 1,2,…,N`.  
+When `t = N+1` the loop condition `i < n` fails and the program exits the loop.  
+At that moment the first part of the invariant tells us that *all* `N` test cases have been printed correctly, which is precisely the requirement of `Q` concerning the number of output lines and their values.
+
+--------------------------------------------------------------------
+
+## 4. Arithmetic correctness of the printed expression
+
+For a fixed test case `t` we have, by the mapping of §1,
+
+* `k = K_t`,
+* `filtros = [O_{t,1}, … , O_{t,k}]`,
+* `sum(filtros) = Σ_{i=1}^{K_t} O_{t,i}`.
+
+The program prints
+
+\[
+\text{printed} = \text{sum(filtros)} - k + 1
+               = \Bigl(\sum_{i=1}^{K_t} O_{t,i}\Bigr) - K_t + 1
+               = \Bigl(\sum_{i=1}^{K_t} O_{t,i}\Bigr) - (K_t-1)
+               = \max(t).
+\]
+
+The last equality is exactly the definition of `max(t)` given in the post‑condition `Q`.  
+Hence each printed line satisfies the numerical part of `Q`.
+
+--------------------------------------------------------------------
+
+## 5. Whole‑program Hoare‑logic proof
+
+We now combine the pieces into a formal Hoare‑logic derivation.
+
+1. **Start** with the pre‑condition `P`.  
+2. `n = int(input())` – reading a value that, by `P`, satisfies `1 ≤ n ≤ 20`.  
+   The command is *total* and preserves `P` (it does not change any other variable).  
+
+   \[
+   \{P\}\; n = \dots\; \{P\}
+   \]
+
+3. `for i in range(n): …` – a *bounded* loop whose bound `n` is known to be a natural number ≤ 20.  
+   To apply the Hoare rule for `while/for` we need an invariant.  
+   We use `I(t)` defined in §3. The invariant is shown to be true initially (step 3.1) and preserved (step 3.2).  
+
+   Therefore the loop as a whole yields the post‑condition  
+
+   \[
+   \{P\}\; \text{loop}\; \{ \text{ “all N test cases printed correctly” } \}
+   \]
+
+   which is exactly the first conjunct of `Q`.
+
+4. Inside the loop the body consists of the two statements examined in §4.  
+   The arithmetic statement has been proved to transform the current test‑case data into `max(t)`.  
+   Consequently after each iteration the printed line equals `output[t] = max(t)`.  
+
+   Hence the second conjunct of `Q` holds for every `t`.
+
+5. After the loop terminates there are no further statements; the program therefore satisfies `Q`.
+
+Putting the steps together we have derived the Hoare triple
+
+\[
+\boxed{\; \{P\}\; \texttt{solve\_max\_appliances}\; \{Q\}\;}
+\]
+
+which is precisely the specification demanded in the problem statement.
+
+--------------------------------------------------------------------
+
+## 6. Remarks on termination and bounds
+
+* **Termination** follows from the fact that the `for` loop iterates a known finite number `n` (≤ 20) of times and the body contains no further loops or recursion.  
+
+* **Integer overflow** cannot occur: the maximal possible value of `max(t)` is obtained when `K_t = 10` and every `O_{t,i} = 10`.  
+  \[
+  \max(t) = 10·10 - (10-1) = 100 - 9 = 91 < 2^{31}.
+  \]  
+  Hence the result comfortably fits into a 32‑bit signed integer, which is the type used by Python’s `int` on any modern platform.
+
+--------------------------------------------------------------------
+
+### Conclusion  
+
+The Python program implements exactly the mathematical formula required by the post‑condition, processes each test case once, prints one line per test case, and never violates the bounds imposed by the pre‑condition. By establishing a suitable loop invariant and showing the arithmetic equivalence `sum(filtros) - k + 1 = max(t)`, we have proved the Hoare‑logic triple `{P} program {Q}`; therefore the program is **correct** with respect to the given formal specification.

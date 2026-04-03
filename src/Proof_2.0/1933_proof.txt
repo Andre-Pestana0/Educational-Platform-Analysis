@@ -1,0 +1,256 @@
+**Goal**  
+
+Show that the program  
+
+```python
+a, b = map(int, input().split())
+if a == b:
+    c = a
+else:
+    c = (a + b + abs(a - b)) // 2          # integer division is equivalent to the
+                                          # cast to int that the original code does
+print(c)
+```
+
+satisfies the Hoare triple  
+
+\[
+\{\,P\,\}\;{\tt TriDu}\;\{\,Q\,\}
+\qquad\text{with}\qquad
+\begin{aligned}
+P &\equiv a\in\mathbb N_{13}\land b\in\mathbb N_{13}\\[2mm]
+Q &\equiv c\in\mathbb N_{13}\land c=\max (a,b)
+\end{aligned}
+\]
+
+where  
+
+\[
+\mathbb N_{13}= \{1,2,\dots ,13\},\qquad 
+\max (x,y)=\begin{cases}
+x & x\ge y\\
+y & x<y
+\end{cases}.
+\]
+
+The proof proceeds with the standard Hoare‑logic inference rules:
+
+* **(Axiom‑Assign)** \(\{\,Q[x:=e]\,\}\;x:=e\;\{\,Q\,\}\)  
+* **(Rule‑Conseq)** \(\dfrac{P'\Rightarrow P\qquad\{P\}\,S\,\{Q\}\qquad Q\Rightarrow Q'}{ \{P'\}\,S\,\{Q'\}}\)  
+* **(Rule‑If)** \(\dfrac{\{P\land B\}\,S_1\,\{Q\}\qquad\{P\land\lnot B\}\,S_2\,\{Q\}}{\{P\}\,\textbf{if }B\textbf{ then }S_1\textbf{ else }S_2\;\{Q\}}\)  
+* **(Rule‑Seq)** \(\dfrac{\{P\}\,S_1\,\{R\}\qquad\{R\}\,S_2\,\{Q\}}{\{P\}\,S_1;S_2\,\{Q\}}\)
+
+The program can be divided into three commands  
+
+```
+S1 : a, b = map(int, input().split())
+S2 : if a == b then c = a else c = (a+b+abs(a-b))//2
+S3 : print(c)                     (no effect on the variables that appear in Q)
+```
+
+`S3` does not modify any variable that occurs in the post‑condition, therefore it can be ignored for the correctness proof.  
+The whole program is therefore `S1;S2`.  
+
+--------------------------------------------------------------------
+### 1.  The input statement
+
+`S1` only *reads* the two integers; it does not change `a` or `b`.  
+Hence the Hoare triple  
+
+\[
+\{\,P\,\}\;S_1\;\{\,P\,\}
+\]
+
+holds trivially (Rule‑Conseq with the identity implication).  
+
+--------------------------------------------------------------------
+### 2.  The conditional statement `S2`
+
+We apply the **If‑rule**.  
+Let  
+
+\[
+B \equiv a = b ,\qquad
+S_{then}\equiv c := a,\qquad
+S_{else}\equiv c := (a+b+|a-b|)//2 .
+\]
+
+We must prove  
+
+\[
+\begin{aligned}
+\{\,P\land B\,\}&S_{then}\{\,Q\,\} \tag{1}\\
+\{\,P\land\lnot B\,\}&S_{else}\{\,Q\,\}. \tag{2}
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+#### 2.1  The *then* branch (a = b)
+
+**Pre‑condition** for this branch:
+
+\[
+P\land B \equiv a\in\mathbb N_{13}\land b\in\mathbb N_{13}\land a=b .
+\]
+
+Apply the **Assign‑axiom** with the post‑condition \(Q\):
+
+\[
+Q[c:=a] \equiv
+\bigl(c\in\mathbb N_{13}\land c=\max(a,b)\bigr)[c:=a]
+\equiv
+\bigl(a\in\mathbb N_{13}\land a=\max(a,b)\bigr).
+\]
+
+Because of the equality `a = b`, we have `max(a,b) = a`.  
+Thus  
+
+\[
+a\in\mathbb N_{13}\land a=\max(a,b)
+\]
+
+is exactly the same as the pre‑condition `P∧B`.  Consequently  
+
+\[
+\{\,P\land B\,\}\;c:=a\;\{\,Q\,\}
+\]
+
+holds (by the Assign‑axiom together with the Consequence rule).  
+Hence (1) is proved.
+
+--------------------------------------------------------------------
+#### 2.2  The *else* branch (a ≠ b)
+
+**Pre‑condition** for this branch:
+
+\[
+P\land\lnot B \equiv a\in\mathbb N_{13}\land b\in\mathbb N_{13}\land a\neq b .
+\]
+
+Again we start from the Assign‑axiom with the wanted post‑condition \(Q\):
+
+\[
+Q[c:=\; (a+b+|a-b|)//2]\equiv
+\bigl(c\in\mathbb N_{13}\land c=\max(a,b)\bigr)[c:=\dots]
+\]
+
+\[
+\equiv\;
+\Bigl(\frac{a+b+|a-b|}{2}\in\mathbb N_{13}\Bigr)
+\;\land\;
+\Bigl(\frac{a+b+|a-b|}{2}= \max(a,b)\Bigr).        \tag{*}
+\]
+
+(We may ignore the integer‑division “//” because the numerator is always even, see the algebra below.)
+
+--------------------------------------------------------------------
+**Algebraic lemma**  
+
+For any integers `x` and `y`
+
+\[
+\frac{x+y+|x-y|}{2}= \max(x,y).
+\]
+
+*Proof.*  
+If \(x\ge y\) then \(|x-y| = x-y\) and
+
+\[
+\frac{x+y+(x-y)}{2}= \frac{2x}{2}=x =\max(x,y).
+\]
+
+If \(x<y\) then \(|x-y| = y-x\) and
+
+\[
+\frac{x+y+(y-x)}{2}= \frac{2y}{2}=y =\max(x,y).
+\]
+
+∎
+
+Applying the lemma with `x = a`, `y = b` we obtain the second conjunct of (*):
+
+\[
+\frac{a+b+|a-b|}{2}= \max(a,b).
+\]
+
+Thus the second conjunct is *identically true* under the pre‑condition, no extra condition is needed.
+
+--------------------------------------------------------------------
+**Domain part**  
+
+Because both `a` and `b` belong to \(\mathbb N_{13}\), the larger of them also belongs to \(\mathbb N_{13}\).  
+Since the expression evaluates to this larger value, the first conjunct of (*) also holds:
+
+\[
+\frac{a+b+|a-b|}{2}\in\mathbb N_{13}.
+\]
+
+Therefore the whole formula (*) follows from the pre‑condition `P∧¬B`.  
+
+Consequently
+
+\[
+\{\,P\land\lnot B\,\}\;c:=\frac{a+b+|a-b|}{2}\;\{\,Q\,\}
+\]
+
+holds (Assign‑axiom + Consequence).  
+Hence (2) is proved.
+
+--------------------------------------------------------------------
+### 3.  Putting the pieces together
+
+* From Section 1 we have \(\{P\}\;S_1\;\{P\}\).  
+* From Sections 2.1 and 2.2, by the **If‑rule**, we have  
+
+  \[
+  \{P\}\;S_2\;\{Q\}.
+  \]
+
+* By the **Sequence‑rule** (Rule‑Seq) we obtain  
+
+  \[
+  \{P\}\;S_1;S_2\;\{Q\}.
+  \]
+
+The final `print(c)` does not affect the variables that appear in `Q`, so the same triple holds for the whole program `TriDu`.
+
+--------------------------------------------------------------------
+### 4.  Termination (total correctness)
+
+The program consists of a finite number of elementary statements:
+
+* reading two tokens (always succeeds because `P` guarantees that the input is well‑formed);
+* a single Boolean test `a == b`;
+* one of two assignments that are arithmetic expressions on bounded integers;
+* a `print`.
+
+No loop or recursion is present, therefore the program terminates for every state satisfying `P`.  
+
+Hence we have **total correctness**:
+
+\[
+\boxed{\{\,a\in\mathbb N_{13}\land b\in\mathbb N_{13}\,\}\;
+      \texttt{TriDu}\;
+      \{\,c\in\mathbb N_{13}\land c=\max(a,b)\,\}}
+\]
+
+--------------------------------------------------------------------
+### 5.  Summary of the proof steps (in Hoare‑logic notation)
+
+\[
+\begin{array}{ll}
+1.&\{P\}\;a,b:=\text{input}\;\{P\} &\text{(no change)}\\[2mm]
+2.&\{P\land a=b\}\;c:=a\;\{c\in\mathbb N_{13}\land c=\max(a,b)\} 
+    &\text{(Assign + Conseq.)}\\[2mm]
+3.&\{P\land a\neq b\}\;c:=\frac{a+b+|a-b|}{2}\;
+    \{c\in\mathbb N_{13}\land c=\max(a,b)\} 
+    &\text{(Assign + Lemma)}\\[2mm]
+4.&\{P\}\;\textbf{if }a==b\textbf{ then }c:=a\textbf{ else }c:=
+    \frac{a+b+|a-b|}{2}\;\{c\in\mathbb N_{13}\land c=\max(a,b)\}
+    &\text{(If‑rule from 2,3)}\\[2mm]
+5.&\{P\}\;S_1;S_2\;\{c\in\mathbb N_{13}\land c=\max(a,b)\}
+    &\text{(Seq‑rule from 1,4)}\\[2mm]
+\end{array}
+\]
+
+Thus the given Python program is **correct** with respect to the supplied Hoare‑logic specification.

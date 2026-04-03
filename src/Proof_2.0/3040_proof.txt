@@ -1,0 +1,248 @@
+## 1.  Overview  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\; \text{program}\; \{Q\}
+\]
+
+where  
+
+* **P** is the pre‑condition given in the statement,  
+* **Q** is the post‑condition that the output vector `out` has length `N` and that for each test case  
+
+\[
+\text{out}_i =\text{“Sim”}\iff 200\le h_i\le 300\land d_i\ge 50\land g_i\ge 150 .
+\]
+
+The program consists of three parts  
+
+1. reading the first line (`N`);
+2. a **first while‑loop** that reads the `N` triples \((h_i,d_i,g_i)\) and builds the list `respostas`;
+3. a **second while‑loop** that prints the elements of `respostas`.
+
+The proof proceeds by giving a suitable **loop invariant** for each while‑loop, showing  
+
+* **initialisation** (the invariant holds before the first iteration);
+* **preservation** (if it holds at the start of an iteration it holds again at the end);
+* **termination** (when the loop guard becomes false the invariant together with the negated guard yields the required part of the post‑condition).
+
+Finally we combine the two loops with the rule of **sequential composition** to obtain the whole triple.
+
+--------------------------------------------------------------------
+
+## 2.  Notation used in the proof  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N` | number of test cases (input) |
+| `i` | loop‑counter of the first loop (`1≤i≤N+1`) |
+| `j` | loop‑counter of the second loop (`1≤j≤N+1`) |
+| `h_i , d_i , g_i` | the three integers read for test case *i* |
+| `ok(h,d,g)` | \((200\le h\le 300)\land(d\ge 50)\land(g\ge 150)\) |
+| `respostas` | Python list that stores the answers; after the first loop `respostas[k]` (0‑based) corresponds to test case *k+1* |
+| `out` | the sequence of strings printed by the program (identical to `respostas`) |
+| `len(L)` | length of a list `L` |
+
+--------------------------------------------------------------------
+
+## 3.  First loop – building the answer vector  
+
+### 3.1.  The loop in the source code  
+
+```python
+respostas = []
+i = 0
+while i < numTestes:          # i ranges 0 … N‑1
+    alt, dmt, qtdGalhos = map(int, input().split())
+    if alt>=200 and alt<=300 and dmt>=50 and qtdGalhos>=150:
+        respostas.append("Sim")
+    else:
+        respostas.append("Nao")
+    i = i + 1
+```
+
+For the Hoare‑logic proof we rename `numTestes` to `N` and work with the **1‑based** counter  
+
+\[
+i\;:=\;i+1\qquad\text{(so that after the k‑th iteration }i=k\text{).}
+\]
+
+### 3.2.  Loop invariant  
+
+\[
+\boxed{
+\begin{aligned}
+I_1(i) \; \equiv\; & 0\le i\le N\;\land\\
+& |\text{respostas}| = i\;\land\\
+& \forall k\;(1\le k\le i)\;
+      \bigl(\text{respostas}[k-1] =\text{“Sim”}\iff ok(h_k,d_k,g_k)\bigr)
+\end{aligned}}
+\]
+
+*The invariant says:* after having processed the first `i` test cases, the list `respostas` already contains exactly `i` elements and each of them is correct with respect to the predicate `ok`.
+
+### 3.3.  Initialisation  
+
+Before the first iteration we have `i = 0` and `respostas = []`.  
+Hence  
+
+* `0 ≤ i ≤ N` (because `N>0` by *P*),
+* `|respostas| = 0 = i`,
+* the quantified part is vacuous (there is no `k` with `1 ≤ k ≤ 0`).
+
+Thus `I₁(0)` holds.
+
+### 3.4.  Preservation  
+
+Assume `I₁(i)` holds at the beginning of an iteration with guard `i < N`.  
+The body reads the triple \((h_{i+1},d_{i+1},g_{i+1})` and executes the `if`.
+
+*If the condition is true* (`ok(h_{i+1},d_{i+1},g_{i+1})` holds) the program appends `"Sim"`.  
+*Otherwise* it appends `"Nao"`.
+
+In either case a **single element** is appended, therefore after the `append`
+
+\[
+|\text{respostas}| = i+1 .
+\]
+
+Moreover the newly added element satisfies the equivalence required by the invariant, because the `if` uses **exactly** the definition of `ok`.  
+All older elements keep their correctness by the induction hypothesis.  
+
+Finally the counter is increased (`i := i+1`).  
+Consequently `I₁(i+1)` holds.
+
+### 3.5.  Termination  
+
+The loop guard is `i < N`. When the loop stops we have `i = N`.  
+Using the invariant with `i = N` we obtain
+
+* `|respostas| = N`,
+* ∀ k (1 ≤ k ≤ N) (respostas[k‑1] = “Sim” ⇔ ok(h_k,d_k,g_k)).
+
+Thus after the first loop the list `respostas` already satisfies the **entire** post‑condition **Q** (except that we have not yet printed it).  
+
+Formally we have proved  
+
+\[
+\{P\}\;\text{first‑loop}\;\{\,|\text{respostas}| = N\;\land\;
+\forall k\;(1\le k\le N)\;( \text{respostas}[k-1]=\text{“Sim”}\iff ok(h_k,d_k,g_k) )\;\}.
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Second loop – printing the answers  
+
+### 4.1.  The loop in the source code  
+
+```python
+for i in range(numTestes):
+    print(respostas[i])
+```
+
+In Hoare‑logic we write it as a while‑loop with an explicit counter `j`:
+
+```
+j = 0
+while j < N:
+    print(respostas[j])
+    j = j + 1
+```
+
+### 4.2.  Loop invariant  
+
+\[
+\boxed{
+\begin{aligned}
+I_2(j) \; \equiv\; & 0\le j\le N\;\land\\
+& \text{the first }j\text{ lines already printed are exactly }
+   respostas[0],\dots,respostas[j-1].
+\end{aligned}}
+\]
+
+### 4.3.  Initialisation  
+
+Before the first iteration `j = 0` and nothing has been printed, therefore `I₂(0)` holds trivially.
+
+### 4.4.  Preservation  
+
+Assume `I₂(j)` holds and `j < N`.  
+The body prints `respostas[j]` and then increments `j`.  
+Consequently after the body the first `j+1` printed lines are exactly
+`respostas[0] … respostas[j]`. Hence `I₂(j+1)` holds.
+
+### 4.5.  Termination  
+
+When the guard becomes false we have `j = N`.  
+`I₂(N)` tells us that **all** `N` lines have been printed and that they appear
+in the same order as the elements of `respostas`.  
+
+Because (1) already guarantees that `respostas` satisfies the logical condition
+required by `Q`, the printed output also satisfies `Q`.
+
+Formally we have proved  
+
+\[
+\{\,|\text{respostas}| = N\;\land\;
+\forall k\;(1\le k\le N)\;( \text{respostas}[k-1]=\text{“Sim”}\iff ok(h_k,d_k,g_k) )\;\}
+\;\text{second‑loop}\;
+\{\,|\text{out}| = N\;\land\;
+\forall k\;(1\le k\le N)\;( \text{out}_k =\text{“Sim”}\iff ok(h_k,d_k,g_k) )\;\}.
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the two parts  
+
+The whole program is  
+
+```
+read N
+first‑loop               # builds respostas
+second‑loop              # prints respostas
+```
+
+Using the rule of **sequential composition** (if `{A} C1 {B}` and `{B} C2 {C}` then `{A} C1;C2 {C}`) and the two derived triples (1) and (2) we obtain  
+
+\[
+\{P\}\;\text{program}\;\{\,|\text{out}| = N\;\land\;
+\forall i\;(1\le i\le N)\;( \text{out}_i =\text{“Sim”}\iff
+(200\le h_i\le 300\land d_i\ge 50\land g_i\ge 150) )\;\}.
+\]
+
+The right‑hand side is exactly the post‑condition **Q** stated in the specification.
+
+--------------------------------------------------------------------
+
+## 6.  Why the pre‑condition is sufficient  
+
+* `0 < N ≤ 10 000` guarantees that the two loops are **finite**; each iteration
+  increments the counter by one, therefore both loops terminate after at most `N` steps.
+* The bounds `0 < h_i,d_i,g_i ≤ 5 000` ensure that the arithmetic comparisons used
+  in the `if` statement never overflow the (unbounded) Python integers; they are not
+  required for logical correctness but they are part of the *assumed* input format,
+  so the program never raises a run‑time error while reading.
+
+Thus every execution that respects **P** finishes and satisfies **Q**.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have exhibited a formal Hoare‑logic proof:
+
+1. an invariant `I₁` for the loop that constructs the answer list,
+2. an invariant `I₂` for the loop that prints the list,
+3. proved initialization, preservation and termination for both loops,
+4. combined the two proofs by sequential composition.
+
+Consequently the Hoare triple  
+
+\[
+\boxed{\{P\}\;\text{program}\;\{Q\}}
+\]
+
+holds. In plain English: **provided the input respects the limits given in the statement, the program always prints exactly `N` lines, each line being “Sim” if and only if the corresponding tree meets the three required dimensions, otherwise “Nao”.** ∎

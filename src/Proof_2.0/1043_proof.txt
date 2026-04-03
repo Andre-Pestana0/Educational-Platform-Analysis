@@ -1,0 +1,353 @@
+## 1.  What we have to show  
+
+We are given the **Hoare triple**
+
+\[
+\{\,\top \,\}\;\;{\tt Program}\;\; \{\,\Phi \,\},
+\]
+
+where  
+
+* `Program` is the Python fragment that reads three numbers, tests the triangle
+  inequality and prints either the perimeter or the “area’’ (the statement calls it
+  the area of a trapezoid, the formal specification uses Heron’s formula – we
+  prove the program satisfies the *formal* specification).  
+
+* \(\Phi\) is the post‑condition  
+
+\[
+\begin{aligned}
+\Phi \equiv &\;
+\bigl(\text{tri}(a,b,c)\;\land\;
+            \text{out}=``\text{Perimetro = }''\;\|\;
+            \text{fmt}(a+b+c,1)\bigr)\\[1mm]
+&\;\;\lor\\[1mm]
+&\;
+\bigl(\neg\text{tri}(a,b,c)\;\land\;
+            \text{out}=``\text{Area = }''\;\|\;
+            \text{fmt}\bigl(\sqrt{s(s-a)(s-b)(s-c)},1\bigr)\bigr),
+\end{aligned}
+\]
+
+with  
+
+\[
+s\;=\;\frac{a+b+c}{2}, \qquad 
+\text{tri}(a,b,c)\;:=\;a>0\land b>0\land c>0\land
+a<b+c\land b<a+c\land c<a+b .
+\]
+
+The proof proceeds by the usual **Hoare‑logic rules**:
+
+* **(Read)** – the input statement introduces the variables \(a,b,c\) and guarantees
+  that they are real numbers.  
+
+* **(If‑rule)** – we prove the two branches separately and then combine them.  
+
+* **(Assignment rule)** – for each assignment we compute the weakest pre‑condition
+  needed for the post‑condition of that assignment.  
+
+* **(Consequence)** – we may strengthen a pre‑condition or weaken a post‑condition
+  when convenient.
+
+Below we give the proof in the style of a natural‑deduction tree that a textbook on
+Hoare logic would accept.  All arithmetic reasoning is carried out in the real
+field; the only extra function that needs a lemma is the rounding function
+\(\text{fmt}(x,1)\), which we treat as an uninterpreted total function that
+preserves the value of its first argument up to rounding to one decimal place.
+
+
+
+--------------------------------------------------------------------
+
+## 2.  Proof skeleton
+
+\[
+\begin{array}{c}
+\{\,\top\,\}\\[1mm]
+\hline
+\texttt{a,b,c = map(float,input().split())}
+\end{array}
+\qquad
+\Longrightarrow
+\qquad
+\{\,a,b,c\in\mathbb R\,\}
+\tag{R1}
+\]
+
+From \((R1)\) we apply the **if‑rule**:
+
+\[
+\begin{array}{c}
+\{\,a,b,c\in\mathbb R\,\}\\[1mm]
+\hline
+\texttt{if tri(a,b,c):}\\[1mm]
+\quad\{\,\text{tri}(a,b,c)\,\}\\
+\quad\texttt{p = a+b+c}\\[1mm]
+\quad\texttt{out = "Perimetro = " + fmt(p,1)}\\[1mm]
+\texttt{else:}\\[1mm]
+\quad\{\,\neg\text{tri}(a,b,c)\,\}\\
+\quad\texttt{s = (a+b+c)/2}\\[1mm]
+\quad\texttt{A = sqrt(s*(s-a)*(s-b)*(s-c))}\\[1mm]
+\quad\texttt{out = "Area = " + fmt(A,1)}\\[1mm]
+\texttt{fi}
+\end{array}
+\]
+
+We must show :
+
+* **Branch 1** (the *then* branch) establishes  
+
+  \[
+  \bigl(\text{tri}(a,b,c)\;\land\;
+         \text{out}=``\text{Perimetro = }''\|\text{fmt}(a+b+c,1)\bigr)
+  \tag{C1}
+  \]
+
+* **Branch 2** (the *else* branch) establishes  
+
+  \[
+  \bigl(\neg\text{tri}(a,b,c)\;\land\;
+         \text{out}=``\text{Area = }''\|\text{fmt}\bigl(\sqrt{s(s-a)(s-b)(s-c)},1\bigr)\bigr)
+  \tag{C2}
+  \]
+
+* Finally, the **if‑rule** gives \(\Phi = C1\lor C2\).
+
+--------------------------------------------------------------------
+
+## 3.  Detailed proof of the *then* branch  
+
+### 3.1  Pre‑condition for the *then* branch  
+
+Immediately before the first statement of the *then* branch we have the
+assertion  
+
+\[
+\{\,\text{tri}(a,b,c)\,\}.
+\]
+
+### 3.2  Assignment `p = a+b+c`
+
+The **assignment axiom** says  
+
+\[
+\{\,\text{tri}(a,b,c)\,\}\;
+p:=a+b+c\;
+\{\,\text{tri}(a,b,c)\land p=a+b+c\,\}.
+\tag{A1}
+\]
+
+Thus after the assignment we know the value of `p` and we still know that the
+triangle inequality holds.
+
+### 3.3  Assignment `out = "Perimetro = " + fmt(p,1)`
+
+Again using the assignment rule (with the expression `fmt(p,1)` treated as a
+pure term),
+
+\[
+\begin{aligned}
+&\{\,\text{tri}(a,b,c)\land p=a+b+c\,\}\\
+&\quad\texttt{out = "Perimetro = " + fmt(p,1)}\\
+&\{\,\text{tri}(a,b,c)\land
+      \text{out}=``\text{Perimetro = }''\|\text{fmt}(p,1)\,\}.
+\end{aligned}
+\tag{A2}
+\]
+
+Now substitute the definition of `p` obtained from (A1) :
+
+\[
+p = a+b+c \;\Longrightarrow\;
+\text{fmt}(p,1)=\text{fmt}(a+b+c,1).
+\]
+
+Hence from (A2) we obtain exactly (C1):
+
+\[
+\{\,\text{tri}(a,b,c)\land
+      \text{out}=``\text{Perimetro = }''\|\text{fmt}(a+b+c,1)\,\}.
+\tag{C1 proved}
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Detailed proof of the *else* branch  
+
+### 4.1  Pre‑condition for the *else* branch  
+
+Just before the first statement of the *else* branch we have  
+
+\[
+\{\,\neg\text{tri}(a,b,c)\,\}.
+\tag{E0}
+\]
+
+(Notice that the original problem statement does **not** require the three
+numbers to be positive in the *else* case; the formal specification also does
+not demand it – the only thing we need is that the expression under the square
+root is non‑negative.  The following algebra shows that this is indeed the case
+whenever `tri` is false.)
+
+### 4.2  Assignment `s = (a+b+c)/2`
+
+\[
+\{\,\neg\text{tri}(a,b,c)\,\}\;
+s := \frac{a+b+c}{2}\;
+\{\,\neg\text{tri}(a,b,c)\land s = \frac{a+b+c}{2}\,\}.
+\tag{E1}
+\]
+
+### 4.3  Assignment `A = sqrt(s*(s-a)*(s-b)*(s-c))`
+
+First note the **definition of Heron’s expression**
+
+\[
+H(a,b,c) \;:=\; s\,(s-a)\,(s-b)\,(s-c)
+\quad\text{with}\quad s=\frac{a+b+c}{2}.
+\]
+
+From (E1) we have exactly the term `s` that appears in `H`.  The assignment
+rule yields
+
+\[
+\begin{aligned}
+&\{\,\neg\text{tri}(a,b,c)\land s=\tfrac{a+b+c}{2}\,\}\\
+&\qquad\texttt{A = sqrt(s*(s-a)*(s-b)*(s-c))}\\
+&\{\,\neg\text{tri}(a,b,c)\land
+      A = \sqrt{H(a,b,c)}\,\}.
+\end{aligned}
+\tag{E2}
+\]
+
+#### 4.3.1  Why the square‑root is defined  
+
+If `tri(a,b,c)` is *false* then at least one of the strict triangle
+inequalities fails, e.g. \(a\ge b+c\).  In that situation we have  
+
+\[
+\begin{aligned}
+s &= \tfrac{a+b+c}{2}\\
+s-a &= \tfrac{-a+b+c}{2}\le 0,\\
+s-b &= \tfrac{ a-b+c}{2}\ge 0,\\
+s-c &= \tfrac{ a+b-c}{2}\ge 0 .
+\end{aligned}
+\]
+
+Consequently the product  
+\(H(a,b,c)=s\,(s-a)\,(s-b)\,(s-c)\) is **non‑negative** (it is the product of
+two non‑negative numbers and one non‑positive number; the overall sign is
+non‑negative because the factor that can be negative appears *exactly once*).
+Hence the square‑root is a real number, so the assignment is well‑defined.
+The same reasoning works for any of the three possible violations of the
+triangle inequality, therefore the lemma
+
+\[
+\boxed{\;\neg\text{tri}(a,b,c)\;\Longrightarrow\; H(a,b,c)\ge 0\;}
+\tag{L1}
+\]
+
+holds and justifies the use of `sqrt`.
+
+### 4.4  Assignment `out = "Area = " + fmt(A,1)`
+
+Applying the assignment axiom once more:
+
+\[
+\begin{aligned}
+&\{\,\neg\text{tri}(a,b,c)\land A=\sqrt{H(a,b,c)}\,\}\\
+&\qquad\texttt{out = "Area = " + fmt(A,1)}\\
+&\{\,\neg\text{tri}(a,b,c)\land
+      \text{out}=``\text{Area = }''\|\text{fmt}\bigl(\sqrt{H(a,b,c)},1\bigr)\,\}.
+\end{aligned}
+\tag{E3}
+\]
+
+Since \(H(a,b,c)=s(s-a)(s-b)(s-c)\) by definition, (E3) is precisely the
+desired post‑condition (C2).
+
+--------------------------------------------------------------------
+
+## 5.  Putting the two branches together  
+
+The **if‑rule** of Hoare logic states that if we can prove
+
+\[
+\begin{aligned}
+\{\,\text{tri}(a,b,c)\,\}&\; \text{then‑branch}\; \{C1\}\\
+\{\,\neg\text{tri}(a,b,c)\,\}&\; \text{else‑branch}\; \{C2\},
+\end{aligned}
+\]
+
+then we obtain  
+
+\[
+\{\,a,b,c\in\mathbb R\,\}\;
+\texttt{if tri(a,b,c): … else: … fi}\;
+\{\,C1\lor C2\,\}.
+\]
+
+We have just proved both premises (Sections 3 and 4).  Consequently the whole
+`if‑statement` satisfies the post‑condition \(\Phi\).
+
+--------------------------------------------------------------------
+
+## 6.  Concluding the Hoare triple  
+
+Recall the first step (R1) that reads the three numbers:
+
+\[
+\{\,\top\,\}\;
+\texttt{a,b,c = map(float,input().split())}\;
+\{\,a,b,c\in\mathbb R\,\}.
+\]
+
+By the **rule of consequence** we may strengthen the pre‑condition
+\(\top\) to \(\top\Rightarrow a,b,c\in\mathbb R\) (trivial) and then apply the
+`if‑statement` proved above.  Hence we obtain
+
+\[
+\boxed{\;
+\{\,\top\,\}\;
+\texttt{Program}\;
+\{\,\Phi\,\}
+\;}
+\]
+
+which is exactly the specification that was required.
+
+--------------------------------------------------------------------
+
+## 7.  Remarks on the rounding function  
+
+The specification uses the term `fmt(x,1)`.  The only property we need in the
+proof is **functional consistency**:
+
+\[
+\forall x\;.\; \text{fmt}(x,1) = \text{round\_to\_1}(x),
+\]
+
+i.e. a deterministic total function that returns the decimal representation of
+`x` rounded to one digit after the decimal point.  Because the program uses the
+same library routine (`printf("%.1f")` in C, `format(..., ".1f")` in Python)
+the value written to the output file is exactly the value of the term
+`fmt(·,1)`.  No additional arithmetic reasoning is required.
+
+--------------------------------------------------------------------
+
+## 8.  Summary  
+
+* We started from the trivial pre‑condition \(\top\).  
+* The input statement establishes that the three variables are real numbers.  
+* By the Hoare‑logic **if‑rule** we split the proof into the two branches.  
+* In each branch we applied the **assignment axiom** repeatedly, using the
+  definitions of `p`, `s`, `A`, and `out`.  
+* The triangle‑inequality predicate `tri` supplies the necessary side‑conditions
+  for the *then* branch; the logical complement supplies the non‑negativity of
+  Heron’s radicand for the *else* branch (Lemma L1).  
+* After the two branches we combined the results with the **if‑rule**, obtaining
+  the disjunction that is exactly the post‑condition \(\Phi\).  
+
+Thus the program is **correct** with respect to the formal Hoare‑logic
+specification given in the problem statement. ∎

@@ -1,0 +1,399 @@
+Below is a **complete Hoare‑logic proof** that the Python program
+
+```python
+combustivel = 1
+qtd_alcool = 0
+qtd_gasolina = 0
+qtd_diesel = 0
+
+while (combustivel != 4):
+    combustivel = int(input())
+    if combustivel == 1:
+        qtd_alcool += 1
+    elif combustivel == 2:
+        qtd_gasolina += 1
+    elif combustivel == 3:
+        qtd_diesel += 1
+
+print(f"MUITO OBRIGADO\nAlcool: {qtd_alcool}\n"
+      f"Gasolina: {qtd_gasolina}\nDiesel: {qtd_diesel}")
+```
+
+satisfies the Hoare triple  
+
+\[
+\{P\}\;\texttt{program}\;\{Q\}
+\tag{1}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+  \[
+  P\;:\;\exists n\;.\;s_{n}=4
+  \]
+
+* **Post‑condition**  
+
+  \[
+  Q\;:\;
+  \begin{aligned}
+  &\texttt{output}= \bigl(\text{“MUITO OBRIGADO”},\;
+  \text{“Alcool: }A(\mathbf s)\text{”},\;
+  \text{“Gasolina: }G(\mathbf s)\text{”},\;
+  \text{“Diesel: }D(\mathbf s)\text{”}\bigr)\\[2mm]
+  &\text{where }
+  \begin{cases}
+  A(\mathbf s)=|\{j<\mathbf n\mid s_{j}=1\}|\\
+  G(\mathbf s)=|\{j<\mathbf n\mid s_{j}=2\}|\\
+  D(\mathbf s)=|\{j<\mathbf n\mid s_{j}=3\}|
+  \end{cases}
+  \end{aligned}
+  \tag{2}
+  \]
+
+The only non‑trivial part of the program is the `while` loop.  
+We prove its correctness by exhibiting a **loop invariant** and a **variant** that
+guarantees termination.
+
+--------------------------------------------------------------------
+### 1.  Notation that will be used in the proof  
+
+* The input stream is a fixed infinite sequence \(\mathbf s=(s_{0},s_{1},\dots )\in(\mathbb N_{>0})^{\omega}\).  
+* `read` reads the next element of \(\mathbf s\); the *loop index* \(k\) denotes how many
+  elements have already been examined (i.e. the next element to be read is \(s_{k}\)).  
+* Program variables inside the loop are denoted  
+
+  \[
+  a\equiv \texttt{qtd\_alcool},\qquad
+  g\equiv \texttt{qtd\_gasolina},\qquad
+  d\equiv \texttt{qtd\_diesel}.
+  \]
+
+* The **loop invariant** is the predicate \(\mathsf{Inv}(k,a,g,d)\) defined in the
+  specification:
+
+  \[
+  \boxed{
+  \mathsf{Inv}(k,a,g,d)\; \equiv\;
+  \begin{cases}
+  a = |\{j<k\mid s_{j}=1\}|,\\[1mm]
+  g = |\{j<k\mid s_{j}=2\}|,\\[1mm]
+  d = |\{j<k\mid s_{j}=3\}|,\\[1mm]
+  \forall j<k.\;\neg\mathsf{stop}(s_{j}) .
+  \end{cases}}
+  \tag{3}
+  \]
+
+* A **variant** for termination is simply the natural number \(n-k\) where  
+
+  \[
+  n = \min\{j\mid s_{j}=4\}
+  \]
+
+  (the index of the first 4).  Since the pre‑condition guarantees that such an
+  \(n\) exists, \(n-k\) is a well‑founded measure that strictly decreases
+  whenever the loop body is executed.
+
+--------------------------------------------------------------------
+### 2.  Proof outline  
+
+| Step | Hoare triple (or rule) | Reason |
+|------|------------------------|--------|
+| 0 | \(\{P\}\)  program  \(\{Q\}\) | Goal |
+| 1 | Initialise the four program variables | Assignment rule |
+| 2 | Establish the invariant before the first test of the loop guard | Consequence |
+| 3 | Apply the **while‑rule** with invariant (3) and variant \(n-k\) | Standard rule |
+| 4 | Show **preservation** of the invariant for each branch of the `if`‑chain | Case analysis |
+| 5 | Show **variant decreases** and therefore loop terminates | Variant argument |
+| 6 | When the loop exits we have \(k=n\) and the invariant gives the three counters | Consequence |
+| 7 | The three `print` statements produce exactly the output required by \(Q\) | Assignment‑/output‑rule |
+| 8 | By the rule of consequence we obtain \(\{P\}\) program \(\{Q\}\) | End of proof |
+
+Below each step is written in full Hoare‑logic notation.
+
+--------------------------------------------------------------------
+### 3.  Detailed derivation  
+
+#### 3.1  Initialisation  
+
+The program starts with
+
+```python
+combustivel = 1
+qtd_alcool   = 0
+qtd_gasolina = 0
+qtd_diesel   = 0
+```
+
+Using the **assignment axiom**  
+
+\[
+\frac{}{ \{ \phi[x:=e] \}\; x := e\; \{ \phi \}}
+\]
+
+we obtain the following triples (the same reasoning for the three counters):
+
+\[
+\{ a=0\}\; a := 0\; \{ a=0\},\qquad
+\{ g=0\}\; g := 0\; \{ g=0\},\qquad
+\{ d=0\}\; d := 0\; \{ d=0\}.
+\]
+
+After the four assignments we have
+
+\[
+\{ a=g=d=0 \}\;\texttt{combustivel}=1\;\{ a=g=d=0\}.
+\tag{4}
+\]
+
+Because no element of the input stream has been examined yet, we may set the
+loop index \(k:=0\).  Adding the definition of the invariant (3) we get
+
+\[
+\{ \mathsf{Inv}(0,0,0,0) \}
+\tag{5}
+\]
+
+by a **consequence** step (the right‑hand side of (3) with \(k=0\) evaluates to
+\(a=g=d=0\) and the universal condition is vacuously true).
+
+#### 3.2  The while‑rule  
+
+The loop in the program is
+
+```python
+while (combustivel != 4):
+    … body …
+```
+
+Let  
+
+\[
+B \equiv (combustivel \neq 4)
+\]
+
+be the loop guard.  
+The **while‑rule** (partial correctness) states
+
+\[
+\frac{\{ \mathsf{Inv}\land B\}\;C\; \{ \mathsf{Inv}\}}
+     {\{ \mathsf{Inv}\}\; \texttt{while }B\texttt{ do }C\; \{ \mathsf{Inv}\land\neg B\}}.
+\tag{6}
+\]
+
+Thus we must prove preservation of the invariant for the **body** `C`.  
+The body consists of:
+
+```
+combustivel = int(input())
+if combustivel == 1:
+    a += 1
+elif combustivel == 2:
+    g += 1
+elif combustivel == 3:
+    d += 1
+# (else combustivel == 4 : do nothing)
+```
+
+In Hoare‑logic we treat the `read` as an atomic command that assigns the
+next element of the stream to the variable `combustivel`:
+
+\[
+\{ \mathsf{Inv}(k,a,g,d) \}\;
+\texttt{combustivel} := s_{k}\;
+\{ \mathsf{Inv}(k,a,g,d) \land \texttt{combustivel}=s_{k}\}.
+\tag{7}
+\]
+
+Now we perform a **case analysis** on the value of the freshly read `combustivel`
+(remember that `s_k` is guaranteed to be a *valid* code because the invariant
+contains the clause \(\forall j<k.\,\neg\mathsf{stop}(s_{j})\); the only way for a
+4 to appear is when the guard becomes false).
+
+--------------------------------------------------------------------
+**Case 1 – `s_k = 1`**  
+
+The command executed is `a := a + 1`.  
+Using the assignment axiom with the invariant we obtain
+
+\[
+\{ a = |\{j<k\mid s_j=1\}|\}\; a:=a+1\;
+\{ a = |\{j<k\mid s_j=1\}|+1\}.
+\]
+
+But
+
+\[
+|\{j<k+1\mid s_j=1\}| = |\{j<k\mid s_j=1\}|+1,
+\]
+
+hence after the increment we have exactly the first line of \(\mathsf{Inv}(k+1,a',g',d')\).
+The other two counters are unchanged, and the universal clause still holds
+because we have just added a non‑stop element (`1`).  
+Consequently
+
+\[
+\{ \mathsf{Inv}(k,a,g,d) \land s_k=1\}\;
+\texttt{a := a+1}\;
+\{ \mathsf{Inv}(k+1,a',g',d')\}.
+\tag{8}
+\]
+
+--------------------------------------------------------------------
+**Case 2 – `s_k = 2`** – analogous, we increment `g`.  
+
+--------------------------------------------------------------------
+**Case 3 – `s_k = 3`** – analogous, we increment `d`.  
+
+--------------------------------------------------------------------
+**Case 4 – `s_k = 4`**  
+
+The `if`‑chain selects the final `else` branch, which contains only a *skip*
+(`do nothing`).  The invariant after the read already tells us that there are
+no occurrences of `1,2,3` at position `k`, therefore
+
+\[
+\{ \mathsf{Inv}(k,a,g,d) \land s_k=4\}\;
+\texttt{skip}\;
+\{ \mathsf{Inv}(k+1,a,g,d)\}.
+\tag{9}
+\]
+
+--------------------------------------------------------------------
+Collecting the four cases we have proved the **preservation condition** required
+by (6):
+
+\[
+\{ \mathsf{Inv}(k,a,g,d)\land B\}\; C\; \{ \mathsf{Inv}(k+1,a',g',d')\}.
+\tag{10}
+\]
+
+Note that the loop index is **logically** increased from \(k\) to \(k+1\) after
+the body, even though the program does not store this variable; we use it only
+in the meta‑proof.
+
+#### 3.3  Termination (variant)
+
+Define the variant  
+
+\[
+V(k) \equiv n - k,
+\]
+
+where \(n\) is the first index such that \(s_{n}=4\) (its existence follows from
+the pre‑condition).  Clearly \(V(k)\in\mathbb N\) and \(V(k)=0\) exactly when
+\(k=n\).  
+
+From (10) we know that after every execution of the body the index becomes
+\(k+1\).  If the current element is not `4` then \(k+1 < n\) and thus
+
+\[
+V(k+1) = n-(k+1) = V(k)-1 < V(k).
+\]
+
+If the current element *is* `4` the loop guard becomes false, the loop stops
+and we are in the situation \(k+1=n\).  Hence in every loop iteration the
+variant strictly decreases and can never become negative; by the well‑founded
+ordering of \(\mathbb N\) the loop must terminate.  This is the **termination
+proof** required by the total‑correctness version of the while‑rule.
+
+#### 3.4  State after the loop  
+
+When the loop finishes we have \(\neg B\), i.e. `combustivel == 4`.  
+Because the guard became false at the first occurrence of a 4, the current
+index equals the first‑stop index:
+
+\[
+k = n = \mathbf n .
+\]
+
+Applying the invariant (3) with \(k=n\) yields
+
+\[
+a = |\{j<\mathbf n\mid s_j = 1\}| = A(\mathbf s),\qquad
+g = |\{j<\mathbf n\mid s_j = 2\}| = G(\mathbf s),\qquad
+d = |\{j<\mathbf n\mid s_j = 3\}| = D(\mathbf s).
+\tag{11}
+\]
+
+Thus the three program variables hold exactly the three mathematical
+functions required by the post‑condition.
+
+#### 3.5  The output statement  
+
+The final statement of the program is a single `print`.  In Hoare logic a
+`print` command is treated as an **output command** that does not modify the
+state but produces a value that can be referred to in the post‑condition.
+Using the **output rule**
+
+\[
+\frac{}{ \{ \phi \}\; \texttt{print}(e)\; \{ \phi \land \texttt{output}=e\}}
+\]
+
+with \(\phi\) being (11) we obtain
+
+\[
+\{ a=A(\mathbf s)\land g=G(\mathbf s)\land d=D(\mathbf s) \}\;
+\texttt{print}(\text{“MUITO OBRIGADO\nAlcool: ”}+a
+               +\dots )\;
+\{ \texttt{output}= (\text{“MUITO OBRIGADO”},
+                    \text{“Alcool: }A(\mathbf s)\text{”},
+                    \text{“Gasolina: }G(\mathbf s)\text{”},
+                    \text{“Diesel: }D(\mathbf s)\text{”})\}.
+\tag{12}
+\]
+
+The textual concatenation performed by the f‑string is exactly the tuple
+appearing in the post‑condition \(Q\).  Hence (12) is precisely \(Q\).
+
+--------------------------------------------------------------------
+### 4.  Putting the pieces together  
+
+1. **Initialization** gives us \(\mathsf{Inv}(0,0,0,0)\) (steps (4)–(5)).  
+2. **While‑rule** with invariant (3) and variant \(n-k\) yields the triple  
+
+   \[
+   \{ \mathsf{Inv}(0,0,0,0) \}\;
+   \texttt{while }(combustivel\neq 4)\texttt{ do body}\;
+   \{ \mathsf{Inv}(n,a,g,d) \land \neg (combustivel\neq 4) \}.
+   \tag{13}
+   \]
+
+3. From (13) together with (11) we obtain  
+
+   \[
+   \{ a=A(\mathbf s)\land g=G(\mathbf s)\land d=D(\mathbf s) \}.
+   \tag{14}
+   \]
+
+4. Adding the final `print` step (12) gives exactly the post‑condition \(Q\).
+
+Finally, by the **rule of consequence** we can enlarge the pre‑condition from
+\(\mathsf{Inv}(0,0,0,0)\) to the original \(P\) (the existence of a terminating 4)
+and shrink the post‑condition from the conjunction of (12) with the invariant
+to the succinct specification \(Q\).  Therefore
+
+\[
+\boxed{ \{P\}\;\texttt{program}\;\{Q\} }
+\]
+
+holds; the program is **totally correct** with respect to the Hoare‑logic
+specification given in the problem statement.
+
+--------------------------------------------------------------------
+### 5.  Summary of the proof  
+
+| Symbol | Meaning |
+|--------|---------|
+| \(P\) | “the input stream eventually contains a 4” |
+| \(\mathsf{Inv}(k,a,g,d)\) | counters reflect the number of 1,2,3 seen in the first *k* elements and no 4 has been seen yet |
+| Variant \(V(k)=n-k\) | strictly decreases while the loop runs, guaranteeing termination |
+| Preservation (10) | each branch of the `if` updates the appropriate counter and keeps the invariant true |
+| Exit condition | when the guard fails we have processed exactly the prefix of length \(\mathbf n\); invariant gives the three counters |
+| Output step (12) | prints the fixed phrase together with the three counters, which by (11) equal the mathematically defined \(A,G,D\). |
+
+Thus the Python program satisfies the Hoare‑logic specification (1) – it
+*always* terminates (by the variant) and, upon termination, prints exactly the
+values required by the post‑condition. ∎

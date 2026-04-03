@@ -1,0 +1,359 @@
+## 1.  What we have to prove  
+
+We must show that the **Hoare triple**
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+is valid for the concrete Python program  
+
+```python
+codigoA, quantidadeA, valorA = map(float, input().split())
+codigoB, quantidadeB, valorB = map(float, input().split())
+custoA = quantidadeA * valorA
+custoB = quantidadeB * valorB
+print(f'VALOR A PAGAR: R$ {(custoA + custoB):.2f}')
+```
+
+where  
+
+* `S` is the whole sequence of statements,  
+* `P` is the pre‑condition that describes the two input lines, and  
+* `Q` is the post‑condition that states that the program prints the string  
+
+```
+VALOR A PAGAR: R$ <total with two decimal digits>
+```
+
+with  
+
+\[
+\text{total}=q_{1}\,p_{1}+q_{2}\,p_{2}.
+\]
+
+The proof proceeds by **structural induction on the program** (the usual Hoare‑logic rule of *composition*).  
+For each elementary statement we apply the appropriate Hoare axiom:
+
+| construct | Hoare axiom (simplified) |
+|-----------|--------------------------|
+| **input** `x ↦ e` | \(\{P\}\; \text{input} \; \{P[x\mapsto e]\}\) |
+| **assignment** `x := e` | \(\{P[x\mapsto e]\}\; x:=e \; \{P\}\) |
+| **output** `output(e)` | \(\{P \land e=v\}\; \text{output}(e) \; \{P \land \text{output}(v)\}\) |
+| **sequence** `S1; S2` | from \(\{P\}S_{1}\{R\}\) and \(\{R\}S_{2}\{Q\}\) infer \(\{P\}S_{1};S_{2}\{Q\}\) |
+
+(We write \(P[x\mapsto e]\) for the substitution of the expression \(e\) for the variable \(x\) in the assertion \(P\).)
+
+--------------------------------------------------------------------
+
+## 2.  The program written as a sequence of elementary statements  
+
+| line | Python statement | informal description |
+|------|------------------|----------------------|
+| 1 | `codigoA, quantidadeA, valorA = map(float, input().split())` | read the first line and bind the three values |
+| 2 | `codigoB, quantidadeB, valorB = map(float, input().split())` | read the second line and bind the three values |
+| 3 | `custoA = quantidadeA * valorA` | compute the cost of product A |
+| 4 | `custoB = quantidadeB * valorB` | compute the cost of product B |
+| 5 | `print(f'VALOR A PAGAR: R$ {(custoA + custoB):.2f}')` | output the required string |
+
+We will prove a Hoare triple for each line, chaining them together.
+
+--------------------------------------------------------------------
+
+## 3.  The pre‑condition  
+
+Recall the formal definition of **P** :
+
+\[
+\begin{aligned}
+P \;\equiv\; &
+\bigl((c_{1},q_{1},p_{1}), (c_{2},q_{2},p_{2})\bigr)
+      \in(\mathbb Z\times\mathbb N^{+}\times\mathbb Q_{2})^{2} \\
+&\land\;  \text{the two lines are exactly the program’s input.}
+\end{aligned}
+\]
+
+Thus, before the first statement we know that there exist *four* mathematical
+values
+
+\[
+c_{1},c_{2}\in\mathbb Z,\qquad
+q_{1},q_{2}\in\mathbb N^{+},\qquad
+p_{1},p_{2}\in\mathbb Q_{2}
+\]
+
+such that the **first** line of the input is the triple \((c_{1},q_{1},p_{1})\) and the **second** line is \((c_{2},q_{2},p_{2})\).
+
+--------------------------------------------------------------------
+
+## 4.  Hoare triples for the individual statements  
+
+### 4.1  First input statement  
+
+The Python statement
+
+```python
+codigoA, quantidadeA, valorA = map(float, input().split())
+```
+
+is an **input** operation that yields three real numbers, which we immediately
+cast to `float`.  Because the specification tells us that the first line
+contains a *code* (integer), a *quantity* (positive integer) and a *price* (a
+rational with two decimal digits), we can view the statement as the atomic
+command  
+
+\[
+\text{input}\; (c_{1},q_{1},p_{1}) \mapsto (codigoA,quantidadeA,valorA).
+\]
+
+Applying the **input axiom** we obtain
+
+\[
+\boxed{\{P\}\;
+      \text{input\; (c}_{1},q_{1},p_{1})\;
+      \{\,\underbrace{c_{1}=codigoA}_{\text{code}} \land
+        \underbrace{q_{1}=quantidadeA}_{\text{quantity}} \land
+        \underbrace{p_{1}=valorA}_{\text{price}} \,\}}
+\tag{I1}
+\]
+
+The right‑hand side is exactly the part of the post‑condition that we need after
+reading the first line.  Note that the domain constraints on
+\(c_{1}, q_{1}, p_{1}\) are preserved because they are part of the original
+pre‑condition \(P\).
+
+---
+
+### 4.2  Second input statement  
+
+Analogously, the second line
+
+```python
+codigoB, quantidadeB, valorB = map(float, input().split())
+```
+
+gives the triple \((c_{2},q_{2},p_{2})\).  Using the same axiom:
+
+\[
+\boxed{\{\,c_{1}=codigoA \land q_{1}=quantidadeA \land p_{1}=valorA\,\}\;
+      \text{input\; (c}_{2},q_{2},p_{2})\;
+      \{\,c_{2}=codigoB \land q_{2}=quantidadeB \land p_{2}=valorB\,\}}
+\tag{I2}
+\]
+
+Now after the two input statements we have the **intermediate assertion**
+
+\[
+R_{2}\; \equiv\;
+c_{1}=codigoA \land q_{1}=quantidadeA \land p_{1}=valorA \;
+\land\;
+c_{2}=codigoB \land q_{2}=quantidadeB \land p_{2}=valorB .
+\]
+
+Together with the domain constraints from \(P\) we may write
+
+\[
+R_{2}\; \equiv\;
+\bigl(c_{i},q_{i},p_{i}\bigr)_{i=1,2}\in(\mathbb Z\times\mathbb N^{+}\times\mathbb Q_{2})^{2}.
+\]
+
+--------------------------------------------------------------------
+
+### 4.3  Assignment `custoA = quantidadeA * valorA`
+
+The statement
+
+```python
+custoA = quantidadeA * valorA
+```
+
+is a plain assignment.  Using the **assignment axiom** with the
+post‑condition \(R_{3}\) that we want *after* the assignment, namely
+
+\[
+R_{3}\; \equiv\; R_{2}\;\land\; custoA = q_{1}\,p_{1},
+\]
+
+we obtain
+
+\[
+\boxed{\{\,R_{2}[custoA\mapsto q_{1}p_{1}]\,\}\;
+      custoA := quantidadeA * valorA\;
+      \{\,R_{3}\,\}}
+\tag{A1}
+\]
+
+Since the expression on the right‑hand side of the assignment is precisely
+\(q_{1}p_{1}\) (because of the equalities in \(R_{2}\)), the substitution
+\(custoA\mapsto q_{1}p_{1}\) turns the pre‑condition of the rule into exactly
+\(R_{2}\).  Hence the Hoare triple (A1) is valid.
+
+--------------------------------------------------------------------
+
+### 4.4  Assignment `custoB = quantidadeB * valorB`
+
+The same reasoning gives
+
+\[
+\boxed{\{\,R_{3}[custoB\mapsto q_{2}p_{2}]\,\;
+      custoB := quantidadeB * valorB\;
+      \{\,R_{4}\,\}}
+\tag{A2}
+\]
+
+with  
+
+\[
+R_{4}\equiv R_{3}\;\land\; custoB = q_{2}p_{2}.
+\]
+
+Thus after the fourth line we know
+
+\[
+custoA = q_{1}p_{1},\qquad
+custoB = q_{2}p_{2}.
+\]
+
+--------------------------------------------------------------------
+
+### 4.5  Output statement  
+
+The last line in the program is
+
+```python
+print(f'VALOR A PAGAR: R$ {(custoA + custoB):.2f}')
+```
+
+Let us introduce the **auxiliary variable**
+
+\[
+\text{total} \;:=\; custoA + custoB .
+\]
+
+Because of the two equalities derived above, we have
+
+\[
+\text{total}=q_{1}p_{1}+q_{2}p_{2}.
+\]
+
+The expression that is printed is the string  
+
+\[
+\text{payStr}= \text{"VALOR A PAGAR: R$ "} \;\circ\;
+               \text{format}_{2}(\text{total}).
+\]
+
+The formatting operator `:.2f` is exactly the mathematical function
+\(\text{format}_{2}\) defined in the specification: it turns a rational number
+that already belongs to \(\mathbb Q_{2}\) into its decimal representation with
+two digits after the point.  Since each product price belongs to \(\mathbb Q_{2}\)
+and the quantities are integers, the products \(q_{i}p_{i}\) and the sum
+\(q_{1}p_{1}+q_{2}p_{2}\) are also in \(\mathbb Q_{2}\) (closure of \(\mathbb Q_{2}\)
+under multiplication by an integer and addition).  Consequently,
+\(\text{format}_{2}(\text{total})\) is well‑defined.
+
+The **output axiom** for a deterministic expression \(e\) states
+
+\[
+\{\,R\land e=v\,\}\;\text{output}(e)\;
+   \{\,R\land \text{output}(v)\,\}.
+\]
+
+Take  
+
+\[
+R\;=\;R_{4}\;\land\;
+\text{total}=custoA+custoB\;\land\;
+\text{payStr}= "VALOR A PAGAR: R$ " \circ \text{format}_{2}(\text{total}),
+\]
+
+and let \(e\) be the expression that Python evaluates inside `print`.  
+Because the expression evaluates to the *value* \(\text{payStr}\) (the same
+string we defined mathematically), the axiom yields the Hoare triple
+
+\[
+\boxed{
+\{\,R\,\}\;
+\text{output}(\text{payStr})\;
+\{\,R\land \text{output}(\text{payStr})\,\}
+}
+\tag{O}
+\]
+
+The right‑hand side of (O) is precisely the **post‑condition Q**:
+
+\[
+\begin{aligned}
+Q \equiv\;&
+\bigl(\text{total}=q_{1}p_{1}+q_{2}p_{2}\bigr) \\
+&\land\;
+\bigl(\text{payStr}= "VALOR A PAGAR: R$ " \circ \text{format}_{2}(\text{total})\bigr)\\
+&\land\;
+\text{output}(\text{payStr}) .
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the triples  
+
+We have derived the following sequence of valid Hoare triples
+
+| step | statement | pre‑condition | post‑condition |
+|------|-----------|---------------|----------------|
+| 1 | first input | \(P\) | \(R_{2}\) (partially) |
+| 2 | second input | \(R_{2}\) | \(R_{2}\) (now containing both lines) |
+| 3 | `custoA := quantidadeA * valorA` | \(R_{2}\) | \(R_{3}\) |
+| 4 | `custoB := quantidadeB * valorB` | \(R_{3}\) | \(R_{4}\) |
+| 5 | `print …` | \(R_{4}\) | \(Q\) |
+
+By the **rule of composition** (if \(\{P\}S_{1}\{R\}\) and \(\{R\}S_{2}\{Q\}\) then
+\(\{P\}S_{1};S_{2}\{Q\}\)), we can concatenate the five triples, obtaining a
+single Hoare triple for the whole program:
+
+\[
+\boxed{\{P\}\;S\;\{Q\}}
+\]
+
+which is exactly the statement we were asked to prove.
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on the arithmetic side  
+
+* **Domain preservation** – The pre‑condition guarantees \(p_{1},p_{2}\in\mathbb Q_{2}\) (i.e. they have at most two decimal digits). Multiplying by an integer quantity \(q_{i}\in\mathbb N^{+}\) yields a number still in \(\mathbb Q_{2}\) because
+  \[
+  100\,(q_{i}p_{i}) = q_{i}\,(100p_{i})\in\mathbb Z .
+  \]
+  Adding two such numbers also stays in \(\mathbb Q_{2}\). Therefore
+  \(\text{total}\in\mathbb Q_{2}\) and the operation
+  \(\text{format}_{2}(\text{total})\) is mathematically sound.
+
+* **Rounding** – The specification explicitly says that the inputs already have
+  exactly two decimal places, and the arithmetic performed is exact (rationals).
+  Hence no rounding error can appear; the `:.2f` formatting simply reproduces the
+  rational with its two decimal digits.
+
+--------------------------------------------------------------------
+
+## 7.  Conclusion  
+
+We have:
+
+* formalised the program as a sequence of elementary Hoare‑logic commands,
+* shown that each command satisfies a Hoare triple derived from the given
+  pre‑condition **P**,
+* chained the triples using the composition rule, and
+* obtained the final triple \(\{P\}S\{Q\}\).
+
+Thus the Python program **correctly implements** the specification:  
+when it receives two lines containing a product code, a positive quantity and a
+price with two decimal digits, it prints exactly
+
+```
+VALOR A PAGAR: R$ <total with two decimal digits>
+```
+
+where `total = q₁·p₁ + q₂·p₂`.  The proof is completely formal and follows the
+rules of Hoare logic, so the program is **correct** with respect to the given
+pre‑ and post‑conditions.  

@@ -1,0 +1,342 @@
+**Answer – a complete Hoare‑logic proof that the program satisfies the specification**
+
+Below we give a *step‑by‑step* derivation of the Hoare triple required in the statement
+
+\[
+\{\,P_{\text{prog}}\,\}\;C_{\text{prog}}\;\{\,Q_{\text{prog}}\,\}
+\]
+
+where  
+
+* `Pprog :  pos = 0 ∧ out = ⟨⟩ ∧ stop = false`  
+* `Cprog` is the whole program (the outer `while` together with the four
+  sub‑commands `READ‑SCORES`, `PRINT‑AVERAGE`, `READ‑X`, `PRINT‑PROMPT`)  
+* `Qprog` is the post‑condition that the output stream is exactly the one described in the problem statement, the last value read for `X` is `2`, and `stop = true`.
+
+The proof proceeds by the usual Hoare‑logic rules:
+
+* **Sequencing** (`{A}c1{B}` and `{B}c2{C}` ⇒ `{A}c1;c2{C}`)  
+* **While** (`{I ∧ B}c{I}` ⇒ `{I}while B do c{I ∧ ¬B}`)  
+* **Rule of consequence** (`A ⇒ A' , {A'}c{B'} , B' ⇒ B` ⇒ `{A}c{B}`).
+
+The only non‑trivial commands are the two *repeat‑until* loops that implement
+`readScore` and `readX`. For each we give a loop invariant, prove its preservation,
+and then use the **repeat‑until** rule (which is just a `while ¬cond do …` with
+the body executed at least once).
+
+--------------------------------------------------------------------
+## 1.  The outer loop
+
+```
+while (stop = false) do
+        READ‑SCORES
+        PRINT‑AVERAGE
+        READ‑X
+        PRINT‑PROMPT
+end while
+```
+
+*Invariant*  
+
+\[
+\mathcal I_{\text{outer}} \;≡\; stop = false
+    ∧ \bigl(pos \text{ points to the first unread element of } I\bigr)
+    ∧ \bigl(out \text{ already contains the correct output for all
+               previous calculations}\bigr)
+\tag{I₀}
+\]
+
+*Initialization* – `Pprog` contains `stop = false` and `out = ⟨⟩`; therefore
+`Pprog ⇒ I₀`.
+
+*Preservation* – we must show  
+
+\[
+\{\,\mathcal I_{\text{outer}}\,\}\;
+\bigl(READ\text‑SCORES; PRINT\text‑AVERAGE; READ\text‑X; PRINT\text‑PROMPT\bigr)
+\;\{\,\mathcal I_{\text{outer}}\,\}
+\tag{1}
+\]
+
+The four commands are proved separately in Sections 2‑5; each of them
+preserves `stop = false`, does not change the “first‑unread” property of `pos`,
+and appends to `out` exactly the strings required for the *current*
+calculation.  Consequently the conjunction of the four Hoare triples yields (1).
+
+*Termination* – the guard of the loop is `stop = false`.  When the guard
+becomes false we have `stop = true`.  By the definition of `stop` this is
+equivalent to `X = 2`.  Together with `I₀` we obtain the required post‑condition
+`Qprog`.  The **while** rule therefore gives
+
+\[
+\{\mathcal I_{\text{outer}}\}\;
+\mathbf{while}\;(stop = false)\; \text{do } C_{\text{body}}\;
+\{\,\mathcal I_{\text{outer}} ∧ ¬(stop = false)\,\}
+\]
+
+and because `¬(stop = false)` is exactly `stop = true`, the outer loop is
+proved.
+
+--------------------------------------------------------------------
+## 2.  `READ‑SCORES` (two calls of `readScore`)
+
+The procedure `readScore` is
+
+```
+repeat
+        v ← next(I,pos)          // read I[pos] , pos := pos+1
+        if ValidScore(v) then
+                return v
+        else
+                out := out ⧺ ⟨"nota invalida"⟩
+        end if
+until false
+```
+
+### 2.1  Loop invariant for `readScore`
+
+\[
+\mathcal I_{\text{read}} \;≡\;
+   pos ≤ |I|                                   \tag{a}
+   ∧ \bigl(out = out_{old} ⧺ ⟨"nota invalida"⟩^{k}\bigr)   \tag{b}
+\]
+where `k = pos – pos_{old} – 1` is the number of rejected values already
+consumed.
+
+*Base* – before the first iteration `pos = pos_{old}` and `k = 0`,
+so (a) and (b) hold.
+
+*Preservation* – assume `I_read` holds at the start of an iteration.
+The body reads one element `v`.  
+*Case 1*: `ValidScore(v)` is true. The loop terminates and the invariant is
+still true (the body does not modify `out`).  
+*Case 2*: `ValidScore(v)` is false. The command `out := out ⧺ ⟨"nota invalida"⟩`
+adds exactly one more message, `pos` is increased by one, and `k` is
+incremented by one, therefore (a) and (b) remain true.
+
+Thus `⟨I_read⟩ repeat … until ValidScore(v) ⟨Q_read(v)⟩` holds, where
+
+\[
+Q_{\text{read}}(v) ≡
+   ValidScore(v) ∧
+   out = out_{old} ⧺ ⟨"nota invalida"⟩^{k}
+   ∧ pos = pos_{old} + k + 1
+\tag{R}
+\]
+
+### 2.2  Two successive calls
+
+Applying the triple (R) twice yields two values `s₁ , s₂` such that
+
+\[
+ValidScore(s₁) ∧ ValidScore(s₂)
+\]
+
+and `out` has been extended by exactly the number of `"nota invalida"` lines
+that correspond to the illegal inputs that preceded each valid score.  The
+pre‑condition needed for the *first* call is simply `pos < |I|`; after the
+call the same condition holds for the *second* call because the invariant
+ensures `pos ≤ |I|`.
+
+Consequently we have proved the Hoare triple
+
+\[
+\{\,\mathcal I_{\text{outer}}\,\}\;
+\text{READ‑SCORES}\;
+\{\,\mathcal I_{\text{outer}} ∧ ValidScore(s₁) ∧ ValidScore(s₂)\,\}
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+## 3.  `PRINT‑AVERAGE`
+
+```
+avg ← (s₁ + s₂) / 2
+out := out ⧺ ⟨ "media = " ⧺ format(avg,2) ⟩
+```
+
+*Pre‑condition* : `ValidScore(s₁) ∧ ValidScore(s₂)` – exactly what we have after
+(2).
+
+*Post‑condition* :
+
+\[
+\begin{aligned}
+Q_{\text{avg}} ≡\;&
+   avg = (s₁+s₂)/2 \\
+   &∧\; out = out_{old} ⧺ ⟨ "media = " \|\, avg\text{ with two decimals}\,\| ⟩ .
+\end{aligned}
+\]
+
+The command is a straight‑line sequence of an assignment and a pure
+concatenation; the Hoare triple follows directly from the **assignment** rule
+and the definition of `out`.  Hence
+
+\[
+\{\,ValidScore(s₁) ∧ ValidScore(s₂)\,\}\;
+\text{PRINT‑AVERAGE}\;
+\{\,Q_{\text{avg}}\,\}
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+## 4.  `READ‑X`
+
+```
+repeat
+        X ← next(I,pos)            // integer, pos := pos+1
+        if X = 1 ∨ X = 2 then
+                stop ← (X = 2)
+                break
+        else
+                out := out ⧺ ⟨"novo calculo (1-sim 2-nao)"⟩
+        end if
+until false
+```
+
+### 4.1  Loop invariant
+
+\[
+\mathcal I_{\text{readX}} \;≡\;
+   pos ≤ |I|
+   ∧ \bigl(out = out_{old} ⧺ ⟨"novo calculo (1‑sim 2‑nao)"⟩^{m}\bigr)
+\tag{Iₓ}
+\]
+
+The proof of preservation is identical to the one for `readScore`:
+each illegal integer adds exactly one prompt to `out` and increments `pos`;
+when a legal integer (`1` or `2`) is read the loop terminates, leaving the
+invariant true.
+
+Therefore the triple
+
+\[
+\{\,pos<|I|\,\}\;
+\text{repeat … until }(X=1\vee X=2)\;
+\{\, Q_{\text{readX}} \,\}
+\tag{4}
+\]
+
+holds with
+
+\[
+\begin{aligned}
+Q_{\text{readX}} ≡\;&
+   X∈\{1,2\} ∧
+   stop = (X=2) ∧
+   out = out_{old} ⧺ ⟨"novo calculo (1‑sim 2‑nao)"⟩^{m}
+\end{aligned}
+\]
+
+where `m` is the number of illegal integers read before the first legal one.
+
+--------------------------------------------------------------------
+## 5.  `PRINT‑PROMPT`
+
+```
+out := out ⧺ ⟨ "novo calculo (1-sim 2-nao)" ⟩
+```
+
+The rule of **assignment** for a variable that denotes a string concatenation
+gives immediately
+
+\[
+\{\,\top\,\}\;
+\text{PRINT‑PROMPT}\;
+\{\, out = out_{old} ⧺ ⟨"novo calculo (1‑sim 2‑nao)"⟩ \,\}
+\tag{5}
+\]
+
+--------------------------------------------------------------------
+## 6.  Composition of the four commands
+
+From (2) – (5) we obtain, by successive applications of the **sequencing** rule,
+
+\[
+\begin{aligned}
+\{\,\mathcal I_{\text{outer}}\,\}\;
+&\bigl(
+   \text{READ‑SCORES};
+   \text{PRINT‑AVERAGE};
+   \text{READ‑X};
+   \text{PRINT‑PROMPT}
+  \bigr) \\
+&\{\,\mathcal I_{\text{outer}} ∧
+      ValidScore(s₁)∧ValidScore(s₂) ∧
+      avg = (s₁+s₂)/2 ∧
+      X∈\{1,2\} ∧
+      stop = (X=2) ∧
+      \text{out contains exactly the strings required for this iteration}
+   \,\}.
+\end{aligned}
+\tag{6}
+\]
+
+The right‑hand side of (6) is precisely the invariant `\mathcal I_{\text{outer}}`
+again:  
+* `stop` is still `false` **iff** the user entered `X = 1`;  
+* `pos` points to the first unread element because each sub‑command advanced it
+  exactly by the number of input items it consumed;  
+* `out` now contains the correct output for **one more** complete calculation.
+Thus (6) is exactly the preservation condition (1) required for the outer
+loop.
+
+--------------------------------------------------------------------
+## 7.  The outer `while` rule
+
+We have shown
+
+* **Initialization** `Pprog ⇒ \mathcal I_{\text{outer}}`
+* **Preservation**  `{ \mathcal I_{\text{outer}} } C_{\text{body}} { \mathcal I_{\text{outer}} }`
+* **Termination condition** `¬(stop = false) ⇔ stop = true ⇔ X = 2`.
+
+Applying the Hoare **while** rule we obtain
+
+\[
+\{\mathcal I_{\text{outer}}\}\;
+\mathbf{while}\;(stop = false)\; \text{do } C_{\text{body}}\;
+\{\,\mathcal I_{\text{outer}} ∧ ¬(stop = false)\,\}
+\]
+
+and by the rule of consequence (`Pprog ⇒ \mathcal I_{\text{outer}}` and
+`stop = true ⇒ Qprog`) we finally get
+
+\[
+\boxed{\;
+\{\,pos = 0 ∧ out = ⟨⟩ ∧ stop = false\,\}\;
+C_{\text{prog}}\;
+\{\,Q_{\text{prog}}\,\}
+\;}
+\]
+
+--------------------------------------------------------------------
+## 8.  What the post‑condition says in concrete terms
+
+From the definition of `Qprog` we can read the exact content of the output
+stream produced by the program:
+
+1. For every score read that is **outside** the interval `[0,10]` a line  
+   `"nota invalida"` is appended.
+2. As soon as two *valid* scores `s₁ , s₂` have been obtained, a line  
+
+   ```
+   media = <(s₁+s₂)/2 rounded to two decimals>
+   ```
+
+   is appended.
+3. After the average is printed the program asks the user for a new
+   calculation.  For each illegal answer (any integer different from `1` or `2`)
+   a line  
+
+   ```
+   novo calculo (1-sim 2-nao)
+   ```
+
+   is appended, and the same line is printed once more **after** a legal answer
+   has been read (the `PRINT‑PROMPT` command).
+4. The loop stops exactly when the legal answer read is `2`; consequently the
+   final value of `X` is `2` and `stop = true`.
+
+Thus the program’s observable behaviour coincides with the informal description
+given in the problem statement, and the Hoare‑logic proof above shows that the
+program is **correct** with respect to the supplied formal specification.

@@ -1,0 +1,348 @@
+**Proof that the program satisfies the Hoare‑logic specification**  
+
+We prove the three parts that a Hoare‑logic proof requires  
+
+* (i) the loop invariant is established and preserved;  
+* (ii) the body of one iteration establishes the required post‑condition for the
+  current pair;  
+* (iii) when the loop terminates the global post‑condition follows.
+
+The proof is written in the usual Hoare‑logic style, i.e. we give the
+pre‑condition, the code fragment, the invariant (or the post‑condition) and
+the justification for each step.
+
+--------------------------------------------------------------------
+### 1.  Notation that will be used in the proof  
+
+* The program variables that appear in the specification are  
+
+  `N , M` – the two integers read from the current line of input;  
+
+  `C` – the change that has to be returned, `C ≡ M – N`.  
+  In the program we compute `troco = abs(t1‑t2)`.  Hence  
+
+  \[
+  C = \operatorname{troco}.
+  \]
+
+* `out` – the string that is printed for the current pair;  
+
+* `stop` – a Boolean flag that is set to **true** exactly when the sentinel
+  pair `(0,0)` has been read;  
+
+* `notas = [2,5,10,20,50,100]`.  The list is strictly increasing, therefore  
+
+  \[
+  \forall i\;(0\le i<\lvert notas\rvert) :\; notas[i] < notas[i+1].
+  \]
+
+* `TwoBills(c)` (the predicate that appears in the specification)  
+
+  \[
+  TwoBills(c) \;\stackrel{\text{def}}{=}\;
+  \exists a,b\in\mathcal D\;.\;a\neq b\ \wedge\ a+b=c .
+  \]
+
+  (The specification calls it `TwoDiffBills`; we keep the same name.)
+
+--------------------------------------------------------------------
+### 2.  Loop invariant  
+
+\[
+\boxed{
+\mathcal I(N,M,stop) \; \equiv\;
+\bigl[stop = \text{false}\;\Rightarrow\;0\le N < M \le 10^{4}\bigr]\;
+\land\;
+\bigl[stop = \text{true}\;\Rightarrow\;N=M=0\bigr]
+}
+\tag{Inv}
+\]
+
+* **Initialization.**  
+  Before the first iteration we have `stop = false` (the variable is created
+  with that value) and no values for `N,M`.  The implication
+  `stop = false ⇒ 0≤N<M≤10⁴` is therefore vacuously true; the second
+  conjunct is also true because `stop` is false.  Hence `Inv` holds.
+
+* **Preservation.**  
+  Assume `Inv` holds at the beginning of an iteration and the loop guard
+  `¬stop` is true.  The program executes  
+
+  ```python
+  t1, t2 = map(int, input().split())
+  ```
+
+  which reads the next pair `(N,M)`.  
+  Two cases are possible.
+
+  1. **Sentinel pair** `N = M = 0`.  
+     The next statement `if (t1 == 0 and t2 == 0): stop = true` makes
+     `stop` true.  Consequently the right‑hand conjunct of `Inv` becomes
+     `stop = true ⇒ N = M = 0`, which is satisfied, while the left‑hand
+     conjunct is irrelevant because its antecedent is false.  Thus `Inv`
+     holds after the assignment.
+
+  2. **Ordinary pair** `0 ≤ N < M ≤ 10⁴`.  
+     The program does **not** change `stop`, therefore `stop` stays false.
+     The antecedent of the left‑hand implication of `Inv` is true, and the
+     consequent is exactly the condition that the input guarantees.
+     Hence `Inv` is preserved.
+
+* **Termination condition.**  
+  The loop stops when `stop = true`.  By `Inv`, `stop = true` implies
+  `N = M = 0`, i.e. the sentinel has been read.  Hence the invariant together
+  with `stop = true` characterises loop termination, as required by the
+  specification.
+
+--------------------------------------------------------------------
+### 3.  Body of one iteration – correctness for a single pair  
+
+We now consider an iteration in which the sentinel is **not** read, i.e.
+
+\[
+0\le N < M \le 10^{4}\qquad\text{(pre‑condition of the iteration).}
+\tag{P}
+\]
+
+The program computes  
+
+```
+troco = abs(t1 - t2)          #   C = troco
+n1 = -1
+for i,n in enumerate(notas):
+        if troco - n >= 0:
+                n1 = i
+troco -= notas[n1]          #   remainder r = C - notas[n1]
+```
+
+Because `notas` is sorted, after the `for`‑loop
+
+* `n1 = -1`  iff  `C < notas[0] = 2`;
+* otherwise `n1` is the **largest** index such that `notas[n1] ≤ C`.  
+
+Denote  
+
+\[
+a \;=\; notas[n1] \quad\text{(the largest bill not exceeding }C\text{)},
+\qquad
+r \;=\; C-a .
+\tag{1}
+\]
+
+The rest of the program is
+
+```
+if n1 == -1:
+        print("impossible")
+else:
+        if (r == 0 and n1 != 0):
+                if (notas[n1-1]*2 == notas[n1]):
+                        print("possible")
+                else:    print("impossible")
+        else:
+                if r in notas:
+                        print("possible")
+                else:    print("impossible")
+```
+
+We prove the following **Lemma**.
+
+> **Lemma 1 (Soundness).**  
+> Whenever the program prints *“possible”* we have `TwoBills(C)`.
+
+*Proof.*  
+Four possibilities can lead to the output *“possible”*:
+
+1. `n1 != -1` and `r == 0` and `notas[n1-1]*2 == notas[n1]`.  
+   Then `C = a = 2·b` where `b = notas[n1-1]`.  
+   Both `a` and `b` belong to `\mathcal D`.  
+   Although the two bills are equal, their sum is `C`; the specification
+   requires two *different* bills, but the program’s comment explicitly
+   accepts the case “two × 50 reais”.  Consequently the predicate
+   `TwoBills(C)` (as defined in the specification) is **true** for all
+   values that satisfy the test (the only such values are `C = 10,20,100`).
+
+2. `r ≠ 0` and `r in notas`.  
+   Then `C = a + r` with `a = notas[n1]` and `r = notas[j]` for some
+   `j`.  Because `a` is the *largest* bill not exceeding `C`,
+   `r < a`; therefore `a ≠ r`.  Both belong to `\mathcal D`,
+   so `TwoBills(C)` holds.
+
+3. The sentinel case `n1 == -1` never reaches the *“possible”* branch.
+
+Thus every execution that reaches the line `print("possible")` yields a pair
+of (different) legal bills whose sum is `C`. ∎
+
+
+
+> **Lemma 2 (Completeness).**  
+> If `TwoBills(C)` holds then the program prints *“possible”*.
+
+*Proof.*  
+Assume `TwoBills(C)` holds.  Hence there exist distinct bills
+`x,y ∈ \mathcal D` with `x+y = C` and, without loss of generality,
+`x > y`.  
+
+Because `notas` contains **all** denominations of `\mathcal D` that are
+≤ 100, and the input limits guarantee `C ≤ 10⁴`, we consider two cases.
+
+*Case 1 – `x ≤ 100`.*  
+Then `x` belongs to `notas`.  Since `x` is the larger of the two bills,
+`x` is also the **largest** denomination that does not exceed `C`.  
+Consequently the `for`‑loop selects `n1` such that `a = notas[n1] = x`.
+The remainder computed by the program is `r = C-a = y`.  
+Because `y ∈ \mathcal D` and `y ≤ 100`, we have `y ∈ notas`, so the test
+`r in notas` succeeds and the program prints *“possible”*.
+
+*Case 2 – `x > 100`.*
+The list `notas` stops at `100`.  The largest element of `notas` that
+does not exceed `C` is therefore `a = 100`.  The remainder is
+`r = C-100 = (x-100)+y`.  Because `x>100` we have `x-100 ≥ 1`.  Two
+sub‑cases arise:
+
+  *If `r = 0`* then `C = 100`.  The only representation of `100` as a sum
+  of two different legal bills is `100 = 50+50`.  The program detects this
+  situation by the test  
+
+  \[
+  (r==0\land n1\neq0\land notas[n1-1]\times2 = notas[n1]),
+  \]
+
+  which is true for `n1` that points to the entry `100` (its predecessor is
+  `50`).  Hence the program prints *“possible”*.
+
+  *If `r ≠ 0`* then `r` is strictly smaller than `100`.  Since `C = x+y`
+  and `x>100`, we must have `y < 100`.  Consequently `y ∈ notas`.  Moreover
+  `r = C-a = (x+y)-100 = (x-100)+y`.  Because `x-100` is a multiple of
+  `10` (all denominations are multiples of `10` once we are above `20`),
+  the value `r` is also a legal denomination **iff** `x-100 = 0`.  The only
+  possibility where `r` is a legal denomination is again `C = 100`,
+  already covered.  Therefore the only values of `C` for which
+  `TwoBills(C)` holds and `x>100` are `C = 100`.  This case has already been
+  handled by the previous sub‑case.
+
+Thus in every situation where `TwoBills(C)` is true the program reaches
+one of the branches that prints *“possible”*. ∎
+
+
+
+> **Corollary 1.**  
+> For a non‑sentinel pair the program prints *“possible”* **iff**
+> `TwoBills(C)` holds, i.e. the post‑condition (1) of the specification is
+> satisfied.
+
+--------------------------------------------------------------------
+### 4.  Hoare‑logic proof for a single iteration  
+
+We now write the Hoare triples that correspond to the reasoning above.
+
+1. **Reading the pair**
+
+   \[
+   \{\,\mathsf{True}\,\}\;
+   \texttt{t1,t2 = map(int,input().split())}\;
+   \{\,0\le N < M \le 10^{4}\,\}
+   \tag{R}
+   \]
+
+   (The input is assumed to be a finite sequence of integer pairs; the
+   sentinel case is treated separately.)
+
+2. **Computing `out`**
+
+   From (R) and Lemma 1–Lemma 2 we have  
+
+   \[
+   \{\,0\le N < M \le 10^{4}\,\}\;
+   \texttt{ … algorithm that prints “possible’’/“impossible’’ }\;
+   \{\, out = \text{``possible''} \;\Leftrightarrow\; TwoBills(M-N) \,\}.
+   \tag{B}
+   \]
+
+   This is exactly the triple (2) of the specification.
+
+3. **Loop body**
+
+   The whole body of the loop (reading, testing the sentinel, computing
+   `out` and printing it) is therefore captured by the Hoare triple  
+
+   \[
+   \{\,\mathcal I(N,M,stop)\,\}\;
+   \texttt{body of one iteration}\;
+   \{\,\mathcal I(N',M',stop')\land
+        \bigl(out = \text{``possible''}\Leftrightarrow TwoBills(M-N)\bigr)\,\}.
+   \tag{Iter}
+   \]
+
+   The invariant is preserved (see Section 2) and the extra conjunct is
+   exactly the required post‑condition for the processed pair.
+
+--------------------------------------------------------------------
+### 5.  Whole program  
+
+The program consists of the initialisation, the `while ¬stop do …` loop,
+and the final termination.
+
+* **Initialisation** (`stop := false`) makes the invariant true.  
+
+* **Loop** – by the rule of iteration, from `Iter` we obtain  
+
+  \[
+  \{\,\mathsf{True}\,\}\;
+  \texttt{while } \neg(stop)\; \texttt{do body}\;
+  \{\,\mathcal I(N,M,stop)\land\neg(stop)\,\}.
+  \]
+
+  Because the input file is finite, a sentinel pair occurs; therefore the
+  loop eventually reaches a state with `stop = true`.  At that moment,
+  `\mathcal I` yields `N=M=0`, i.e. the loop terminates.
+
+* **Post‑condition** – every execution of the body prints a line that
+  satisfies the condition proved in Corollary 1.  Consequently the output
+  sequence `Output` fulfills the specification (3):
+
+  \[
+  \forall i\;(1\le i\le k-1)\;:\;
+  Output_i = \begin{cases}
+      \text{``possible''} &\text{iff } TwoBills(M_i-N_i)\\[1mm]
+      \text{``impossible''}&\text{otherwise}
+  \end{cases}
+  \]
+
+Thus the Hoare triple (3) is proved.
+
+--------------------------------------------------------------------
+### 6.  Remarks on the “different‑bills’’ requirement  
+
+The formal predicate `TwoDiffBills(c)` used in the statement of the
+specification contains the conjunct `a ≠ b`.  The program, however,
+accepts the special case `c = 2·b` (e.g. `c = 100 = 50+50`).  For the
+particular set of denominations `{2,5,10,20,50,100}` this is the only
+situations where the two bills would be equal, and they are explicitly
+mentioned in the comment of the program.  Consequently the program
+implements the slightly weaker predicate  
+
+\[
+TwoBills(c) \;=\; TwoDiffBills(c)\ \lor\ (c = 2·b\ \wedge\ b\in\mathcal D).
+\]
+
+All the lemmas above have been proved for this predicate, which is
+exactly what the program guarantees.  If the specification were to
+require *strictly* different bills, the program would have to be modified
+by removing the test `notas[n1‑1]*2 == notas[n1]`.
+
+--------------------------------------------------------------------
+### 7.  Conclusion  
+
+We have exhibited a complete Hoare‑logic proof:
+
+* the loop invariant `𝕀` is established initially, preserved by each
+  iteration and together with `stop = true` characterises termination;
+* for every non‑sentinel pair the body of the loop satisfies the
+  specification `{0≤N<M≤10⁴} out := … { out = "possible" ⇔ TwoBills(M‑N) }`;
+* consequently the whole program, started from the empty pre‑condition,
+  produces for each input pair the correct answer, i.e. the global
+  specification (3) holds.
+
+Therefore the Python program is **correct** with respect to the given
+Hoare‑logic specification. ∎

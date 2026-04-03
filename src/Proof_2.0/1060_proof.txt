@@ -1,0 +1,321 @@
+## 1.  What we have to show  
+
+We want to prove the Hoare triple  
+
+\[
+\{P\}\;\texttt{countPositives}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;\;(x_{1},\dots ,x_{6})\in\mathbb{R}^{6}\ \land\ 
+\forall i\in\{1,\dots ,6\}\;.\;x_{i}\neq 0
+\]
+
+* **Program**  
+
+```python
+# 1
+nums = [float(input()) for i in range(6)]
+
+# 2
+positivos = len([ i for i in nums if i > 0])
+
+# 3
+print(f'{positivos} valores positivos')
+```
+
+* **Post‑condition**  
+
+\[
+Q\;:\;\text{output}= \bigl(\operatorname{pos}(x_{1},\dots ,x_{6})\;
+\text{``valores positivos''}\bigr)
+\]
+
+with  
+
+\[
+\operatorname{pos}(x_{1},\dots ,x_{6})\;=\;
+\sum_{i=1}^{6}\mathbf 1(x_{i}>0)
+\qquad\text{and}\qquad
+\mathbf 1(P)=\begin{cases}
+1 & P\text{ true}\\
+0 & P\text{ false}
+\end{cases}.
+\]
+
+The proof proceeds by **structural induction on the two list‑comprehensions**, i.e. by exhibiting loop invariants that are preserved by each iteration and that give us the desired values when the loops finish.  
+We use the standard Hoare‑logic rules (Assignment, Sequence, Consequence, While‑Rule) together with the semantic rule for a *list comprehension* that can be expressed as a bounded `for`‑loop.
+
+---
+
+## 2.  Formalisation of the program
+
+We rewrite the two comprehensions as explicit loops so that Hoare‑logic can be applied directly.
+
+```
+# 1  (first comprehension)
+i := 0;
+nums := [] ;
+while i < 6 do
+    v := float(input()) ;          # the i‑th input value
+    nums := nums ++ [v] ;          # ++ denotes list concatenation
+    i := i + 1
+od
+
+# 2  (second comprehension)
+j := 0;
+positivos := 0 ;
+while j < len(nums) do
+    if nums[j] > 0 then
+        positivos := positivos + 1
+    else skip
+    fi ;
+    j := j + 1
+od
+
+# 3
+print(f'{positivos} valores positivos')
+```
+
+*The variable `len(nums)` is known to be 6 after the first loop, because exactly six elements are appended.*
+
+---
+
+## 3.  Proof of correctness of the first loop  
+
+### 3.1 Loop invariant  
+
+\[
+I_{1}\;:\;0\le i\le 6\ \land\ 
+\bigl(\forall k\in\{0,\dots ,i-1\}\;.\; \texttt{nums}[k]=x_{k+1}\bigr)
+\]
+
+*Interpretation*: after `i` iterations the list `nums` contains precisely the first `i` input numbers, in the same order.
+
+### 3.2 Initialization  
+
+Before the loop we set `i := 0` and `nums := []`.  
+Both conjuncts of \(I_{1}\) hold:
+
+* `0 ≤ 0 ≤ 6` is true.
+* The universal quantifier is vacuous because the set \(\{0,\dots,-1\}\) is empty.
+
+Thus \(\{P\}\; i:=0; nums:=[]\;\{I_{1}\}\) is provable by the Assignment rule.
+
+### 3.3 Maintenance  
+
+Assume \(I_{1}\) holds at the beginning of an iteration with a current value `i` such that `i < 6`.  
+
+*The body* reads a value `v` from the input. By the semantics of `float(input())` we have  
+
+\[
+v = x_{i+1}
+\]
+
+(because the *i‑th* execution of the loop reads the *(i+1)-st* input number).  
+
+Then `nums := nums ++ [v]` appends `v` to the end of the list. Consequently  
+
+\[
+\forall k\in\{0,\dots ,i\}\;.\;\texttt{nums}[k]=x_{k+1}
+\]
+
+holds after the assignment.  
+
+Finally `i := i+1` yields the new index `i' = i+1`.  
+Thus the invariant with `i'` in place of `i` is true:
+
+\[
+0\le i' \le 6\ \land\ 
+\bigl(\forall k\in\{0,\dots ,i'-1\}\;.\;\texttt{nums}[k]=x_{k+1}\bigr)
+\]
+
+Hence the **while‑rule** (with invariant \(I_{1}\)) is satisfied.
+
+### 3.4 Termination  
+
+The loop guard `i < 6` is false exactly when `i = 6`.  
+At that moment, by \(I_{1}\),
+
+\[
+\forall k\in\{0,\dots ,5\}\;.\;\texttt{nums}[k]=x_{k+1}
+\]
+
+i.e.  
+
+\[
+\texttt{nums}= [x_{1},x_{2},x_{3},x_{4},x_{5},x_{6}]
+\tag{1}
+\]
+
+Thus after the first loop we have captured the whole input tuple as a Python list.
+
+---
+
+## 4.  Proof of correctness of the second loop  
+
+### 4.1 Loop invariant  
+
+\[
+I_{2}\;:\;0\le j\le 6\ \land\ 
+\bigl(\operatorname{pos\_so\_far}= \sum_{k=1}^{j}\mathbf 1(x_{k}>0)\bigr)
+\]
+
+where `positivos` is called `pos_so_far` in the invariant.  
+The invariant states that after processing the first `j` elements of `nums` we have already counted exactly the positives among those `j` elements.
+
+### 4.2 Initialization  
+
+Before entering the loop we set  
+
+```
+j := 0 ;
+positivos := 0
+```
+
+Hence  
+
+* `0 ≤ 0 ≤ 6` holds.
+* The sum over the empty index set is 0, therefore `positivos = 0` equals the required sum.
+
+Thus \(\{I_{1}\;\wedge\;i=6\}\;j:=0;positivos:=0\;\{I_{2}\}\) is provable.
+
+### 4.3 Maintenance  
+
+Assume \(I_{2}\) holds at the beginning of an iteration with a current `j` such that `j < 6`.  
+The body tests `if nums[j] > 0`. By (1) we know `nums[j] = x_{j+1}`.  
+
+*Case 1* – `x_{j+1} > 0` is true: the body executes `positivos := positivos + 1`.  
+Hence the new value of `positivos` is  
+
+\[
+\operatorname{pos\_so\_far}^{\text{new}}
+   =\operatorname{pos\_so\_far}+1
+   =\sum_{k=1}^{j}\mathbf 1(x_{k}>0)+\mathbf 1(x_{j+1}>0)
+   =\sum_{k=1}^{j+1}\mathbf 1(x_{k}>0)
+\]
+
+*Case 2* – `x_{j+1} > 0` is false: the `else` branch does nothing, so  
+
+\[
+\operatorname{pos\_so\_far}^{\text{new}}
+   =\operatorname{pos\_so\_far}
+   =\sum_{k=1}^{j}\mathbf 1(x_{k}>0)+\mathbf 1(x_{j+1}>0)
+\]
+
+(because the indicator of a false predicate is 0).  
+
+In both cases, after the conditional we have  
+
+\[
+\operatorname{pos\_so\_far}^{\text{new}}
+   =\sum_{k=1}^{j+1}\mathbf 1(x_{k}>0)
+\]
+
+Finally `j := j+1` yields `j' = j+1`.  
+Thus the invariant \(I_{2}\) holds with `j'` and the updated `positivos`.
+
+Therefore the while‑rule with invariant \(I_{2}\) is satisfied.
+
+### 4.4 Termination  
+
+The loop stops when `j = 6`.  
+Instantiating the invariant with `j = 6` gives  
+
+\[
+\operatorname{positivos}= \sum_{k=1}^{6}\mathbf 1(x_{k}>0)
+   =\operatorname{pos}(x_{1},\dots ,x_{6})
+\tag{2}
+\]
+
+Thus after the second loop the variable `positivos` stores exactly the number of strictly positive inputs.
+
+---
+
+## 5.  The final `print` statement  
+
+The statement  
+
+```python
+print(f'{positivos} valores positivos')
+```
+
+produces the string  
+
+\[
+\texttt{str(positivos)}\;+\; \text{`` valores positivos''}
+\]
+
+Because of (2) the integer part of the string equals \(\operatorname{pos}(x_{1},\dots ,x_{6})\).  
+Consequently the *observable output* of the whole program is  
+
+\[
+\bigl(\operatorname{pos}(x_{1},\dots ,x_{6})\; \text{``valores positivos''}\bigr)
+\]
+
+which is precisely the post‑condition \(Q\).
+
+---
+
+## 6.  Putting the pieces together (Hoare‑logic derivation)
+
+1. **First loop**  
+
+   \[
+   \{P\}\;\texttt{nums}=[];i:=0;\;\underbrace{\texttt{while }i<6\;\texttt{do}\;\dots}_{\text{loop with }I_{1}}\;\{\,\texttt{nums}=[x_{1},\dots ,x_{6}]\,\}
+   \]
+
+2. **Second loop** (using the fact that after step 1 we have the list `nums` as above)
+
+   \[
+   \{\texttt{nums}=[x_{1},\dots ,x_{6}]\}\;
+   \texttt{positivos}:=0;j:=0;\;
+   \underbrace{\texttt{while }j<6\;\texttt{do}\;\dots}_{\text{loop with }I_{2}}
+   \;
+   \{\,\texttt{positivos}= \operatorname{pos}(x_{1},\dots ,x_{6})\,\}
+   \]
+
+3. **Print**  
+
+   \[
+   \{\texttt{positivos}= \operatorname{pos}(x_{1},\dots ,x_{6})\}\;
+   \texttt{print(f'{positivos} valores positivos')}\;
+   \{Q\}
+   \]
+
+4. **Sequence rule** combines the three Hoare triples into one:
+
+   \[
+   \{P\}\;\texttt{countPositives}\;\{Q\}
+   \]
+
+Thus the Hoare triple is proved.
+
+---
+
+## 7.  Remarks on the pre‑condition  
+
+The requirement “\(x_{i}\neq 0\) for all \(i\)” is **not used** in the logical derivation; the program works correctly even if some inputs were zero (they would simply be ignored by the second comprehension).  
+The pre‑condition is therefore stronger than necessary, but it certainly implies the weaker condition “the six inputs are real numbers”, which is what the program actually needs.
+
+---
+
+## 8.  Conclusion  
+
+We have exhibited:
+
+* a loop invariant for the first list‑comprehension that guarantees the list `nums` is exactly the 6‑tuple of inputs,
+* a loop invariant for the second comprehension that guarantees `positivos` equals the sum of the indicator of “\(x_i>0\)”, i.e. the desired count,
+* a final step that prints that count together with the literal text required by the specification.
+
+Consequently the program satisfies the Hoare‑logic specification  
+
+\[
+\boxed{\{P\}\;\texttt{countPositives}\;\{Q\}}
+\]
+
+and is therefore **correct** with respect to the given pre‑ and post‑conditions.

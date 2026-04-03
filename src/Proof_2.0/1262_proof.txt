@@ -1,0 +1,258 @@
+**Proof of correctness (Hoare‑logic) of the program**  
+
+We prove that for every admissible trace τ and every admissible number of
+processes P the program prints  
+
+\[
+C(\tau ,P)=\sum_{j=1}^{m}c_{j}
+\]
+
+as defined in the post‑condition.  
+The proof is carried out on the *inner* part of the program (the part that
+computes the value of the variable `ciclos`).  
+The outer `while‑True / try … except EOFError` loop is only a repetition of
+the inner computation for each test case; the Hoare triple for a single
+execution of the inner part is therefore sufficient.  
+
+--------------------------------------------------------------------
+### 1.  Notation and correspondence with the specification  
+
+| program entity | mathematical entity |
+|----------------|---------------------|
+| `rastro` (after `upper()`) | the trace τ = τ₁…τₙ ∈ Σⁿ,  Σ={R,W} |
+| `processos`                | the integer P (1 ≤ P ≤ 10) |
+| `ciclos`                   | the accumulator that will hold the result |
+| `contador`                 | the number of consecutive reads that have **not**
+                               yet formed a complete batch of size P |
+| `i` (loop index)           | the number of characters already examined,
+                               i.e. the current prefix length of τ |
+| `n`                        | |τ| (the length of the trace) |
+
+A **block** of the trace is a maximal homogeneous factor (all R’s or all
+W’s).  Let  
+
+\[
+0=i_{0}<i_{1}<\dots<i_{m}=n
+\]
+
+be the block boundaries, and  
+
+\[
+B_{j}=τ_{i_{j-1}+1}\dots τ_{i_{j}},\qquad |B_{j}|=i_{j}-i_{j-1}.
+\]
+
+The contribution of a block to the minimal number of clock cycles is  
+
+\[
+c_{j}= \begin{cases}
+1                                   &\text{if }B_{j}\text{ consists of W’s},\\[2mm]
+\big\lceil |B_{j}|/P\big\rceil       &\text{if }B_{j}\text{ consists of R’s}.
+\end{cases}
+\]
+
+--------------------------------------------------------------------
+### 2.  Loop invariant for the `for i in rastro` loop  
+
+We prove the following invariant **I(k)**, where *k* is the number of already
+processed characters (i.e. the loop has just finished the iteration for
+`τₖ` and is about to start the iteration for `τₖ₊₁`).  
+
+> **I(k)**  (k ∈ [0,n])  
+> 1. `ciclos` equals the sum of the contributions of all **completed**
+>    blocks that lie completely inside the prefix τ₁…τₖ, **plus** the number of
+>    full‑batch read cycles already counted inside the block that is
+>    currently being processed (if any).  
+> 2. `contador` equals the size of the *unfinished* read suffix of the
+>    current block, i.e. the number of consecutive R’s at the end of the
+>    prefix that have not yet formed a complete batch of size P.
+>    If the current block is a write block or the prefix ends with a write,
+>    then `contador = 0`.  
+> 3. The pair (`ciclos`, `contador`) respects the hardware constraints:
+>    - at most one write contributes a cycle (`ciclos` is increased by 1
+>      when a W is seen);  
+>    - at most P reads can be packed in a single cycle (a batch of P reads
+>      causes `ciclos` to be increased by 1 and `contador` to be reset to 0).
+
+Intuitively, `ciclos` already contains the exact contribution of every block
+that is *finished* in the processed prefix, while `contador` remembers how
+many reads of the *unfinished* read block are still waiting to be grouped
+into a batch.
+
+--------------------------------------------------------------------
+### 3.  Initialization (k = 0)
+
+Before the first iteration we have:
+
+* `ciclos = 0` – no block has been processed yet,
+* `contador = 0` – no read has been seen.
+
+The empty prefix τ₁…τ₀ contains no completed block, and the current block
+is “non‑existent”.  Hence **I(0)** holds.
+
+--------------------------------------------------------------------
+### 4.  Preservation (inductive step)
+
+Assume that **I(k)** holds at the beginning of the iteration that processes
+character `τₖ₊₁`.  We examine the three possible cases of the body of the loop.
+
+--------------------------------------------------------------------
+#### 4.1  Case `τₖ₊₁ = 'R'`
+
+```
+contador += 1
+if contador == processos:
+        contador = 0
+        ciclos   += 1
+```
+
+*`contador`* is increased by one, reflecting that the unfinished read suffix
+has grown by one character – this maintains clause 2 of the invariant.
+
+If after the increment `contador == P`, a *full batch* of P reads has been
+completed.  The program resets `contador` to 0 and increments `ciclos` by 1,
+which accounts exactly for the contribution of one read‑cycle
+(`⌈P/P⌉ = 1`).  Thus clause 1 (the sum of completed block contributions) is
+preserved.  If `contador ≠ P` the batch is still incomplete, and `ciclos`
+remains unchanged – again clause 1 stays true because the contribution of
+the current (still unfinished) batch has not yet been added.
+
+All hardware constraints remain satisfied, therefore clause 3 also holds.
+
+--------------------------------------------------------------------
+#### 4.2  Case `τₖ₊₁ = 'W'` **and** `contador ≠ 0`
+
+```
+contador = 0
+ciclos   += 2
+```
+
+The prefix ends a *read* block that is still unfinished (`contador ≠ 0`).  
+According to the specification such a block contributes  
+
+\[
+\Big\lceil\frac{|B|}{P}\Big\rceil
+  = \Big\lceil\frac{\text{full batches}+ \text{remaining reads}}{P}\Big\rceil
+  = \text{full batches} + 1 .
+\]
+
+The full batches have already been counted in `ciclos` (by the rule of
+section 4.1).  The remaining reads form an incomplete batch; the program
+adds **one** extra cycle for it by setting `contador = 0` and later (via
+`ciclos += 2`) adds **another** cycle for the write itself.  Consequently the
+total increment of `ciclos` is **2**, exactly the sum of the missing read‑cycle
+and the write‑cycle.  After the assignment `contador = 0` the unfinished‑read
+suffix disappears, satisfying clause 2.  Clause 1 now contains the
+contribution of the whole read block plus the contribution of the write
+block, i.e. the contributions of two *completed* blocks, as required.
+
+--------------------------------------------------------------------
+#### 4.3  Case `τₖ₊₁ = 'W'` **and** `contador = 0`
+
+```
+ciclos += 1
+```
+
+The write starts a new *write* block.  No read batch is pending, therefore
+the write block contributes exactly one cycle.  The program adds one to
+`ciclos`, leaves `contador` unchanged (still 0) and the invariant is
+preserved.
+
+--------------------------------------------------------------------
+All three cases preserve **I(k)**, hence by induction **I(k)** holds for every
+k ∈ [0,n].
+
+--------------------------------------------------------------------
+### 5.  Termination of the `for` loop  
+
+When the loop finishes we have processed the whole trace, i.e. k = n.
+Two situations are possible.
+
+* **The last block is a write block**  
+  Then `contador = 0` (no pending reads).  By clause 1 of **I(n)**,
+  `ciclos` already equals  
+
+  \[
+  \sum_{j=1}^{m}c_{j},
+  \]
+
+  because every block has been completed inside the loop.
+
+* **The last block is a read block**  
+  Then `contador` contains the size r of the *unfinished* read suffix,
+  where \(0<r<P\).  Clause 1 tells us that `ciclos` already accounts for all
+  full batches of that block, i.e. for  
+
+  \[
+  \big\lfloor |B_{m}|/P\big\rfloor
+  \]
+
+  cycles.  The program executes the final
+
+  ```python
+  if contador != 0:
+          ciclos += 1
+  ```
+
+  which adds exactly one more cycle, i.e. the contribution of the last
+  incomplete batch.  Consequently `ciclos` becomes  
+
+  \[
+  \big\lfloor |B_{m}|/P\big\rfloor + 1
+       = \big\lceil |B_{m}|/P\big\rceil = c_{m}.
+  \]
+
+In both cases, after the optional `if` the variable `ciclos` equals  
+
+\[
+\sum_{j=1}^{m}c_{j}=C(\tau ,P).
+\]
+
+--------------------------------------------------------------------
+### 6.  Post‑condition
+
+The program prints the value of `ciclos`.  Hence, letting  
+
+\[
+\mathsf{result}=ciclos,
+\]
+
+we have proved
+
+\[
+\mathsf{result}=C(\tau ,P).
+\]
+
+The algorithm never mixes reads and writes in the same cycle,
+never uses more than one write per cycle, and never uses more than P reads
+per cycle – exactly the constraints that define a *feasible schedule*.
+Because each block is handled with the minimum number of cycles permitted
+by those constraints (a write block needs one cycle, a read block needs
+\(\lceil |B|/P\rceil\) cycles), no other feasible schedule can be shorter.
+Thus the second conjunct of the formal post‑condition also holds.
+
+--------------------------------------------------------------------
+### 7.  Hoare triple for a single test case  
+
+\[
+\boxed{
+\{\,\tau\in\{R,W\}^{n},\;1\le n\le 50,\;1\le P\le 10\,\}\;
+\mathsf{result}\leftarrow\textsf{minCycles}(\tau,P)\;
+\{\,\mathsf{result}=C(\tau ,P)\,\}
+}
+\]
+
+where the body of `minCycles` is precisely the fragment proved correct
+above.  The outer `while‑True / try … except EOFError` loop repeatedly
+applies this triple to each input pair, and the `break` on `EOFError`
+terminates the whole program.
+
+--------------------------------------------------------------------
+### 8.  Conclusion  
+
+By exhibiting a loop invariant that is (i) true initially, (ii) preserved by
+every iteration of the `for` loop, and (iii) strong enough to imply the
+required value after the loop, we have shown, using the rules of Hoare logic,
+that the program satisfies the given specification.  Consequently the
+program always prints the **minimal** number of clock cycles required to
+execute the trace under the hardware constraints, i.e. it fulfills the
+post‑condition.  

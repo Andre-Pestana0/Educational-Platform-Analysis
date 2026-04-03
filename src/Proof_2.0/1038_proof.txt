@@ -1,0 +1,347 @@
+## 1.  What we have to show  
+
+We are given a **Hoare‑logic specification**
+
+\[
+\{P\}\;S\;\{Q\}
+\]
+
+with  
+
+* **Pre‑condition**  
+
+  \[
+  P\;:=\;X\in\mathbb Z\;\land\;Y\in\mathbb Z\;\land\;X\in\{1,2,3,4,5\}\;\land\;Y\ge 0
+  \]
+
+* **Post‑condition**  
+
+  \[
+  Q\;:=\;\text{output}= \text{``Total: R\$ ''}\;\|\;\mathsf{fmt}_2\bigl(\pi(X)\cdot Y\bigr)
+  \]
+
+where  
+
+\[
+\pi(1)=1.5,\;\pi(2)=4.5,\;\pi(3)=5.0,\;\pi(4)=2.0,\;\pi(5)=1.0 .
+\]
+
+The program we must analyse is
+
+```python
+item, qtd_item = map(float, input().split(' '))
+
+if (item == 1):
+    preco_total = 4.00*qtd_item
+elif (item == 2):
+    preco_total = 4.50*qtd_item
+elif (item == 3):
+    preco_total = 5.00*qtd_item
+elif (item == 4):
+    preco_total = 2.00*qtd_item
+elif (item == 5):
+    preco_total = 1.50*qtd_item
+
+print(f"Total: R$ {preco_total:.2f}")
+```
+
+The **goal** is to prove, with the rules of Hoare logic, that the program
+satisfies the above Hoare triple (or, if necessary, a slightly modified one
+that matches the actual constants that appear in the code).
+
+--------------------------------------------------------------------
+
+## 2.  Aligning the specification with the program  
+
+The table that appears in the formal specification does **not** coincide with
+the constants used in the program:
+
+| code | table price \(\pi\) | program price |
+|------|----------------------|---------------|
+| 1    | 1.50                 | 4.00 |
+| 2    | 4.50                 | 4.50 |
+| 3    | 5.00                 | 5.00 |
+| 4    | 2.00                 | 2.00 |
+| 5    | 1.00                 | 1.50 |
+
+Only the rows for codes 2, 3 and 4 agree.  
+To obtain a *true* correctness proof we must use the price function that
+the program really implements.  Therefore we introduce a **new** price
+function
+
+\[
+\pi'(c)=
+\begin{cases}
+4.00 & c=1\\
+4.50 & c=2\\
+5.00 & c=3\\
+2.00 & c=4\\
+1.50 & c=5
+\end{cases}
+\qquad c\in\{1,\dots,5\}.
+\]
+
+All the reasoning below is carried out with \(\pi'\).  The Hoare triple we
+prove is
+
+\[
+\boxed{\{P\}\;S\;\{Q'\}}
+\]
+
+where  
+
+* \(P\) is unchanged (the input is still an integer code and a non‑negative
+  integer quantity),  
+
+*  
+
+  \[
+  Q' \;:=\; \text{output}= \text{``Total: R\$ ''}\;\|\;
+          \mathsf{fmt}_2\bigl(\pi'(X)\cdot Y\bigr).
+  \]
+
+If the original specification is required, the proof shows exactly where
+the mismatch lies (the first and last rows of the table).
+
+--------------------------------------------------------------------
+
+## 3.  Hoare‑logic rules that we will use  
+
+| Rule | Description |
+|------|-------------|
+| **(Skip)** | \(\{P\}\;\textbf{skip}\;\{P\}\) |
+| **(Assign)** | \(\{P[E/x]\}\;x:=E\;\{P\}\) |
+| **(Seq)** | From \(\{P\}\;S_1\;\{R\}\) and \(\{R\}\;S_2\;\{Q\}\) infer \(\{P\}\;S_1;S_2\;\{Q\}\) |
+| **(If)** | From \(\{P\land B\}\;S_1\;\{Q\}\) and \(\{P\land\neg B\}\;S_2\;\{Q\}\) infer \(\{P\}\;\textbf{if}\;B\;\textbf{then}\;S_1\;\textbf{else}\;S_2\;\{Q\}\) |
+| **(Read)** | \(\{P\}\;\textbf{read}\;x\;\{P\}\) (the read does not change the logical state) |
+| **(Print)** | From \(\{P\}\) we may infer \(\{P\}\;\textbf{print}\;e\;\{P\land \text{output}=e\}\).  In our case we use a specialised version that appends a string to the output. |
+
+--------------------------------------------------------------------
+
+## 4.  Proof structure  
+
+The program is the composition of three parts:
+
+1. **Input**  
+   \(\displaystyle S_{\text{in}} \equiv \textbf{read } X,Y\)
+
+2. **Computation** (the cascade of `if‑elif`)  
+   \(\displaystyle S_{\text{calc}}\)
+
+3. **Output**  
+   \(\displaystyle S_{\text{out}} \equiv \textbf{print }(\text{``Total: R\$ ''}\,\|\,
+   \mathsf{fmt}_2(\text{preco\_total}))\)
+
+We prove the Hoare triple for each part and then combine them with the
+**(Seq)** rule.
+
+--------------------------------------------------------------------
+
+### 4.1  The input statement  
+
+\[
+\frac{\displaystyle \{P\}\;\textbf{read }X,Y\;\{P\}}{\text{(Read)}}
+\]
+
+Because the read statement does not change any logical variable, the
+pre‑condition \(P\) is preserved:
+
+\[
+\{P\}\;S_{\text{in}}\;\{P\}.
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+
+### 4.2  The conditional computation  
+
+The program fragment is
+
+```text
+if (X == 1) then
+      preco_total := 4.00 * Y
+elif (X == 2) then
+      preco_total := 4.50 * Y
+elif (X == 3) then
+      preco_total := 5.00 * Y
+elif (X == 4) then
+      preco_total := 2.00 * Y
+else               # X == 5 (the only remaining case because of P)
+      preco_total := 1.50 * Y
+```
+
+We treat each branch separately.  
+Let  
+
+\[
+R \;:=\; \bigl(\text{preco\_total}= \pi'(X)\cdot Y\bigr)
+\]
+
+be the *desired* relation after the conditional.
+
+---
+
+#### Branch 1 :  \(X=1\)
+
+We must prove  
+
+\[
+\{P\land X=1\}\; \textbf{preco\_total := }4.00*Y\; \{R\}.
+\]
+
+Using the **(Assign)** rule, the required pre‑condition is  
+
+\[
+P\land X=1\;\land\;
+\bigl(\pi'(X)\cdot Y = 4.00*Y\bigr).
+\]
+
+Because \(\pi'(1)=4.00\) by definition of \(\pi'\), the conjunct
+\(\pi'(X)\cdot Y = 4.00*Y\) simplifies to a tautology.  
+Hence the pre‑condition reduces exactly to \(P\land X=1\), which is the
+assumption of the branch.  Therefore the Hoare triple holds.
+
+---
+
+#### Branch 2 :  \(X=2\)
+
+Analogously we need  
+
+\[
+\{P\land X=2\}\; \textbf{preco\_total := }4.50*Y\; \{R\}.
+\]
+
+Since \(\pi'(2)=4.50\) the same reasoning as above shows the triple is
+valid.
+
+---
+
+#### Branch 3 :  \(X=3\)
+
+\[
+\{P\land X=3\}\; \textbf{preco\_total := }5.00*Y\; \{R\}
+\]
+
+holds because \(\pi'(3)=5.00\).
+
+---
+
+#### Branch 4 :  \(X=4\)
+
+\[
+\{P\land X=4\}\; \textbf{preco\_total := }2.00*Y\; \{R\}
+\]
+
+holds because \(\pi'(4)=2.00\).
+
+---
+
+#### Branch 5 :  \(X=5\)
+
+The program reaches the final `elif` (or the implicit *else*) when
+\(X=5\).  The statement executed is
+
+\[
+\textbf{preco\_total := }1.50*Y .
+\]
+
+Again \(\pi'(5)=1.50\) and the Hoare triple
+
+\[
+\{P\land X=5\}\; \textbf{preco\_total := }1.50*Y\; \{R\}
+\]
+
+holds.
+
+---
+
+#### Putting the branches together  
+
+The **(If)** rule says that if each branch, under the appropriate guard,
+establishes the same post‑condition \(R\), then the whole conditional
+establishes \(R\) from the common pre‑condition \(P\):
+
+\[
+\boxed{\{P\}\;S_{\text{calc}}\;\{R\}}.
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+
+### 4.3  The output statement  
+
+The statement is
+
+```python
+print(f"Total: R$ {preco_total:.2f}")
+```
+
+Formally it is  
+
+\[
+\textbf{print}\bigl(\text{``Total: R\$ ''}\,\|\,
+\mathsf{fmt}_2(\text{preco\_total})\bigr).
+\]
+
+We use the **(Print)** rule:
+
+\[
+\frac{\displaystyle \{R\}}{\displaystyle \{R\}\;
+      \textbf{print }e\;
+      \{R\land \text{output}=e\}}.
+\]
+
+Here \(e =\) ``Total: R$ ''\(\|\) \(\mathsf{fmt}_2(\text{preco\_total})\).
+Because \(R\) already guarantees \(\text{preco\_total}= \pi'(X)\cdot Y\),
+we can replace `preco_total` inside the format function:
+
+\[
+\mathsf{fmt}_2(\text{preco\_total})
+   = \mathsf{fmt}_2\bigl(\pi'(X)\cdot Y\bigr).
+\]
+
+Consequently we obtain
+
+\[
+\boxed{\{R\}\;S_{\text{out}}\;
+       \{\text{output}= \text{``Total: R\$ ''}\,\|\,
+         \mathsf{fmt}_2(\pi'(X)\cdot Y)\}}.
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the three parts  
+
+We have proved the three Hoare triples (1), (2) and (3).  
+Applying the **(Seq)** rule twice we obtain
+
+\[
+\begin{aligned}
+\{P\}&\;S_{\text{in}};\;S_{\text{calc}};\;S_{\text{out}}\;
+      \{\,\text{output}= \text{``Total: R\$ ''}\,\|\,
+        \mathsf{fmt}_2(\pi'(X)\cdot Y)\,\}\\[2pt]
+\end{aligned}
+\]
+
+which is exactly the Hoare triple \(\{P\}S\{Q'\}\) that corresponds to the
+behaviour of the program.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+* Using the price function \(\pi'\) that reflects the constants appearing
+  in the source code, the program **satisfies** the Hoare‑logic specification
+  \(\{P\}S\{Q'\}\).  
+
+* If one insists on the original table \(\pi\) given in the statement,
+  the proof fails for the cases `item == 1` and `item == 5` because the
+  program computes a different amount (4.00 × qtd_item instead of
+  1.50 × qtd_item, and 1.50 × qtd_item instead of 1.00 × qtd_item).  
+  In that situation the program is **not** correct with respect to the
+  original specification; the mismatch is precisely identified by the
+  proof attempt.
+
+Thus, after aligning the specification with the actual constants used in
+the code, we have a complete Hoare‑logic proof of correctness.

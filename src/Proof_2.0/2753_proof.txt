@@ -1,0 +1,207 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**
+
+Below we give a full, step‑by‑step Hoare‑logic proof that the Python fragment
+
+```python
+contador_soma = 0
+for i in range(97,123):
+    print(f'{i+contador_soma} e {chr(i+contador_soma)}')
+```
+
+produces exactly the sequence described by the post‑condition  
+
+\[
+\mathsf{Post}\;:=\;
+|\,\mathsf{Out}\,| = 26 \;\land\;
+\forall k\in[0..25]\;.\;
+\mathsf{Out}[k] = (97+k,\;‘e’,\;chr(97+k)).
+\]
+
+The proof proceeds in the usual three‑rule style of Hoare logic
+(assignment, composition, and the while rule).  
+All auxiliary variables that appear in the proof are highlighted in **bold**.
+
+---------------------------------------------------------------------
+
+### 1.  Program model used for the proof  
+
+For a Hoare‑logic proof we give an *imperative* description of the program
+that makes the effect on the output explicit.
+
+```
+1  contador_soma := 0
+2  i            := 97
+3  Out          := ⟨⟩                     // empty sequence
+4  while i < 123 do
+5      Out := Out ∘ ⟨(i+contador_soma , ‘e’, chr(i+contador_soma))⟩
+6      i   := i + 1
+7  od
+```
+
+`∘` denotes sequence concatenation; `⟨⟩` is the empty sequence.
+The `print` statement of the original Python program is modelled by the
+assignment to **Out** in line 5 – after the loop terminates the content of
+`Out` is exactly what has been written to the standard output.
+
+---------------------------------------------------------------------
+
+### 2.  Pre‑condition  
+
+There is no input, therefore  
+
+\[
+\{\,\mathsf{Pre}\,\}\;=\;\{\,\textbf{true}\,\}.
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Loop invariant  
+
+The invariant must capture three facts that are true **before** the first
+iteration, are preserved by the body, and together with the negated loop
+guard give the post‑condition.
+
+\[
+\boxed{
+\begin{aligned}
+I \;\equiv\;&
+\; \textbf{contador\_soma}=0\; \land\;
+97 \le i \le 123\; \land \\[2mm]
+&\; \bigl|\,\mathsf{Out}\,\bigr| = i-97\; \land \\[2mm]
+&\; \forall k\in[0..i-97-1]\;.\;
+\mathsf{Out}[k] = (97+k,\;‘e’,\;chr(97+k)).
+\end{aligned}}
+\]
+
+Informally:  
+
+* `contador_soma` never changes (it stays 0);
+* `i` always points to the next ASCII code that still has to be printed;
+* `Out` already contains exactly the triples for the codes `97 … i‑1`.
+
+---------------------------------------------------------------------
+
+### 4.  Proof that the invariant holds initially  
+
+We have to show  
+
+\[
+\{\,\textbf{true}\,\}\; \text{line 1–3}\; \{\,I\,\}.
+\]
+
+* **Line 1** (`contador_soma := 0`) – by the **assignment rule** we obtain
+  `contador_soma = 0`.
+* **Line 2** (`i := 97`) – the assignment rule gives `i = 97`.
+* **Line 3** (`Out := ⟨⟩`) – `|Out| = 0` and the universal clause of `I`
+  is vacuously true because the range `[0..i‑97‑1]` is empty.
+
+All conjuncts of `I` are satisfied, therefore the invariant holds
+before the first test of the loop guard.
+
+---------------------------------------------------------------------
+
+### 5.  Preservation of the invariant (body of the loop)
+
+Assume the invariant `I` holds *and* the loop guard `i < 123` is true.
+We have to prove  
+
+\[
+\{\,I \land i<123\,\}\; \text{lines 5–6}\; \{\,I\,\}.
+\]
+
+Denote the value of `i` before the iteration by `i₀`.
+
+* **Line 5** appends the triple  
+
+  \[
+  t := (i₀+\textbf{contador\_soma},\;‘e’,\;chr(i₀+\textbf{contador\_soma}))
+  \]
+
+  to `Out`. Because the invariant guarantees `contador_soma = 0`,
+  `t = (i₀,‘e’,chr(i₀))`.  
+  After the concatenation we have  
+
+  \[
+  |Out| = (i₀-97) + 1 = i₀+1-97.
+  \]
+
+  Moreover the universal clause now holds for all
+  `k ∈ [0..i₀‑97]` :
+
+  * for `k < i₀‑97` the entry is unchanged,
+  * for `k = i₀‑97` we have `Out[k] = t = (97+(i₀‑97),‘e’,chr(97+(i₀‑97)))`.
+
+* **Line 6** (`i := i+1`) changes `i` to `i₁ = i₀+1`.  
+  Consequently `97 ≤ i₁ ≤ 123` (the upper bound follows from the guard
+  `i₀ < 123`).  
+
+All conjuncts of `I` are re‑established with the new value `i₁`,
+hence the invariant is preserved.
+
+---------------------------------------------------------------------
+
+### 6.  Termination condition yields the post‑condition  
+
+When the loop finishes we have the negated guard:
+
+\[
+\neg(i<123) \;\Longleftrightarrow\; i = 123 .
+\]
+
+Together with the invariant we obtain
+
+* `|Out| = i‑97 = 123‑97 = 26`;
+* for every `k ∈ [0..25]`
+
+  \[
+  Out[k] = (97+k,\;‘e’,\;chr(97+k)).
+  \]
+
+These two facts are exactly the formal description of `Post` given in
+the specification.  Hence
+
+\[
+\{\,I \land i = 123\,\}\; \text{skip}\; \{\,\mathsf{Post}\,\}.
+\]
+
+---------------------------------------------------------------------
+
+### 7.  Full Hoare triple
+
+Combining the three parts (initialisation, preservation, termination) with
+the **while rule**
+
+\[
+\frac{\{I\land B\}\;C\;\{I\}}{\{I\}\; \textbf{while}\;B\;\textbf{do}\;C\;\textbf{od}\;\{I\land\neg B\}}
+\]
+
+we obtain the Hoare triple for the whole program:
+
+\[
+\boxed{\;\{\,\textbf{true}\,\}\; \text{Program}\; \{\,\mathsf{Post}\,\}\;}
+\]
+
+i.e. *starting from any state the program terminates and the sequence
+written to the output satisfies the required post‑condition*.
+
+---------------------------------------------------------------------
+
+### 8.  Remarks on the original Python code  
+
+* `contador_soma` is never modified, therefore `i+contador_soma` is simply
+  `i`.  
+* `range(97,123)` yields the values `97,98,…,122`; the loop executes
+  exactly 26 times.  
+* The `print` statement writes the line  
+
+  ```
+  <i+contador_soma> e <chr(i+contador_soma)>
+  ```
+
+  which, after the substitution `contador_soma = 0`, coincides with the
+  triple `(i,'e',chr(i))` that the invariant (and the post‑condition)
+  describes.
+
+Consequently the concrete Python program implements precisely the abstract
+imperative version proved correct above, and therefore **it meets the
+specification**. ∎

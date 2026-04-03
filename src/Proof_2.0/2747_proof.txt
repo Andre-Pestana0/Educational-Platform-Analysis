@@ -1,0 +1,406 @@
+## 1.  What we have to prove  
+
+We must show that the **concrete** Python program  
+
+```python
+tracos = '-'*39
+pipe   = '|' + ' '*37 + '|'
+print(tracos)                # line 1
+for i in range(5):           # lines 2 … 6
+    print(pipe)
+print(tracos)                # line 7
+```
+
+satisfies the Hoare‑logic specification  
+
+\[
+\boxed{\;\{\,\textbf{true}\,\}\; \texttt{Screen}()\;
+      \{\, out = \textbf{ScreenString}(39,5)\ \land\ \text{no input is read}\,\}\;}
+\]
+
+where  
+
+* `out` is the whole contents that the program has written to **stdout** when it terminates,
+*  
+
+\[
+\begin{aligned}
+\textbf{ScreenString}(w,h) &=
+   \text{Top}(w)\;\text{nl}\;
+   \bigl(\text{Mid}(w)\;\text{nl}\bigr)^{h}\;
+   \text{Top}(w)\;\text{nl} \\[2mm]
+\text{Top}(w) &= \underbrace{\text{``-''}\dots\text{``-''}}_{w\text{ times}}   \\
+\text{Mid}(w) &= \text{``|''}\;\underbrace{\text{`` ``}\dots\text{`` ``}}_{w-2\text{ blanks}}\;\text{``|''}
+\end{aligned}
+\]
+
+and for the concrete instance  
+
+\[
+\begin{aligned}
+w &= 39,\qquad h = 5,\\
+\text{Top}(39) &= \text{``---------------------------------------''},\\
+\text{Mid}(39) &= \text{``|                                   |''}.
+\end{aligned}
+\]
+
+The only observable effect of the program is the string that it writes; there is no read from `stdin`.  
+Hence the proof consists of a **Hoare‑logic derivation** that the final value of `out` is exactly `ScreenString(39,5)`.
+
+--------------------------------------------------------------------
+
+## 2.  Hoare‑logic preliminaries  
+
+We use the standard Hoare calculus for a **while‑language** that contains the following commands (all of them are present in the Python fragment):
+
+| command | Hoare rule |
+|---------|------------|
+| **assignment** `x := e` | \(\displaystyle \{P[e/x]\}\;x:=e\;\{P\}\) |
+| **sequence** `C₁;C₂` | \(\displaystyle \frac{\{P\}C₁\{Q\}\qquad\{Q\}C₂\{R\}}{\{P\}C₁;C₂\{R\}}\) |
+| **output** `print(e)` (writes `e` followed by `\n`) | \(\displaystyle \{out = O\}\;\text{print}(e)\;\{out = O\;\text{nl}\;e\}\) |
+| **for‑loop** `for i in range(N): C` – we treat it as the equivalent `i:=0; while i<N do { C; i:=i+1 }` and use the usual **while‑rule** with a loop invariant. |
+| **consequence** | \(\displaystyle \frac{P' \Rightarrow P \qquad \{P\}C\{Q\}\qquad Q\Rightarrow Q'}{ \{P'\}C\{Q'\}}\) |
+
+We also need a **loop invariant** for the `for`‑loop.  
+The invariant will talk about three things:
+
+* the current value of the loop counter `i`,
+* the part of the output that has already been produced,
+* the fact that no input has been read (this never changes).
+
+--------------------------------------------------------------------
+
+## 3.  Formal description of the program  
+
+To keep the proof tidy we rewrite the Python fragment in a tiny imperative language that is exactly what the Hoare rules speak about.
+
+```
+1  tracos := dash(39)                                   (* dash(k) = '-' repeated k times *)
+2  pipe   := "|" ⧺ space(37) ⧺ "|"                     (* space(k) = ' ' repeated k times *)
+3  print(tracos)                                       (* writes Top(39)⧺nl *)
+4  i := 0
+5  while i < 5 do                                      (* 5 = h *)
+6      print(pipe)                                     (* writes Mid(39)⧺nl *)
+7      i := i + 1
+8  od
+9  print(tracos)                                       (* writes Top(39)⧺nl *)
+```
+
+All other Python‑specific details (e.g. the automatic conversion of `range(5)` into the loop above) are hidden in the `while` construct.  
+
+The **state** of the program consists of the variables `tracos`, `pipe`, `i` and the auxiliary variable `out` that records the output produced so far.  
+
+--------------------------------------------------------------------
+
+## 4.  Loop invariant  
+
+Let  
+
+\[
+\begin{aligned}
+\text{Inv}(i) &\;\equiv\; 
+   out = \text{Top}(39)\;\text{nl}\;
+          \bigl(\text{Mid}(39)\;\text{nl}\bigr)^{i}
+   \;\land\; 0\le i\le 5
+\end{aligned}
+\]
+
+Intuitively: after the loop has executed `i` times we have already printed the top border and `i` interior lines, nothing else.
+
+Note that `Inv(i)` does **not** mention the variables `tracos`, `pipe` or `i` themselves except for the bound on `i`.  
+It also implicitly includes the clause “no input is read”, because none of the commands ever reads from `stdin`.  We will keep a separate global assertion  
+
+\[
+\text{NoRead}\; \equiv\; \text{“the program never executes a read operation”}
+\]
+
+which is true before the program starts and is preserved by every command we consider (the only commands are assignments, `print` and the loop).
+
+--------------------------------------------------------------------
+
+## 5.  Proof outline (Hoare derivation)
+
+We now build the derivation from the top, step by step.
+
+### 5.1  Initialise `tracos` and `pipe`
+
+| line | Hoare triple (after applying the Assignment axiom) |
+|------|----------------------------------------------------|
+| 1    | \(\{\,out = O\;\land\;\text{NoRead}\,\}\; tracos := dash(39)\; \{\,out = O\;\land\;\text{NoRead}\,\}\) |
+| 2    | \(\{\,out = O\;\land\;\text{NoRead}\,\}\; pipe   := "|" ⧺ space(37) ⧺ "|" \; \{\,out = O\;\land\;\text{NoRead}\,\}\) |
+
+`O` denotes an arbitrary (still unknown) content of `out`.  The two assignments do not touch `out` and therefore preserve the post‑condition of the previous command.
+
+### 5.2  First `print(tracos)`
+
+Recall `tracos = dash(39) = Top(39)`.  
+Using the **output rule** we obtain  
+
+\[
+\{\,out = O\;\land\;\text{NoRead}\,\}
+\; \text{print}(tracos)
+\;
+\{\,out = O\;\text{nl}\;\text{Top}(39)\;\land\;\text{NoRead}\,\}
+\]
+
+Now we *choose* the fresh name  
+
+\[
+O_1 \;=\; O\;\text{nl}\;\text{Top}(39)
+\]
+
+so that the post‑condition can be written simply as `out = O₁ ∧ NoRead`.  
+
+### 5.3  Initialise the loop counter
+
+```
+i := 0
+```
+
+Again the assignment rule gives  
+
+\[
+\{out = O_1\;\land\;\text{NoRead}\}\; i:=0\; \{out = O_1\;\land\;\text{NoRead}\}
+\]
+
+The invariant `Inv(i)` holds for `i = 0` because  
+
+\[
+\begin{aligned}
+Inv(0) &\equiv out = \text{Top}(39)\;\text{nl}\;(\text{Mid}(39)\;\text{nl})^{0}
+        = \text{Top}(39)\;\text{nl} .
+\end{aligned}
+\]
+
+But `O₁` is exactly `Top(39)⧺nl`, therefore  
+
+\[
+\{out = O_1\;\land\;\text{NoRead}\}\;\;\Longrightarrow\;\; \{Inv(0)\}.
+\]
+
+Thus we may **strengthen** the pre‑condition of the loop to `Inv(0)` (Consequence rule).
+
+### 5.4  While‑rule with the invariant  
+
+The while‑rule states:
+
+\[
+\frac{
+   \{Inv(i)\;\land\; i<h\}\; C\; \{Inv(i')\}
+   \qquad
+   \{Inv(i)\;\land\; i\ge h\}\; \text{skip}\; \{Inv(i)\}
+}{
+   \{Inv(0)\}\; \textbf{while}\; i<h\; \textbf{do}\; C\; \textbf{od}\; \{Inv(h)\}
+}
+\]
+
+where  
+
+* `h = 5`,
+* `C` is the loop body (`print(pipe); i:=i+1`),
+* `i'` is the value of `i` after the body (i.e. `i+1`).
+
+We prove the two premises separately.
+
+#### 5.4.1  Body preserves the invariant  
+
+Assume the invariant holds **before** an iteration and that the guard `i<h` is true, i.e.
+
+\[
+\begin{aligned}
+\text{IH}_1 &:\; out = \text{Top}(39)\;\text{nl}\;
+               (\text{Mid}(39)\;\text{nl})^{i}
+               \;\land\; 0\le i < 5 .
+\end{aligned}
+\]
+
+* **First command of the body** – `print(pipe)`.  
+  Because `pipe = Mid(39)`, the output rule yields  
+
+  \[
+  \{out = O\}\; \text{print}(pipe)\; \{out = O\;\text{nl}\;\text{Mid}(39)\}
+  \]
+
+  Instantiating `O` with the left‑hand side of `IH₁` we obtain  
+
+  \[
+  out = \text{Top}(39)\;\text{nl}\;
+        (\text{Mid}(39)\;\text{nl})^{i}
+        \;\text{nl}\;\text{Mid}(39) .
+  \]
+
+  Since `nl⧺nl = nl` (concatenating two newline characters is the same as a single newline in the model we use – the program prints exactly one newline after each `print`), the expression simplifies to  
+
+  \[
+  out = \text{Top}(39)\;\text{nl}\;
+        (\text{Mid}(39)\;\text{nl})^{i+1}.
+  \]
+
+* **Second command of the body** – `i := i+1`.  
+  The assignment rule does not affect `out`; it merely changes the value of `i`.  
+  After the assignment we have `i' = i+1` and the same `out` as above.
+
+Thus after the whole body we have  
+
+\[
+out = \text{Top}(39)\;\text{nl}\;
+      (\text{Mid}(39)\;\text{nl})^{i'}
+\qquad\text{and}\qquad 0\le i' \le 5 .
+\]
+
+That is exactly `Inv(i')`.  Hence  
+
+\[
+\{Inv(i)\;\land\; i<h\}\; C\; \{Inv(i')\}
+\]
+
+holds.
+
+#### 5.4.2  Guard false ⇒ loop terminates  
+
+When `i ≥ h` (i.e. `i = 5`) the invariant already tells us  
+
+\[
+out = \text{Top}(39)\;\text{nl}\;
+      (\text{Mid}(39)\;\text{nl})^{5}
+\]
+
+and the loop body is not executed.  The *skip* command leaves the state unchanged, so  
+
+\[
+\{Inv(i)\;\land\; i\ge h\}\; \text{skip}\; \{Inv(i)\}
+\]
+
+is immediate.
+
+#### 5.4.3  Result of the while‑statement  
+
+By the while‑rule we obtain  
+
+\[
+\{Inv(0)\}\; \textbf{while}\; i<5\; \textbf{do}\; C\; \textbf{od}\;
+   \{Inv(5)\}.
+\]
+
+Unfolding `Inv(5)` we get  
+
+\[
+out = \text{Top}(39)\;\text{nl}\;
+      (\text{Mid}(39)\;\text{nl})^{5}
+      \;\land\; 0\le 5\le 5 .
+\]
+
+The numeric conjunct is trivially true, so we can drop it:
+
+\[
+\{Inv(0)\}\; \textbf{while}\dots\; \{ out = \text{Top}(39)\;\text{nl}\;
+      (\text{Mid}(39)\;\text{nl})^{5}\}.
+\]
+
+### 5.5  Final `print(tracos)`
+
+At this point the invariant tells us that the output already contains the top line and the five middle lines.  
+The last command
+
+```python
+print(tracos)          # tracos = Top(39)
+```
+
+adds the bottom border and a final newline.  
+Applying the output rule once more:
+
+\[
+\begin{aligned}
+&\{out = \text{Top}(39)\;\text{nl}\;
+        (\text{Mid}(39)\;\text{nl})^{5}\}
+  \;\text{print}(tracos)\\
+&\qquad\Longrightarrow\;
+ \{ out = \text{Top}(39)\;\text{nl}\;
+        (\text{Mid}(39)\;\text{nl})^{5}\;
+        \text{Top}(39)\;\text{nl}\}.
+\end{aligned}
+\]
+
+The right‑hand side is precisely `ScreenString(39,5)`.
+
+--------------------------------------------------------------------
+
+## 6.  Putting the pieces together (full Hoare derivation)
+
+We now combine the triples obtained for each fragment using the **sequence rule**.
+
+1. `{True}`  
+   `tracos := dash(39)`  
+   `{out = O₀ ∧ NoRead}`          (assignment)
+
+2. `{out = O₀ ∧ NoRead}`  
+   `pipe := "|" ⧺ space(37) ⧺ "|"`  
+   `{out = O₀ ∧ NoRead}`          (assignment)
+
+3. `{out = O₀ ∧ NoRead}`  
+   `print(tracos)`  
+   `{out = O₁ ∧ NoRead}`          (output, `O₁ = O₀ nl Top(39)`)
+
+4. `{out = O₁ ∧ NoRead}`  
+   `i := 0`  
+   `{out = O₁ ∧ NoRead}`          (assignment)
+
+5. Strengthening the pre‑condition to the loop invariant:  
+
+   \[
+   \{Inv(0)\}\;\; \textbf{while}\; i<5\; \textbf{do}\; C\; \textbf{od}\;
+   \{Inv(5)\}
+   \]  
+
+   (proved in §5.4)
+
+6. `{Inv(5)}`  
+   `print(tracos)`  
+   `{ out = ScreenString(39,5) ∧ NoRead }`   (output)
+
+By repeatedly applying the **sequence rule** we obtain the Hoare triple for the whole program:
+
+\[
+\boxed{\; \{\,\textbf{true}\,\}\; \texttt{Screen}()\;
+       \{\, out = \textbf{ScreenString}(39,5)\ \land\ \text{no input is read}\,\}\;}
+\]
+
+which is exactly the specification we were asked to verify.
+
+--------------------------------------------------------------------
+
+## 7.  Remarks on the auxiliary assertions  
+
+* **`no input is read`**  
+  None of the commands used (`:=`, `print`, the loop test `i<5`) performs a read from `stdin`.  Consequently the predicate `NoRead` is *stable* under every rule of the Hoare calculus, and it can be introduced at the beginning (`{True}` ⇒ `{True ∧ NoRead}`) and carried unchanged to the end.
+
+* **`repeat(s,n)`**  
+  In the formalisation we used the notation  
+  \((\text{Mid}(w)\;\text{nl})^{h}\) which is exactly `repeat(Mid(w)⧺nl , h)`.  
+  The invariant `Inv(i)` is a concise way of stating that after `i` iterations we have performed `repeat(Mid(39)⧺nl , i)`.
+
+* **Parameterisation**  
+  If the constants `39` and `5` were replaced by arbitrary parameters `w` and `h` (with the obvious side‑condition `w≥2`), the same proof goes through unchanged: the invariant would be  
+
+  \[
+  Inv(i) \equiv out = \text{Top}(w)\;\text{nl}\;
+                (\text{Mid}(w)\;\text{nl})^{i}
+                \;\land\; 0\le i\le h .
+  \]
+
+--------------------------------------------------------------------
+
+## 8.  Conclusion  
+
+We have exhibited a **complete Hoare‑logic proof** that the given Python program prints exactly the string required by the problem statement, namely  
+
+\[
+\text{ScreenString}(39,5) =
+\underbrace{\text{``---------------------------------------''}}_{\text{top line}}
+\;\text{nl}\;
+\underbrace{\bigl(\text{``|                                   |''}\;\text{nl}\bigr)^{5}}_{\text{five interior lines}}
+\;\underbrace{\text{``---------------------------------------''}}_{\text{bottom line}}
+\;\text{nl}.
+\]
+
+The pre‑condition `true` is trivially satisfied, the post‑condition holds, and the auxiliary condition “no input is read’’ is preserved throughout the execution.  Hence the program is **correct** with respect to the Hoare‑logic specification.
