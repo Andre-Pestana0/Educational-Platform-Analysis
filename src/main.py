@@ -147,16 +147,12 @@ def generate_examples(prompt: str) -> str:
 
     completion = None
 
-    #attempt logic
     for attempt in range(5):
         try:
             print("Attempting API call...")
             completion = client.chat.completions.create(
-                # model="openai/gpt-oss-120b:free",
                 model="openai/gpt-oss-120b",
                 temperature=0.7, 
-                # temperature=0.7, 
-                # seed = 50,
                 messages=[
                     {
                     "role": "user",
@@ -279,11 +275,11 @@ def main():
     exercises_to_generate_solutions = [1188]
     
     missing_conditions_group = [
-        1061
+        2896
     ]
     
     missing_proofs_group = [
-        1061
+        1073, 2896
     ]
     
     # iniciante_codes = [
@@ -310,7 +306,7 @@ def main():
     #     3170, 3173, 3174, 3209, 3250, 3252, 3253, 3255, 3256
     # ]
 
-    # code_logic(exercises_to_generate_solutions)
+    code_logic(exercises_to_generate_solutions)
     conditions_generation_logic(missing_conditions_group)
     formal_specification_validation_logic(missing_proofs_group)
 

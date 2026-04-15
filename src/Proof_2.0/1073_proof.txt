@@ -1,248 +1,248 @@
-**Proof of partial correctness of the program**  
+**Answer – a Hoare‑logic proof that the program satisfies the specification**
 
-We prove the Hoare triple  
+Below we give a *partial‑correctness* proof (the loop is obviously terminating, so the proof also yields total correctness).  
+The proof follows the usual Hoare‑logic rules for assignment, composition, and the (derived) rule for a `for`‑loop, which we treat as a `while`‑loop.
 
-\[
-\{\,P\,\}\;\; \texttt{read }N;\; \texttt{print squares of even numbers}\;\; \{\,Q\,\}
-\]
+---------------------------------------------------------------------
 
-where  
-
-* \(P \equiv N\in\mathbb Z\;\land\;5<N<2000\) (the pre‑condition),  
-
-* \(Q \equiv O =\operatorname{Out}(N)\) (the post‑condition defined in the statement).
-
-The proof proceeds in the usual Hoare‑logic fashion:  
-
-1. **Reading the input** – a simple assignment,  
-2. **The `for`‑loop** – we exhibit a loop invariant, prove its **initialisation**, **preservation**, and **termination**, and finally show that the invariant together with the loop‑exit condition yields the required post‑condition.
-
---------------------------------------------------------------------
-
-### 1.  The input statement  
-
-The program starts with  
-
-```python
-N = int(input())
-```
-
-The Hoare rule for assignment tells us that  
-
-\[
-\{\,P\,\}\; N:=\text{int}(\text{input})\; \{\,P\,\}
-\]
-
-because the statement does not change any variable that appears in \(P\) (the only variable in \(P\) is \(N\) itself, and the assignment stores exactly the value that the environment supplied).  
-Thus after the assignment the pre‑condition still holds, and we may continue the proof with the loop under the same hypothesis \(P\).
-
---------------------------------------------------------------------
-
-### 2.  The `for`‑loop  
-
-The concrete loop in the program is
-
-```python
-for par in range(2, N + 1, 2):
-    quadrado = par**2
-    print(f'{par}^2 = {quadrado}')
-```
-
-In Python the `for`‑statement is equivalent to the following `while`‑loop (the **canonical form** used in Hoare logic):
+### 1.  The program (re‑written as primitive commands)
 
 ```
-par := 2;
-while par <= N do
-    quadrado := par * par;
-    output := output ++ [Line(par)];
-    par := par + 2
-od
+1  read N               // N := int(input())
+2  par := 2
+3  while par ≤ N do
+4      quadrado := par * par
+5      print  Line(par)   //  print(f'{par}^2 = {quadrado}')
+6      par := par + 2
+7  od
 ```
 
-(Here `output` is a logical variable that records the sequence of printed lines; `++` denotes list concatenation.)
+The only observable effect of the program is the list `O` of printed lines; we denote it by the variable `O` (initially `O = ⟨⟩`, the empty list).  
+The statements `print` and the assignment to `O` are modelled by the primitive command
 
-Therefore we can apply the Hoare rule for **while**:
+```
+   O := O ⧺ ⟨Line(par)⟩
+```
+
+where `⧺` is list concatenation.
+
+---------------------------------------------------------------------
+
+### 2.  Pre‑condition and post‑condition (as given)
+
+```
+P   ≡   N ∈ ℤ ∧ 5 < N < 2000
+Q   ≡   O = Out(N)
+```
+
+Recall  
+
+* `E(N) = { k ∈ ℤ | 1 ≤ k ≤ N ∧ Even(k) }`  
+* `Out(N) = ⟨ Line(k) | k ∈ E(N) ordered increasingly ⟩`.
+
+---------------------------------------------------------------------
+
+### 3.  Loop invariant  
+
+We need a property that is true **before the first iteration**, is **preserved** by the body, and together with the negation of the loop guard yields the post‑condition.
+
+```
+I(par,O)  ≡   O = Out(par‑2)  ∧  (par = 2 ∨ (par ∈ E(N) ∧ par ≤ N+2))
+```
+
+Explanation  
+
+* `Out(par‑2)` is the list of lines already printed for all even numbers **strictly smaller** than the current value of `par`.  
+* When the loop has not started yet `par = 2` and `Out(0) = ⟨⟩`, so `I` holds.  
+* During the loop `par` always stays even (it starts even and we only add 2).  
+* The extra clause `par ≤ N+2` guarantees that after the last successful test (`par ≤ N`) the next value of `par` (i.e. `par‑2`) is the greatest even ≤ N.
+
+---------------------------------------------------------------------
+
+### 4.  Proof of the Hoare triple  
+
+We prove  
+
+```
+{ P }  read N;  par := 2;  while par ≤ N do body od  { Q }
+```
+
+by the **rule of composition** and the **while‑rule**.
+
+---------------------------------------------------------------------
+
+#### 4.1  The first two statements  
+
+* **Read N**  
+
+  Assignment rule:  
+
+  \[
+  \frac{}{ \{P\}\; N := \text{int(input())}\; \{P\} }
+  \]
+
+  because `read` does not change the value of `N` and `P` talks only about `N`.
+
+* **Initialize `par`**  
+
+  \[
+  \frac{}{ \{P\}\; \text{par} := 2\; \{ P \land \text{par}=2\} }
+  \]
+
+  The invariant `I` holds after this statement because  
+
+  * `par = 2` ⇒ `par‑2 = 0`.  
+  * `Out(0) = ⟨⟩`.  
+  Hence  
+
+  \[
+  \{ P\}\; \text{par}:=2\; \{ I(\text{par},O) \}
+  \]
+
+---------------------------------------------------------------------
+
+#### 4.2  The loop body  
+
+We have to show the preservation condition  
 
 \[
-\frac{\{I \land B\}\; C\; \{I\}}{\{I\}\; \text{while }B\text{ do }C\; \{I\land \neg B\}}
-\]
-
-where  
-
-* \(B\) is the loop guard `par <= N`,  
-* \(C\) is the loop body, and  
-* \(I\) is a **loop invariant** that we now define.
-
---------------------------------------------------------------------
-#### 2.1  Loop invariant  
-
-\[
-\boxed{
-I \;\equiv\;
-\bigl(\; \text{output}= \langle \text{Line}(k) \mid k\in\{2,4,\dots ,par-2\}\rangle\;
-\land\; \operatorname{Even}(par)\;\bigr)
-}
-\]
-
-In words:  
-
-* at the start of each iteration `par` is an even integer, and  
-* `output` already contains **exactly** the lines for all even numbers that are **strictly smaller** than the current value of `par`, in the correct order.
-
---------------------------------------------------------------------
-#### 2.2  Initialization  
-
-Before the first iteration the program executes `par := 2`.  
-We must show  
-
-\[
-\{P\}\; \texttt{par := 2}\; \{I\}
-\]
-
-* After the assignment `par = 2`, and `2` is even, so `Even(par)` holds.  
-* The set \(\{2,4,\dots ,par-2\}\) is empty because `par-2 = 0`. Consequently the right‑hand part of the invariant states that `output` is the empty list `⟨⟩`.  
-* The program has not printed anything yet, therefore `output = ⟨⟩` indeed holds.
-
-Hence the invariant holds after the initialisation.
-
---------------------------------------------------------------------
-#### 2.3  Preservation (maintenance)  
-
-Assume the invariant holds at the beginning of an iteration **and** the guard `par <= N` is true.  
-We have to prove  
-
-\[
-\{I \land (par \le N)\}\; C\; \{I\}
+\{ I \land (\text{par} \le N) \}\; \text{body}\; \{ I \}
 \]
 
 where  
 
 ```
-C ≡ quadrado := par * par ;
-    output   := output ++ [Line(par)] ;
-    par      := par + 2
+body ≡  quadrado := par*par ;
+        O := O ⧺ ⟨Line(par)⟩ ;
+        par := par + 2
 ```
 
-* **Step 1 – `quadrado := par * par`**  
-  This assignment does not affect any variable appearing in \(I\) (`output` and `par`). So the invariant is unchanged.
+* **`quadrado := par*par`** does not affect `O` nor the invariant, therefore it can be omitted from the reasoning.
 
-* **Step 2 – `output := output ++ [Line(par)]`**  
-  By the definition of `output` in the invariant, before the assignment  
+* **Printing** (`O := O ⧺ ⟨Line(par)⟩`)  
 
-  \[
-  output = \langle \text{Line}(k) \mid k\in\{2,4,\dots ,par-2\}\rangle .
-  \]
-
-  Concatenating `Line(par)` yields  
+  Assume the invariant holds before the print, i.e.  
 
   \[
-  output' = \langle \text{Line}(k) \mid k\in\{2,4,\dots ,par\}\rangle .
+  O = Out(\text{par}-2) .
   \]
 
-  Thus after this statement the list contains the lines for **all even numbers up to the current `par`**.
-
-* **Step 3 – `par := par + 2`**  
-  The new value `par' = par + 2` is still even (the sum of two even numbers).  
-  Moreover the set of even numbers *strictly smaller* than the new `par'` is  
+  By definition of `Out` we have  
 
   \[
-  \{2,4,\dots ,par\},
+  Out(\text{par}) = Out(\text{par}-2) \;\!⧺\; \langle Line(\text{par})\rangle .
   \]
 
-  which is exactly the set for which `output'` now holds the corresponding lines.
+  Hence after the assignment  
 
-Consequently after executing the whole body `C` we obtain again the invariant \(I\) (now with the updated `par`).  
+  \[
+  O' = O \;\!⧺\; \langle Line(\text{par})\rangle = Out(\text{par}) .
+  \]
 
-Therefore the **preservation** condition is satisfied.
+* **Increment** (`par := par+2`)  
 
---------------------------------------------------------------------
-#### 2.4  Termination  
+  After the increment the new value is `par' = par+2`.  
+  Substituting `par'` in the invariant we obtain  
 
-The loop guard is `par <= N`.  
-Inside the body we increase `par` by the constant `2`.  
-Because the initial value is `2` and the guard is a linear inequality, the loop can execute at most  
+  \[
+  O' = Out(\text{par}) = Out(\text{par'}-2) .
+  \]
 
-\[
-\bigl\lceil \tfrac{N}{2}\bigr\rceil
-\]
+  The other conjunct of `I` (that `par'` is even and ≤ `N+2`) is also true because we started with an even `par` and added 2, and the loop guard guarantees `par ≤ N`, thus `par' ≤ N+2`.
 
-times, i.e. a finite number of steps. Hence the loop **terminates** for every integer \(N\) that satisfies the pre‑condition.
-
---------------------------------------------------------------------
-#### 2.5  Post‑condition from invariant and exit condition  
-
-When the loop finishes we have `¬B`, i.e. `par > N`.  
-Combine this with the invariant:
+Therefore  
 
 \[
-\begin{aligned}
-I &\equiv
-   \text{output}= \langle \text{Line}(k) \mid k\in\{2,4,\dots ,par-2\}\rangle
-   \;\land\; \operatorname{Even}(par) .
-\end{aligned}
+\{ I \land (\text{par}\le N) \}\; \text{body}\; \{ I \}
 \]
 
-Because `par > N` and `par` is even, the set  
+holds.
+
+---------------------------------------------------------------------
+
+#### 4.3  The while‑rule  
+
+The **while‑rule** (derived for a `for`‑loop) is  
 
 \[
-\{2,4,\dots ,par-2\}
+\frac{ \{ I \land B \}\; C\; \{ I \} \qquad \{ I \land \neg B \}\; \{ Q \} }
+     { \{ I \}\; \textbf{while } B \textbf{ do } C \textbf{ od } \; \{ Q \} }
 \]
 
-is precisely the set of **all even integers** between `2` and `N` (inclusive).  
-Formally  
+where  
+
+* `B` is the guard `par ≤ N`.  
+* `C` is the body proved above.
+
+We have already shown the first premise.  
+For the second premise we use the fact that after the loop terminates we have `¬B`, i.e. `par > N`. Because `par` is always even, the greatest even number not exceeding `N` is `par‑2`. Using the invariant we obtain  
 
 \[
-\{2,4,\dots ,par-2\}=E(N)=\{k\in\mathbb Z\mid 1\le k\le N\land \operatorname{Even}(k)\}.
+O = Out(\text{par}-2) = Out(N) .
 \]
 
-Therefore at loop exit we obtain  
+Thus `Q` follows from `I ∧ ¬B`.
+
+Consequently  
 
 \[
-\text{output}= \langle \text{Line}(k) \mid k\in E(N)\rangle = \operatorname{Out}(N).
+\{ I \}\; \textbf{while } \text{par} \le N \textbf{ do body od } \; \{ Q \}
 \]
 
-By definition of the logical variable `output` this equality is exactly the required post‑condition \(Q\).
+holds.
 
---------------------------------------------------------------------
+---------------------------------------------------------------------
 
-### 3.  Putting the pieces together  
+#### 4.4  Composition of the whole program  
 
-We have shown the following Hoare triples:
-
-1. \(\{P\}\; N:=\text{int}(\text{input})\; \{P\}\)  (assignment rule)  
-
-2. \(\{P\}\; \texttt{par := 2}\; \{I\}\)  (initialisation)  
-
-3. \(\{I\land (par\le N)\}\; C\; \{I\}\)  (preservation)  
-
-4. \(\{I\}\; \text{while }(par\le N)\text{ do }C\; \{I\land \neg(par\le N)\}\)  (while rule)  
-
-5. From \(I\land \neg(par\le N)\) we derived \( \text{output}= \operatorname{Out}(N)\), i.e. \(Q\).
-
-By the **rule of composition** we can concatenate the triples in the order the program executes, obtaining
+Putting together the three parts (read, initialise, loop) we get the full Hoare triple
 
 \[
-\{P\}\;
-\underbrace{N:=\text{int}(\text{input})}_{\text{read}};\;
-\underbrace{\text{for }par\text{ in range}(2,N+1,2)}_{\text{while loop}}
-\;
-\{Q\}.
+\boxed{ \{ P \}\; \text{read } N;\; \text{par}:=2;\; \textbf{while } \text{par}\le N\;\textbf{do body od}\; \{ Q \} }
 \]
 
-Thus the Hoare triple  
+which is exactly the specification  
 
 \[
-\boxed{\{\,N\in\mathbb Z\land 5<N<2000\,\}\;\; \texttt{program}\;\; \{\,O = \operatorname{Out}(N)\,\}}
+\{\,N\in\mathbb Z\land5<N<2000\,\}\;\texttt{program}\;\{\,O=\operatorname{Out}(N)\,\}.
 \]
 
-is **proved**: whenever the pre‑condition holds, the program terminates and the produced output sequence is exactly the sequence prescribed by the specification.
+---------------------------------------------------------------------
 
---------------------------------------------------------------------
+### 5.  Termination (total correctness)
 
-### 4.  Remarks  
+The loop variable `par` starts at `2` and is increased by the constant `2` each iteration.  
+Define the variant  
 
-* The proof does **not** rely on any property of the concrete Python I/O functions beyond the fact that `print` appends a line to the logical output list.  
-* The invariant captures *both* the order of the lines (they are appended in the same order as the loop variable grows) and the absence of any extra output.  
-* The bounds \(5<N<2000\) are never used inside the invariant; they are only needed to guarantee that the input satisfies the problem constraints, which is part of the pre‑condition.  
+\[
+V = N - \text{par}.
+\]
 
-Hence the program is **partially correct** with respect to the given Hoare‑logic specification. ∎
+* Initially `V ≥ 0` because the guard `par ≤ N` holds for the first iteration.  
+* After each execution of the body `par` becomes `par+2`, therefore `V` decreases by `2`.  
+* `V` is bounded below by `-2` and cannot decrease indefinitely; when `V < 0` the guard becomes false and the loop stops.
+
+Thus the loop is guaranteed to terminate after at most `⌈N/2⌉` iterations.  
+Because we have proved partial correctness and termination, the program is **totally correct** with respect to the given Hoare triple.
+
+---------------------------------------------------------------------
+
+### 6.  Summary of the proof
+
+| Step | Hoare triple (informal) | Reason |
+|------|------------------------|--------|
+| 1.   | `{P}` `read N` `{P}` | read does not affect `N` |
+| 2.   | `{P}` `par:=2` `{I}` | `I` holds with `par‑2 = 0` |
+| 3.   | `{I ∧ (par ≤ N)}` body `{I}` | body prints exactly `Line(par)` and increments `par` by 2 |
+| 4.   | `{I ∧ ¬(par ≤ N)}` ⇒ `{Q}` | after loop `par‑2` is the largest even ≤ `N`, so `O = Out(N)` |
+| 5.   | `while (par ≤ N) do body od` preserves `I` and yields `Q` | while‑rule |
+| 6.   | Composition of 1‑5 gives `{P}` program `{Q}` | rule of composition |
+| 7.   | Variant `V = N‑par` strictly decreases → termination | total correctness |
+
+Hence **the program satisfies the specification**: whenever the pre‑condition `5 < N < 2000` holds, the program terminates and produces exactly the sequence  
+
+\[
+\langle\;k^{2}=k^{2}\mid k\in\{2,4,\dots ,\text{largest even }\le N\}\;\rangle,
+\]
+
+i.e. `O = Out(N)`. ∎

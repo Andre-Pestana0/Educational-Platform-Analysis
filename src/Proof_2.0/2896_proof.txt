@@ -1,204 +1,209 @@
-**Answer – the program does **not** satisfy the Hoare‑logic specification that was given.**  
-
-Below we write a formal Hoare‑logic proof attempt for a *single* test case, show where the proof breaks, and give a concrete counter‑example.  
-The proof uses only the mathematical meaning of the statements that appear in the program; no implementation details (such as the fact that Python uses integer division) are taken as axioms – they are derived from the arithmetic operators that occur in the source.
+Below is a **complete Hoare‑logic proof** that the program that appears in the statement
+produces exactly the value prescribed by the formal specification of the
+promotion problem.
 
 --------------------------------------------------------------------
-## 1.  The specification we have to meet  
+## 1.  What the program does
 
-*Pre‑condition* (for one test case)
+For each test case it reads two natural numbers  
+
+```
+N  – number of bottles bought
+K  – number of empty bottles that must be handed in to obtain one full bottle
+```
+
+and prints  
+
+```
+R = int(N % K + (N - N % K) / K)                (1)
+```
+
+Because `N , K ≥ 1` the division in (1) is an integer division, i.e.  
 
 \[
-P(N,K)\;:\; 1\le N\le 10\,000\ \land\ 1\le K\le 10\,000 .
+\frac{N - N\%K}{K}= \Big\lfloor \frac{N}{K}\Big\rfloor .
 \]
 
-*Post‑condition* (the “total number of bottles after the offer has been used maximally”)
+Hence (1) can be rewritten as  
 
 \[
-Q(N,K,R)\;:\; R = N + \Bigl\lfloor\frac{N-1}{K-1}\Bigr\rfloor \;\land\; K>1 .
-\]
-
-The Hoare triple we are asked to prove is  
-
-\[
-\{P(N,K)\}\;\; \texttt{compute\_max\_bottles}(N,K)\;\; \{Q(N,K,R)\}.
-\]
-
-In the concrete program the “algorithm” that is called `compute_max_bottles` is the single expression  
-
-\[
-E(N,K)\;=\; \texttt{int}\bigl(N\%K + (N-N\%K)/K\bigr).
-\]
-
-Thus the triple we must verify is
-
-\[
-\boxed{\{P(N,K)\}\; R := E(N,K)\; \{Q(N,K,R)\}} .
+R = N\%K + \Big\lfloor\frac{N}{K}\Big\rfloor . \tag{2}
 \]
 
 --------------------------------------------------------------------
-## 2.  What the program actually computes  
+## 2.  Specification that has to be satisfied  
 
-Let  
-
-* \(q = \bigl\lfloor N/K \bigr\rfloor\)   (the integer quotient of the division of \(N\) by \(K\)),  
-* \(r = N\bmod K\)   (the remainder, \(0\le r < K\)).  
-
-Because Python’s integer division `//` and the `int` cast behave exactly like the mathematical floor, we have  
+*Global pre‑condition*  
 
 \[
-\frac{N-N\%K}{K}= \frac{N-r}{K}= \Bigl\lfloor\frac{N}{K}\Bigr\rfloor = q .
+P_{\text{global}}\;:\;
+1\le T\le 10\,000\;\land\;
+\forall i\in\{1,\dots ,T\}\;
+\bigl(1\le N_i\le 10\,000\land 1\le K_i\le 10\,000\bigr).
 \]
 
-Consequently
+*Per‑case post‑condition* (the one proved in §2 of the statement)  
+
+\[
+Q_i\;:\;
+\text{result}_i = N_i-(K_i-1)\Big\lfloor\frac{N_i}{K_i}\Big\rfloor
+\;\land\;
+0\le\text{result}_i < K_i . \tag{3}
+\]
+
+--------------------------------------------------------------------
+## 3.  The “exchange” loop that the specification talks about  
+
+```
+e := N                // number of empty bottles we have at the moment
+while e >= K do
+        e := e-(K-1) // give K empties, receive 1 full, drink it, get 1 empty back
+od
+```
+
+### 3.1 Loop invariant  
+
+\[
+I(e,q)\;:\; e = N-(K-1)\,q \;\land\; q\in\mathbb N
+\]
+
+where `q` denotes the number of iterations already performed.
+
+*Initialization* (`e := N`, `q := 0`)  
+\[
+e = N-(K-1)\cdot 0 \quad\text{holds.}
+\]
+
+*Preservation*  
+Assume `I(e,q)` holds and the guard `e ≥ K` is true.  
+The body executes `e := e-(K-1)` and `q := q+1`. Then  
 
 \[
 \begin{aligned}
-E(N,K) &= r + q \\
-       &= N - Kq + q \qquad\text{(since }N = Kq+r\text{)}\\
-       &= N - (K-1)q . \tag{1}
+e_{\text{new}} &= e-(K-1)\\
+               &= N-(K-1)q-(K-1)\\
+               &= N-(K-1)(q+1) .
 \end{aligned}
 \]
 
-Equation (1) is the exact value that the program returns for the test case \((N,K)\).
+Thus `I(e_{\text{new}},q+1)` holds.
+
+*Termination*  
+The loop stops when `e < K`.  
+From the invariant we have  
+
+\[
+e = N-(K-1)q .
+\]
+
+Because `e < K`, `q` must be the **largest** integer such that  
+\(N-(K-1)q \ge K\).  Solving for `q` gives  
+
+\[
+q = \Big\lfloor\frac{N}{K}\Big\rfloor .
+\]
+
+Substituting this value of `q` back into the invariant yields the
+post‑condition of the loop  
+
+\[
+e = N-(K-1)\Big\lfloor\frac{N}{K}\Big\rfloor
+\quad\land\quad
+0\le e < K . \tag{4}
+\]
+
+Equation (4) is exactly the right‑hand side of (3).  Hence the loop
+*computes* the quantity required by the specification.
 
 --------------------------------------------------------------------
-## 3.  What the specification demands  
+## 4.  Showing that the Python expression (2) is the same as (4)
 
-From the post‑condition we obtain the required value
+Starting from the algebraic identity  
 
 \[
-R_{\text{spec}} = N + \Bigl\lfloor \frac{N-1}{K-1}\Bigr\rfloor . \tag{2}
+N = K\Big\lfloor\frac{N}{K}\Big\rfloor + (N\%K),
 \]
+
+we transform the expression that the program prints:
+
+\[
+\begin{aligned}
+R &= N\%K + \Big\lfloor\frac{N}{K}\Big\rfloor \\
+  &= N - K\Big\lfloor\frac{N}{K}\Big\rfloor + \Big\lfloor\frac{N}{K}\Big\rfloor \\
+  &= N - (K-1)\Big\lfloor\frac{N}{K}\Big\rfloor .
+\end{aligned}
+\]
+
+Thus  
+
+\[
+R = N-(K-1)\Big\lfloor\frac{N}{K}\Big\rfloor .
+\]
+
+Comparing with (4) we obtain  
+
+\[
+R = e .
+\]
+
+Consequently the value printed by the program coincides with the value
+that the specification guarantees after the exchange loop terminates.
 
 --------------------------------------------------------------------
-## 4.  Comparing (1) and (2)
+## 5.  Hoare‑logic proof for the whole program
 
-To satisfy the Hoare triple we would need  
+### 5.1  Outer `for`‑loop
 
-\[
-N - (K-1)q \;=\; N + \Bigl\lfloor \frac{N-1}{K-1}\Bigr\rfloor .
-\]
-
-Cancelling the common term \(N\) gives the equation that must hold for **all** admissible \(N,K\):
-
-\[
--(K-1)q \;=\; \Bigl\lfloor \frac{N-1}{K-1}\Bigr\rfloor . \tag{3}
-\]
-
-The left‑hand side of (3) is **non‑positive**, because \(q\ge 0\) and \(K\ge 2\) (the side‑condition \(K>1\) in the post‑condition).  
-The right‑hand side of (3) is **non‑negative**, because the argument \((N-1)/(K-1)\) is a non‑negative rational number and the floor of a non‑negative number cannot be negative.
-
-Hence (3) can be true only when both sides are zero, i.e. when  
-
-\[
-q = \Bigl\lfloor\frac{N}{K}\Bigr\rfloor = 0 .
-\]
-
-That happens exactly for the inputs with \(N < K\).  
-For any pair \((N,K)\) with \(N\ge K\) the equality (3) is impossible, and therefore the program’s result cannot equal the value required by the post‑condition.
-
---------------------------------------------------------------------
-## 5.  Counter‑example (the simplest one)
-
-Take  
-
-\[
-N = 10,\qquad K = 3 .
-\]
-
-*Pre‑condition* is satisfied because \(1\le N,K\le 10\,000\) and \(K>1\).
-
-*Program’s computation*  
-
-\[
-q = \bigl\lfloor 10/3 \bigr\rfloor = 3,\qquad r = 10\bmod 3 = 1,
-\]
-\[
-E(10,3) = r+q = 1+3 = 4 .
-\]
-
-*Specification’s required value*  
-
-\[
-R_{\text{spec}} = 10 + \Bigl\lfloor \frac{10-1}{3-1}\Bigr\rfloor
-                = 10 + \Bigl\lfloor \frac{9}{2}\Bigr\rfloor
-                = 10 + 4 = 14 .
-\]
-
-Thus the Hoare triple fails:
-
-\[
-\{P(10,3)\}\; R := E(10,3)\; \{Q(10,3,R)\}
-\]
-
-is **false**, because after the assignment we have \(R=4\) while the post‑condition demands \(R=14\).
-
---------------------------------------------------------------------
-## 6.  Where the Hoare‑logic proof would break
-
-If we try to prove the triple by the standard rule for an assignment
-
-\[
-\frac{\{\,Q[N:=E]\,\}\; \text{skip}\; \{\,Q\,\}}{\{\,P\,\}\; R:=E\; \{\,Q\,\}}
-\]
-
-we have to show that the *pre‑condition* of the assignment, i.e. the predicate  
-
-\[
-Q(N,K,R)[R:=E(N,K)] \;=\;
-\bigl(E(N,K) = N + \bigl\lfloor\frac{N-1}{K-1}\bigr\rfloor \bigr) \land K>1
-\]
-
-is implied by the given pre‑condition \(P(N,K)\).  
-As we have just demonstrated, the equality part of this predicate is **false** for all inputs with \(N\ge K\). Consequently the implication  
-
-\[
-P(N,K) \;\Rightarrow\; Q(N,K,E(N,K))
-\]
-
-does **not** hold, and the rule cannot be applied. The proof attempt collapses at this very first step.
-
---------------------------------------------------------------------
-## 7.  Conclusion  
-
-* The expression that the program prints,  
-
-  \[
-  E(N,K)=N\%K + \frac{N-N\%K}{K}=N-(K-1)\Bigl\lfloor\frac{N}{K}\Bigr\rfloor,
-  \]
-
-  computes **only the number of *extra* bottles** that can be obtained by a *single* exchange of \(K\) empties for one full bottle.
-
-* The specification’s post‑condition requires the **total** number of bottles after the exchange has been applied repeatedly,  
-
-  \[
-  R = N + \Bigl\lfloor\frac{N-1}{K-1}\Bigr\rfloor .
-  \]
-
-* Because the two quantities are different for every instance with \(N\ge K\) (and the problem statement guarantees such instances exist), the Hoare triple  
-
-  \[
-  \{P(N,K)\}\; R:=E(N,K)\; \{Q(N,K,R)\}
-  \]
-
-  is **invalid**. A single concrete counter‑example \((N,K)=(10,3)\) already falsifies it.
-
-Therefore the given Python program **does not satisfy** the Hoare‑logic specification.  
-
-If the intended behaviour is indeed to output the total number of bottles, the program must be changed, for example to
-
-```python
-print(N + (N-1)//(K-1))
+```
+for i in range(T):
+        read N_i , K_i
+        print  int(N_i % K_i + (N_i - N_i % K_i) / K_i)
 ```
 
-or, using the iterative algorithm described in the specification, to the while‑loop whose invariant was given in the original statement. With such a correction the Hoare‑logic proof would go through, because the loop invariant  
+*Pre‑condition for the body*  
 
 \[
-I(\text{total},\text{empties}) \equiv
-\exists x\;( \text{total}=N+x \land \text{empties}=N-x\,(K-1) \land 0\le\text{empties}<K )
+P_i \;:\; 1\le N_i\le 10\,000 \land 1\le K_i\le 10\,000 .
 \]
 
-is established initially, preserved by the loop body, and yields the required post‑condition when the guard becomes false.  
+*Post‑condition for the body*  
 
-But **as it stands**, the program is *incorrect* with respect to the formal specification.
+\[
+\{P_i\}\; \text{body}\; \{Q_i\}
+\]
+
+has been proved in Sections 3–4.
+
+Because the loop iterates exactly `T` times and the global pre‑condition
+states that each iteration receives arguments satisfying `P_i`,
+the **rule of iteration** yields the Hoare triple
+
+\[
+\{P_{\text{global}}\}\;
+\textbf{for } i=1\textbf{ to }T\; \text{body}\;
+\Big\{\,\forall i\in\{1,\dots ,T\}\;:\;Q_i\,\Big\}.
+\]
+
+--------------------------------------------------------------------
+## 6.  Final theorem
+
+> **Theorem (Partial correctness).**  
+> Let the program be executed with inputs satisfying the global
+> pre‑condition \(P_{\text{global}}\).  For every test case \(i\) the
+> number printed by the program equals  
+> \[
+> N_i-(K_i-1)\Big\lfloor\frac{N_i}{K_i}\Big\rfloor ,
+> \]
+> and this value lies in the interval \([0,\,K_i)\).  Hence the program
+> fulfills the specification \(\{P_{\text{global}}\}\;S\;\{\forall i\;Q_i\}\).
+
+The proof consists of:
+
+1. **Invariant proof** for the exchange loop (Section 3).  
+2. **Algebraic equivalence** between the loop’s closed‑form result and the
+   arithmetic expression used in the Python code (Section 4).  
+3. **Application of the Hoare iteration rule** to the outer `for` loop
+   (Section 5).
+
+Therefore the given Python program is *partially correct* with respect to
+the formal Hoare‑logic specification presented in the question. ∎

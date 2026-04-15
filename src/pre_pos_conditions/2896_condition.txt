@@ -1,119 +1,129 @@
-**Hoare‑logic specification (purely mathematical, no implementation details)**  
+**Formal Hoare‑logic specification**
 
-We introduce the following symbols  
-
-* \(N,K\in\mathbb N\) – the data of one test case (numbers of bottles bought and of empty bottles that can be exchanged).  
-* \(R\in\mathbb N\) – the value that the program must output for this test case (the total number of full bottles the customer will have after the second day, when the exchange is used maximally).  
-
-The program processes a list of \(T\) independent test cases, therefore the whole program is the conjunction of the specifications for each individual case.  
-For brevity we write the Hoare triple for a **single** case; the global specification is the universal closure over the \(T\) cases.
-
---------------------------------------------------------------------
-### 1. Preconditions  
+We write the specification in the usual Hoare‑triple form  
 
 \[
+\{P\}\;S\;\{Q\}
+\]
+
+where  
+
+* \(P\) – the *pre‑condition* (what must be true before the program starts);  
+* \(S\) – the program (or a fragment of it);  
+* \(Q\) – the *post‑condition* (what must be true after the program terminates).
+
+All variables are assumed to range over the set of natural numbers \(\mathbb N\).
+
+--------------------------------------------------------------------
+### 1.  Global pre‑condition (input)
+
+\[
+\boxed{
+P_{\text{global}} \; \equiv\;
 \begin{aligned}
-P \; \equiv\; & 1\le T\le 10\,000 \;\land\\
-              & \forall i\;(1\le i\le T \;\Rightarrow\; 1\le N_i\le 10\,000\;\land\;1\le K_i\le 10\,000)
-\end{aligned}
+& 1\le T\le 10\,000 \\[2mm]
+&\forall i\in\{1,\dots ,T\}\;:\;
+   1\le N_i\le 10\,000\ \land\ 1\le K_i\le 10\,000
+\end{aligned}}
 \]
 
-For a particular case we simply write  
-
-\[
-P(N,K)\;:\; 1\le N\le 10\,000\ \land\ 1\le K\le 10\,000 .
-\]
-
-(If the promotion allowed \(K=1\) the exchange would be unbounded; the statement of the problem implicitly assumes \(K>1\).  Consequently we add the side condition \(K>1\) in the post‑condition; for \(K=1\) the result is undefined.)
+\(T\) is the number of test cases; for each test case \(i\) we are given the
+pair \((N_i,K_i)\).
 
 --------------------------------------------------------------------
-### 2. Post‑condition  
+### 2.  Specification for a **single** test case  
 
-Let  
-
-\[
-\operatorname{exch}(N,K)=\Bigl\lfloor\frac{N-1}{K-1}\Bigr\rfloor\qquad (K>1)
-\]
-
-(the number of *extra* full bottles that can be obtained by repeatedly exchanging \(K\) empty bottles for one full one).  
-The total number of bottles the customer finally possesses is therefore  
+Introduce the auxiliary variable  
 
 \[
-R = N + \operatorname{exch}(N,K).
+e\;:\; \text{“current number of empty bottles”}
 \]
 
-Hence the post‑condition for a single test case is  
+initialised with the number of bottles bought on the first day:
 
 \[
-Q(N,K,R)\;:\; R = N + \Bigl\lfloor\frac{N-1}{K-1}\Bigr\rfloor \;\land\; K>1 .
+e_0 \;:=\; N .
 \]
 
-(If \(K=1\) we write \(Q(N,1,R)\;:\; R = \infty\), i.e. the result is not a finite natural number.)
-
---------------------------------------------------------------------
-### 3. Hoare triple for one test case  
-
-\[
-\boxed{\; \{\,P(N,K)\,\}\;\; \text{compute\_max\_bottles}(N,K)\;\; \{\,Q(N,K,R)\,\}\;}
-\]
-
-where `compute_max_bottles` denotes the (unspecified) algorithm that reads the two integers \(N,K\) and returns the integer \(R\) described above.
-
---------------------------------------------------------------------
-### 4. Global specification (all test cases)
-
-\[
-\begin{aligned}
-\{\,P\,\}\;&\text{for }i = 1\text{ to }T\text{ do}\\
-           &\qquad R_i := \text{compute\_max\_bottles}(N_i,K_i)\\
-\{\,\forall i\;(1\le i\le T \Rightarrow Q(N_i,K_i,R_i))\,\}
-\end{aligned}
-\]
-
---------------------------------------------------------------------
-### 5. (Optional) Loop invariant that would be used in a concrete algorithm  
-
-If the algorithm is written as the natural while‑loop
+The algorithm that “uses the offer to the fullest’’ is the loop
 
 ```
-total  := N;          // bottles already obtained
-empties:= N;          // empty bottles after drinking them
-while empties ≥ K do
-    exchange := ⌊empties / K⌋;
-    total    := total + exchange;
-    empties  := (empties mod K) + exchange
+while e ≥ K do
+        e := e – (K – 1)      // exchange K empties for 1 full,
+                               // drink it and get back 1 empty
 od
 ```
 
-an appropriate invariant \(I\) is  
+The Hoare‑triple for this loop is
 
 \[
-I(\text{total},\text{empties}) \; \equiv\;
-\exists x\in\mathbb N\; \bigl(
-   \text{total}=N+x\ \land\ 
-   \text{empties}=N-x\,(K-1)\ \land\ 
-   0\le\text{empties}<K
-\bigr)
+\boxed{
+\{\,e\ge 0\;\land\;K>0\,\}\;
+\textbf{while } (e\ge K)\;
+\{\,e:=e-(K-1)\,\}\;
+\{\,e = N-(K-1)\cdot\big\lfloor N/K\big\rfloor\;\land\;0\le e < K\,\}}
 \]
 
-which expresses that after receiving \(x\) extra bottles the number of empty bottles has been reduced by exactly \(x\,(K-1)\).  
-When the loop terminates, the guard `empties ≥ K` is false, i.e. \(\text{empties}<K\); thus the invariant yields  
+* **Invariant** (used in the proof of the loop)
 
 \[
-x = \Bigl\lfloor\frac{N-1}{K-1}\Bigr\rfloor
-\quad\Longrightarrow\quad
-\text{total}=N+\Bigl\lfloor\frac{N-1}{K-1}\Bigr\rfloor,
+I(e) \;:\; e = N-(K-1)\cdot q\quad\text{for some }q\in\mathbb N,
 \]
 
-which is precisely the post‑condition \(Q\) above.
+and \(q\) is precisely the number of exchanges performed so far:
+\(q = \big\lfloor (N-e)/(K-1) \big\rfloor\).
+
+When the loop terminates we have \(e<K\); solving the invariant for the final
+value of \(e\) yields the closed‑form post‑condition above.
 
 --------------------------------------------------------------------
-**Summary** – The formal Hoare‑logic specification of the problem is the triple  
+### 3.  Post‑condition for a test case  
+
+Let `result_i` be the value printed for test case \(i\).  
+From the loop we obtain
 
 \[
-\boxed{\{\,1\le N\le 10^4\land 1\le K\le 10^4\,\}\;
-       \text{compute\_max\_bottles}(N,K)\;
-       \{\,R = N + \big\lfloor (N-1)/(K-1) \big\rfloor\ \land\ K>1\,\}}
+\boxed{
+Q_i \;\equiv\;
+\begin{aligned}
+&\text{result}_i = N_i-(K_i-1)\cdot\Big\lfloor\frac{N_i}{K_i}\Big\rfloor\\[1mm]
+&\qquad\land\;0\le \text{result}_i < K_i .
+\end{aligned}}
 \]
 
-repeated for each of the \(T\) test cases, together with the outer pre‑condition on \(T\).  This captures exactly the “most‑use‑of‑the‑offer” requirement in mathematical notation.
+Thus the program returns **the number of empty bottles that remain after the
+second day**, which is exactly the maximal amount the customer can have while
+obeying the rule “exchange each set of \(K\) empties for one full bottle”.
+
+--------------------------------------------------------------------
+### 4.  Whole‑program specification  
+
+Putting the global pre‑condition together with the per‑case post‑condition we
+obtain the final Hoare triple for the complete program:
+
+\[
+\boxed{
+\{\,P_{\text{global}}\,\}\;
+\textbf{for } i = 1 \textbf{ to } T \textbf{ do }
+\begin{cases}
+\text{read } N_i, K_i\\
+\text{execute the loop described in §2}\\
+\text{print } \text{result}_i
+\end{cases}
+\;\{\,\forall i\in\{1,\dots ,T\}\;:\; Q_i\,\}}
+\]
+
+--------------------------------------------------------------------
+### 5.  Summary in pure mathematical notation  
+
+For each test case \((N,K)\) with \(1\le N,K\le 10\,000\),
+
+\[
+\boxed{
+\text{output } R = N - (K-1)\,\Big\lfloor\frac{N}{K}\Big\rfloor,
+\qquad\text{and } 0\le R < K .
+}
+\]
+
+The Hoare‑logic pre‑ and post‑conditions above capture exactly this
+specification.
