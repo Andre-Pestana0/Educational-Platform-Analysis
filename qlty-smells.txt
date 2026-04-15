@@ -1,0 +1,115 @@
+     [0/3] 🔍  Analyzing all targets... 0.03s
+     [1/3] 👀  Checking structure of 209 files...  1.31s
+     [2/3] 🤔  Looking for duplication across 209 files...  0.19s
+     [3/3] ✨  Reporting...  
+
+src/Iniciante/1035.py
+    Complex binary expression
+
+           7  if b > c and d > a and (c+d) > (a+b) and c > 0 and d > 0 and a%2==0:
+
+
+src/Iniciante/1187.py
+    Found 33 lines of similar code in 2 locations (mass = 137)
+
+           1  # Problema 1187 - Beecrowd - Iniciante - Nível 3
+           2  
+           3  # Leitura do caractere inicial que indica soma ('S') ou multiplicação ('M')
+           4  c=input()
+           5  
+           6  # Vetor 'm' para a leitura dos valores da matriz
+              [hid 27 additional lines]
+        also found at src/Iniciante/1189.py
+
+
+src/Iniciante/1189.py
+    Found 33 lines of similar code in 2 locations (mass = 137)
+
+           1  # Problema 1187 - Beecrowd - Iniciante - Nível 2
+           2  
+           3  # Leitura do caractere inicial que indica soma ('S') ou multiplicação ('M')
+           4  c=input()
+           5  
+           6  # Vetor 'm' para a leitura dos valores da matriz
+              [hid 27 additional lines]
+        also found at src/Iniciante/1187.py
+
+
+src/Iniciante/1960.py
+    Function with many returns (count = 13): romano
+
+           4  def romano(n):
+           5      if n == 1000: return 'M'
+           6      if n ==  900: return 'CM'
+           7      if n ==  500: return 'D'
+           8      if n ==  400: return 'CD'
+           9      if n ==  100: return 'C'
+              [hid 8 additional lines]
+
+
+src/Iniciante/3252.py
+    Deeply nested control flow (level = 5)
+
+          37  				if ano_minimo >= (2011 + n):
+          38  					print('unknown')
+          39  					exit()
+
+    Deeply nested control flow (level = 5)
+
+          42  				if maiores[ano_minimo - 2011] == 0:
+          43  					break
+
+    Deeply nested control flow (level = 5)
+
+          55  				if ano_minimo >= (2011 + n):
+          56  					print('unknown')
+          57  					exit()
+
+    Deeply nested control flow (level = 5)
+
+          60  				if maiores[ano_minimo - 2011] == 0:
+          61  					break
+
+
+src/Iniciante/3255.py
+    Deeply nested control flow (level = 5)
+
+          70  				if (min(l // k, D[3 * (l // k) + 2]) <= D[3 * l]):
+          71  					# Apenas atribuímos as respostas para cada jogador
+          72  					D[3 * l + 0] = min(l // k, D[3 * (l // k) + 2])
+          73  					D[3 * l + 1] =             D[3 * (l // k) + 0]
+          74  					D[3 * l + 2] =             D[3 * (l // k) + 1]
+
+
+src/Iniciante/3256.py
+    Deeply nested control flow (level = 5)
+
+          85                      if enem[g[cur][j]] == 2:
+          86                          
+          87                          ncur = g[cur][j]
+          88  
+          89                          # Percorre os inimigos do inimigo atual (ncur)
+          90                          for l in range(len(g[ncur])):
+              [hid 6 additional lines]
+
+    High total complexity (count = 51)
+
+           2  def main():
+           3      # Problema 3256 - Beecrowd - Iniciante - Nível 1
+           4      # Adaptado da solução original, disponível em https://nordic.icpc.io/ncpc2011/
+           5  
+           6      # Leitura da quantidade de soldados e quantidade de pares de inimigos
+           7      n, m = map(int, input().split(' '))
+              [hid 126 additional lines]
+
+    Function with high complexity (count = 50): main
+
+           2  def main():
+           3      # Problema 3256 - Beecrowd - Iniciante - Nível 1
+           4      # Adaptado da solução original, disponível em https://nordic.icpc.io/ncpc2011/
+           5  
+           6      # Leitura da quantidade de soldados e quantidade de pares de inimigos
+           7      n, m = map(int, input().split(' '))
+              [hid 123 additional lines]
+
+

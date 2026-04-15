@@ -24,3 +24,4 @@ Lib/
 Scripts/
 pyvenv.cfg
 count.py
+.qlty/

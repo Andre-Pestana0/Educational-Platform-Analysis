@@ -1,0 +1,290 @@
+ AUTOFIXES: 13 
+
+src/Iniciante/1047.py:11
+medium f-string without any placeholders
+8   8    | 
+9   9    |     # Caso os minutos de inicio e final sejam iguais
+10  10   |     if minutoInicial == minutoFinal:
+11       |-        print(f'O JOGO DUROU 24 HORA(S) E 0 MINUTO(S)')
+    11   |+        print('O JOGO DUROU 24 HORA(S) E 0 MINUTO(S)')
+12  12   |     
+13  13   |     # Caso os minutos de inicio sejam maiores que o final
+14  14   |     elif minutoInicial > minutoFinal:
+ruff:F541 
+
+
+src/Iniciante/1180.py:25
+medium f-string without any placeholders
+22  22   | posicao = vetor.index(menor)
+23  23   | 
+24  24   | # Imprimindo o resultado
+25       |-print(f'Menor valor:', menor)
+    25   |+print('Menor valor:', menor)
+26  26   | print(f'Posicao:', posicao)
+ruff:F541 
+
+
+src/Iniciante/1180.py:26
+medium f-string without any placeholders
+23  23   | 
+24  24   | # Imprimindo o resultado
+25  25   | print(f'Menor valor:', menor)
+26       |-print(f'Posicao:', posicao)
+    26   |+print('Posicao:', posicao)
+ruff:F541 
+
+
+src/Iniciante/2003.py:17
+medium f-string without any placeholders
+14  14   |         
+15  15   |         # Caso Bino chege antes das 8h, seu atraso será zero
+16  16   |         if atraso_maximo < 0:
+17       |-            print(f'Atraso maximo: 0')
+    17   |+            print('Atraso maximo: 0')
+18  18   | 
+19  19   |         # Caso contrário, imprime seu atraso
+20  20   |         else:
+ruff:F541 
+
+
+src/Iniciante/2031.py:22
+medium Statement ends with an unnecessary semicolon
+19  19   | # Pra cada caso de teste
+20  20   | for i in range(n):
+21  21   |     # Recebe duas linhas e coloca numa lista
+22       |-    jogo = [input(), input()];
+    22   |+    jogo = [input(), input()]
+23  23   |     
+24  24   |     # Os ifs externos verificam o que o jogador 1 usou
+25  25   |     if jogo[0] == 'ataque':
+ruff:E703 
+
+
+src/Iniciante/3147.py:8
+medium f-string without any placeholders
+5   5    | 
+6   6    | # Realizando a soma dos exércitos do bem e do mal. Caso o exército do bem seja maior ou igual ao exercito do mal, Middle-earth estará salva
+7   7    | if(H+E+A+X) >= (O+W):
+8        |-	print(f'Middle-earth is safe.')
+    8    |+	print('Middle-earth is safe.')
+9   9    | 
+10  10   | # Caso contrário Sauron retornará 
+11  11   | else:
+ruff:F541 
+
+
+src/Iniciante/3147.py:12
+medium f-string without any placeholders
+9   9    | 
+10  10   | # Caso contrário Sauron retornará 
+11  11   | else:
+12       |-	print(f'Sauron has returned.')
+    12   |+	print('Sauron has returned.')
+ruff:F541 
+
+
+src/Iniciante/3157.py:7
+medium f-string without any placeholders
+4   4    | S = input()
+5   5    | 
+6   6    | # Imprimindo a verdade
+7        |-print(f'Nao se refuta ciencia com opiniao')
+    7    |+print('Nao se refuta ciencia com opiniao')
+ruff:F541 
+
+
+src/Iniciante/3253.py:34
+medium Comparison to `None` should be `cond is None`
+31  31   |     # Adiciona em cada rua de alcançáveis que é possível acessar pela rua id
+32  32   |     for i in alcancaveis:
+33  33   |         # Se ainda não tiver certa chave no Dicionário, será criada uma lista vazia
+34       |-        if chegam.get(i) == None:
+    34   |+        if chegam.get(i) is None:
+35  35   |             chegam[i] = []
+36  36   | 
+37  37   |         # Adiciona na lista o id da rua que é possivel aceessar i
+ruff:E711 
+
+
+src/Iniciante/3253.py:65
+medium Comparison to `None` should be `cond is not None`
+62  62   | 
+63  63   |         # Caso façam referencia (chegam em/saem de) uma rua
+64  64   |         # (Depende do vetor de adjacencia)
+65       |-        if vetor.get(aux) != None:
+    65   |+        if vetor.get(aux) is not None:
+66  66   |             # Ele adicionará as ruas ligadas através do vetor na pilha para 
+67  67   |             # serem visitadas caso não tenham sido
+68  68   |             for rua in vetor[aux]:
+ruff:E711 
+
+
+src/Iniciante/3253.py:69
+medium Avoid equality comparisons to `False`; use `not visited[rua]:` for false checks
+66  66   |             # Ele adicionará as ruas ligadas através do vetor na pilha para 
+67  67   |             # serem visitadas caso não tenham sido
+68  68   |             for rua in vetor[aux]:
+69       |-                if visited[rua] == False:
+    69   |+                if not visited[rua]:
+70  70   |                     pilha.insert(0, rua)
+71  71   | 
+72  72   |     # Retorna a lista de visitados
+ruff:E712 
+
+
+src/Iniciante/3253.py:90
+medium Avoid equality comparisons to `False`; use `not rua:` for false checks
+87  87   | 
+88  88   |     # Verifica se a foi possível acessar a rua 0 a partir da rua atual.
+89  89   |     rua = visited2[id]
+90       |-    if rua == False:
+    90   |+    if not rua:
+91  91   |         no_problem = False
+92  92   |         trappeds += f'TRAPPED {id}\n'
+93  93   | 
+ruff:E712 
+
+
+src/Iniciante/3253.py:96
+medium Avoid equality comparisons to `False`; use `not rua:` for false checks
+93  93   | 
+94  94   |     # Verifica se a foi possível acessar a rua atual a partir da rua 0.
+95  95   |     rua = visited[id]
+96       |-    if rua == False:
+    96   |+    if not rua:
+97  97   |         no_problem = False
+98  98   |         unreachables += f'UNREACHABLE {id}\n'
+99  99   | 
+ruff:E712 
+
+
+
+ ISSUES: 70 
+
+src/Iniciante/1047.py:11:11
+  11:11  medium  Add replacement fields or use a normal string instead of an f-string.  radarlint-python:python:S3457
+  11:11  medium  f-string without any placeholders                                      ruff:F541
+
+src/Iniciante/1051.py:33:33
+  33:33  low     Complete the task associated to this "TODO" comment.  radarlint-python:python:S1135
+
+src/Iniciante/1060.py:5:5
+    5:5  low     Replace the unused loop index "i" with "_".  radarlint-python:python:S1481
+
+src/Iniciante/1117.py:3:3
+    3:3  medium  Multiple statements on one line (colon)  ruff:E701
+    5:5  medium  Multiple statements on one line (colon)  ruff:E701
+
+src/Iniciante/1180.py:25:25
+  25:25  medium  Add replacement fields or use a normal string instead of an f-string.  radarlint-python:python:S3457
+  25:25  medium  f-string without any placeholders                                      ruff:F541
+  26:26  medium  Add replacement fields or use a normal string instead of an f-string.  radarlint-python:python:S3457
+  26:26  medium  f-string without any placeholders                                      ruff:F541
+
+src/Iniciante/1181.py:30:30
+  30:30  medium  Remove this commented out code.  radarlint-python:python:S125
+  37:37  medium  Undefined name `resultado`       ruff:F821
+
+src/Iniciante/1182.py:4:4
+    4:4  medium  Rename function "criaMatriz" to match the regular expression ^[a-z_][a-z0-9_]*$.      radarlint-python:python:S1542
+  10:10  low     Replace the unused loop index "i" with "_".                                           radarlint-python:python:S1481
+  10:10  low     Replace the unused loop index "j" with "_".                                           radarlint-python:python:S1481
+  14:14  medium  Rename function "preencheMatriz" to match the regular expression ^[a-z_][a-z0-9_]*$.  radarlint-python:python:S1542
+
+src/Iniciante/1183.py:7:7
+    7:7  low     Replace the unused loop index "x" with "_".  radarlint-python:python:S1481
+    7:7  low     Replace the unused loop index "y" with "_".  radarlint-python:python:S1481
+
+src/Iniciante/1534.py:27:27
+  27:27  high    Specify an exception class to catch or reraise the exception  radarlint-python:python:S5754
+  27:27  medium  Do not use bare `except`                                      ruff:E722
+
+src/Iniciante/1960.py:5:5
+    5:5  medium  Multiple statements on one line (colon)  ruff:E701
+    6:6  medium  Multiple statements on one line (colon)  ruff:E701
+    7:7  medium  Multiple statements on one line (colon)  ruff:E701
+    8:8  medium  Multiple statements on one line (colon)  ruff:E701
+    9:9  medium  Multiple statements on one line (colon)  ruff:E701
+  10:10  medium  Multiple statements on one line (colon)  ruff:E701
+  11:11  medium  Multiple statements on one line (colon)  ruff:E701
+  12:12  medium  Multiple statements on one line (colon)  ruff:E701
+  13:13  medium  Multiple statements on one line (colon)  ruff:E701
+  14:14  medium  Multiple statements on one line (colon)  ruff:E701
+  15:15  medium  Multiple statements on one line (colon)  ruff:E701
+  16:16  medium  Multiple statements on one line (colon)  ruff:E701
+  17:17  medium  Multiple statements on one line (colon)  ruff:E701
+
+src/Iniciante/2003.py:17:17
+  17:17  medium  Add replacement fields or use a normal string instead of an f-string.  radarlint-python:python:S3457
+  17:17  medium  f-string without any placeholders                                      ruff:F541
+
+src/Iniciante/2031.py:22:22
+  22:22  medium  Statement ends with an unnecessary semicolon  ruff:E703
+
+src/Iniciante/2059.py:8:8
+    8:8  high    Define a constant instead of duplicating this literal 'Jogador 1 ganha!' 4 times.  radarlint-python:python:S1192
+  13:13  high    Define a constant instead of duplicating this literal 'Jogador 2 ganha!' 3 times.  radarlint-python:python:S1192
+
+src/Iniciante/2140.py:29:29
+  29:29  low     Remove this redundant continue.  radarlint-python:python:S3626
+  34:34  low     Remove this redundant continue.  radarlint-python:python:S3626
+  37:37  low     Remove this redundant continue.  radarlint-python:python:S3626
+
+src/Iniciante/2162.py:25:25
+  25:25  medium  Multiple statements on one line (colon)  ruff:E701
+  27:27  medium  Multiple statements on one line (colon)  ruff:E701
+
+src/Iniciante/2168.py:7:7
+    7:7  medium  Rename this variable; it shadows a builtin.  radarlint-python:python:S5806
+
+src/Iniciante/2221.py:5:5
+    5:5  low     Rename this local variable "ValorGolpe" to match the regular expression ^[_a-z][a-z0-9_]*$.  radarlint-python:python:S117
+
+src/Iniciante/2728.py:32:32
+  32:32  note    print('BUG')  ripgrep:BUG
+
+src/Iniciante/2763.py:3:3
+    3:3  note    # Entrada de dados CPF no formato: XXX.YYY.ZZZ-DD  ripgrep:XXX
+
+src/Iniciante/3142.py:7:7
+    7:7  medium  Rename function "umaLetra" to match the regular expression ^[a-z_][a-z0-9_]*$.    radarlint-python:python:S1542
+  11:11  medium  Rename function "duasLetras" to match the regular expression ^[a-z_][a-z0-9_]*$.  radarlint-python:python:S1542
+  15:15  medium  Rename function "tresLetras" to match the regular expression ^[a-z_][a-z0-9_]*$.  radarlint-python:python:S1542
+
+src/Iniciante/3147.py:4:4
+    4:4  medium  Ambiguous variable name: `O`                                           ruff:E741
+    8:8  medium  Add replacement fields or use a normal string instead of an f-string.  radarlint-python:python:S3457
+    8:8  medium  f-string without any placeholders                                      ruff:F541
+  12:12  medium  Add replacement fields or use a normal string instead of an f-string.  radarlint-python:python:S3457
+  12:12  medium  f-string without any placeholders                                      ruff:F541
+
+src/Iniciante/3157.py:7:7
+    7:7  medium  Add replacement fields or use a normal string instead of an f-string.  radarlint-python:python:S3457
+    7:7  medium  f-string without any placeholders                                      ruff:F541
+
+src/Iniciante/3250.py:7:7
+    7:7  low     Complete the task associated to this "TODO" comment.                             radarlint-python:python:S1135
+  15:15  high    Define a constant instead of duplicating this literal 'use the stairs' 3 times.  radarlint-python:python:S1192
+
+src/Iniciante/3252.py:51:64
+  51:64  medium  Either merge this branch with the identical one on line "25" or change one of the implementations.  radarlint-python:python:S1871
+
+src/Iniciante/3253.py:34:34
+  34:34  medium  Comparison to `None` should be `cond is None`                                    ruff:E711
+  65:65  medium  Comparison to `None` should be `cond is not None`                                ruff:E711
+  69:69  medium  Avoid equality comparisons to `False`; use `not visited[rua]:` for false checks  ruff:E712
+  90:90  medium  Avoid equality comparisons to `False`; use `not rua:` for false checks           ruff:E712
+  96:96  medium  Avoid equality comparisons to `False`; use `not rua:` for false checks           ruff:E712
+
+src/Iniciante/3255.py:47:47
+  47:47  medium  Ambiguous variable name: `l`  ruff:E741
+
+src/Iniciante/3256.py:2:2
+    2:2  high    Refactor this function to reduce its Cognitive Complexity from 49 to the 15 allowed.  radarlint-python:python:S3776
+  36:36  low     Complete the task associated to this "TODO" comment.                                  radarlint-python:python:S1135
+  90:90  medium  Ambiguous variable name: `l`                                                          ruff:E741
+
+src/Iniciante/dummy_test.py:1:1
+    1:1  high    Add a nested comment explaining why this function is empty, or complete the implementation.  radarlint-python:python:S1186
+
+✖ 70 issues
