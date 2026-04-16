@@ -275,11 +275,11 @@ def main():
     exercises_to_generate_solutions = [1188]
     
     missing_conditions_group = [
-        2896
+        1181
     ]
     
     missing_proofs_group = [
-        1073, 2896
+        1181
     ]
     
     # iniciante_codes = [
@@ -306,7 +306,7 @@ def main():
     #     3170, 3173, 3174, 3209, 3250, 3252, 3253, 3255, 3256
     # ]
 
-    code_logic(exercises_to_generate_solutions)
+    # code_logic(exercises_to_generate_solutions)
     conditions_generation_logic(missing_conditions_group)
     formal_specification_validation_logic(missing_proofs_group)
 

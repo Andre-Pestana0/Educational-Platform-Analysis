@@ -1,113 +1,89 @@
-Below is a **Hoare‑logic style specification** for the program that solves the problem.  
-Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what must be true when the program terminates) are given – the body of the program itself is omitted, as requested.
+Below is a **Hoare‑logic style specification** for the program described in the statement.  
+All symbols are written in conventional mathematical notation (LaTeX‑style) and the
+specification contains only the **pre‑condition** \(P\) and the **post‑condition** \(Q\).
 
 ---
 
-### 1. Notation used  
+### 1.  Notation used in the specification  
 
-* `ℤ` – set of integers, `ℝ` – set of real numbers.  
-* `ℕ₀ = {0,1,2,…}` – non‑negative integers.  
-* `M ∈ ℝ^{12×12}` – a 12 × 12 matrix of real numbers, indexed by rows `i` and columns `j` with `0 ≤ i,j ≤ 11`.  
-* `L ∈ ℕ₀` – the *line* (row) supplied by the user.  
-* `T ∈ {'S','M'}` – the operation code (`'S'` = **Sum**, `'M'` = **Average**).  
-* `Σ(i=a..b) f(i)` – usual finite sum notation.  
-* `⌊x⌉₁` – the value of `x` rounded to **exactly one digit after the decimal point** (the “print‑with‑one‑digit” format required by the statement).  
-* `⟦P⟧` – the truth value of a predicate `P` (true = 1, false = 0).  
-
-We also define the *green area* that the statement refers to.  
-From the description and the illustrated example (the line number `L` determines a right‑angled triangular region whose legs lie on the top row and the leftmost column), the set of matrix positions that belong to the green area is
-
-\[
-G(L) \;=\; \{(i,j) \mid 0 \le i \le L,\; 0 \le j \le L\}.
-\]
-
-Thus the green area is the **upper‑left square sub‑matrix of size \((L+1) \times (L+1)\)**.  
-The number of elements in that area is
-
-\[
-N(L) \;=\; |G(L)| \;=\; (L+1)^2 .
-\]
-
-The **sum** of all elements in the green area is
-
-\[
-S(L,M) \;=\; \sum_{i=0}^{L}\;\sum_{j=0}^{L} M[i][j].
-\]
-
-The **average** of those elements is
-
-\[
-A(L,M) \;=\; \frac{S(L,M)}{N(L)} .
-\]
+| Symbol | Meaning |
+|--------|---------|
+| \(L\) | Integer read from the first line of the input. |
+| \(T\) | Upper‑case character read from the second line of the input, \(T\in\{‘S’,‘M’\}\). |
+| \(M\) | A two‑dimensional array \(M\in\mathbb{R}^{12\times 12}\) (12 rows, 12 columns) whose elements are read from the input, row‑wise, left‑to‑right. |
+| \(n\) | The fixed dimension of the matrix, \(n = 12\). |
+| \(\displaystyle S(L) \;:=\; \sum_{j=0}^{n-1} M[L][j]\) | Sum of the elements of row \(L\). |
+| \(\displaystyle A(L) \;:=\; \frac{1}{n}\,S(L)\) | Arithmetic mean (average) of the elements of row \(L\). |
+| \(\mathit{out}\) | The real value that the program prints (rounded to one decimal place). |
+| \(\lfloor x \rceil_{1}\) | “\(x\) rounded to one digit after the decimal point”. (Any standard rounding rule may be assumed.) |
 
 ---
 
-### 2. Hoare triple  
+### 2.  Pre‑condition \(P\)
 
 \[
-\boxed{\;\{\,\text{Pre}\,\}\;\; \text{Program} \;\;\{\,\text{Post}\,\}\;}
-\]
-
-#### Pre‑condition  
-
-\[
+\boxed{
 \begin{aligned}
-\text{Pre} \;\equiv\; & \bigl( 0 \le L \le 11 \bigr) \;\land\;
-                         \bigl( T \in \{'S','M'\} \bigr) \;\land\\[2mm]
-                      & \bigl( M \in \mathbb{R}^{12\times12} \bigr).
-\end{aligned}
+P \;\equiv\; &\; 0 \le L \le 11 \\[2pt]
+            &\;\land\; T \in \{‘S’,‘M’\} \\[2pt]
+            &\;\land\; M \in \mathbb{R}^{12\times 12}
+\end{aligned}}
 \]
 
-All three inputs are therefore guaranteed to be within their legal ranges before execution begins.
-
-#### Post‑condition  
-
-Let  
-
-\[
-\begin{aligned}
-\text{result} &\;:=\; 
-   \begin{cases}
-      \displaystyle S(L,M)               &\text{if } T = 'S',\\[4mm]
-      \displaystyle A(L,M) = \dfrac{S(L,M)}{N(L)} &\text{if } T = 'M'.
-   \end{cases}
-\end{aligned}
-\]
-
-The program must terminate **printing** a single real number `out` such that  
-
-\[
-\boxed{\; \text{out} \;=\; \big\lfloor \text{result} \big\rceil_{1}\;}
-\]
-
-i.e. `out` is `result` rounded to exactly one digit after the decimal point (the format required by the statement).  
-
-Formally,
-
-\[
-\begin{aligned}
-\text{Post} \;\equiv\;
-   &\bigl( T = 'S' \;\rightarrow\; \text{out}= \big\lfloor S(L,M) \big\rceil_{1} \bigr) \;\land\\[2mm]
-   &\bigl( T = 'M' \;\rightarrow\; \text{out}= \big\lfloor \tfrac{S(L,M)}{N(L)} \big\rceil_{1} \bigr).
-\end{aligned}
-\]
+The pre‑condition states that the program receives a **valid row index**, a **valid operation
+character**, and a **complete 12 × 12 matrix of real numbers**.
 
 ---
 
-### 3. Summary in Hoare‑logic notation  
+### 3.  Post‑condition \(Q\)
 
 \[
-\begin{array}{l}
-\displaystyle
-\{\,0 \le L \le 11 \;\land\; T \in \{'S','M'\} \;\land\; M \in \mathbb{R}^{12\times12}\,\}\;\\[2mm]
-\quad\text{read }L,T,M;\\
-\quad\text{compute }S(L,M) = \sum_{i=0}^{L}\sum_{j=0}^{L} M[i][j];\\
-\quad\text{if }T='S' \text{ then } \text{out}= \big\lfloor S(L,M) \big\rceil_{1}
-     \text{ else } \text{out}= \big\lfloor \tfrac{S(L,M)}{(L+1)^2} \big\rceil_{1};\\[2mm]
-\quad\text{print } \text{out};\\[2mm]
-\{\, (T='S' \rightarrow \text{out}= \big\lfloor S(L,M) \big\rceil_{1}) \;\land\;
-   (T='M' \rightarrow \text{out}= \big\lfloor \tfrac{S(L,M)}{(L+1)^2} \big\rceil_{1}) \,\}
-\end{array}
+\boxed{
+\begin{aligned}
+Q \;\equiv\; &\;
+\bigl(T = ‘S’ \;\Longrightarrow\; \mathit{out}= \lfloor S(L) \rceil_{1}\bigr) \\[4pt]
+            &\;\land\;
+\bigl(T = ‘M’ \;\Longrightarrow\; \mathit{out}= \lfloor A(L) \rceil_{1}\bigr)
+\end{aligned}}
 \]
 
-The above triple completely captures the **formal specification** of the problem in Hoare‑logic style, using precise mathematical notation for the pre‑ and post‑conditions.
+In words:
+
+* If the operation character is **‘S’** (sum), the program must output the
+  **sum of the 12 elements of row \(L\)**, rounded to one decimal place.
+
+* If the operation character is **‘M’** (average), the program must output the
+  **average of the 12 elements of row \(L\)**, rounded to one decimal place.
+
+---
+
+### 4.  Hoare triple for the whole program  
+
+\[
+\boxed{\{P\}\; \text{Program}\; \{Q\}}
+\]
+
+where *Program* denotes the sequence of statements that:
+
+1. reads \(L\), \(T\) and the 144 numbers into the matrix \(M\);
+2. computes \(S(L)=\sum_{j=0}^{11}M[L][j]\);
+3. if \(T='S'\) sets \(\mathit{out}=S(L)\), else sets \(\mathit{out}=S(L)/12\);
+4. prints \(\mathit{out}\) with exactly one digit after the decimal point.
+
+---
+
+### 5.  Remarks (optional, not part of the Hoare triple)
+
+* **Termination** is guaranteed because the program performs a bounded number of
+  input reads (144 numbers) and a bounded loop over the fixed size \(n=12\).
+
+* The specification is **total**: for every state satisfying \(P\) the program
+  terminates in a state satisfying \(Q\).
+
+* The rounding function \(\lfloor\cdot\rceil_{1}\) is introduced only to capture
+  the required output format; the algorithm itself may compute the exact real
+  value and defer rounding to the final printing step.
+
+--- 
+
+This completes the formal Hoare‑logic specification (pre‑ and post‑conditions) of the problem.
