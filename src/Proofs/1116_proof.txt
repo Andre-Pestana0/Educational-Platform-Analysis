@@ -331,5 +331,5 @@ Hoare triple
 \boxed{\{\,P\,\}\;\;{\tt program}\;\; \{\,Q\,\}}
 \]
 
-is valid, i.e. the given Python program is **correct** with respect to the
+is valid, i.e. the rogram is **correct** with respect to the
 formal specification.
