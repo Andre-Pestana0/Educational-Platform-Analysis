@@ -1,0 +1,22 @@
+Description: 
+
+Three cyclists are training on the velodrome for the next Olympics.  They start up together and make thousands of  laps every day, on a regular basis.  Each takes a certain time to complete the lap and always runs at the same speed. The coach scored the time of one lap for the first two cyclists and only knows,  in relation to the third, the time it takes for the three to line up again on the line of departure.
+You will help the technician by calculating all the possible times the third rider takes a lap.
+
+Input: Each input line contains three integers: T,  1 ≤  T ≤  10^6,  the time that the cyclists take to meet again in the departure line,         A, B,  1 ≤  A, B ≤  10^2,  the respective times that cyclists 1 and 2 take to complete one lap.
+
+Output: You should print a line with a single integer that matches the minimum amount of socks that Rangel needs to pick up.
+
+Examples:
+- Example 1:
+  Input:
+42 6 7
+40 5 4
+58652 11 62
+0 0 0
+  Output:
+1 2 3 6 7 14 21 42
+8 40
+172 1892 5332 58652
+
+--

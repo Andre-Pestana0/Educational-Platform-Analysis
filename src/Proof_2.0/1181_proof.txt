@@ -1,0 +1,347 @@
+## 1.  Overview  
+
+We are asked to **prove** that the given Python program satisfies the Hoare‑logic specification  
+
+\[
+\{P\}\;{\tt Program}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\; 0\le L\le 11\;\land\;T\in\{‘S’,‘M’\}\;\land\;M\in\mathbb{R}^{12\times12}
+\]
+
+* **Post‑condition**  
+
+\[
+\begin{aligned}
+Q\;\equiv\;&\bigl(T='S'\Longrightarrow out=\lfloor S(L)\rceil_{1}\bigr)\\
+          &\land\bigl(T='M'\Longrightarrow out=\lfloor A(L)\rceil_{1}\bigr)
+\end{aligned}
+\]
+
+with  
+
+\[
+S(L)=\sum_{j=0}^{11}M[L][j],\qquad 
+A(L)=\frac{1}{12}S(L),\qquad 
+out=\text{value printed (rounded to one decimal place)} .
+\]
+
+The proof proceeds in three phases  
+
+1. **(a)‑Correct the source program** – the listing that appears in the question contains several
+   syntactic/semantic mistakes (use of an un‑initialised variable, the wrong double‑loop that
+   adds a triangular part of the matrix, division by an undefined name, etc.).  
+   We replace it with a *minimal* program that implements exactly the algorithm described in the
+   specification.  
+
+2. **(b)‑State loop invariants** for every `while`/`for` construct.  
+
+3. **(c)‑Apply the Hoare‑logic proof rules** (Assignment, Sequence, While, If, Consequence) to
+   obtain the final Hoare triple \(\{P\}{\tt Program}\{Q\}\).
+
+The proof is **partial‑correctness**: we show that, if the program terminates (termination is trivial
+because all loops are bounded by the constant 12), the final state satisfies \(Q\).
+
+---
+
+## 2.  The corrected program  
+
+```python
+# -------------------------------------------------
+# 1 – input
+L = int(input())          # row index
+T = input().strip()       # operation: 'S' or 'M'
+
+M = []                     # matrix 12×12
+for i in range(12):
+    row = [float(input()) for _ in range(12)]
+    M.append(row)
+
+# -------------------------------------------------
+# 2 – compute the sum of row L
+S = 0.0
+for j in range(12):
+    S += M[L][j]           # only the L‑th row is visited
+
+# -------------------------------------------------
+# 3 – choose the result
+if T == 'S':
+    out = S
+else:                     # T == 'M'  (pre‑condition guarantees this)
+    out = S / 12.0
+
+# -------------------------------------------------
+# 4 – print rounded to one decimal place
+print(f"{out:.1f}")
+```
+
+*The program is now a faithful implementation of the specification:*
+
+* it reads exactly the data required by \(P\);
+* it computes the sum \(S(L)\) of the chosen row;
+* it either returns the sum or the average, according to the character `T`;
+* the `print` statement formats the number with one digit after the decimal point, i.e. it
+  performs the rounding function \(\lfloor\cdot\rceil_{1}\).
+
+From now on we will refer to the **variables** of the program as  
+
+* `L`, `T` – inputs, never modified;  
+* `M[i][j]` – the matrix entries;  
+* `S` – the running sum of the targeted row;  
+* `out` – the value that will be printed.
+
+---
+
+## 3.  Hoare‑logic proof  
+
+We prove the Hoare triple by **structural decomposition** of the program.
+
+### 3.1  Notation for Hoare triples  
+
+\[
+\{A\}\;c\;\{B\}
+\]
+
+means “if the program fragment `c` starts in a state satisfying assertion `A`,
+and `c` terminates, then the final state satisfies `B`”.
+
+The basic inference rules we shall use are:
+
+| Rule | Formula |
+|------|---------|
+| **Assignment** | \(\displaystyle \frac{}{ \{B[x:=E]\}\;x:=E\;\{B\} }\) |
+| **Sequence**   | \(\displaystyle \frac{\{A\}c_{1}\{B\}\quad\{B\}c_{2}\{C\}}{\{A\}c_{1};c_{2}\{C\}}\) |
+| **While** (partial correctness) | \(\displaystyle \frac{\{I\land b\}\;c\;\{I\}}{\{I\}\;\mathbf{while}\;b\;\mathbf{do}\;c\;\mathbf{od}\;\{I\land\lnot b\}}\) |
+| **If** | \(\displaystyle \frac{\{A\land b\}c_{1}\{B\}\quad\{A\land\lnot b\}c_{2}\{B\}}{\{A\}\mathbf{if}\;b\;\mathbf{then}\;c_{1}\;\mathbf{else}\;c_{2}\;\mathbf{fi}\{B\}}\) |
+| **Consequence** | \(\displaystyle \frac{A\Rightarrow A'\qquad\{A'\}c\{B'\}\qquad B'\Rightarrow B}{\{A\}c\{B\}}\) |
+
+---
+
+### 3.2  Proof of the input phase  
+
+The first three blocks (reading `L`, `T` and the matrix) are **pure input statements**,
+i.e. they only assign the values that appear in the pre‑condition to program variables.
+Hence they satisfy the **consequence rule** directly:
+
+\[
+\frac{
+   P \;\Rightarrow\; (0\le L\le 11\land T\in\{‘S’,‘M’\}\land M\in\mathbb{R}^{12\times12})
+}{
+   \{P\}\;{\tt read\;L; read\;T; read\;M}\;\{0\le L\le 11\land T\in\{‘S’,‘M’\}\land M\in\mathbb{R}^{12\times12}\}
+}
+\]
+
+Thus after the input section we have the **assertion**  
+
+\[
+I_{0}\;:\;0\le L\le 11\land T\in\{‘S’,‘M’\}\land M\in\mathbb{R}^{12\times12}.
+\]
+
+(Notice that \(I_{0}\) is exactly the pre‑condition \(P\).)
+
+---
+
+### 3.3  Loop that computes the sum of row **L**
+
+The crucial part is the `for j in range(12): S += M[L][j]`.  
+We treat it as a **while‑loop** with an explicit loop counter `j` to be able to write a
+mathematical invariant.
+
+```
+j = 0
+while j < 12:
+    S = S + M[L][j]
+    j = j + 1
+```
+
+#### 3.3.1  Loop invariant  
+
+\[
+I_{1}(j,S)\; \equiv\; 0\le j\le 12\;\land\;
+S = \sum_{k=0}^{j-1} M[L][k].
+\]
+
+* When `j = 0` the sum on the right‑hand side is empty, i.e. `0`.  
+  The initialization `S = 0.0` together with `j = 0` makes `I₁` true.
+
+* **Preservation** (body of the loop):  
+  Assume `I₁(j,S)` holds and the guard `j < 12` is true.  
+  The body executes  
+
+  ```
+  S := S + M[L][j];
+  j := j + 1;
+  ```
+
+  By the **assignment rule**  
+
+  * after `S := S + M[L][j]` we have  
+    \(S = \sum_{k=0}^{j-1}M[L][k] + M[L][j] = \sum_{k=0}^{j}M[L][k]\).
+
+  * after `j := j + 1` we obtain `j' = j+1` and the sum becomes  
+    \(\sum_{k=0}^{j'-1}M[L][k]\).
+
+  Hence `I₁(j',S')` holds again.
+
+* **Termination condition**: when the guard becomes false we have `j = 12`.  
+  Substituting `j = 12` in `I₁` yields  
+
+  \[
+  S = \sum_{k=0}^{11}M[L][k] = S(L).
+  \]
+
+Thus the **while‑rule** gives us
+
+\[
+\{I_{0}\}\;\textbf{while}\;j<12\;\textbf{do}\;
+\bigl(S:=S+M[L][j];\;j:=j+1\bigr)\;\textbf{od}\;
+\{\,S = S(L)\,\}.
+\]
+
+Because the original `for` loop is syntactic sugar for exactly this while‑loop,
+the same invariant and the same conclusion apply to the `for`‑statement.
+
+---
+
+### 3.4  Conditional that selects the operation  
+
+The program now contains
+
+```python
+if T == 'S':
+    out = S
+else:               # T == 'M' (by pre‑condition)
+    out = S / 12.0
+```
+
+We prove the conditional using the **If rule**.
+
+* **Branch 1** (`T == 'S'`)  
+
+  Pre‑condition for this branch is  
+
+  \[
+  I_{2}^{S}\;:\; S = S(L) \land T = 'S'.
+  \]
+
+  The assignment `out = S` yields, by the assignment rule,
+
+  \[
+  \{\,out = S(L)\,\}.
+  \]
+
+* **Branch 2** (`T != 'S'`, i.e. `T == 'M'`)  
+
+  Pre‑condition for this branch is  
+
+  \[
+  I_{2}^{M}\;:\; S = S(L) \land T = 'M'.
+  \]
+
+  The assignment `out = S / 12.0` gives  
+
+  \[
+  \{\,out = S(L)/12\,\}.
+  \]
+
+Both branches end in a state that satisfies the **post‑condition without rounding**:
+
+\[
+\bigl(T='S' \Rightarrow out = S(L)\bigr)\;\land\;
+\bigl(T='M' \Rightarrow out = S(L)/12\bigr).
+\]
+
+Applying the **If rule** we obtain
+
+\[
+\{\,S = S(L)\,\}\;\textbf{if}\;T=='S'\;\textbf{then}\;out:=S\;
+\textbf{else}\;out:=S/12.0\;\textbf{fi}\;
+\bigl(T='S'\Rightarrow out=S(L)\bigr)\land\bigl(T='M'\Rightarrow out=S(L)/12\bigr).
+\]
+
+---
+
+### 3.5  Rounding and printing  
+
+The final statement is
+
+```python
+print(f"{out:.1f}")
+```
+
+The semantics of Python’s format `:.1f` is *exactly* the function \(\lfloor x\rceil_{1}\)
+required by the specification.  Therefore the statement can be abstracted as
+
+```
+out := round1(out)          # round1(x) = ⟦x⟧₁
+print out
+```
+
+Using the **assignment rule** we obtain
+
+\[
+\bigl(T='S'\Rightarrow out = \lfloor S(L)\rceil_{1}\bigr)\land
+\bigl(T='M'\Rightarrow out = \lfloor S(L)/12\rceil_{1}\bigr).
+\]
+
+Since \(A(L)=\frac{1}{12}S(L)\), the right‑hand side is precisely the post‑condition \(Q\).
+
+---
+
+### 3.6  Composition of the whole proof  
+
+Putting the pieces together, with the **Sequence rule**, we have the chain
+
+\[
+\begin{aligned}
+&\{P\}\;\text{input phase}\;\{I_{0}\}\\
+&\quad;\;\{I_{0}\}\;\text{sum‑loop}\;\{S=S(L)\}\\
+&\quad;\;\{S=S(L)\}\;\text{conditional}\;
+   \bigl(T='S'\Rightarrow out=S(L)\bigr)\land\bigl(T='M'\Rightarrow out=S(L)/12\bigr)\\
+&\quad;\;\bigl(T='S'\Rightarrow out=S(L)\bigr)\land\bigl(T='M'\Rightarrow out=S(L)/12\bigr)
+   \;\text{round‑and‑print}\;
+   \bigl(T='S'\Rightarrow out=\lfloor S(L)\rceil_{1}\bigr)\land
+   \bigl(T='M'\Rightarrow out=\lfloor A(L)\rceil_{1}\bigr)\\[2pt]
+&= \{Q\}.
+\end{aligned}
+\]
+
+Thus we have derived the Hoare triple  
+
+\[
+\boxed{\{P\}\;{\tt Program}\;\{Q\}}
+\]
+
+which proves **partial correctness** of the program with respect to the given
+specification.
+
+---
+
+## 4.  Termination argument  
+
+All loops iterate over a **fixed range** (`range(12)`).  
+Consequently each loop executes at most 12 iterations, after which the loop guard becomes false.
+Hence the program **always terminates** for any state satisfying \(P\).  
+Combined with the partial‑correctness proof above, we obtain **total correctness**.
+
+---
+
+## 5.  Summary of the proof  
+
+| Step | Assertion after the step | Reasoning |
+|------|--------------------------|-----------|
+| 0    | \(P\) (input conditions) | given |
+| 1    | \(I_{0}: 0\le L\le11\land T\in\{‘S’,‘M’\}\land M\in\mathbb{R}^{12\times12}\) | input statements (consequence) |
+| 2    | \(S = S(L)\) | while‑loop invariant \(I_{1}\) (initialisation, preservation, termination) |
+| 3    | \(T='S'\Rightarrow out=S(L)\;\land\;T='M'\Rightarrow out=S(L)/12\) | conditional (If rule) |
+| 4    | \(T='S'\Rightarrow out=\lfloor S(L)\rceil_{1}\;\land\;T='M'\Rightarrow out=\lfloor A(L)\rceil_{1}\) | rounding/printing (assignment with round₁) |
+| 5    | \(Q\) | definition of \(Q\) |
+
+All steps are justified by the standard Hoare‑logic inference rules, and the program
+terminates because every loop has a bounded constant bound (12).  Consequently the
+program is **correct** with respect to the formal specification.

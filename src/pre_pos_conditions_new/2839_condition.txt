@@ -1,0 +1,57 @@
+Below is a **Hoare‑logic style specification** for a (deterministic) program **S** that solves the problem described.  
+The specification is written only with the pre‑condition **P** (what must be true before the program starts) and the post‑condition **Q** (what is guaranteed to be true after the program terminates).
+
+---
+
+### Variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N`    | input – number of *different* colours of socks in the drawer (each colour appears exactly twice) |
+| `M`    | output – the minimal number of socks that must be taken to be **sure** to obtain at least one matching pair |
+| `ℕ`    | set of non‑negative integers (we use it for “natural numbers”) |
+
+---
+
+### Pre‑condition  **P**
+
+\[
+P \;\equiv\; \bigl( N \in \mathbb{N} \;\wedge\; 1 \le N \le 10^{5} \bigr)
+\]
+
+*Interpretation*: the program is called with a **single** integer argument `N` that satisfies the bounds given in the statement of the problem.
+
+---
+
+### Post‑condition **Q**
+
+\[
+Q \;\equiv\; \bigl( M \in \mathbb{N} \;\wedge\; M = N + 1 \bigr)
+\]
+
+*Interpretation*: after termination the program returns an integer `M` that is exactly **one more** than the number of colour‑pairs.  
+By the pigeon‑hole principle, picking `N+1` socks from `2N` socks (two of each colour) guarantees at least two socks of the same colour, and `N` socks are **not** sufficient (one could pick one sock of each colour).
+
+---
+
+### Hoare triple
+
+\[
+\boxed{\; \{\,P\,\}\; S\; \{\,Q\,\} \;}
+\]
+
+where **S** denotes any algorithm that:
+
+1. reads the integer `N`,
+2. computes `M ← N + 1`,
+3. outputs `M`,
+4. terminates.
+
+---
+
+### Remarks (optional but often included in a formal spec)
+
+* **Total correctness**: Because `P` guarantees that `N` is a bounded natural number, the computation `M = N + 1` is total and the program always terminates.
+* **Complexity**: The algorithm runs in \(O(1)\) time and uses \(O(1)\) auxiliary space, which easily satisfies the limits (\(N \le 10^{5}\)).  
+
+Thus the Hoare‑logic specification above precisely captures the intended behaviour of the solution to the “minimum socks to guarantee a pair” problem.

@@ -1,0 +1,472 @@
+**Proof of correctness of the program**  
+
+We prove that the given Python program satisfies the Hoare‑style specification  
+
+\[
+\{\,P\,\}\;\; \texttt{count\_inverted\_triples}(N,\;{\bf a},\;cnt)\;\; \{\,Q\,\}
+\]
+
+where  
+
+* \(P\equiv\bigl(1\le N\le10^{5}\bigr)\land\bigl(\forall i\in[1..N]\;a_i\in[1..N]\bigr)\)  
+
+* \(Q\equiv\bigl(cnt = \#\{(i,j,k)\mid 1\le i<j<k\le N\land a_i>a_j>a_k\}\bigr)\).
+
+The program uses two Fenwick trees (Binary Indexed Trees) `bitleft` and `bitright`.  
+The proof is carried out in three steps  
+
+1. **Correctness of the primitive procedures `add` and `query`.**  
+2. **Loop invariants for the initialisation of `bitright` and for the main
+   loop that computes the answer.**  
+3. **Derivation of the post‑condition from the invariants.**
+
+All reasoning is expressed in Hoare‑logic notation; the rules that are used
+are the *assignment axiom*, the *while‑rule* (with a loop invariant) and the
+*composition rule*.
+
+---------------------------------------------------------------------
+
+## 1.   The Fenwick tree primitives  
+
+We first give a mathematical description of a Fenwick tree.
+
+*Let*  
+
+\[
+\mathit{freq}\subseteq[1..N]\times\mathbb Z
+\]
+
+be a multiset of pairs \((x,\Delta )\) where \(x\) is a position and
+\(\Delta\) is an integer increment.  
+
+For a fixed size \(N\) we define the **Fenwick representation** of `freq`
+as an array `bit[0..N]` that satisfies
+
+\[
+\forall p\in[1..N]\qquad
+\texttt{query(bit,p)} = \sum_{\substack{(x,\Delta)\in\mathit{freq}\\x\le p}}\Delta .
+\tag{1}
+\]
+
+The two procedures are
+
+```python
+def add(bit,i,val,sz):
+    while i <= sz:
+        bit[i] += val
+        i += i & -i
+```
+
+```python
+def query(bit,i):
+    ret = 0
+    while i > 0:
+        ret += bit[i]
+        i -= i & -i
+    return ret
+```
+
+---------------------------------------------------------------------
+
+### 1.1  Specification of `add`
+
+*Pre‑condition*  
+
+\[
+P_{add}\equiv
+\bigl(1\le i\le sz\bigr)\land
+\bigl(\texttt{bit} \text{ is a Fenwick representation of } \mathit{freq}\bigr)
+\]
+
+*Post‑condition*  
+
+\[
+Q_{add}\equiv
+\texttt{bit} \text{ is a Fenwick representation of }
+\mathit{freq}'\;,\qquad 
+\mathit{freq}' = \mathit{freq}\cup\{(i,\;val)\}.
+\]
+
+---------------------------------------------------------------------
+
+### 1.2  Proof of `{Padd} add {Qadd}`  
+
+The loop of `add` iterates over the indices  
+
+\[
+i,\;i+(i\&-i),\;i+2(i\&-i),\dots ,\; \le sz .
+\]
+
+At each iteration the statement `bit[i] += val` adds `val` to the cell that
+stores the contribution of the interval \((i-(i\&-i)+1 .. i]\) to every
+prefix sum that contains the index `i`. Consequently after the whole loop
+every prefix sum that contains the original index `i` has been increased by
+`val`, while all other prefix sums stay unchanged. This is precisely the
+definition of (1) for the multiset \(\mathit{freq}'\).  
+
+Formally we use the while‑rule with the invariant  
+
+\[
+I_{add}\equiv
+\bigl(\texttt{bit} \text{ represents } \mathit{freq}
+        \cup\{(i_{0},val)\mid i_{0}\text{ already visited}\}\bigr)
+\]
+
+where the variable `i` of the program is the current index `i_0`.  
+The invariant holds initially (no index has been visited), it is preserved
+by the body (`bit[i] += val`) and it implies the post‑condition when the
+loop terminates (`i>sz`, i.e. all indices that have to be updated have been
+visited). Hence `{Padd} add {Qadd}` is proved.
+
+---------------------------------------------------------------------
+
+### 1.3  Specification and proof of `query`
+
+*Pre‑condition*  
+
+\[
+P_{qry}\equiv
+\bigl(0\le i\le sz\bigr)\land
+\bigl(\texttt{bit} \text{ is a Fenwick representation of } \mathit{freq}\bigr)
+\]
+
+*Post‑condition*  
+
+\[
+Q_{qry}\equiv
+\texttt{ret} = \sum_{\substack{(x,\Delta)\in\mathit{freq}\\x\le i}}\Delta .
+\]
+
+The while‑rule with invariant  
+
+\[
+I_{qry}\equiv
+\bigl(\texttt{ret}= \sum_{\substack{(x,\Delta)\in\mathit{freq}\\x\le i_{0}}}\Delta\bigr)
+\]
+
+(where `i_0` is the current value of the loop variable) gives the desired
+result when the loop terminates (`i=0`).  Hence `{Pqry} query {Qry}` holds.
+
+---------------------------------------------------------------------
+
+## 2.   Loop invariants of the whole algorithm  
+
+All variables are now interpreted as the program’s variables:
+
+* `N` – the input size (named `n` in the specification).  
+* `arr[0..N-1]` – the input sequence \((a_{1},\dots ,a_{N})\) (0‑based).  
+* `bitleft`, `bitright` – two Fenwick trees of size `N`.  
+* `answer` – the accumulator that will become `cnt`.  
+
+---------------------------------------------------------------------
+
+### 2.1  Initialisation of `bitright`
+
+```python
+for i in range(2, N):
+    add(bitright, arr[i], 1, N)
+```
+
+**Invariant** \(I_{right}(i)\) (holds at the start of each iteration, i.e.
+just before the body is executed with the current loop variable `i`):
+
+\[
+\begin{aligned}
+I_{right}(i) \equiv\;&
+\bigl(\texttt{bitright} \text{ represents the multiset }
+      \{(a_{j},1)\mid j\in\{2,\dots ,i-1\}\}\bigr)\\
+&\land\; 2\le i\le N .
+\end{aligned}
+\]
+
+* *Initialization* (`i=2`): the set \(\{2,\dots ,i-1\}\) is empty, therefore
+  `bitright` represents the empty multiset – true because it was created
+  with all zeros.
+
+* *Preservation*: assuming \(I_{right}(i)\) and executing  
+  `add(bitright, arr[i], 1, N)` adds the pair \((a_{i},1)\) to the multiset,
+  which by Lemma 1 (correctness of `add`) yields a Fenwick representation of
+  \(\{(a_{j},1)\mid j\in\{2,\dots ,i\}\}\).  Afterwards the loop variable is
+  incremented to `i+1`, giving exactly \(I_{right}(i+1)\).
+
+* *Termination*: the loop stops with `i = N`.  Substituting `i=N` in the
+  invariant gives  
+
+  \[
+  \texttt{bitright} \text{ represents }
+  \{(a_{j},1)\mid j\in\{2,\dots ,N-1\}\}.
+  \tag{2}
+  \]
+
+Thus after the first loop `bitright` contains the frequencies of **all**
+elements that are strictly to the right of the first possible middle index
+\(j=2\) (remember that indices in the program are 0‑based).
+
+---------------------------------------------------------------------
+
+### 2.2  Initialisation of `bitleft`
+
+```python
+add(bitleft, arr[0], 1, N)
+```
+
+By Lemma 1 this makes `bitleft` a Fenwick representation of  
+
+\[
+\{(a_{1},1)\}.
+\tag{3}
+\]
+
+---------------------------------------------------------------------
+
+### 2.3  Main loop  
+
+```python
+answer = 0
+for i in range(1, N-1):
+    greaterLeft = query(bitleft, N) - query(bitleft, arr[i])
+    lessRight    = query(bitright, arr[i] - 1)
+
+    answer += greaterLeft * lessRight
+    add(bitleft, arr[i], 1, N)
+    add(bitright, arr[i + 1], -1, N)
+```
+
+The loop variable `i` corresponds to the *middle* index \(j\) of a triple
+(\(j = i+1\) in 1‑based notation).
+
+---------------------------------------------------------------------
+
+#### Loop invariant \(I_{main}(i)\)
+
+\[
+\begin{aligned}
+I_{main}(i) \equiv\;&
+\bigl(\texttt{bitleft} \text{ represents }
+      \{(a_{t},1)\mid t\in\{1,\dots ,i\}\}\bigr)\\
+&\land
+\bigl(\texttt{bitright} \text{ represents }
+      \{(a_{t},1)\mid t\in\{i+2,\dots ,N\}\}\bigr)\\
+&\land
+\texttt{answer} = 
+\#\{(p,q,r)\mid 1\le p<q<r\le N,\;q\le i+1,\;
+               a_{p}>a_{q}>a_{r}\}.
+\end{aligned}
+\tag{4}
+\]
+
+*Explanation of the three conjuncts*  
+
+1. `bitleft` holds exactly the values that appear **to the left** of the
+   current middle element \(a_{i+1}\).  
+2. `bitright` holds exactly the values that appear **to the right** of the
+   current middle element.  
+3. `answer` already counts all inverted triples whose middle index is at most
+   the current one (\(j\le i+1\)).
+
+---------------------------------------------------------------------
+
+#### 2.3.1  Initialization (`i = 1`)
+
+* From (3) `bitleft` represents \(\{a_{1}\}\).  
+* From (2) `bitright` represents \(\{a_{2},\dots ,a_{N-1}\}\).  
+* `answer` is set to `0`; there is no triple whose middle index is \(\le 1\).
+
+Hence \(I_{main}(1)\) holds.
+
+---------------------------------------------------------------------
+
+#### 2.3.2  Preservation  
+
+Assume \(I_{main}(i)\) holds at the beginning of an iteration.
+We show that after the body of the loop the invariant holds for
+\(i+1\).
+
+*Computation of `greaterLeft`*  
+
+```
+greaterLeft = query(bitleft, N) - query(bitleft, arr[i])
+```
+
+`query(bitleft, N)` returns the total number of elements stored in
+`bitleft`, i.e. \(|\{t\mid 1\le t\le i\}|\) = \(i\).  
+`query(bitleft, arr[i])` returns the number of those elements whose value is
+\(\le a_{i+1}\).  
+Therefore  
+
+\[
+\texttt{greaterLeft}=i-\#\{t\mid 1\le t\le i\land a_{t}\le a_{i+1}\}
+   =\#\{t\mid 1\le t\le i\land a_{t}>a_{i+1}\}.
+\tag{5}
+\]
+
+*Computation of `lessRight`*  
+
+```
+lessRight = query(bitright, arr[i] - 1)
+```
+
+By definition of `query` and because `bitright` contains exactly the values
+\(a_{i+2},\dots ,a_{N}\),
+
+\[
+\texttt{lessRight}= \#\{t\mid i+2\le t\le N\land a_{t}<a_{i+1}\}.
+\tag{6}
+\]
+
+*Contribution to `answer`*  
+
+The product `greaterLeft * lessRight` is precisely the number of ordered
+pairs \((p,r)\) such that  
+
+\[
+p\in[1..i],\; a_{p}>a_{i+1}, \qquad
+r\in[i+2..N],\; a_{r}<a_{i+1}.
+\]
+
+For each such pair the triple \((p,i+1,r)\) satisfies
+\(a_{p}>a_{i+1}>a_{r}\) and has middle index \(i+1\).  
+Consequently
+
+\[
+\texttt{answer}_{\text{new}}
+   =\texttt{answer}_{\text{old}}
+     +\#\{(p,i+1,r)\mid p\le i,\;r\ge i+2,\;
+        a_{p}>a_{i+1}>a_{r}\}.
+\tag{7}
+\]
+
+Thus after the addition `answer` counts all inverted triples whose middle
+index is \(\le i+1\).
+
+*Updates of the two trees*  
+
+```
+add(bitleft, arr[i], 1, N)
+```
+
+adds the current element \(a_{i+1}\) to `bitleft`.  By Lemma 1 the new tree
+represents  
+
+\[
+\{(a_{t},1)\mid t\in[1..i+1]\}.
+\tag{8}
+\]
+
+```
+add(bitright, arr[i+1], -1, N)
+```
+
+removes the element that will become the new “first right” element,
+i.e. \(a_{i+2}\).  The resulting multiset is  
+
+\[
+\{(a_{t},1)\mid t\in[i+3..N]\}.
+\tag{9}
+\]
+
+Consequently after the two `add` calls the first two conjuncts of
+\(I_{main}(i+1)\) are satisfied.
+
+Finally, (7) shows that the third conjunct of \(I_{main}(i+1)\) also holds.
+Hence the invariant is preserved.
+
+---------------------------------------------------------------------
+
+#### 2.3.3  Termination  
+
+The loop stops when `i = N-1`.  Substituting this value into (4) yields
+
+\[
+\begin{aligned}
+\texttt{bitleft} &\text{ represents } \{a_{1},\dots ,a_{N-1}\},\\
+\texttt{bitright}&\text{ represents } \{a_{N}\},\\
+\texttt{answer}&=
+\#\{(p,q,r)\mid 1\le p<q<r\le N,\;a_{p}>a_{q}>a_{r}\}.
+\end{aligned}
+\]
+
+The third line is exactly the required post‑condition \(Q\)
+(the variable `answer` is the program’s `cnt`).  
+
+If \(N<3\) the `for`‑loop is never entered, `answer` stays `0`,
+and the set of inverted triples is empty, so \(Q\) still holds.
+
+---------------------------------------------------------------------
+
+## 3.   Composition of the whole program  
+
+We now combine the partial correctness results obtained above.
+
+* The pre‑condition of the whole program is \(P\).  
+* The first `for`‑loop establishes invariant (2); by the while‑rule we have  
+
+  \[
+  \{P\}\; \texttt{init‑right}\; \{(2)\}
+  \]
+
+* The single call `add(bitleft,arr[0],1,N)` together with Lemma 1 yields  
+
+  \[
+  \{(2)\}\; \texttt{init‑left}\; \{(3)\}
+  \]
+
+* The main `for`‑loop, with invariant (4) proved in § 2.3, gives  
+
+  \[
+  \{(3)\}\; \texttt{main‑loop}\; \{Q\}
+  \]
+
+* By the composition rule we obtain  
+
+  \[
+  \{P\}\; \texttt{program}\; \{Q\}.
+  \]
+
+Thus the program is **partially correct** with respect to the given
+Hoare‑style specification.
+
+---------------------------------------------------------------------
+
+## 4.   Remarks on total correctness  
+
+*The loop bounds* are linear in `N` and each iteration performs a constant
+number of Fenwick‑tree operations, each of which costs `O(log N)`.  
+Hence the whole algorithm terminates in  
+
+\[
+O(N\log N)
+\]
+
+time and uses `O(N)` additional memory (the two trees).  
+
+Because the answer is at most \(\binom{N}{3}\) and \(N\le10^{5}\),
+the result fits into a signed 64‑bit integer; therefore the strengthened
+post‑condition  
+
+\[
+0\le\texttt{cnt}\le\binom{N}{3}
+\]
+
+also holds.
+
+---------------------------------------------------------------------
+
+### **Conclusion**
+
+We have exhibited a complete Hoare‑logic proof that the given Python
+program, under the pre‑condition  
+
+\[
+1\le N\le10^{5}\;\land\;\forall i\;(1\le a_i\le N),
+\]
+
+terminates and returns in the variable `answer` (named `cnt` in the
+specification) the exact number of triples \((i,j,k)\) with
+\(i<j<k\) and \(a_i>a_j>a_k\).  Consequently the Hoare triple  
+
+\[
+\{P\}\;\texttt{count\_inverted\_triples}\;\{Q\}
+\]
+
+is proved.  ∎

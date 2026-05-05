@@ -1,0 +1,335 @@
+**Proof of correctness (Hoare‑logic) for `exercise_1893`**
+
+---------------------------------------------------------------------
+
+### 1.  Notation  
+
+* `p₁ , p₂ ∈ ℤ` – the two numbers that the program reads.  
+* `inicio`   – the variable that receives `p₁`.  
+* `final`    – the variable that receives `p₂`.  
+* `out`      – the string that is printed (the argument of `print`).  
+
+The program body (after the definition of `read_line`) is
+
+```
+1  lista = read_line().split(" ")
+2  inicio = int(lista[0])
+3  final   = int(lista[1])
+
+4  if inicio >= 0 and final <= 2:
+5        out = "nova"
+6  elif final > inicio and final <= 96:
+7        out = "crescente"
+8  elif inicio >= final and final <= 96:
+9        out = "minguante"
+10 else:
+11        out = "cheia"
+
+12 print(out)
+```
+
+---------------------------------------------------------------------
+
+### 2.  Specification  
+
+* **Pre‑condition**  
+
+\[
+P\;:\;0\le p_{1}\le 100\;\land\;0\le p_{2}\le 100 .
+\]
+
+* **Phase function**  
+
+\[
+\operatorname{phase}(p_{1},p_{2})=
+\begin{cases}
+\text{``nova''}      & 0\le p_{2}\le 2,\\[2pt]
+\text{``cheia''}     & 97\le p_{2}\le 100,\\[2pt]
+\text{``crescente''}& 3\le p_{2}\le 96\;\land\;p_{2}>p_{1},\\[2pt]
+\text{``minguante''}& 3\le p_{2}\le 96\;\land\;p_{2}<p_{1}.
+\end{cases}
+\]
+
+(The case \(p_{2}=p_{1}\) with \(3\le p_{2}\le 96\) is left unspecified.)
+
+* **Post‑condition**  
+
+\[
+Q\;:\;out = \operatorname{phase}(p_{1},p_{2})\;\land\; \text{`out` ends with a newline}.
+\]
+
+The Hoare triple we have to prove is  
+
+\[
+\{P\}\; \texttt{exercise\_1893()}\; \{Q\}.
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Proof outline  
+
+The program contains only **assignments**, **a conditional statement**, and a
+final `print`.  The proof therefore uses only the Hoare‑logic rules  
+
+* **(Assign)** \(\{Q[x:=e]\}\;x:=e\;\{Q\}\)  
+* **(Seq)**  \(\{P\}\;S_{1}\; \{R\},\;\{R\}\;S_{2}\;\{Q\}\ \Longrightarrow\ \{P\}\;S_{1};S_{2}\;\{Q\}\)  
+* **(If)**  \(\displaystyle\frac{\{P\land B\}\;S_{1}\;\{Q\}\qquad\{P\land\neg B\}\;S_{2}\;\{Q\}}{\{P\}\;\textbf{if}\;B\;\textbf{then}\;S_{1}\;\textbf{else}\;S_{2}\;\{Q\}}\)  
+* **(Consequence)** – to weaken/strengthen assertions.
+
+---------------------------------------------------------------------
+
+### 4.  From the pre‑condition to the variables `inicio` and `final`
+
+1. **Reading the line** – the call `read_line()` does not change any program
+   variable, therefore the pre‑condition still holds after line 1.
+
+2. **Assignment (1)** – `lista = …` does not involve the numeric variables,
+   so \(P\) still holds.
+
+3. **Assignment (2)** – `inicio = int(lista[0])`.  
+   Using **(Assign)** we obtain the weakest pre‑condition:
+
+   \[
+   P_{2}=P[\,inicio:=p_{1}\,]\equiv
+   0\le inicio\le 100\;\land\;0\le p_{2}\le 100 .
+   \]
+
+   Because the input satisfies the original bounds, we can safely replace
+   `p₁` by `inicio`.  Hence after line 2 we have  
+
+   \[
+   \{0\le inicio\le 100\land 0\le p_{2}\le 100\}.
+   \]
+
+4. **Assignment (3)** – `final = int(lista[1])`.  
+   Applying **(Assign)** again:
+
+   \[
+   P_{3}=P_{2}[\,final:=p_{2}\,]\equiv
+   0\le inicio\le 100\;\land\;0\le final\le 100 .
+   \]
+
+Thus after the three initial assignments we know
+
+\[
+\boxed{\;0\le inicio\le 100\ \land\ 0\le final\le 100\;}\tag{A}
+\]
+
+and, by construction, `inicio = p₁,  final = p₂`.
+
+---------------------------------------------------------------------
+
+### 5.  The conditional statement
+
+The conditional is a chain of three `elif`s followed by an `else`.  
+For Hoare logic we rewrite it as a *nested* `if‑else`:
+
+```
+if G1 then S1
+else if G2 then S2
+else if G3 then S3
+else S4
+```
+
+where  
+
+* \(G_{1}\;:=\;(inicio\ge 0)\land (final\le 2)\)  
+* \(G_{2}\;:=\;\neg G_{1}\land (final>inicio)\land (final\le 96)\)  
+* \(G_{3}\;:=\;\neg G_{1}\land\neg G_{2}\land (inicio\ge final)\land (final\le 96)\)  
+* \(S_{1}\;:=\;out:=\text{``nova''}\)  
+* \(S_{2}\;:=\;out:=\text{``crescente''}\)  
+* \(S_{3}\;:=\;out:=\text{``minguante''}\)  
+* \(S_{4}\;:=\;out:=\text{``cheia''}\).
+
+The proof consists in showing, for each guard, that the assignment in the
+corresponding branch establishes the post‑condition \(Q\).
+
+---------------------------------------------------------------------
+
+#### 5.1  Branch 1 (`nova`)
+
+*Guard* \(G_{1}\) together with (A) yields  
+
+\[
+\begin{aligned}
+G_{1}&\implies (final\le 2)\land (final\ge 0)          &&\text{(by (A) we have }final\ge 0)\\
+     &\implies 0\le final\le 2 .
+\end{aligned}
+\]
+
+Hence, by the definition of `phase`,  
+
+\[
+\operatorname{phase}(inicio,final)=\text{``nova''}.
+\]
+
+*Statement* \(S_{1}\) is `out := "nova"`.  
+Using **(Assign)** we have  
+
+\[
+\{out = \text{``nova''}\}\;out:=\text{``nova''}\;\{out = \text{``nova''}\}.
+\]
+
+Therefore  
+
+\[
+\{P\land G_{1}\}\;S_{1}\;\{out = \operatorname{phase}(inicio,final)\}.
+\tag{B1}
+\]
+
+---------------------------------------------------------------------
+
+#### 5.2  Branch 2 (`crescente`)
+
+Assume \(G_{2}\) holds.  From its definition we have  
+
+* `final > inicio`  
+* `final ≤ 96`  
+* `¬G₁`, i.e. **not**(inicio ≥ 0 ∧ final ≤ 2).
+
+Because `final > inicio ≥ 0` (by (A) we know `inicio ≥ 0`), the negation of
+`final ≤ 2` follows, i.e. `final ≥ 3`.  Consequently  
+
+\[
+3\le final\le 96\ \land\ final>inicio .
+\]
+
+Thus, by the definition of `phase`,  
+
+\[
+\operatorname{phase}(inicio,final)=\text{``crescente''}.
+\]
+
+The assignment `out := "crescente"` (statement \(S_{2}\)) obviously yields the
+required equality, so by **(Assign)**
+
+\[
+\{P\land G_{2}\}\;S_{2}\;\{out = \operatorname{phase}(inicio,final)\}.
+\tag{B2}
+\]
+
+---------------------------------------------------------------------
+
+#### 5.3  Branch 3 (`minguante`)
+
+Assume \(G_{3}\) holds.  From its definition we obtain  
+
+* `inicio ≥ final`  
+* `final ≤ 96`  
+* `¬G₁` (so `final ≥ 3` as argued above).  
+
+Hence  
+
+\[
+3\le final\le 96\ \land\ final\le inicio .
+\]
+
+If `final = inicio` the guard `final > inicio` of branch 2 is false, and the
+guard `inicio ≥ final` of branch 3 is true; the specification leaves this
+case unspecified, therefore any output is admissible.  
+When `final < inicio` we are precisely in the “minguante’’ case of the
+definition, i.e.
+
+\[
+\operatorname{phase}(inicio,final)=\text{``minguante''}.
+\]
+
+The assignment `out := "minguante"` (statement \(S_{3}\)) establishes the
+post‑condition, giving  
+
+\[
+\{P\land G_{3}\}\;S_{3}\;\{out = \operatorname{phase}(inicio,final)\}.
+\tag{B3}
+\]
+
+---------------------------------------------------------------------
+
+#### 5.4  Branch 4 (`cheia`)
+
+The remaining guard is  
+
+\[
+G_{4}= \neg G_{1}\land\neg G_{2}\land\neg G_{3}.
+\]
+
+From \(\neg G_{1}\) we know `final > 2`.  
+If `final ≤ 96` then, because both `final > inicio` (which would make
+\(G_{2}\) true) and `inicio ≥ final` (which would make \(G_{3}\) true) are
+false, we must have `final = inicio`.  In that situation the specification is
+silent; printing `"cheia"` is therefore allowed.
+
+If `final > 96` we have `97 ≤ final ≤ 100` (by (A)).  By the definition of
+`phase` this belongs to the *full‑moon* case, i.e. `"cheia"`.
+
+Thus, in every state satisfying \(G_{4}\),
+
+\[
+\operatorname{phase}(inicio,final)=\text{``cheia''}.
+\]
+
+The assignment `out := "cheia"` (statement \(S_{4}\)) yields the post‑condition,
+so
+
+\[
+\{P\land G_{4}\}\;S_{4}\;\{out = \operatorname{phase}(inicio,final)\}.
+\tag{B4}
+\]
+
+---------------------------------------------------------------------
+
+#### 5.5  Putting the conditional together
+
+From (B1)–(B4) and the **(If)** rule (applied three times, nesting the
+`elif`s) we obtain
+
+\[
+\{P\}\;\textbf{if}\;G_{1}\;\textbf{then}\;S_{1}\;
+\textbf{elif}\;G_{2}\;\textbf{then}\;S_{2}\;
+\textbf{elif}\;G_{3}\;\textbf{then}\;S_{3}\;
+\textbf{else}\;S_{4}\;
+\{out = \operatorname{phase}(inicio,final)\}.
+\tag{C}
+\]
+
+---------------------------------------------------------------------
+
+### 6.  The final `print`
+
+The statement `print(out)` does not change the value of `out`; it only adds a
+newline character to the output stream.  Using **(Assign)** with a *skip* we
+have  
+
+\[
+\{out = \operatorname{phase}(inicio,final)\}\;print(out)\;
+\{out = \operatorname{phase}(inicio,final)\land\text{newline}\}.
+\]
+
+Applying **(Seq)** to (C) and the last statement gives
+
+\[
+\{P\}\;\texttt{exercise\_1893()}\;
+\{out = \operatorname{phase}(inicio,final)\land\text{newline}\}.
+\]
+
+Recall that `inicio = p₁` and `final = p₂` (by the two assignments at the
+beginning).  Substituting these equalities yields exactly the required
+post‑condition \(Q\):
+
+\[
+\boxed{\{P\}\;\texttt{exercise\_1893()}\;\{Q\}} .
+\]
+
+---------------------------------------------------------------------
+
+### 7.  Conclusion  
+
+We have shown, using the axioms and inference rules of Hoare logic, that
+whenever the program is started with two integers `p₁ , p₂` satisfying the
+pre‑condition \(0\le p_{1},p_{2}\le 100\),
+
+* it terminates, and  
+* the string printed (followed by a line break) is precisely  
+  `phase(p₁,p₂)` as defined in the specification.
+
+Hence the Python program `exercise_1893` is **correct** with respect to the
+given Hoare‑style specification. ∎

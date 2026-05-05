@@ -1,0 +1,60 @@
+**Hoare‑style specification**
+
+Let  
+
+* `p₁ , p₂ ∈ ℤ` be the two numbers read from the input  
+  (`p₁` – percentage observed two nights ago, `p₂` – percentage observed last night).  
+
+* `out` be the string that the program prints (followed by a line break).
+
+---
+
+### Pre‑condition  
+
+\[
+\boxed{P\;:\; 0\le p_{1}\le 100\ \land\ 0\le p_{2}\le 100}
+\]
+
+(The program is required to be invoked only with two integer percentages in the
+range 0…100.)
+
+---
+
+### Post‑condition  
+
+Define the *phase* function  
+
+\[
+\operatorname{phase}(p_{1},p_{2})=
+\begin{cases}
+\text{``nova''}      &\text{if }0\le p_{2}\le 2,\\[4pt]
+\text{``cheia''}     &\text{if }97\le p_{2}\le 100,\\[4pt]
+\text{``crescente''}&\text{if }3\le p_{2}\le 96\ \land\ p_{2}>p_{1},\\[4pt]
+\text{``minguante''}&\text{if }3\le p_{2}\le 96\ \land\ p_{2}<p_{1}.
+\end{cases}
+\]
+
+(The specification does not prescribe a result when \(p_{2}=p_{1}\) and
+\(3\le p_{2}\le 96\); any of the two increasing/decreasing branches may be
+chosen, or an additional clause may be added.)
+
+The post‑condition is then
+
+\[
+\boxed{Q\;:\; out = \operatorname{phase}(p_{1},p_{2})\ \land\ \text{``out'' is terminated by a newline}}
+\]
+
+---
+
+### Hoare triple for the whole program  
+
+\[
+\{\,P\,\}\;\; \texttt{read }p_{1},p_{2};\; \texttt{print(out)}\;\; \{\,Q\,\}
+\]
+
+In words: **if** the two input percentages satisfy the pre‑condition (they are
+integers between 0 and 100), **then** after the program terminates the printed
+string `out` is exactly the moon phase that corresponds to the last‑night
+percentage `p₂`, taking into account whether the illumination increased
+(`crescente`) or decreased (`minguante`) with respect to the observation two
+nights earlier.

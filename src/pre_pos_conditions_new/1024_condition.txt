@@ -1,0 +1,130 @@
+**Formal specification (Hoare‑logic style)**  
+
+We denote  
+
+* `Σ` – the set of all ASCII characters (codes 0 … 127).  
+* `letter(c)` – the predicate “ c is an upper‑case or lower‑case English letter ”, i.e.  
+  \[
+  \text{letter}(c)\;\; \stackrel{\text{def}}{\Longleftrightarrow}\;\; 
+  (‘A’\le c\le ‘Z’)\;\vee\;(‘a’\le c\le ‘z’).
+  \]
+
+* `ord(c)` – the integer ASCII code of character `c`.  
+* `chr(k)` – the character whose ASCII code is `k`.  
+
+---
+
+### Auxiliary functions  
+
+\[
+\begin{aligned}
+\text{shift}_{+3}&:\Sigma\rightarrow\Sigma &
+      \text{shift}_{+3}(c) &=
+      \begin{cases}
+        \text{chr}\bigl(\text{ord}(c)+3\bigr) & \text{if } \text{letter}(c)\\[2mm]
+        c                                      & \text{otherwise}
+      \end{cases} \\[4mm]
+\text{rev}&:\Sigma^{*}\rightarrow\Sigma^{*} &
+      \text{rev}(s) &=
+      s_{|s|-1}\;s_{|s|-2}\;\dots\;s_{0} \qquad (\text{string reversal})\\[4mm]
+\text{leftShiftHalf}&:\Sigma^{*}\rightarrow^{*} &
+      \text{leftShiftHalf}(s) &=
+      \begin{cases}
+        s[0\!:\!k-1]\;\;\;\;\;\;\;\;\;\;\;\;\; \| \;
+        \bigl(\,\text{chr}(\text{ord}(s[i])-1)\,\bigr)_{i=k}^{|s|-1}
+        & \text{if }|s|>0\\[2mm]
+        \varepsilon & \text{if }|s|=0
+      \end{cases}
+\end{aligned}
+\]
+
+where  
+
+* `|s|` is the length of `s`;  
+* `k = \lceil |s|/2\rceil` (the index that starts the **right half** of the string);  
+* `s[a:b]` denotes the prefix consisting of characters `s_a … s_{b-1}`;  
+* `\|` denotes concatenation;  
+* `\varepsilon` is the empty string.
+
+Finally we define the **encryption function** used by the program:
+
+\[
+\boxed{\;\; \operatorname{enc}(s)\;=\;\text{leftShiftHalf}\bigl(\,\text{rev}\bigl(\,\text{map}(\text{shift}_{+3},s)\bigr)\bigr)\;\;}
+\]
+
+`map(f,s)` applies `f` to each character of `s` (preserving order).
+
+---
+
+### Program variables  
+
+* `N ∈ ℕ` – number of lines to be processed.  
+* `L = (L_1,\dots ,L_N)` – the input lines, where each `L_i ∈ Σ^{M_i}` and  
+  \(1 \le M_i \le 10^{3}\).  
+* `E = (E_1,\dots ,E_N)` – the array that will contain the encrypted lines.
+
+---
+
+### Preconditions  
+
+\[
+\begin{aligned}
+P \;\equiv\;& 
+  1 \le N \le 10^{4} \;\;\wedge \\[1mm]
+& \forall i\;(1\le i\le N)\;.\;
+   L_i \in \Sigma^{M_i}\ \wedge\ 1\le M_i\le 10^{3}
+\end{aligned}
+\]
+
+The precondition guarantees that the input respects the limits given in the
+statement.
+
+---
+
+### Postconditions  
+
+\[
+\begin{aligned}
+Q \;\equiv\;& 
+  \forall i\;(1\le i\le N)\;.\;
+     E_i = \operatorname{enc}(L_i)
+\end{aligned}
+\]
+
+That is, each output line `E_i` is exactly the result of applying the three
+steps described in the problem to the corresponding input line `L_i`.
+
+---
+
+### Hoare triple for the whole program  
+
+\[
+\boxed{\; \{\,P\,\}\; \texttt{EncryptProgram}\; \{\,Q\,\} \;}
+\]
+
+where **EncryptProgram** is the straightforward imperative implementation of
+the function `enc` on every line of the input:
+
+```
+for i = 1 to N do
+    // step 1 : shift letters by +3
+    S := map(shift_+3 , L_i)
+
+    // step 2 : reverse the whole string
+    R := rev(S)
+
+    // step 3 : left‑shift the right half (ceil(|R|/2) … |R|-1)
+    k := ceil(|R|/2)
+    for j = k to |R|-1 do
+        R[j] := chr(ord(R[j]) - 1)
+    od
+
+    E_i := R
+od
+```
+
+The triple states that, assuming the input satisfies `P`, after termination
+the array `E` satisfies `Q`.  
+
+Thus the formal specification (pre‑ and post‑conditions) of the encryption
+program is completely captured by the predicates `P` and `Q` above.

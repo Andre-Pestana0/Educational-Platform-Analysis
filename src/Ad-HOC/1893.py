@@ -26,3 +26,6 @@ def exercise_1893():
         print("minguante")
     else:
         print("cheia")
+    
+if __name__ == "__main__":
+    exercise_1893()

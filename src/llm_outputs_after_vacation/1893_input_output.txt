@@ -1,0 +1,50 @@
+[
+  {
+    "input": "0 0",
+    "output": "nova"
+  },
+  {
+    "input": "0 1",
+    "output": "nova"
+  },
+  {
+    "input": "2 0",
+    "output": "nova"
+  },
+  {
+    "input": "2 3",
+    "output": "crescente"
+  },
+  {
+    "input": "30 35",
+    "output": "crescente"
+  },
+  {
+    "input": "50 50",
+    "output": "crescente"
+  },
+  {
+    "input": "80 70",
+    "output": "minguante"
+  },
+  {
+    "input": "96 95",
+    "output": "minguante"
+  },
+  {
+    "input": "3 2",
+    "output": "nova"
+  },
+  {
+    "input": "95 97",
+    "output": "cheia"
+  },
+  {
+    "input": "99 99",
+    "output": "cheia"
+  },
+  {
+    "input": "100 99",
+    "output": "cheia"
+  }
+]

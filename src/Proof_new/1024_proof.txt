@@ -1,0 +1,395 @@
+## 1.  Goal  
+
+We have to show, in Hoare‑logic style, that the Python program `ex_1024` satisfies  
+
+\[
+\{P\}\;{\tt ex\_1024}\;\{Q\}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+\[
+P\; \equiv\;
+\begin{aligned}
+&1\le N\le 10^{4}\ \wedge\\[1mm]
+&\forall i\;(1\le i\le N).\;L_i\in\Sigma^{M_i}\ \wedge\ 1\le M_i\le 10^{3}
+\end{aligned}
+\]
+
+* **Post‑condition**  
+
+\[
+Q\; \equiv\;
+\forall i\;(1\le i\le N).\;E_i = \operatorname{enc}(L_i)
+\]
+
+with  
+
+\[
+\operatorname{enc}(s)=\text{leftShiftHalf}\bigl(\,\text{rev}\bigl(\,\text{map}(\text{shift}_{+3},s)\bigr)\bigr)
+\]
+
+The program reads the integer `qtdTestes` (our `N`), then for each of the `N` input strings `msg` (our `L_i`) it builds a string `msgCriptografada` that is printed (our `E_i`).  
+
+We shall prove that each of the three “passes’’ performed by the program implements exactly the three functional components of `enc`.  
+The proof proceeds by **loop invariants** for the two `for`‑loops that really iterate over characters, together with the obvious (non‑iterative) manipulations of slices and reversals.
+
+--------------------------------------------------------------------
+
+## 2.  Mapping of the program to the abstract algorithm  
+
+| Python fragment | Abstract operation | Comment |
+|-----------------|-------------------|---------|
+| `for letra in msg: …`  | `S := map(shift_{+3},msg)` | builds a new string by applying `shift_{+3}` to each character |
+| `msgCriptografada = msgCriptografada[::-1]` | `R := rev(S)` | Python slice with step –1 is the mathematical reversal |
+| `aux = msgCriptografada[int(len(msgCriptografada)/2):]`<br>`msgCriptografada = msgCriptografada[:int(len(msgCriptografada)/2)]`<br>`for letra in aux: …` | `leftShiftHalf(R)` | the first two assignments split `R` into a left part `R[0:k]` and a right part `aux = R[k:]` where `k = ⌈|R|/2⌉`. The loop then replaces every character `c` of the right part by `chr(ord(c)-1)`. This is precisely the definition of `leftShiftHalf`. |
+
+Thus the whole body of the outer loop (the code that runs for a single input line) is a concrete implementation of the specification  
+
+\[
+\text{msgCriptografada} \;:=\; \operatorname{enc}(\text{msg})
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Hoare triples for the individual fragments  
+
+We use the standard Hoare notation  
+
+\[
+\{A\}\;C\;\{B\}
+\]
+
+where `C` is a command (a block of Python statements) and `A,B` are assertions about the program variables that are in scope at the beginning / end of `C`.
+
+--------------------------------------------------------------------
+### 3.1  Outer loop  
+
+```
+qtdTestes = int(input())
+i = 0
+while i < qtdTestes:
+    ...  # body B
+    i = i + 1
+```
+
+*Loop invariant*  
+
+\[
+I_{\text{outer}} \; \equiv\; 
+\begin{aligned}
+&0\le i\le N\ \wedge\\
+&\forall j\;(1\le j\le i).\;E_j = \operatorname{enc}(L_j)
+\end{aligned}
+\]
+
+*Proof of preservation*  
+
+Assume `I_outer` holds at the start of an iteration and `i<N`.  
+The body `B` computes `msgCriptografada` from the current input line `msg = L_{i+1}` (proved later) and prints it.  Consequently after the body we have  
+
+\[
+E_{i+1}= \operatorname{enc}(L_{i+1})
+\]
+
+All earlier `E_j` (`j≤i`) are unchanged.  
+Hence after executing `i := i+1` we obtain  
+
+\[
+\forall j\;(1\le j\le i+1).\;E_j=\operatorname{enc}(L_j)
+\]
+
+so `I_outer` is restored.
+
+*Initialization*  
+
+Before the first iteration `i = 0`.  The universal quantifier in `I_outer` is vacuous, therefore `I_outer` holds.
+
+*Termination*  
+
+The loop guard is `i < N`.  Because `i` is increased by one each iteration and `N` is a finite natural number (by `P`), the loop must stop after exactly `N` iterations, i.e. when `i = N`.  At that point `I_outer` gives  
+
+\[
+\forall j\;(1\le j\le N).\;E_j = \operatorname{enc}(L_j)
+\]
+
+which is precisely `Q`.  
+
+Thus  
+
+\[
+\{P\}\;\text{outer‑loop}\;\{Q\}
+\]
+
+holds, **provided** we can show that the body `B` indeed satisfies  
+
+\[
+\{\,\text{msg}=L_{i+1}\,\}\;B\;\{\,\text{msgCriptografada}= \operatorname{enc}(L_{i+1})\,\}
+\tag{1}
+\]
+
+The rest of the proof is devoted to (1).
+
+--------------------------------------------------------------------
+### 3.2  First pass – “shift + 3’’  
+
+```
+msgCriptografada = ""
+for letra in msg:
+    if letra.isalpha():
+        msgCriptografada += chr(ord(letra) + 3)
+    else:
+        msgCriptografada += letra
+```
+
+*Loop invariant*  
+
+\[
+I_{1}\; \equiv\;
+\begin{aligned}
+&\text{msgCriptografada}= \text{map}(shift_{+3},\,msg[0:p])\\
+&\text{where }p \text{ is the number of already processed characters}
+\end{aligned}
+\]
+
+Formally, let `p` be the loop index (the Python `for` iterates over the characters in order).  
+When the loop has processed the first `p` characters of `msg`, the invariant states that the string built so far equals the image of exactly those `p` characters under `shift_{+3}`.
+
+*Preservation*  
+
+Assume `I_1` holds for a given `p`.  
+The next character is `letra = msg[p]`.  
+
+* If `letter(letra)` is true, the body appends `chr(ord(letra)+3) = shift_{+3}(letra)`.  
+* Otherwise it appends `letra` itself, which also equals `shift_{+3}(letra)` by the definition of `shift_{+3}` for non‑letters.
+
+Thus after the concatenation we have  
+
+\[
+\text{msgCriptografada}= \text{map}(shift_{+3},\,msg[0:p+1])
+\]
+
+which is exactly `I_1` for the next value `p+1`.
+
+*Initialization*  
+
+Before the first iteration `p = 0` and `msgCriptografada = ""`.  
+`msg[0:0]` is the empty string, and `map(shift_{+3},\varepsilon)=\varepsilon`, so `I_1` holds.
+
+*Termination*  
+
+The loop finishes when `p = |msg|`.  At that moment  
+
+\[
+\text{msgCriptografada}= \text{map}(shift_{+3},\,msg)
+\]
+
+which we denote by `S`.  
+
+Consequently we have proved the Hoare triple  
+
+\[
+\{\text{msg}=s\}\;
+\text{first‑pass}\;
+\{\text{msgCriptografada}= \text{map}(shift_{+3},s)\}
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+### 3.3  Second pass – reversal  
+
+```
+msgCriptografada = msgCriptografada[::-1]
+```
+
+The Python slice `x[::-1]` returns the string `rev(x)`.  
+Hence the assignment is exactly the command  
+
+\[
+\text{msgCriptografada} := rev(\text{msgCriptografada})
+\]
+
+Using the standard assignment rule we obtain  
+
+\[
+\{\text{msgCriptografada}=S\}\;
+\text{rev‑assignment}\;
+\{\text{msgCriptografada}=rev(S)\}
+\tag{3}
+\]
+
+Combining (2) and (3) yields after the two first passes  
+
+\[
+\{\text{msg}=s\}\;
+\text{first two passes}\;
+\{\text{msgCriptografada}= rev\bigl(\text{map}(shift_{+3},s)\bigr)\}
+\tag{4}
+\]
+
+--------------------------------------------------------------------
+### 3.4  Third pass – left‑shift of the right half  
+
+The Python code is
+
+```python
+aux = msgCriptografada[int(len(msgCriptografada) / 2) :]
+msgCriptografada = msgCriptografada[: int(len(msgCriptografada) / 2)]
+
+for letra in aux:
+    msgCriptografada += chr(ord(letra) - 1)
+```
+
+Let  
+
+\[
+R = rev\bigl(\text{map}(shift_{+3},s)\bigr)   \qquad (\text{value after step 2})
+\]
+
+Define  
+
+\[
+k = \bigl\lceil |R|/2 \bigr\rceil
+\]
+
+and the two substrings  
+
+\[
+L = R[0:k] \qquad\qquad
+H = R[k:|R|] .
+\]
+
+The first two assignments store `L` back into `msgCriptografada` and keep `H` in the auxiliary variable `aux`.  
+
+Now we analyse the `for`‑loop over `aux` (i.e. over `H`).  
+
+*Loop invariant*  
+
+\[
+I_{3}\; \equiv\;
+\begin{aligned}
+&\text{msgCriptografada}= L\;\|\,\text{map}\bigl(c\mapsto chr(ord(c)-1),\; H[0:q]\bigr)\\
+&\text{where } q \text{ is the number of already processed characters of } H
+\end{aligned}
+\]
+
+*Preservation*  
+
+Assume `I_3` holds for a given `q`.  
+The next character is `letra = H[q]`.  
+The loop body appends `chr(ord(letra)-1)`, which is exactly the function  
+\(c\mapsto chr(ord(c)-1)\) applied to `letra`.  
+Consequently after the concatenation the right part of the invariant becomes the image of `H[0:q+1]`.  Hence `I_3` holds for `q+1`.
+
+*Initialization*  
+
+Before the first iteration `q = 0`.  
+`msgCriptografada` contains only `L`, and `map(...,H[0:0])` is the empty string, so `I_3` is true.
+
+*Termination*  
+
+When the loop ends `q = |H|`.  The invariant then gives  
+
+\[
+\text{msgCriptografada}= L\;\|\;\text{map}\bigl(c\mapsto chr(ord(c)-1), H\bigr)
+\]
+
+By definition of `leftShiftHalf` (see the specification) the right‑hand side is exactly  
+
+\[
+\text{leftShiftHalf}(R)
+\]
+
+Therefore we have the Hoare triple  
+
+\[
+\{\text{msgCriptografada}=R\}\;
+\text{third‑pass}\;
+\{\text{msgCriptografada}= \text{leftShiftHalf}(R)\}
+\tag{5}
+\]
+
+--------------------------------------------------------------------
+### 3.5  Putting the three passes together  
+
+From (4) we know that after the first two passes  
+
+\[
+\text{msgCriptografada}=R .
+\]
+
+Applying (5) yields  
+
+\[
+\text{msgCriptografada}= \text{leftShiftHalf}\bigl(R\bigr)
+   = \text{leftShiftHalf}\Bigl(\, rev\bigl(\text{map}(shift_{+3},s)\bigr)\Bigr)
+   = \operatorname{enc}(s).
+\]
+
+Thus the Hoare triple (1) is proved:
+
+\[
+\{\text{msg}=s\}\;B\;\{\text{msgCriptografada}= \operatorname{enc}(s)\}.
+\]
+
+--------------------------------------------------------------------
+
+## 4.  Termination of the whole program  
+
+* The outer `while i < N` loop iterates exactly `N` times; `N` is bounded by the pre‑condition (`N ≤ 10^4`).  
+* For a fixed input line `msg` of length `M` (`M ≤ 10^3`):  
+
+  * the first `for letra in msg` loop runs `M` iterations;  
+  * the second `for letra in aux` loop runs `⌈M/2⌉ ≤ M` iterations.  
+
+All loop counters are strictly increased by one each iteration, therefore each loop is guaranteed to terminate. Consequently the whole program terminates.
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the proofs  
+
+We have established the following Hoare triples:
+
+1. **Outer loop**  
+
+   \[
+   \{P\}\;\text{outer‑loop}\;\{Q\}
+   \]
+
+   where the body of the outer loop satisfies (1).
+
+2. **Body of the outer loop** (the three passes)  
+
+   \[
+   \{\text{msg}=L_{i+1}\}\;B\;\{\text{msgCriptografada}= \operatorname{enc}(L_{i+1})\}
+   \]
+
+   This triple is obtained by sequential composition of the triples (2), (3) and (5).
+
+3. **Each inner loop** is proved correct by its invariant (`I_1`, `I_3`).
+
+By the **rule of consequence** and **sequential composition** of Hoare logic we can concatenate the three inner triples, obtain (1), plug (1) into the invariant of the outer loop, and finally apply the **loop rule** for the outer `while`.  
+
+Hence the overall Hoare triple holds:
+
+\[
+\boxed{\;\{P\}\;{\tt ex\_1024}\;\{Q\}\;}
+\]
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have formally verified, using Hoare logic, that the Python program `ex_1024`
+
+* reads a number `N` of test cases,
+* for each input line `L_i` executes the three successive transformations  
+  – `shift_{+3}` on letters,  
+  – reversal of the whole string,  
+  – left‑shifting (by –1) the right half of the reversed string,
+
+* and prints exactly the string `enc(L_i)` defined by the mathematical specification.
+
+Therefore the program satisfies the given pre‑condition `P` and guarantees the post‑condition `Q`. ∎

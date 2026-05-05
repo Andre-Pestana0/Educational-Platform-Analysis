@@ -1,0 +1,18 @@
+Description: 
+
+For some unknown reason Rangel only has a pair of socks of each color.
+Today he's late to go to college and still needs to get a pair of socks, but the socks are all mess.
+Given the number of pairs of socks in Rangel's drawer, he wants to know how many socks he needs to get to have at least one pair of the same color.
+
+Input: Each case is composed of the only integer N (1 ≤ N ≤ 105) corresponding to amounts of pairs of socks in the drawer.
+
+Output: You should print a line with a single integer that matches the minimum amount of socks that Rangel needs to pick up.
+
+Examples:
+- Example 1:
+  Input:
+1
+  Output:
+2
+
+--

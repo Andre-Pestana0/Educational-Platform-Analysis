@@ -1,0 +1,210 @@
+**Goal**  
+
+Show that the program  
+
+```python
+meias = None
+
+def read_integer():
+  try:
+    # Python‑2
+    return int(raw_input())
+  except NameError:
+    # Python‑3
+    return int(input())
+
+meias = read_integer()
+print(meias + 1)
+```  
+
+satisfies the Hoare‑logic specification  
+
+\[
+\{\,P\,\}\;S\;\{\,Q\,\},
+\qquad 
+P\equiv (N\in\mathbb N\;\wedge\;1\le N\le 10^{5}),\qquad
+Q\equiv (M\in\mathbb N\;\wedge\;M=N+1).
+\]
+
+The variables that appear in the specification are **logical** variables:  
+
+* **N** – the integer that the program reads from the input.  
+* **M** – the integer that the program prints (the observable output).  
+
+In the concrete program we use the identifier `meias` to store the read value; the
+expression `meias+1` is what is printed.  Hence we identify  
+
+\[
+meias \;\equiv\; N,\qquad
+\text{output of }print(meias+1) \;\equiv\; M .
+\]
+
+The proof is carried out using the standard Hoare‑logic inference rules
+(Assignment, Composition, Consequence, and the rule for the terminating
+statement `print`).  For readability we write the program as a sequence of
+atomic commands
+
+```
+c1 : meias := read_integer()
+c2 : print(meias + 1)
+```
+
+and we prove the Hoare triple for the whole sequence `c1; c2`.
+
+---------------------------------------------------------------------
+
+### 1.  The assignment `c1 : meias := read_integer()`
+
+*Specification of `read_integer`*  
+
+`read_integer` is a total function that returns the integer that the user
+typed.  Because the pre‑condition `P` guarantees that the input supplied by the
+environment is a natural number `N` with `1 ≤ N ≤ 10⁵`, the call
+
+```
+v := read_integer()
+```
+
+is guaranteed to terminate and to assign to `v` the same value `N`.  Formally we
+have the Hoare triple  
+
+\[
+\{\,P\,\}\;v:=\text{read\_integer}()\;\{\,v=N\;\wedge\;P\,\}\tag{A}
+\]
+
+(the extra conjunct `P` is kept because the call does not change the truth of
+the pre‑condition).
+
+Applying (A) with `v = meias` we obtain  
+
+\[
+\{\,P\,\}\;c_{1}\;\{\,meias = N\;\wedge\;P\,\}. \tag{1}
+\]
+
+---------------------------------------------------------------------
+
+### 2.  The printing statement `c2 : print(meias + 1)`
+
+The command `print(e)` has the following Hoare rule (the program terminates
+after evaluating `e` and sending the value to the output channel):
+
+\[
+\frac{\{\,R\,\}\;e\;\{\,v = \llbracket e\rrbracket\;\wedge\;R\,\}}
+      {\{\,R\,\}\;\text{print}(e)\;\{\,\text{output}=v\;\wedge\;R\,\}} .
+\]
+
+For `e = meias + 1` we first use the Assignment rule to evaluate the expression:
+
+\[
+\{\,meias=N\,\}\;t:=meias+1\;\{\,t=N+1\,\}. \tag{2}
+\]
+
+(Here `t` is a fresh temporary variable that holds the value of the expression.)
+
+Now we apply the rule for `print(t)` with the invariant `R ≡ (meias=N)`.  From
+(2) we get  
+
+\[
+\{\,meias=N\,\}\;\text{print}(meias+1)\;
+   \{\,\text{output}=N+1\;\wedge\;meias=N\,\}. \tag{3}
+\]
+
+Since the only observable effect of `print` is the value that appears on the
+standard output, we can rename `output` to the logical variable `M`.  Thus (3)
+becomes  
+
+\[
+\{\,meias=N\,\}\;c_{2}\;\{\,M = N+1\;\wedge\;meias=N\,\}. \tag{4}
+\]
+
+---------------------------------------------------------------------
+
+### 3.  Composition of `c1` and `c2`
+
+The Hoare rule for sequential composition is  
+
+\[
+\frac{\{P\}\;c_{1}\;\{R\}\qquad\{R\}\;c_{2}\;\{Q\}}{\{P\}\;c_{1};c_{2}\;\{Q\}} .
+\]
+
+From (1) we have the intermediate assertion  
+
+\[
+R \equiv (meias = N\;\wedge\;P) .
+\]
+
+From (4) we know that, assuming `meias = N`, after `c2` we obtain `M = N+1`.
+Hence the post‑condition of the whole program is  
+
+\[
+Q' \equiv (M = N+1)\;\wedge\;P .
+\]
+
+Applying the composition rule we obtain  
+
+\[
+\{\,P\,\}\;c_{1};c_{2}\;\{\,M = N+1\;\wedge\;P\,\}. \tag{5}
+\]
+
+---------------------------------------------------------------------
+
+### 4.  Strengthening to the required post‑condition  
+
+The specification demands only  
+
+\[
+Q \equiv (M\in\mathbb N\;\wedge\;M = N+1).
+\]
+
+From (5) we have `M = N+1` and, because `P` already guarantees `N∈ℕ`,
+it follows that `M∈ℕ`.  Therefore `Q' ⇒ Q`.  By the **consequence rule**
+
+\[
+\frac{\{P\}\;S\;\{Q'\}\qquad Q' \Rightarrow Q}{\{P\}\;S\;\{Q\}}
+\]
+
+we finally obtain  
+
+\[
+\boxed{\{\,P\,\}\;S\;\{\,Q\,\}} .
+\]
+
+---------------------------------------------------------------------
+
+### 5.  Total correctness (termination)
+
+* The call `read_integer()` terminates because it reads a finite line from the
+  standard input and the conversion `int(...)` is total on strings that
+  represent integers (the pre‑condition guarantees that the user supplies such a
+  string).
+
+* The arithmetic expression `meias+1` is evaluated in a finite number of steps
+  (addition of two bounded integers).
+
+* `print` writes a finite value to the output and then terminates.
+
+Hence the whole program terminates for every state satisfying `P`.  Together
+with the partial‑correctness proof above we have **total correctness**.
+
+---------------------------------------------------------------------
+
+### 6.  Summary  
+
+* Mapping of specification variables to program identifiers:  
+  `N ↔ meias`, `M ↔ printed value (meias+1)`.
+
+* Using the Hoare rules for assignment, expression evaluation, printing and
+  sequential composition we derived the Hoare triple  
+
+  \[
+  \{\,N\in\mathbb N \wedge 1\le N\le10^{5}\,\}\;
+  \text{(program)}\;
+  \{\,M\in\mathbb N \wedge M=N+1\,\}.
+  \]
+
+* The program therefore satisfies the given Hoare‑logic specification; it
+  computes the minimal number of socks that must be taken to be *sure* to obtain
+  a matching pair, namely `M = N + 1`.  
+
+Thus the correctness of the Python program with respect to the formal
+pre‑ and post‑conditions is proved.  

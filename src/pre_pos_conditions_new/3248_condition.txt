@@ -1,0 +1,97 @@
+**Hoare‑style specification for the “inverted‑triple counter”**
+
+---
+
+### 1.   Notation that will be used  
+
+* \(n\) – length of the input sequence.  
+* \(\mathbf a = (a_{1},a_{2},\dots ,a_{n})\) – the input sequence.  
+* \([1..n]\) – the set \(\{1,2,\dots ,n\}\).  
+* \(\#X\) – cardinality (the number of elements) of a finite set \(X\).  
+*  
+
+\[
+\mathcal T(\mathbf a)\;:=\;\Bigl\{(i,j,k)\in[1..n]^{3}\;\Big|\;
+1\le i<j<k\le n\ \wedge\ a_{i}>a_{j}>a_{k}\Bigr\}
+\]
+
+the set of **inverted triples** of the sequence \(\mathbf a\).
+
+* The program variable that will be returned is called **cnt** (for “count”).
+
+---
+
+### 2.   Pre‑condition  \(P\)
+
+\[
+\boxed{%
+P\;\equiv\;
+\bigl(1\le n\le 10^{5}\bigr)\;\land\;
+\bigl(\forall i\in[1..n]\; a_{i}\in[1..n]\bigr)
+}
+\]
+
+*The input size is within the limits required by the problem and every
+array element lies in the prescribed domain.*  
+
+---
+
+### 3.   Post‑condition  \(Q\)
+
+\[
+\boxed{%
+Q\;\equiv\;
+\bigl(cnt = \#\mathcal T(\mathbf a)\bigr)
+}
+\]
+
+*When the program terminates, the variable **cnt** equals the number of
+triples \((i,j,k)\) with \(i<j<k\) such that the three values are strictly
+decreasing.*
+
+---
+
+### 4.   Hoare triple for the whole program  
+
+\[
+\{\,P\,\}\;\; \texttt{count\_inverted\_triples}(\,n,\mathbf a,\,cnt\,)\;\; \{\,Q\,\}
+\]
+
+where  
+
+* \(\texttt{count\_inverted\_triples}\) is any algorithm (nested loops,
+Fenwick‑tree, divide‑and‑conquer, etc.) that reads the input \((n,\mathbf a)\)
+and stores in **cnt** the value described in \(Q\).
+
+---
+
+### 5.   Optional remark on the range of the result  
+
+Because every ordered triple of distinct indices can be an inverted triple,
+the maximal possible value of **cnt** is \(\binom{n}{3}\le\binom{10^{5}}{3}
+< 2^{63}\).  Hence a 64‑bit signed integer is sufficient to hold the result,
+and the post‑condition can be safely strengthened to  
+
+\[
+cnt \in [0,\;\binom{n}{3}]\; .
+\]
+
+---
+
+**Summary**  
+
+The formal specification of the required program, expressed in Hoare‑logic
+notation, consists of the pre‑condition  
+
+\[
+P:\; 1\le n\le 10^{5}\;\land\;\forall i\in[1..n]\;(a_i\in[1..n])
+\]
+
+and the post‑condition  
+
+\[
+Q:\; cnt = \#\{(i,j,k)\mid 1\le i<j<k\le n\ \wedge\ a_i>a_j>a_k\}.
+\]
+
+Any implementation that satisfies the Hoare triple  
+\(\{P\}\; \text{program}\; \{Q\}\) correctly solves the problem.

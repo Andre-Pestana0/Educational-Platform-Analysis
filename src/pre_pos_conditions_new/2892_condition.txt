@@ -1,0 +1,125 @@
+**Hoare‑style specification**
+
+We describe the whole “read‑lines / stop‑on‑0‑sentinel / print‑answers’’ program as a single command  
+
+\[
+\mathbf{PROC}\; \texttt{solve}()
+\]
+
+that works on the **global** variables  
+
+* `T , A , B : ℕ` – the three integers read from the current input line,  
+* `out : \text{list}(ℕ)` – the list that will be printed for that line.
+
+---
+
+### 1.  Auxiliary predicates
+
+* `Divides(x,y)   ≝  (∃k∈ℕ)\; y = k·x`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+---
+
+## 1.  Variables and Types  
+
+| Symbol | Meaning | Type |
+|--------|---------|------|
+| `T`    | time (in seconds) when the three cyclists are simultaneously at the start line again | `ℕ` |
+| `A`    | lap‑time of cyclist 1 | `ℕ` |
+| `B`    | lap‑time of cyclist 2 | `ℕ` |
+| `C`    | (unknown) lap‑time of cyclist 3 | `ℕ` |
+| `L`    | ordered list of all admissible `C` values (output) | `list(ℕ)` |
+| `⊥`    | the sentinel line `0 0 0` that terminates the input | – |
+
+---
+
+## 2.  Auxiliary arithmetic predicates  
+
+* `Div(x,y)  :≡  ∃k∈ℕ . y = k·x`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+* `LCM(x,y)   ≝  (x·y)/gcd(x,y)` – the least common multiple of `x` and `y`.  
+* `LCM3(x,y,z) ≝ LCM(LCM(x,y),z)` – the LCM of three numbers.
+
+---
+
+## 2.  Pre‑condition  
+
+For a **single** input line (the loop terminates when the sentinel `0 0 0` appears) we require  
+
+\[
+\boxed{
+\begin{aligned}
+P(T,A,B) \; \equiv\; & 1 \le T \le 10^{6}\ \land\ 1 \le A \le 10^{2}\ \land\ 1 \le B \le 10^{2}\\
+&\land\; Div(A,T)\ \land\; Div(B,T) \\
+&\land\; (T,A,B) \neq (0,0,0)
+\end{aligned}}
+\]
+
+The two divisibility clauses guarantee that the given `T` **can** be the LCM of `A` and `B` together with some third integer (the problem statement assures that the test data satisfy them).
+
+---
+
+## 3.  Post‑condition  
+
+Let  
+
+\[
+S(T,A,B) \; \stackrel{\text{def}}{=}\; \{\,C \in \mathbb{N}\mid C>0\ \land\ Div(C,T)\ \land\ LCM3(A,B,C)=T\,\}.
+\]
+
+The required output is the *sorted* enumeration of this set.  
+Formally, we define the predicate  
+
+\[
+\begin{aligned}
+Q(T,A,B,L) \;\equiv\; & \bigl(\forall c\; (c\in L \iff c\in S(T,A,B))\bigr)\\
+&\land\; \bigl(L\text{ is strictly increasing}\bigr).
+\end{aligned}
+\]
+
+Thus `L` contains **exactly** the admissible lap times for cyclist 3, each appearing once, ordered from the smallest to the largest.
+
+---
+
+## 4.  Hoare triple for the whole algorithm  
+
+\[
+\boxed{\{\,P(T,A,B)\,\}\;\texttt{solve}\; \{\,Q(T,A,B,L)\,\}}
+\]
+
+where `solve` implements the following high‑level steps (written in pseudocode for clarity; the internal loops are omitted because they do not affect the logical specification):
+
+```
+while (T,A,B) ≠ (0,0,0) do
+    L ← ∅
+    for each divisor d of T do
+        if LCM3(A,B,d) = T then
+            L ← L ∪ {d}
+        end if
+    end for
+    output L in increasing order
+    read next (T,A,B)
+end while
+```
+
+The loop invariant of the `for`‑loop is  
+
+\[
+\text{Inv}(d) \; \equiv\; \bigl(\forall c\le d\; (c\in L \iff c\in S(T,A,B) \land c\mid T)\bigr)
+\]
+
+which is preserved by the test `LCM3(A,B,d)=T` and guarantees that after the loop terminates `L = S(T,A,B)`.
+
+---
+
+### 5.  Summary in plain mathematical notation  
+
+\[
+\boxed{
+\begin{aligned}
+\text{Given } & T,A,B\in\mathbb N,\;1\le T\le10^{6},\;1\le A,B\le10^{2},\;A\mid T,\;B\mid T,\\[2mm]
+\text{find } & L = \{\,C\in\mathbb N\mid C\mid T\ \wedge\ \operatorname{lcm}(A,B,C)=T\,\}\\[2mm]
+\text{and output } & L \text{ sorted increasingly.}
+\end{aligned}}
+\]
+
+This is the complete Hoare‑logic specification of the problem.

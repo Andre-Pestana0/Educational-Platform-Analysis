@@ -6,20 +6,37 @@ from openai import OpenAI, RateLimitError
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def load_description(code):
-    file_path = os.path.join(
-        BASE_DIR,
-        "all_exercises_descriptions",
-        f"{code}.txt"
-    )
+def load_description(code): 
+    counter = 0  
+    folders = [
+            "exercises_ad-hoc_descriptions", 
+            "exercises_string_descriptions", 
+            "exercises_data-structures_descriptions", 
+            "exercises_math_descriptions", 
+            "exercises_data-structures_descriptions" 
+        ]
 
-    if not os.path.exists(file_path):
-        print(f"File not found for code {code}: {file_path}")
-        return ""
+    for each_folder in folders:
+        file_path = os.path.join(
+            BASE_DIR,
+            "all_exercises_descriptions",
+            each_folder,
+            f"{code}.txt"
+        )
 
-    with open(file_path, "r", encoding="utf-8") as file_description:
-        content = file_description.read()
-        return content
+        if counter >= len(folders):
+            print(f"Description file not found for code {code} in any folder.")
+            return ""
+
+        if not os.path.exists(file_path):
+            print(f"File not found for code {code}: {file_path}")
+            counter += 1
+            continue
+
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as file_description:
+                content = file_description.read()
+                return content
 
 
 def load_base_prompt(prompt_name: str) -> str:
@@ -37,19 +54,25 @@ def load_base_prompt(prompt_name: str) -> str:
         return content
     
 def load_exercise(code):
-    file_path = os.path.join(
-        BASE_DIR,
-        "Iniciante",
-        f"{code}.py"
-    )
+    
+    exercises_folders = ["Iniciante", "Ad-HOC", "Data-Structures & Libraries", "Mathematics", "Strings"]
+    
+    for folder in exercises_folders:
+        file_path = os.path.join(
+            BASE_DIR,
+            folder,
+            f"{code}.py"
+        )
 
-    if not os.path.exists(file_path):
-        print(f"File not found for code {code}: {file_path}")
-        return ""
+        if not os.path.exists(file_path):
+            print(f"File not found for code {code} in folder {folder}: {file_path}")
+            continue
 
-    with open(file_path, "r", encoding="utf-8") as file_exercise:
-        content = file_exercise.read()
-        return content
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as file_exercise:
+                content = file_exercise.read()
+                return content
+
 
 def clean_json_response(response: str) -> str:
     response = response.strip()
@@ -109,7 +132,7 @@ def save_io_files(code, inputs, outputs):
             f.write(out + "\n\n")
 
 def save_io_files_simplified(code, text_to_save):
-    output_dir = os.path.join(BASE_DIR, "llm_outputs")
+    output_dir = os.path.join(BASE_DIR, "llm_outputs_after_vacation")
     os.makedirs(output_dir, exist_ok=True)
 
     input_path = os.path.join(output_dir, f"{code}_input_output.txt")
@@ -120,7 +143,7 @@ def save_io_files_simplified(code, text_to_save):
 
             
 def save_pre_post_conditions(code, conditions):
-    output_dir = os.path.join(BASE_DIR, "pre_pos_conditions")
+    output_dir = os.path.join(BASE_DIR, "pre_pos_conditions_new")
     os.makedirs(output_dir, exist_ok=True)
 
     condition_path = os.path.join(output_dir, f"{code}_condition.txt")
@@ -129,7 +152,7 @@ def save_pre_post_conditions(code, conditions):
         f.write(conditions)
 
 def save_formal_proof(code, proof):
-    output_dir = os.path.join(BASE_DIR, "Proof_2.0")
+    output_dir = os.path.join(BASE_DIR, "Proof_new")
     os.makedirs(output_dir, exist_ok=True)
 
     proof_path = os.path.join(output_dir, f"{code}_proof.txt")
@@ -184,8 +207,7 @@ def save_output(code, output, output_dir):
 
  
 def code_logic(code_list):
-    # base_prompt = load_base_prompt("prompt")
-    base_prompt = load_base_prompt("prompt_simple_version")
+    base_prompt = load_base_prompt("test_generation_prompt_refined")
 
     for code in code_list:
         description = load_description(code)
@@ -236,7 +258,8 @@ def conditions_generation_logic(code_list):
 def load_conditions(code):
     file_path = os.path.join(
         BASE_DIR,
-        "pre_pos_conditions",
+        "pre_pos_conditions_new",
+        # "pre_pos_conditions",
         f"{code}_condition.txt"
     )
 
@@ -272,42 +295,18 @@ def formal_specification_validation_logic(code_list):
 
     
 def main():
-    exercises_to_generate_solutions = [1188]
+    exercises_to_generate_solutions = [1024, 2839, 3248,1893]
     
     missing_conditions_group = [
-        1181
+        1024, 2839, 3248,1893
     ]
-    
+   
     missing_proofs_group = [
-        1181
+        3248
     ]
-    
-    # iniciante_codes = [
-    #     1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009,
-    #     1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019,
-    #     1020, 1021, 1035, 1036, 1037, 1038, 1040, 1041, 1042, 1043,
-    #     1044, 1045, 1046, 1047, 1048, 1049, 1050, 1051, 1052, 1059,
-    #     1060, 1061, 1064, 1065, 1066, 1067, 1070, 1071, 1072, 1073,
-    #     1074, 1075, 1078, 1079, 1080, 1094, 1095, 1096, 1097, 1098,
-    #     1099, 1101, 1113, 1114, 1115, 1116, 1117, 1118, 1131, 1132,
-    #     1133, 1134, 1142, 1143, 1144, 1145, 1146, 1149, 1150, 1153,
-    #     1154, 1155, 1156, 1157, 1158, 1159, 1164, 1165, 1172, 1173,
-    #     1174, 1176, 1177, 1178, 1180, 1181, 1182, 1183, 1185, 1186,
-    #     1187, 1188, 1189, 1190, 1262, 1478, 1534, 1541, 1557, 1564,
-    #     1589, 1759, 1789, 1827, 1828, 1837, 1848, 1858, 1864, 1865,
-    #     1866, 1871, 1914, 1924, 1930, 1933, 1957, 1960, 1963, 1973,
-    #     1985, 2003, 2006, 2028, 2029, 2031, 2059, 2060, 2061, 2140,
-    #     2146, 2147, 2152, 2159, 2161, 2162, 2164, 2166, 2167, 2168,
-    #     2172, 2176, 2221, 2234, 2235, 2310, 2313, 2344, 2483, 2543,
-    #     2581, 2587, 2670, 2702, 2708, 2717, 2728, 2747, 2748, 2750,
-    #     2752, 2753, 2754, 2756, 2763, 2774, 2779, 2780, 2786, 2787,
-    #     2791, 2861, 2862, 2879, 2896, 2936, 2950, 2987, 3040, 3046,
-    #     3047, 3055, 3091, 3140, 3142, 3145, 3146, 3147, 3157, 3161,
-    #     3170, 3173, 3174, 3209, 3250, 3252, 3253, 3255, 3256
-    # ]
 
     # code_logic(exercises_to_generate_solutions)
-    conditions_generation_logic(missing_conditions_group)
+    # conditions_generation_logic(missing_conditions_group)
     formal_specification_validation_logic(missing_proofs_group)
 
     
