@@ -1,0 +1,142 @@
+Below is a **Hoare‑style specification** of the required “score‑computation” routine.  
+All symbols are written in standard mathematical notation; the specification
+does **not** describe an algorithm, it only states what must hold before the
+routine is invoked (the **pre‑condition**) and what must hold after it finishes
+(the **post‑condition**).
+
+---
+
+### 1.   Types and auxiliary notation  
+
+* `ℕ` – the set of natural numbers (including 0).  
+* `ℙ = {A,…,Z}` – the set of problem identifiers.  
+* `J = {correct , incorrect}` – the set of possible judgements.  
+
+* A **submission** is a triple  
+
+\[
+s = (p,t,j)\qquad p\in\mathbb P,\;t\in[0,300]\cap\mathbb N,\;j\in J .
+\]
+
+* A **test‑case** is a finite sequence  
+
+\[
+L = \langle s_{1},s_{2},\dots ,s_{N}\rangle\qquad (N\in\mathbb N)
+\]
+
+with the following properties (see the pre‑condition below).
+
+* For a problem identifier `p` we define  
+
+\[
+\begin{aligned}
+\text{Correct}(p,L) &:= \{\,i\mid 1\le i\le N,\; s_i=(p,t_i,\,\text{correct}) \,\},\\[2mm]
+\text{FirstCorrect}(p,L) &:= 
+\begin{cases}
+\min \text{Correct}(p,L) & \text{if }\text{Correct}(p,L)\neq\varnothing,\\
+\bot & \text{otherwise},
+\end{cases}\\[2mm]
+t_{\text{fc}}(p,L) &:= 
+\begin{cases}
+t_{\,\text{FirstCorrect}(p,L)} & \text{if }\text{FirstCorrect}(p,L)\neq\bot,\\
+\bot & \text{otherwise},
+\end{cases}\\[2mm]
+\text{WrongBefore}(p,L) &:= 
+\bigl|\{\,i\mid 1\le i<\text{FirstCorrect}(p,L),\;
+s_i=(p,t_i,\,\text{incorrect})\}\bigr|
+\quad\text{(0 if FirstCorrect(p,L)=\(\bot\)).}
+\end{aligned}
+\]
+
+* The **set of solved problems** in `L` is  
+
+\[
+\mathsf{Solved}(L) := \{\,p\in\mathbb P \mid \text{Correct}(p,L)\neq\varnothing \,\}.
+\]
+
+* For a test‑case `L` we define the two required numbers  
+
+\[
+\begin{aligned}
+S(L) &:= |\mathsf{Solved}(L)|,\\[2mm]
+P(L) &:= \sum_{p\in\mathsf{Solved}(L)}\Bigl( t_{\text{fc}}(p,L) 
+        \;+\;20\cdot\text{WrongBefore}(p,L)\Bigr).
+\end{aligned}
+\]
+
+If `\(\mathsf{Solved}(L)=\varnothing\)` the sum is empty, hence `P(L)=0`.
+
+---
+
+### 2.   Hoare triple for the scoring routine  
+
+Let  
+
+```
+score(L)  returns (S,P)   // implementation to be supplied
+```
+
+The specification of `score` is the Hoare triple  
+
+\[
+\boxed{\;\{\,\textbf{Pre}(L)\,\}\;\; \text{score}(L)\;\; \{\,\textbf{Post}(S,P,L)\,\}\;}
+\]
+
+where  
+
+#### Pre‑condition  
+
+\[
+\begin{aligned}
+\textbf{Pre}(L) \;\equiv\;
+&\;N\in\mathbb N,\; 1\le N\le 300\;\;\land \\[1mm]
+&\;L = \langle (p_1,t_1,j_1),\dots ,(p_N,t_N,j_N)\rangle\;\;\land \\[1mm]
+&\;\bigl(p_i\in\mathbb P\ \land\ t_i\in[0,300]\cap\mathbb N\ \land\ j_i\in J\bigr)
+   \text{ for every } i\in[1,N] \\[1mm]
+&\;\text{(chronological order)}\;
+   \bigl(t_1\le t_2\le\cdots\le t_N\bigr) \\[1mm]
+&\;\text{(at most one correct per problem)}\;
+   \forall p\in\mathbb P\;:\;
+   |\text{Correct}(p,L)|\le 1 .
+\end{aligned}
+\]
+
+(The sentinel test case `N = 0` is handled by the surrounding driver; it is
+*not* part of the contract for a single call of `score`.)
+
+#### Post‑condition  
+
+\[
+\begin{aligned}
+\textbf{Post}(S,P,L) \;\equiv\;
+&\; S = S(L) \;\land\; P = P(L) \\[1mm]
+&\;\land\;
+\bigl( S = 0 \;\Rightarrow\; P = 0 \bigr) .
+\end{aligned}
+\]
+
+In words: the routine must return the **number of distinct problems that have a
+correct judgement** (`S`) and the **total penalty time** (`P`) defined as the
+sum, over those problems, of the time of the first correct submission plus
+\(20\) minutes for each earlier incorrect submission for the same problem.
+
+---
+
+### 3.   Full specification in one line (optional)
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,1\le N\le300\;\land\;L\text{ sorted by }t\;\land\;
+\forall p:\,|\text{Correct}(p,L)|\le1\,\}\\[1mm]
+\text{score}(L)\;=\;(S,P)\\[1mm]
+\{\,S = |\mathsf{Solved}(L)|\;\land\;
+P = \displaystyle\sum_{p\in\mathsf{Solved}(L)}\!\bigl(t_{\text{fc}}(p,L)+20\cdot\text{WrongBefore}(p,L)\bigr)\,\}
+\end{array}
+}
+\]
+
+That is the complete **formal Hoare‑logic specification** of the required
+module. Any implementation that, given an input list `L` satisfying the
+pre‑condition, produces a pair `(S,P)` satisfying the post‑condition will be
+correct for the problem.

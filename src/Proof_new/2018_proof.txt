@@ -1,0 +1,375 @@
+## 1.  Overview  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt ScoreboardProgram}\;\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** is the pre‑condition that describes a *well‑formed* input (at most 1000 competitions, at most 300 different countries, the file ends exactly after the last bronze line).  
+* **\(Q\)** is the post‑condition that the program writes the exact medal‑table required in the statement of the problem.  
+
+The program consists of three logical parts  
+
+1. **Reading** – the generator `read_lines` together with the `while‑True / next(gen)` loop.  
+2. **Counting** – the dictionary `teams` that stores, for each country, the three counters `medals[0]` (gold), `medals[1]` (silver) and `medals[2]` (bronze).  
+3. **Sorting & printing** – `sorted_teams = sorted(teams.values(), key=cmp_to_key(compare))` followed by the `print` statements.  
+
+The proof proceeds by establishing a *loop invariant* for the reading/counting loop, showing that the invariant together with the termination condition yields the exact counting functions defined in the specification, and finally proving that the `compare` routine implements the total order \(\prec\) used in the post‑condition.
+
+All reasoning is carried out in Hoare‑logic style: for each command we write a Hoare triple, we compose triples using the **sequence** rule, we use the **while** rule with an invariant, and we apply the **consequence** rule where needed.
+
+---
+
+## 2.  Notation that will be used in the proof  
+
+| Symbol | Meaning |
+|--------|---------|
+| `lines` | the list of raw lines read from `sys.stdin`. |
+| `gen` | the generator returned by `read_lines(lines)`. |
+| `teams` | a Python `dict` that maps a country name `c` to a record  `{'name':c,'medals':[g,s,b]}`. |
+| `team_name` | the string obtained from the current call to `next(gen)`. |
+| `i` | loop index that runs through the three medal positions (0 = gold, 1 = silver, 2 = bronze). |
+| `n` | the (unknown) number of competitions in the input (guaranteed by \(P\)). |
+| `\mathcal C` | the set of distinct countries that appear in the input (definition in the specification). |
+| `gold(c) , silver(c) , bronze(c)` | the counting functions of the specification. |
+| `\prec` | the total order defined in the specification. |
+| `compare(a,b)` | the Python comparator used by `sorted`. |
+| `sorted_teams` | the list produced by `sorted`. |
+| `O` | the whole output stream produced by the program. |
+
+We write **`⌈ A ⌉`** for a *semantic* assertion (a predicate on the program state) and **`⌊ A ⌋`** for the *syntactic* assertion that appears inside a Hoare triple.  In the sequel we identify them, i.e. we write simply **\(A\)** for both.
+
+---
+
+## 3.  The reading/counting loop  
+
+### 3.1  The generator `read_lines`
+
+```
+def read_lines(lines):
+    for line in lines:
+        line = line.rstrip('\n')
+        if line:
+            yield line
+```
+
+*Specification*  
+
+\[
+\{\,\text{lines is a finite list of strings}\,\}\; \texttt{read\_lines(lines)}\;
+\{\,\forall k\;(0\le k<|lines| \Rightarrow
+\text{the }k\text{‑th value produced by the generator}
+= \text{lines}[k] \text{ stripped of a trailing '\textbackslash n'} )\,\}.
+\]
+
+Because the generator never raises an exception, the Hoare triple is immediate: the body of the `for` loop is executed once for each element of `lines`; the `yield` statement returns exactly the non‑empty stripped line, which is precisely the semantics required by the specification.  
+
+Hence, after the statement  
+
+```python
+gen = read_lines(sys.stdin)
+```  
+
+the variable `gen` is a *generator* that will, on successive calls to `next(gen)`, produce the *non‑empty* input lines **in the same order as they appear in the file**.
+
+### 3.2  The outer `while True` loop  
+
+```python
+try:
+    while True:
+        next(gen)                     # skip description line
+        for i in range(3):
+            team_name = next(gen)
+            if team_name not in teams:
+                teams[team_name] = {'name': team_name,
+                                    'medals': [0,0,0]}
+            teams[team_name]['medals'][i] += 1
+except StopIteration:
+    pass
+```
+
+The loop iterates **once per competition**.  
+For the \(j\)-th competition (\(1\le j\le n\)) the sequence of calls to `next(gen)` is
+
+```
+   1. next(gen)          → d_j   (description, ignored)
+   2. next(gen)          → g_j   (gold country)
+   3. next(gen)          → s_j   (silver country)
+   4. next(gen)          → b_j   (bronze country)
+```
+
+The `for i in range(3)` body is executed with `i = 0,1,2`.  
+When `i = 0` the variable `team_name` receives the gold‑country name `g_j`; when `i = 1` it receives `s_j`; when `i = 2` it receives `b_j`.  
+
+Thus the loop **adds exactly one medal of the appropriate colour to the appropriate country** for each competition.
+
+#### 3.2.1  Loop invariant  
+
+Let `comp` denote the number of competitions that have already been processed (i.e. the number of times the outer `while` loop has executed completely).  
+Define the predicate  
+
+\[
+\begin{aligned}
+\mathit{Inv}(\text{teams},\text{comp}) \;\equiv\;
+& \bigl(0\le \text{comp}\le n\bigr) \\
+&\land\; \forall c\in\mathcal C\;
+     \bigl(
+        c\in\operatorname{dom}(\text{teams})
+        \;\wedge\;
+        \text{teams}[c]['medals'][0] = \bigl|\{\,j\mid 1\le j\le\text{comp}\land g_j=c\,\}\bigr| \\
+        &\qquad\qquad\;\;\;\;
+        \text{teams}[c]['medals'][1] = \bigl|\{\,j\mid 1\le j\le\text{comp}\land s_j=c\,\}\bigr| \\
+        &\qquad\qquad\;\;\;\;
+        \text{teams}[c]['medals'][2] = \bigl|\{\,j\mid 1\le j\le\text{comp}\land b_j=c\,\}\bigr|
+     \bigr) .
+\end{aligned}
+\]
+
+In words: after `comp` competitions have been processed, the dictionary `teams` contains **exactly** the countries that have appeared so far, and for each of them the three counters store the numbers of gold, silver and bronze medals obtained in those `comp` competitions.
+
+##### Proof that `Inv` is a genuine invariant  
+
+*Initialization* (`comp = 0`).  
+Before the first iteration the dictionary `teams` is empty (`{}`), therefore the universal statement in `Inv` is vacuously true. Hence  
+
+\[
+\{P\}\;\;\texttt{teams = \{\}}\;\;\{\,\mathit{Inv}(\text{teams},0)\,\}
+\]
+
+holds.
+
+*Preservation* (assume `Inv(teams,comp)` holds at the beginning of an iteration).  
+During the iteration the program executes the following steps:
+
+1. `next(gen)` – consumes the description line `d_{comp+1}` (no effect on `teams`).  
+2. The `for i in range(3)` loop executes three times. For a fixed `i`:
+
+   * `team_name = next(gen)` obtains the country name that receives the medal of colour `i` in competition `comp+1`.  
+   * If the country is not yet present in `teams`, a fresh entry with counters `[0,0,0]` is added – therefore after this step the domain of `teams` is exactly `\{c\mid \exists j\le comp+1\;(g_j=c\lor s_j=c\lor b_j=c)\}`.  
+   * The statement `teams[team_name]['medals'][i] += 1` increments the counter for the correct colour.
+
+   Consequently, after the three executions we have, for every country `c`,
+
+   \[
+   \begin{aligned}
+   \text{teams}[c]['medals'][0] &= 
+      \bigl|\{\,j\mid 1\le j\le comp\land g_j=c\,\}\bigr|
+      + \mathbf{1}_{\{g_{comp+1}=c\}}\\
+   \text{teams}[c]['medals'][1] &= 
+      \bigl|\{\,j\mid 1\le j\le comp\land s_j=c\,\}\bigr|
+      + \mathbf{1}_{\{s_{comp+1}=c\}}\\
+   \text{teams}[c]['medals'][2] &= 
+      \bigl|\{\,j\mid 1\le j\le comp\land b_j=c\,\}\bigr|
+      + \mathbf{1}_{\{b_{comp+1}=c\}} .
+   \end{aligned}
+   \]
+
+   This is precisely the definition of `Inv(teams, comp+1)`.  
+
+Thus the invariant is preserved:
+
+\[
+\{\mathit{Inv}(\text{teams},\text{comp})\}\;\;
+\texttt{process one competition}\;\;
+\{\mathit{Inv}(\text{teams},\text{comp}+1)\}.
+\]
+
+*Termination* – the loop ends when `next(gen)` raises `StopIteration`.  
+Because of the pre‑condition \(P\) we know that the input consists of exactly `4·n` non‑empty lines (the description line plus three medal lines per competition). The generator therefore raises `StopIteration` **iff** `comp = n`. Consequently the `except StopIteration: pass` branch is taken only after the last competition has been processed, and at that moment we have `Inv(teams,n)`.
+
+From `Inv(teams,n)` we obtain, for every country `c∈\mathcal C`,
+
+\[
+\begin{aligned}
+\text{teams}[c]['medals'][0] &= \operatorname{gold}(c),\\
+\text{teams}[c]['medals'][1] &= \operatorname{silver}(c),\\
+\text{teams}[c]['medals'][2] &= \operatorname{bronze}(c).
+\end{aligned}
+\]
+
+Moreover the domain of `teams` is exactly `\mathcal C`.  
+Hence we have proved the following Hoare triple for the whole reading/counting part:
+
+\[
+\boxed{\; \{P\}\;\; \texttt{read\_and\_count}\;\; 
+        \{\,\forall c\in\mathcal C\;.\;
+           \text{teams}[c] = 
+              \bigl\langle c,\;[\operatorname{gold}(c),
+                               \operatorname{silver}(c),
+                               \operatorname{bronze}(c)]\bigr\rangle
+        \,\}\;}
+\tag{R}
+\]
+
+---
+
+## 4.  The comparator `compare`
+
+```python
+def compare(a, b):
+    for i in range(3):
+        if a['medals'][i] != b['medals'][i]:
+            return b['medals'][i] - a['medals'][i]   # descending order
+    if a['name'] < b['name']:
+        return -1
+    elif a['name'] > b['name']:
+        return 1
+    return 0
+```
+
+### 4.1  Lemma – `compare` implements the order \(\prec\)
+
+> **Lemma 1.** For any two distinct country records `a` and `b` (i.e. `a['name']≠b['name']`) we have  
+
+> \[
+>   \operatorname{compare}(a,b) < 0 \;\Longleftrightarrow\; a \prec b .
+> \]
+
+*Proof.*  
+The function examines the three medal counters in the order gold (i=0), silver (i=1), bronze (i=2).
+
+* If the gold counters differ, the function returns `b['medals'][0] - a['medals'][0]`.  
+  This value is negative exactly when `a['medals'][0] > b['medals'][0]`, i.e. when `a` has **more gold** than `b`. By the definition of \(\prec\) this is precisely the condition `a ≺ b` in the first case.
+
+* If gold counters are equal but silver counters differ, the same argument with `i=1` yields that the returned value is negative exactly when `a` has more silver than `b`, which matches the second clause of \(\prec\).
+
+* If gold and silver are equal but bronze differ, the third clause of \(\prec\) is recovered analogously.
+
+* If all three counters are equal, the function compares the country names lexicographically and returns `-1` iff `a['name'] < b['name']`. This is exactly the fourth clause of \(\prec\).
+
+Thus the sign of `compare(a,b)` matches the order \(\prec\). ∎
+
+
+
+Because `sorted(..., key=cmp_to_key(compare))` uses the sign of `compare` to order the elements, we obtain the following Hoare triple for the sorting statement:
+
+\[
+\boxed{\;
+   \{\,\forall c\in\mathcal C\;.\;
+      \text{teams}[c]\text{ is as in (R)}\,\}
+   \;\; \texttt{sorted\_teams = sorted(teams.values(),
+           key=cmp\_to\_key(compare))}\;
+   \{\,\texttt{sorted\_teams} = 
+      \langle \text{record}(c_{(1)}),\dots,\text{record}(c_{(k)})\rangle
+      \text{ where } \langle c_{(1)},\dots,c_{(k)}\rangle =\mathsf{Sorted}(\mathcal C)\,\}
+\;}
+\tag{S}
+\]
+
+The proof of (S) follows directly from Lemma 1 together with the specification of Python’s `sorted` (it returns a permutation of the input list that is *stable* and respects the total order induced by the key‑function).
+
+---
+
+## 5.  The printing part  
+
+```python
+print("Quadro de Medalhas")
+for team in sorted_teams:
+    print(f"{team['name']} {team['medals'][0]} {team['medals'][1]} {team['medals'][2]}")
+```
+
+### 5.1  Hoare triples for the two `print` statements  
+
+*First line*  
+
+\[
+\{\,\texttt{sorted\_teams}\text{ is a list of records as in (S)}\,\}
+\;\;\texttt{print("Quadro de Medalhas")} \;\;
+\{\,O\text{ begins with the line ``Quadro de Medalhas''}\,\}.
+\]
+
+*Loop over `sorted_teams`*  
+
+Let  
+
+\[
+\mathit{PrintInv}(j) \equiv
+\begin{cases}
+0\le j\le k,\\[1mm]
+\text{the first }j\text{ iterations have produced the lines}
+  \bigl(c_{(1)}\;g_{(1)}\;s_{(1)}\;b_{(1)}\bigr),\dots,
+  \bigl(c_{(j)}\;g_{(j)}\;s_{(j)}\;b_{(j)}\bigr)
+\end{cases}
+\]
+
+where \(g_{(j)}= \operatorname{gold}(c_{(j)})\) etc.
+
+*Initialization*: `PrintInv(0)` holds trivially.  
+
+*Preservation*: assuming `PrintInv(j)` and that the loop variable `team` is the record of `c_{(j+1)}`, the statement
+
+```python
+print(f"{team['name']} {team['medals'][0]} {team['medals'][1]} {team['medals'][2]}")
+```
+
+outputs exactly the line  
+
+```
+c_{(j+1)}  gold(c_{(j+1)})  silver(c_{(j+1)})  bronze(c_{(j+1)})
+```
+
+which extends the already printed prefix, establishing `PrintInv(j+1)`.  
+
+*Termination*: after the loop finishes we have `PrintInv(k)`. By definition of `k = |\mathcal C|` this means that **every** country of \(\mathcal C\) appears **once** and in the order determined by \(\prec\).
+
+Consequently the whole printing sequence satisfies the post‑condition \(Q\).
+
+---
+
+## 6.  Composition of the three parts  
+
+We now combine the three Hoare triples proved above:
+
+| Part | Hoare triple |
+|------|--------------|
+| (R)  | \(\{P\}\; \texttt{read\_and\_count}\; \{ \text{teams contains the exact counts}\}\) |
+| (S)  | \(\{ \text{teams contains the exact counts}\}\; \texttt{sorted\_teams = …}\; \{ \texttt{sorted\_teams} = \mathsf{Sorted}(\mathcal C)\}\) |
+| (Print) | \(\{ \texttt{sorted\_teams} = \mathsf{Sorted}(\mathcal C)\}\; \texttt{print\;header\;and\;lines}\; \{Q\}\) |
+
+Using the **sequence rule** of Hoare logic we obtain
+
+\[
+\{P\}\;
+\underbrace{\texttt{read\_and\_count;}
+            \texttt{sorted\_teams = sorted(...);}
+            \texttt{print\;header\;and\;lines}}_{\texttt{ScoreboardProgram}}
+\;
+\{Q\}.
+\]
+
+Thus the Hoare triple required by the specification is proved.
+
+---
+
+## 7.  Formal statement of the theorem  
+
+> **Theorem (Partial correctness).**  
+> Let the input stream satisfy the pre‑condition \(P\) (a finite sequence of at most 1000 competitions, at most 300 distinct countries, well‑formed lines, EOF after the last bronze line).  
+> Then the execution of `ScoreboardProgram` terminates and produces an output stream \(O\) that satisfies the post‑condition \(Q\) (the literal first line *Quadro de Medalhas* followed by one line per country, containing the correct gold, silver and bronze counts, ordered according to the comparator \(\prec\)).  
+
+*Proof.* The theorem follows directly from the three Hoare triples (R), (S) and (Print) and the composition rule, as shown in Sections 3–6. ∎
+
+
+
+---
+
+## 8.  Remarks on the bounds in the pre‑condition  
+
+* The invariant `Inv` never uses the numeric limits 1000 or 300; they are only needed to guarantee that the data structures (`dict` and the list passed to `sorted`) stay within the memory limits assumed by the specification.  
+* The proof works for any finite `n` and any finite set of countries; the bounds simply ensure that the program runs within the intended resource limits.
+
+---
+
+### Concluding summary  
+
+* The **reading** part builds exactly the mapping  
+  \(\;c\mapsto ( \operatorname{gold}(c),\operatorname{silver}(c),\operatorname{bronze}(c) )\)  
+  for every country that appears in the input.  
+* The **comparator** `compare` is proven to be a faithful implementation of the total order \(\prec\).  
+* The **sorting** step therefore returns the list \(\mathsf{Sorted}(\mathcal C)\).  
+* The **printing** loop writes the header line and, in the order given by the sorted list, one line per country with the three counters.  
+
+Hence the program satisfies the Hoare‑style specification \(\{P\}\; \texttt{ScoreboardProgram}\; \{Q\}\). ∎

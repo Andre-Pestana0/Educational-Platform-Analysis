@@ -1,0 +1,108 @@
+Below is a **Hoare‑logic style specification** of the program that implements *Mofiz’s* 32‑bit adder.  
+Only the *pre‑condition* (what must be true before the program starts) and the *post‑condition* (what is guaranteed after it finishes) are given – no implementation details are required.
+
+---
+
+### 1.  Types and auxiliary notation  
+
+* Let  
+
+\[
+\mathbb{U}_{32}= \{\,x\in\mathbb{N}\mid 0\le x < 2^{32}\,\}
+\]
+
+be the set of unsigned 32‑bit integers.  
+
+* For \(x,y\in\mathbb{U}_{32}\) denote by  
+
+\[
+x\;\oplus\;y
+\]
+
+the **bitwise exclusive‑or** (XOR) of the two 32‑bit words.  
+Formally, if  
+
+\[
+x=\sum_{i=0}^{31}x_i2^{i},\qquad 
+y=\sum_{i=0}^{31}y_i2^{i},\qquad x_i,y_i\in\{0,1\},
+\]
+
+then  
+
+\[
+x\oplus y = \sum_{i=0}^{31}(x_i\oplus_{\text{bool}} y_i)\,2^{i},
+\]
+
+where \(\oplus_{\text{bool}}\) is Boolean exclusive‑or.
+
+---
+
+### 2.  Specification for a **single** addition
+
+\[
+\boxed{\;\{\,a\in\mathbb{U}_{32}\;\land\;b\in\mathbb{U}_{32}\,\}\;
+      c\;:=\;a\;\oplus\;b\;
+      \{\,c = a\;\oplus\;b \;\land\;c\in\mathbb{U}_{32}\,\}\;}
+\]
+
+* **Pre‑condition** \(P\): the two operands that will be read from the input line are valid unsigned 32‑bit numbers.  
+* **Post‑condition** \(Q\): the produced result `c` equals the bitwise XOR of the two operands and is itself a 32‑bit unsigned integer (the “carry‑free” sum).
+
+---
+
+### 3.  Specification for the whole **input‑to‑output** program  
+
+The program repeatedly reads pairs \((a_k,b_k)\) until end‑of‑file and prints the corresponding results \(c_k\).
+
+\[
+\boxed{\;
+\begin{array}{l}
+\{\,\texttt{true}\,\}\\
+\texttt{while }(\text{read }a,b)\neq\text{EOF do}\\
+\qquad c := a\oplus b;\\
+\qquad \text{print }c;\\
+\texttt{od}\\
+\{\,\texttt{true}\,\}
+\end{array}
+\;}
+\]
+
+The **loop invariant** that justifies the above triple is  
+
+\[
+I\;:\;\forall\,k\;(0\le k < n)\;.\;
+c_k = a_k\oplus b_k \;\land\;c_k\in\mathbb{U}_{32},
+\]
+
+where \(n\) is the number of input lines already processed.  
+With this invariant the Hoare rule for while‑loops yields the outermost triple shown.
+
+---
+
+### 4.  Summary of the functional contract  
+
+For **every** input line containing two decimal numbers  
+
+\[
+a,b\in\mathbb{U}_{32},
+\]
+
+the program must output exactly one decimal number  
+
+\[
+c = a\oplus b\quad\bigl(\in\mathbb{U}_{32}\bigr).
+\]
+
+That contract is captured entirely by the pre‑condition  
+
+\[
+P:\; a\in\mathbb{U}_{32}\land b\in\mathbb{U}_{32}
+\]
+
+and the post‑condition  
+
+\[
+Q:\; c = a\oplus b \land c\in\mathbb{U}_{32}.
+\]
+
+These are the formal Hoare‑logic specifications requested.

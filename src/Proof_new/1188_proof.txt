@@ -1,0 +1,462 @@
+## 1.  What has to be shown  
+
+We have to prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt program}\;\;\{Q\}
+\]
+
+where  
+
+* **\(P\)** – the input has already been read, the selector `o` (called **\(O\)**) belongs to \(\{S,M\}\) and the 144 numbers that constitute the matrix **\(M\)** are real values;  
+
+* **\(Q\)** – the value finally printed (**\(R\)**) is  
+
+\[
+R=\begin{cases}
+\displaystyle\sum_{(i,j)\in G}M[i,j] &\text{if }O=S,\\[6pt]
+\displaystyle\frac{1}{30}\sum_{(i,j)\in G}M[i,j] &\text{if }O=M .
+\end{cases}
+\]
+
+The program is exactly the Python fragment given in the statement.  
+The proof proceeds by **structural induction** on the program, i.e. by
+applying the Hoare‑logic rules for
+
+* sequential composition,
+* the two `for`‑loops (treated as `while`‑loops with an invariant),
+* the `if`‑statement, and
+* the two assignments that finally produce the printed value.
+
+All auxiliary facts that are needed (e.g. the relation between the
+Python indices 0‑based and the mathematical indices 1‑based) are proved
+once and then used as lemmas.
+
+--------------------------------------------------------------------
+
+## 2.  Notation and translation of the index set  
+
+The Python code works with the *zero‑based* indices  
+
+```
+i ∈ {0,…,11}   j ∈ {0,…,11}
+```
+
+while the specification uses the *one‑based* indices  
+
+\[
+i',j'\in[1..12] .
+\]
+
+The translation is simply  
+
+\[
+i'=i+1,\qquad j'=j+1 .
+\]
+
+Consequently  
+
+\[
+(11-i)<j<i\quad\Longleftrightarrow\quad
+(12-i')<j'<i' .
+\]
+
+The right‑hand side is exactly the definition of the **green area** \(G\)
+given in the statement: it selects the 30 positions that lie strictly
+between the two diagonals of the 12×12 matrix, i.e. the pairs
+
+\[
+(12-c,c+1),\;(11-c,c+2),\dots ,(c+2,12-c)
+\]
+
+for \(c=0,1,2,3,4\).  Therefore the predicate  
+
+\[
+\mathbf{InGreen}(i,j)\;:\; (11-i)<j<i
+\]
+
+holds **iff** \((i+1,j+1)\in G\).
+
+--------------------------------------------------------------------
+
+## 3.  Proof outline  
+
+| Phase | Code fragment | Goal of the phase |
+|------|---------------|-------------------|
+| 3.1  | reading `o` and the 144 numbers | Show that after it finishes the logical variables `O` and `M` satisfy the part of **\(P\)** concerning the input. |
+| 3.2  | outer loop `for i in range(12): …`  | Establish a **loop invariant** that relates the variables `k` and `soma` to the sum of the already‑processed rows of the matrix. |
+| 3.3  | inner loop `for j in range(12): …`  | Refine the invariant to the element‑wise level, proving that after the inner loop terminates `k` equals the number of green cells examined in the current row and `soma` contains their partial sum. |
+| 3.4  | the two `if` branches that compute `resultado` | Use the invariant that after the two nested loops `k = |G| = 30` and `soma = Sum(M)`.  From this deduce the value assigned to `resultado`. |
+| 3.5  | `print` | Show that the printed value is exactly the logical variable **\(R\)** appearing in **\(Q\)**. |
+
+The proof is carried out by applying the Hoare‑logic rules for **assignment**, **sequence**, **while** (used to model the `for` loops) and **conditional**.  The only non‑trivial part is the construction of the loop invariants; all other steps are straightforward.
+
+--------------------------------------------------------------------
+
+## 4.  Detailed proof  
+
+### 4.1  Reading the input  
+
+The first two statements of the program are  
+
+```python
+o = input()          # selector
+...
+v = float(input())   # 144 times
+```
+
+*Assignment rule*  
+
+\[
+\frac{\{P[e/x]\}\;x:=e\;\{P\}}{}
+\]
+
+applied with the substitution  
+
+\[
+O := o,\qquad M[i,j] := v\;(i,j\hbox{ being the current coordinates}).
+\]
+
+Because the pre‑condition **\(P\)** already contains  
+
+\[
+O\in\{S,M\}\quad\land\quad \forall i,j\;M[i,j]\in\mathbb R,
+\]
+
+the two assignments preserve **\(P\)**.  Moreover, the loop that reads
+the 144 numbers appends each value to the last row of the list `m`.  By
+simple induction on the number of performed iterations we obtain the
+fact that after the outer `for` finishes the Python object `m` is a
+list of 12 lists, each of length 12, and that for every
+\(i,j\in[0..11]\)  
+
+\[
+m[i][j] = M[i+1,j+1].
+\]
+
+Thus after the reading phase we have established the *input part* of
+\(P\).
+
+--------------------------------------------------------------------
+
+### 4.2  The outer loop  
+
+The outer loop in the source text is
+
+```python
+k = 0
+soma = 0
+for i in range(12):
+    for j in range(12):
+        if (11-i) < j < i:
+            k += 1
+            soma += m[i][j]
+```
+
+We rewrite the two `for` statements as `while` statements in order to
+apply the **while‑rule** of Hoare logic.  The outer loop becomes
+
+```
+i = 0
+while i < 12:
+    … inner loop …
+    i = i + 1
+```
+
+--------------------------------------------------------------------
+#### 4.2.1 Outer‑loop invariant  
+
+Let  
+
+\[
+\begin{aligned}
+\mathsf{Inv}_\text{out}(i,k,soma) \;\equiv\;&
+0\le i\le 12 \;\land\\
+&k = \bigl|\{(p,q)\mid 0\le p<i,\;0\le q<12,\;(11-p)<q<p\}\bigr|\\
+&\land\;soma = \sum_{\substack{0\le p<i\\0\le q<12\\(11-p)<q<p}}
+               m[p][q]\; .
+\end{aligned}
+\]
+
+*Intuition.*  
+When the outer loop variable `i` has the value *i* (already processed
+rows 0,…,i‑1) the variables `k` and `soma` contain respectively the
+number of green cells that have been seen so far and the sum of their
+values.
+
+--------------------------------------------------------------------
+**Initialization** (`i = 0`).  
+
+Before the first iteration we have `k = 0` and `soma = 0`.  Substituting
+\(i=0\) in the definition of \(\mathsf{Inv}_\text{out}\) makes both set
+expressions empty, thus the invariant holds.
+
+--------------------------------------------------------------------
+**Preservation** (assume \(\mathsf{Inv}_\text{out}(i,k,soma)\) holds at the
+beginning of an iteration and the loop condition `i < 12` is true).  
+
+During the iteration the inner loop processes **exactly** the cells of
+row `i` that satisfy the predicate \((11-i)<j<i\).  Let  
+
+\[
+\begin{aligned}
+\Delta_k(i) &= 
+\bigl|\{j\mid 0\le j<12,\;(11-i)<j<i\}\bigr|,\\[2mm]
+\Delta_s(i) &=
+\sum_{\substack{0\le j<12\\(11-i)<j<i}} m[i][j].
+\end{aligned}
+\]
+
+The inner loop (proved later) ends with  
+
+\[
+k' = k+\Delta_k(i),\qquad
+soma' = soma+\Delta_s(i).
+\]
+
+After the inner loop terminates the statement `i = i+1` is executed,
+hence the new outer‑loop state satisfies  
+
+\[
+\begin{aligned}
+k' &= \bigl|\{(p,q)\mid 0\le p\le i,\;(11-p)<q<p\}\bigr|,\\
+soma' &= \sum_{\substack{0\le p\le i\\(11-p)<q<p}} m[p][q],
+\end{aligned}
+\]
+
+which is exactly \(\mathsf{Inv}_\text{out}(i+1,k',soma')\).  Thus the
+invariant is preserved.
+
+--------------------------------------------------------------------
+**Termination** (when `i = 12`).  
+
+At loop exit we have `i = 12`.  Substituting this value in the invariant
+gives  
+
+\[
+\begin{aligned}
+k &= \bigl|\{(p,q)\mid 0\le p\le 11,\;(11-p)<q<p\}\bigr|,\\
+soma &= \sum_{\substack{0\le p\le 11\\(11-p)<q<p}} m[p][q].
+\end{aligned}
+\]
+
+Because the translation \(i'=p+1,\;j'=q+1\) is bijective between
+\(\{0,\dots ,11\}^2\) and \([1..12]^2\), the set on the right‑hand side
+is exactly the green‑area set \(G\).  Hence
+
+\[
+k = |G| = 30,\qquad
+soma = \sum_{(i',j')\in G} M[i',j'] = \mathrm{Sum}(M).
+\]
+
+--------------------------------------------------------------------
+
+### 4.3  The inner loop  
+
+The inner loop is
+
+```python
+j = 0
+while j < 12:
+    if (11-i) < j < i:
+        k = k + 1
+        soma = soma + m[i][j]
+    j = j + 1
+```
+
+--------------------------------------------------------------------
+#### 4.3.1 Inner‑loop invariant  
+
+\[
+\begin{aligned}
+\mathsf{Inv}_\text{in}(j,k,soma) \;\equiv\;&
+0\le j\le 12\;\land\\
+&k = k_0 + \bigl|\{q\mid 0\le q<j,\;(11-i)<q<i\}\bigr|\\
+&\land\;soma = soma_0 + 
+   \sum_{\substack{0\le q<j\\(11-i)<q<i}} m[i][q],
+\end{aligned}
+\]
+
+where `k_0` and `soma_0` are the values of `k` and `soma` **before**
+the inner loop starts (these are the values coming from the outer‑loop
+invariant).
+
+--------------------------------------------------------------------
+**Initialization** (`j = 0`).  
+
+Both set expressions are empty, therefore the invariant holds with
+`k = k_0` and `soma = soma_0`.
+
+--------------------------------------------------------------------
+**Preservation** (assume invariant holds and `j < 12`).  
+
+*Case 1* – the guard `(11-i) < j < i` is **false**.  
+The body does not change `k` nor `soma`; the update `j = j+1` simply
+adds the current `j` to the “already examined” set, so the invariant
+remains true.
+
+*Case 2* – the guard is **true**.  
+The body executes `k := k+1` and `soma := soma + m[i][j]`.  Consequently
+the cardinality of the set in the invariant grows by one and the sum
+gains the term `m[i][j]`.  After the increment of `j` the invariant holds
+again with the larger `j`.
+
+--------------------------------------------------------------------
+**Termination** (`j = 12`).  
+
+At exit we obtain  
+
+\[
+k = k_0 + \bigl|\{q\mid 0\le q<12,\;(11-i)<q<i\}\bigr|
+      = k_0 + \Delta_k(i),
+\]
+\[
+soma = soma_0 + \sum_{\substack{0\le q<12\\(11-i)<q<i}} m[i][q]
+      = soma_0 + \Delta_s(i),
+\]
+
+exactly the values used in the preservation argument for the outer
+loop.  Hence the inner‑loop invariant is correct.
+
+--------------------------------------------------------------------
+
+### 4.4  After the two nested loops  
+
+From the outer‑loop invariant we have proved that after the loops finish
+
+\[
+k = 30,\qquad soma = \mathrm{Sum}(M).
+\]
+
+These two facts are the **only** information that the rest of the
+program uses.
+
+--------------------------------------------------------------------
+
+### 4.5  The conditional that computes `resultado`  
+
+```python
+if o == 'M':
+    resultado = soma/k
+elif o == 'S':
+    resultado = soma
+```
+
+*Hoare rule for conditional*  
+
+\[
+\frac{\{P\land B\}\;C_1\;\{Q\}\qquad
+      \{P\land \neg B\}\;C_2\;\{Q\}}
+     {\{P\}\;\texttt{if }B\texttt{ then }C_1\texttt{ else }C_2\;\{Q\}} .
+\]
+
+We instantiate the rule with  
+
+* \(P\) = the post‑loop state (`k = 30 ∧ soma = Sum(M)`),
+* \(B\) = `o == 'M'`,
+* \(C_1\) = `resultado = soma/k`,
+* \(C_2\) = `resultado = soma`.
+
+Because `k = 30 ≠ 0`, the assignment in the first branch yields  
+
+\[
+resultado = \frac{\mathrm{Sum}(M)}{30} = \mathrm{Mean}(M).
+\]
+
+The second branch gives  
+
+\[
+resultado = \mathrm{Sum}(M).
+\]
+
+Thus the conditional establishes the following assertion
+
+\[
+\bigl(o = 'M' \Rightarrow resultado = \mathrm{Mean}(M)\bigr)
+\;\land\;
+\bigl(o = 'S' \Rightarrow resultado = \mathrm{Sum}(M)\bigr).
+\]
+
+--------------------------------------------------------------------
+
+### 4.6  The final `print`  
+
+```python
+print(f'{resultado:.1f}')
+```
+
+The statement does not modify any program variable; it only produces
+the observable output.  By the **skip rule**  
+
+\[
+\frac{}{ \{P\}\; \texttt{skip}\; \{P\}}
+\]
+
+the state after the `print` is exactly the one that satisfies the
+assertion derived in the previous step.  We identify the logical
+variable **\(R\)** of the specification with the Python variable
+`resultado`.  Consequently the state after the whole program is
+
+\[
+R = 
+\begin{cases}
+\displaystyle\sum_{(i,j)\in G} M[i,j] &\text{if }O=S,\\[6pt]
+\displaystyle\frac{1}{30}\sum_{(i,j)\in G} M[i,j] &\text{if }O=M .
+\end{cases}
+\]
+
+Together with the obvious fact \(R\in\mathbb R\) we have proved the
+post‑condition **\(Q\)**.
+
+--------------------------------------------------------------------
+
+## 5.  Composition of the proof  
+
+We have shown, step by step, that each fragment of the program transforms
+a state satisfying its pre‑condition into a state satisfying the intended
+post‑condition:
+
+1. **Reading** preserves the part of \(P\) that talks about the selector
+   and the matrix.
+2. **Inner loop** preserves its invariant, which together with the outer
+   loop invariant yields after termination the exact values
+   `k = 30` and `soma = Sum(M)`.
+3. **Outer loop** preserves its invariant; at termination it gives the
+   same values.
+4. **Conditional** uses those values to assign to `resultado` either the
+   sum or the mean, exactly as required by \(Q\).
+5. **Print** does not alter the state, so the post‑condition holds for
+   the final state.
+
+By the **Rule of Consequence** we can weaken the intermediate
+assertions to the simpler forms used in the statement of the theorem,
+and by the **Rule of Sequence** we concatenate the triples.  Hence we
+obtain the global Hoare triple
+
+\[
+\boxed{\{P\}\;\;{\tt program}\;\;\{Q\}}
+\]
+
+which is precisely what had to be proved.
+
+--------------------------------------------------------------------
+
+## 6.  Remarks on rounding  
+
+The specification declares that the printed value is **rounded to one
+decimal place**.  Rounding is a pure output transformation; it does not
+change the mathematical value stored in `resultado`.  Therefore the
+logical post‑condition \(Q\) (which talks about the *real* value) is
+unaffected, and the proof remains valid.
+
+--------------------------------------------------------------------
+
+### **Conclusion**  
+
+Starting from any state that satisfies the pre‑condition \(P\) (a valid
+selector and a completely read 12×12 real matrix), the Python program
+terminates and ends in a state that satisfies the post‑condition \(Q\):
+it prints the sum of the 30 elements that belong to the green area when
+`o` is `'S'`, and it prints their arithmetic mean when `o` is `'M'`.  
+Thus the program is **correct** with respect to the Hoare‑logic
+specification given in the problem statement.  

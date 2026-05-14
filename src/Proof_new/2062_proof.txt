@@ -1,0 +1,275 @@
+**Answer – a Hoare‑logic proof that the program satisfies the specification**  
+
+Below we give a complete, step‑by‑step proof that the Python fragment
+
+```python
+N = int(input())
+words = input().split()
+
+result = []
+for word in words:
+    if len(word) == 3:
+        if word.startswith("OB") or (word.startswith("UR") and not word.endswith("I")):
+            word = word[:2] + "I"
+    result.append(word)
+
+print(" ".join(result))
+```
+
+realises the Hoare triple  
+
+\[
+\{\,P\,\}\;{\sf CorrectText}(N,\;W)\;\{\,Q\,\}
+\]
+
+where  
+
+* **P** (pre‑condition) is the predicate described in §2 of the statement,  
+
+* **Q** (post‑condition) is the predicate described in §3,  
+
+* `W = ⟨w₁,…,w_N⟩` is the list obtained by the second `input().split()`,  
+
+* `result = ⟨o₁,…,o_N⟩` is the list built by the loop,  
+
+* `corr` is the correction function defined in §2 of the statement.
+
+The proof uses the standard **while‑loop invariant** technique (the `for` loop in Python is just a syntactic sugar for a `while` loop).  
+All the reasoning is completely formal – we never appeal to “intuitive” arguments, only to the definitions of the operators that appear in the program and to the axioms of Hoare logic.
+
+--------------------------------------------------------------------
+
+### 1.  Notation that will be used in the proof  
+
+* `words[i]` denotes the *i*‑th element of the list `words` (`1 ≤ i ≤ N`).  
+* `result` is the list that is built incrementally; after the *k*‑th iteration it contains exactly the first *k* elements of the final output, i.e.  
+
+  \[
+  result = \langle o_1,\dots ,o_k\rangle .
+  \]
+
+* `len(x)` denotes the length of a string `x`.  
+* `x.startswith(p)` is true iff the prefix of `x` of length `|p|` equals `p`.  
+* `x.endswith(c)` is true iff the last character of `x` equals `c`.  
+
+All of these are pure functions on strings; they have the usual logical meaning that is captured by the following elementary lemmas (proved once and for all, outside the program):
+
+| Lemma | Formal statement |
+|-------|-------------------|
+| L1 | `len(x)=3`  ⇔  `|x| = 3`. |
+| L2 | `x.startswith("OB")`  ⇔  `x[1..2] = "OB"`. |
+| L3 | `x.startswith("UR")`  ⇔  `x[1..2] = "UR"`. |
+| L4 | `x.endswith("I")`  ⇔  `x[3] = "I"` (when `|x|=3`). |
+| L5 | `x[:2] + "I"` is the string whose first two characters are `x[1]` and `x[2]` and whose third character is `I`. |
+
+--------------------------------------------------------------------
+
+### 2.  Loop invariant  
+
+For the `for`‑loop we introduce the index variable  
+
+\[
+k\;:=\; \text{number of iterations already performed}+1 .
+\]
+
+Thus before the first iteration `k = 1`; after the *i*‑th iteration `k = i+1`.  
+
+The **invariant** is
+
+\[
+\boxed{I(k)\; \equiv\; (1\le k\le N+1)\;\land\;
+      \bigl(\forall i\;(1\le i<k\;\Longrightarrow\; result[i]=\operatorname{corr}(words[i]))\bigr)}
+\tag{Inv}
+\]
+
+`result[i]` denotes the *i*‑th element of the list `result` (the list is 1‑based for the sake of the specification).  
+Intuitively, after the first *k‑1* words have been processed, the list already contains the correct transformed words.
+
+--------------------------------------------------------------------
+
+### 3.  Proof obligations for the invariant  
+
+To prove that `I(k)` is a *correct* invariant we have to show three things:
+
+1. **Initialization** – it holds before the first iteration (`k = 1`).  
+2. **Preservation** – assuming it holds at the beginning of an iteration with index `k` (`1 ≤ k ≤ N`), it holds again at the end of the same iteration (`k←k+1`).  
+3. **Termination** – when the loop finishes (`k = N+1`) the invariant entails the post‑condition `Q`.
+
+We treat each point in turn.
+
+--------------------------------------------------------------------
+
+#### 3.1  Initialization  
+
+When the loop has not yet been entered we have `k = 1`.  
+The conjunct `1 ≤ k ≤ N+1` is true because `N ≥ 2` by the pre‑condition.  
+
+The second conjunct of `I(k)` quantifies over the empty set (`i` such that `1 ≤ i < 1`).  
+A universal quantification over an empty domain is vacuously true, therefore the whole invariant holds.
+
+\[
+\{P\}\;\;k:=1\;\;\{I(1)\}
+\]
+
+--------------------------------------------------------------------
+
+#### 3.2  Preservation  
+
+Assume the invariant holds at the beginning of an iteration, i.e.
+
+\[
+I(k)\;\;\text{with}\;\;1\le k\le N .
+\tag{IH}
+\]
+
+The loop body processes `word = words[k]`.  
+We now analyse the three possible branches of the `if` statement.
+
+---
+
+**Case 1 –** `len(word) ≠ 3`.  
+
+The outer `if` fails, the body does nothing to `word`.  
+Consequently `word` is appended unchanged:
+
+\[
+\text{result}[k] = \text{word} = w_k .
+\]
+
+Because `|w_k|≠3`, the definition of `corr` yields `corr(w_k) = w_k`.  
+Hence `result[k] = corr(w_k)`.  
+
+All other `result[i]` with `i<k` are untouched, therefore still satisfy the invariant by the induction hypothesis.  
+After the `append` we have `k←k+1`; thus `I(k+1)` holds.
+
+---
+
+**Case 2 –** `len(word) = 3` **and** `word.startswith("OB")`.  
+
+The outer `if` succeeds, the inner condition `word.startswith("OB")` is true, so the assignment  
+
+\[
+\text{word} := \text{word}[:2] + "I"
+\]
+
+is executed. By Lemma L5 the new value of `word` is the string whose first two characters are `"OB"` and whose third character is `"I"`, i.e. the literal `"OBI"`.  
+
+Therefore after the assignment  
+
+\[
+\text{word} = \text{"OBI"} = \operatorname{corr}(w_k)
+\]
+
+(because `|w_k|=3` and `w_k[1..2]="OB"` by hypothesis).  
+
+Again the `append` stores this value into `result[k]`, all earlier entries stay unchanged, and after the increment `k←k+1` the invariant holds.
+
+---
+
+**Case 3 –** `len(word) = 3` **and** `word.startswith("UR")` **and** `not word.endswith("I")`.  
+
+The outer `if` succeeds, the inner condition evaluates to true because both sub‑conditions are satisfied.  
+The same assignment `word := word[:2] + "I"` is performed.  
+
+By Lemma L5 the new value of `word` is `"URI"`.  
+Since the original word had prefix `"UR"` and length three, the definition of `corr` gives  
+
+\[
+\operatorname{corr}(w_k)=\text{"URI"} .
+\]
+
+Thus after the assignment `word = corr(w_k)`.  
+Appending it yields `result[k]=corr(w_k)`.  
+All earlier positions still satisfy the invariant, and after the increment `k←k+1` we again have `I(k+1)`.
+
+---
+
+**Case 4 –** `len(word) = 3` **and** `word.startswith("UR")` **and** `word.endswith("I")`.  
+
+Here the outer `if` succeeds but the inner condition is **false** (the `and not word.endswith("I")` part fails).  
+Consequently the assignment is *skipped* and `word` keeps its original value, which is already `"URI"`.  
+
+From the definition of `corr` we know `corr(w_k)= "URI"` as well, therefore `result[k] = word = corr(w_k)`.  
+Again the invariant is preserved.
+
+---
+
+**All other possibilities** (e.g. `len(word)=3` but the word does not start with `"OB"` nor `"UR"`) fall into the *else* branch of the inner `if`; the assignment is not executed and `word` is appended unchanged.  
+Because none of the premises of the definition of `corr` hold, `corr(w_k)=w_k`, so `result[k]=corr(w_k)` and the invariant is preserved.
+
+---
+
+Since the invariant is preserved for every possible execution of the body, we have proved the **preservation** step:
+
+\[
+\{I(k)\;\land\;k\le N\}\;\;\text{loop‑body}\;\;\{I(k+1)\}
+\]
+
+--------------------------------------------------------------------
+
+#### 3.3  Termination  
+
+The loop runs exactly `N` times because `words` contains `N` elements (the pre‑condition guarantees that the second `input().split()` yields a list of length `N`).  
+Consequently after the last iteration we have `k = N+1`.  
+
+Instantiating the invariant with `k = N+1` gives
+
+\[
+I(N+1)\equiv
+\bigl(\forall i\;(1\le i\le N\;\Longrightarrow\; result[i]=\operatorname{corr}(words[i]))\bigr)
+\quad\land\quad 1\le N+1\le N+1 .
+\]
+
+The second conjunct is trivially true; the first conjunct tells us exactly that the list `result` (which we rename to `O` in the specification) contains **N** elements and each of them equals `corr(w_i)`.  
+
+Thus `I(N+1)` entails the post‑condition `Q`:
+
+\[
+I(N+1) \;\Longrightarrow\; |O| = N \;\land\; \forall i\;(1\le i\le N\Rightarrow O[i]=\operatorname{corr}(w_i)).
+\]
+
+--------------------------------------------------------------------
+
+### 4.  Putting the pieces together – the Hoare triple
+
+We have shown:
+
+* **Initialization**  `{P}  k:=1  {I(1)}`
+* **Preservation**   `{I(k) ∧ k≤N}  body  {I(k+1)}`
+* **Termination**   `I(N+1) ⟹ Q`
+
+The standard rule for *while* (or *for*) loops tells us that from the three facts above we can conclude
+
+\[
+\{P\}\;\; \textsf{CorrectText}(N,W) \;\;\{Q\}.
+\]
+
+Since the Python program is a direct, syntax‑preserving translation of the abstract algorithm `CorrectText`, the same Hoare triple holds for the concrete code.
+
+--------------------------------------------------------------------
+
+### 5.  Remarks on the extra test `and not word.endswith("I")`
+
+The specification’s correction function `corr` does **not** look at the last character; it simply replaces the third character by `I` whenever the length is three and the first two letters are `"OB"` or `"UR"`.  
+
+The implementation adds the guard `not word.endswith("I")` for the `"UR"` case.  
+If the word already ends with `I` (i.e. it is already `"URI"`), the guard prevents a needless reassignment.  
+Because `corr("URI") = "URI"` as well, the extra guard does **not** change the logical effect of the program, and the proof above remains valid.
+
+--------------------------------------------------------------------
+
+## 6.  Conclusion  
+
+We have exhibited a **formal Hoare‑logic proof** that the given Python program satisfies the specification
+
+\[
+\{\,P\,\}\;\;{\sf CorrectText}(N,W)\;\;\{\,Q\,\},
+\]
+
+where  
+
+* `P` guarantees a well‑formed input (`1<N<10 000` and each word consists of 1‑20 capital letters), and  
+
+* `Q` guarantees that the output list contains exactly `N` words and each output word is precisely the value of the correction function `corr` applied to the corresponding input word.
+
+The proof rests on the loop invariant `I(k)` introduced in §2, and the three standard proof obligations (initialisation, preservation, termination) have been discharged by a case analysis that follows the program’s `if‑else` structure.  Consequently the program is *correct* with respect to the Hoare‑style specification given in the question

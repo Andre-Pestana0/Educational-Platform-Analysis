@@ -1,0 +1,22 @@
+Description: 
+
+A designer invented a brand for a company in tetrahedron form. He has several colors available to paint and want to know how many different ways a tetrahedron can be colored using any combination of  colors  on  the  faces  of  the same. Note that, if by convenient rotations, the coloring of two tetrahedra match, then it is the same coloration.
+Help this designer do this calculation.
+
+Input: Each input line contains an integer N, 1 ≤  N  ≤  10^4 , the number of colors available. The input ends with a value of 0, which should not be processed.
+
+Output: For each input, print the number of distinct colorings of the tetrahedron  with the given number of colors. As the result can be very large, present it as the rest of the division by 1000007.
+
+Examples:
+- Example 1:
+  Input:
+1
+8
+2250
+0
+  Output:
+1
+400
+878008
+
+--

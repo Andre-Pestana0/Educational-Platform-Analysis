@@ -1,0 +1,22 @@
+[
+  {
+    "input": "Sprint\nAland Islands\nBermuda\nCanada",
+    "output": "Quadro de Medalhas\nAland Islands 1 0 0\nBermuda 0 1 0\nCanada 0 0 1"
+  },
+  {
+    "input": "Event1\nCountryX\nCountryY\nCountryZ\nEvent2\nCountryY\nCountryX\nCountryW\nEvent3\nCountryZ\nCountryW\nCountryX",
+    "output": "Quadro de Medalhas\nCountryX 1 1 1\nCountryY 1 1 0\nCountryZ 1 0 1\nCountryW 0 1 1"
+  },
+  {
+    "input": "",
+    "output": "Quadro de Medalhas"
+  },
+  {
+    "input": "A\nAlpha\nBeta\nGamma\nB\nBeta\nGamma\nAlpha\nC\nGamma\nAlpha\nBeta\nD\nDelta\nEpsilon\nZeta\nE\nEpsilon\nDelta\nZeta",
+    "output": "Quadro de Medalhas\nAlpha 1 1 1\nBeta 1 1 1\nGamma 1 1 1\nDelta 1 1 0\nEpsilon 1 1 0\nZeta 0 0 2"
+  },
+  {
+    "input": "EventA\nCountryM\nCountryM\nCountryN\nEventB\nCountryN\nCountryM\nCountryM",
+    "output": "Quadro de Medalhas\nCountryM 1 2 2\nCountryN 1 0 1"
+  }
+]

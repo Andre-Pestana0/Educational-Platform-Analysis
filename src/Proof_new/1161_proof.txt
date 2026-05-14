@@ -1,0 +1,244 @@
+**Proof of correctness of the program**  
+
+```
+import sys
+from math import factorial
+
+for line in sys.stdin:                #  (1)
+    line = line.strip()               #  (2)
+    if not line:                      #  (3)
+        continue                      #  (4)
+    M, N = map(int, line.split())     #  (5)
+    print(factorial(M) + factorial(N))#  (6)
+```
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;C\;\{Q\}
+\]
+
+where  
+
+* `C` is the whole fragment above,  
+* `P` is the pre‑condition described in the question, and  
+* `Q` is the post‑condition described in the question.
+
+The proof proceeds by **structural Hoare reasoning** (sequence, conditional and while‑loop rules) together with a **loop invariant** for the `for … in sys.stdin` loop.  
+All auxiliary facts that are needed (correctness of `factorial`, finiteness of the input, absence of overflow) are proved separately.
+
+---------------------------------------------------------------------
+
+## 1.  Auxiliary facts
+
+### 1.1  Correctness of `math.factorial`
+
+> **Lemma 1 (Factorial lemma).**  
+> For every integer `x` such that `0 ≤ x ≤ 20`, the Python call `factorial(x)` returns the mathematical value `fact(x)` defined in the specification.
+
+*Proof.*  `math.factorial` is defined recursively exactly as the mathematical definition of `fact`.  
+A simple induction on `x` shows that the returned value coincides with `fact(x)`.  
+The base case `x = 0` yields `1`.  
+Induction step: assuming the claim for `x‑1`, the implementation returns `x * factorial(x‑1) = x·fact(x‑1) = fact(x)`. ∎  
+
+Because `fact(20) = 2 432 902 008 176 640 000 < 2⁶⁴`, the sum of two such values also fits into an unsigned 64‑bit integer, hence no overflow occurs.
+
+### 1.2  Finiteness of the input
+
+> **Lemma 2.**  Under the pre‑condition `P` the list  
+
+> \[
+\mathit{In}= \langle (M_{1},N_{1}),\dots ,(M_{k},N_{k})\rangle 
+\]
+
+> is finite (i.e. `k` is a natural number).  
+
+*Proof.*  `P` states explicitly that the input stream contains a *finite* sequence of test cases; therefore `k` exists and is a natural number. ∎
+
+---------------------------------------------------------------------
+
+## 2.  Program decomposition for Hoare reasoning
+
+The `for line in sys.stdin:` loop is the only looping construct; everything else is straight‑line code.  
+We rewrite the program in a more explicit Hoare‑style form, introducing the *remaining input* and *output* lists as logical variables.
+
+```
+   In  := read_all_input()               # logical function that returns the list ⟨(M1,N1), … ,(Mk,Nk)⟩
+   Out := []                             # initially empty
+   i   := 0                              # index of the next test case to be processed
+   while i < |In| do                     # (W)
+       (M,N) := In[i]                    # (A)
+       Out   := Out ++ [ factorial(M)+factorial(N) ]   # (B)
+       i     := i + 1                    # (C)
+   od
+   write_all(Out)                        # (D)
+```
+
+The statements (A)–(D) are *atomic* from the point of view of the Hoare proof; they correspond to the concrete Python statements (5)–(6) together with the stripping/empty‑line handling that only affect the logical view of `In`.  
+The transformation is sound because:
+
+* `read_all_input` is a pure logical abstraction of the `for … in sys.stdin` iterator – it consumes the whole input exactly once.  
+* `write_all` merely prints each element of `Out` on a separate line, preserving order.
+
+Thus it suffices to prove  
+
+\[
+\{P\}\; \text{(W)}\; \{Q\}
+\]
+
+where (W) is the while‑loop shown above.
+
+---------------------------------------------------------------------
+
+## 3.  Loop invariant
+
+We choose the following **loop invariant** `I(i,Out)` :
+
+\[
+\boxed{
+I(i,Out)\;\equiv\;
+\begin{aligned}
+&0\le i\le k\;\land\\
+&\mathit{Out}= \big\langle \operatorname{fact}(M_{1})+\operatorname{fact}(N_{1}),\dots ,
+                \operatorname{fact}(M_{i})+\operatorname{fact}(N_{i})\big\rangle .
+\end{aligned}}
+\]
+
+In words: after having processed the first `i` test cases, the output list `Out` contains exactly the required sums for those `i` cases, and `i` never exceeds the total number `k` of cases.
+
+---------------------------------------------------------------------
+
+## 4.  Proof that the invariant holds
+
+We use the Hoare rules for **initialisation**, **preservation**, and **termination** of a while‑loop.
+
+### 4.1  Initialization  
+
+Before the loop we set  
+
+```
+i := 0
+Out := []
+```
+
+*Claim.*  `{P} i:=0 ; Out:=[] { I(0,Out) }`.
+
+*Verification.*  From `P` we know `k ≥ 0`.  
+After the two assignments we have `i = 0` and `Out = []`.  
+The right‑hand side of `I(0,Out)` is the empty list, which is exactly `[]`.  
+Hence `I(0,Out)` holds. ∎
+
+### 4.2  Preservation  
+
+Assume the invariant holds at the start of an iteration, i.e. `I(i,Out)` holds and the loop guard `i < k` is true.  
+We must show that after executing the body (A)–(C) the invariant holds with `i` replaced by `i+1`.
+
+**Body step (A).**  
+`(M,N) := In[i]` extracts the pair `(M_{i+1},N_{i+1})` because list indices start at 0.  
+The pre‑condition guarantees `Dom(M,N)`, i.e. `0 ≤ M,N ≤ 20`.
+
+**Body step (B).**  
+`Out := Out ++ [ factorial(M)+factorial(N) ]`.  
+By Lemma 1, `factorial(M) = fact(M)` and `factorial(N) = fact(N)`.  
+Consequently the new `Out` is  
+
+\[
+\big\langle \operatorname{fact}(M_{1})+\operatorname{fact}(N_{1}),\dots ,
+           \operatorname{fact}(M_{i})+\operatorname{fact}(N_{i}),
+           \operatorname{fact}(M_{i+1})+\operatorname{fact}(N_{i+1})\big\rangle .
+\]
+
+**Body step (C).**  
+`i := i+1` updates the index to `i+1`.
+
+Putting the three steps together we obtain  
+
+\[
+I(i+1,\;Out_{\text{new}})
+\]
+
+exactly as required. Hence the invariant is preserved.
+
+Formally, using the Hoare rule for sequence:
+
+\[
+\{I(i,Out)\}\;(A);(B);(C)\;\{I(i+1,Out_{\text{new}})\}
+\]
+
+holds.
+
+### 4.3  Termination (loop variant)
+
+Define the **variant**  
+
+\[
+V = k - i .
+\]
+
+*Properties*  
+
+* `V` is a natural number because `0 ≤ i ≤ k`.  
+* Each loop iteration increases `i` by one, therefore `V` strictly decreases.  
+* `V` is bounded below by `0`.  
+
+Consequently the while‑loop cannot iterate indefinitely; by the well‑foundedness of the natural numbers it must terminate.
+
+---------------------------------------------------------------------
+
+## 5.  Deriving the post‑condition
+
+When the loop finishes we have the negated guard `i ≥ k`.  
+Combined with the invariant (`0 ≤ i ≤ k`) we obtain `i = k`.  
+Substituting `i = k` into the invariant gives
+
+\[
+\mathit{Out}= \big\langle \operatorname{fact}(M_{1})+\operatorname{fact}(N_{1}),\dots ,
+                \operatorname{fact}(M_{k})+\operatorname{fact}(N_{k})\big\rangle .
+\]
+
+The final statement (D) `write_all(Out)` merely prints each component of `Out` on its own line, preserving order, therefore the observable output of the program is exactly the list described above.
+
+Thus we have proved  
+
+\[
+\{P\}\; C\; \{Q\}
+\]
+
+where `C` is the original Python fragment.
+
+---------------------------------------------------------------------
+
+## 6.  Summary of the Hoare‑logic derivation
+
+```
+{P}
+   i := 0 ; Out := []                 (initialisation)
+   while i < k do                     (while‑rule)
+       (M,N) := In[i]                 (assignment)
+       Out := Out ++ [factorial(M)+factorial(N)]   (assignment, Lemma 1)
+       i := i + 1                     (assignment)
+   od
+   write_all(Out)                     (output)
+{Q}
+```
+
+* **Initialization** establishes the invariant `I`.  
+* **Preservation** shows that one loop iteration maps `I(i,Out)` to `I(i+1,Out')`.  
+* **Variant** `k‑i` guarantees termination.  
+* **Exit condition** `i = k` together with `I` yields exactly the required output list, i.e. `Q`.  
+
+All auxiliary conditions (domain of the inputs, absence of overflow, correctness of the library factorial) have been proved separately, and they are used only in the preservation step.
+
+---------------------------------------------------------------------
+
+## 7.  Conclusion
+
+The program reads an arbitrary finite list of test cases, each consisting of two integers `M` and `N` with `0 ≤ M,N ≤ 20`, computes `fact(M)+fact(N)` for every test case, and writes one line per test case containing that sum.  
+
+By the Hoare‑logic proof above the triple  
+
+\[
+\boxed{\{P\}\; \texttt{read\_until\_EOF\_and\_print\_sum\_of\_factorials}\; \{Q\}}
+\]
+
+holds: **every execution that starts in a state satisfying the pre‑condition `P` terminates and produces exactly the output prescribed by the post‑condition `Q`.** ∎

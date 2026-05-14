@@ -1,0 +1,431 @@
+## 1.  What we have to show  
+
+We must prove the **Hoare triple**
+
+\[
+\{\,P\,\}\;\;{\sf Program}\;\;\{\,Q\,\}
+\]
+
+where  
+
+* `Program` is the concrete Python code that reads the two lines, calls the two
+  helper functions `clean` and `truncate_decimals`, extracts the first eleven
+  digits of the first line, converts the two cleaned strings to numbers, adds
+  them and prints the required two‑line output;  
+
+* `P` is the pre‑condition given in Section 2;  
+
+* `Q` is the post‑condition given in Section 3.  
+
+The proof proceeds by **decomposing the program into elementary commands**
+and proving, with the usual Hoare‑logic inference rules, that each command
+preserves the appropriate invariant.  The only non‑trivial pieces are the two
+functions `clean` and `truncate_decimals`; the rest is a straight‑line
+sequence of assignments, a conditional and two `print` statements.
+
+--------------------------------------------------------------------
+
+## 2.  Auxiliary specifications  
+
+Below we write the abstract specifications that each helper routine must
+satisfy.  The specifications are expressed in the same notation that appears
+in the statement of the problem.
+
+### 2.1  Specification of `clean`
+
+```
+def clean(s):
+    s = re.sub(r'[^\d.]', '', s)
+    return s
+```
+
+*Pre‑condition*  
+
+\[
+\{\,\text{true}\,\}
+\]
+
+*Post‑condition*  
+
+\[
+\{\,\text{clean}(s_{\text{out}})=c\;\land\;
+      c\in\Sigma^{*}\;\land\;
+      \text{digits}(c)=\text{digits}(s_{\text{in}})\;\land\;
+      (\dotpos(s_{\text{in}})=\bot\Rightarrow\dotpos(c)=\bot)\;
+      \land\;
+      (\dotpos(s_{\text{in}})\neq\bot\Rightarrow\dotpos(c)=\dotpos(s_{\text{in}}))\;\}
+\tag{C‑spec}
+\]
+
+i.e. the returned string `c` is exactly the function `clean` defined in the
+specification.
+
+### 2.2  Specification of `truncate_decimals`
+
+```
+def truncate_decimals(s):
+    if '.' in s:
+        index = s.index('.')
+        after = s[index:]          # includes the dot
+        if len(after) > 3:
+            s = s[:index + 3]
+    return s
+```
+
+*Pre‑condition*  
+
+\[
+\{\,\text{true}\,\}
+\]
+
+*Post‑condition*  
+
+\[
+\{\,\text{trunc}_{2}(s_{\text{out}})=t\;\land\;
+      t=\text{trunc}_{2}(s_{\text{in}})\;\}
+\tag{T‑spec}
+\]
+
+Thus the routine implements exactly the operation `trunc₂` (keep at most two
+digits after the decimal point).
+
+--------------------------------------------------------------------
+
+## 3.  Lemmas (correctness of the helpers)
+
+We prove the two lemmas that the concrete Python code satisfies the abstract
+specifications above.  The proofs are *structural* and use only elementary
+reasoning about strings; no arithmetic is involved.
+
+--------------------------------------------------------------------
+### Lemma 1  (`clean` implements `clean`)
+
+*Proof.*  
+`re.sub(r'[^\d.]', '', s)` scans the input string from left to right,
+appending to the output exactly those characters that belong to the set
+`{‘0’,…,’9’,‘.’}`.  Consequently  
+
+* every digit occurring in `s` appears in the same order in the result, and
+* the only possible ‘.’ that can be copied is the **first** ‘.’ that is met,
+  because any later ‘.’ is also matched by the character class `[^\d.]` and
+  therefore removed.  
+
+Hence the three conditions in (C‑spec) hold, and the lemma follows. ∎
+
+
+
+--------------------------------------------------------------------
+### Lemma 2  (`truncate_decimals` implements `trunc₂`)
+
+*Proof.*  
+If the string does not contain a dot, the function returns it unchanged,
+which is precisely the definition of `trunc₂`.  
+
+Otherwise `index = s.index('.')` yields the position of the (unique) dot.
+`after = s[index:]` is the suffix that starts with the dot.  
+
+* If `len(after) ≤ 3` the suffix already contains at most two digits after the
+  dot; the function returns the original string, which again equals `trunc₂(s)`.  
+
+* If `len(after) > 3` the slice `s[:index+3]` keeps the dot and the two
+  following characters and discards everything after them.  This is exactly the
+  “keep two decimal digits, discard the rest’’ rule of `trunc₂`.  
+
+Therefore the result of the routine is `trunc₂(s)`, proving (T‑spec). ∎
+
+
+
+--------------------------------------------------------------------
+
+## 4.  Global proof outline  
+
+We now give a **structured Hoare proof** for the whole program.  
+The proof uses the following Hoare‑logic rules (standard, see any textbook):
+
+| Rule | Meaning |
+|------|---------|
+| **(Assign)**   \(\{P[e/x]\}\;x:=e\;\{P\}\) |
+| **(Seq)**      \(\{P\}\;C_{1}\; \{R\}\) , \(\{R\}\;C_{2}\;\{Q\}\)  ⇒  \(\{P\}\;C_{1};C_{2}\;\{Q\}\) |
+| **(If)**       \(\{P\land b\}\;C_{1}\;\{Q\}\) , \(\{P\land\neg b\}\;C_{2}\;\{Q\}\)  ⇒  \(\{P\}\;\textbf{if }b\textbf{ then }C_{1}\textbf{ else }C_{2}\;\{Q\}\) |
+| **(While)**    (not needed here) |
+| **(Conseq)**   (strengthening/weakening of pre/post) |
+
+The program is split into the following logical steps (the concrete Python
+statements are shown on the left, the abstract command that we reason about
+on the right).
+
+| # | Concrete statement | Abstract command |
+|---|--------------------|------------------|
+| 1 | `line1 = clean(input())` | `c1 := clean(s₁)` |
+| 2 | `line2 = clean(input())` | `c2 := clean(s₂)` |
+| 3 | `if len(line1) <= 11:` … | `if |c1| ≤ 11 then cpf := c1 else cpf := c1[0:11]; v₁raw := c1[11:]` |
+| 4 | `valor1 = truncate_decimals(valor1)` | `v₁tr := trunc₂(v₁raw)` |
+| 5 | `valor2 = truncate_decimals(line2)` | `v₂tr := trunc₂(c2)` |
+| 6 | `v1 = float(valor1) if valor1 else 0.0` | `v₁ := toNum(v₁tr)   (0.0 if v₁tr = ε)` |
+| 7 | `v2 = float(valor2)` | `v₂ := toNum(v₂tr)` |
+| 8 | `total = v1 + v2` | `sum := v₁ + v₂` |
+| 9 | `print(f"cpf {cpf}")` | `output₁ := "cpf "·cpf` |
+|10 | `print(f"{total:.2f}")`| `output₂ := format_two_dec(sum)` |
+
+The **global invariant** that we will maintain after step *i* is the
+conjunction of the following facts (written in the notation of the
+specification):
+
+* `c₁ = clean(s₁)` and `c₂ = clean(s₂)` (Lemma 1)  
+* `cpf = first11(digits(s₁))` (definition of `cpf`)  
+* `v₁raw` is the suffix of `c₁` after the first 11 characters (or `ε` if
+  `|c₁| ≤ 11`)  
+* `v₁tr = trunc₂(v₁raw)` and `v₂tr = trunc₂(c₂)` (Lemma 2)  
+* `v₁ = toNum(v₁tr)` (with the special case `v₁ = 0.0` when `v₁tr = ε`)  
+* `v₂ = toNum(v₂tr)`  
+
+From these facts we can derive `sum = v₁ + v₂` and finally the two output
+lines required by `Q`.
+
+Below we give the detailed Hoare derivation for each step.
+
+--------------------------------------------------------------------
+### 4.1  Step 1 – cleaning the first line  
+
+*Pre‑condition* for the step is the global pre‑condition `P`.  
+
+Apply **(Assign)** with the abstract assignment `c₁ := clean(s₁)`.  
+By Lemma 1 we have the Hoare triple
+
+\[
+\{\,P\,\}\;c₁ := \text{clean}(s₁)\;\{\,c₁ = \text{clean}(s₁)\,\}
+\tag{1}
+\]
+
+The post‑condition of (1) is exactly the first conjunct of the global
+invariant.
+
+--------------------------------------------------------------------
+### 4.2  Step 2 – cleaning the second line  
+
+Analogous to step 1, using Lemma 1 again:
+
+\[
+\{\,c₁ = \text{clean}(s₁)\,\}\;c₂ := \text{clean}(s₂)\;
+\{\,c₁ = \text{clean}(s₁) \land c₂ = \text{clean}(s₂)\,\}
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+### 4.3  Step 3 – extracting the CPF and the raw value of line 1  
+
+The concrete code
+
+```python
+if len(line1) <= 11:
+    cpf = line1
+    valor1 = ""
+else:
+    cpf = line1[:11]
+    valor1 = line1[11:]
+```
+
+corresponds to the abstract conditional
+
+\[
+\begin{aligned}
+\textbf{if } |c₁| \le 11\; \textbf{then } & 
+   cpf := c₁;\; v₁raw := \varepsilon\\
+\textbf{else } &
+   cpf := c₁[0:11];\; v₁raw := c₁[11:]\; .
+\end{aligned}
+\]
+
+*Proof of the two branches*  
+
+* **Then‑branch** (`|c₁| ≤ 11`).  
+  After the assignments we have `cpf = c₁`.  Because `|c₁| ≤ 11` the
+  definition of `first11(digits(s₁))` (the CPF) reduces to the whole digit
+  subsequence, i.e.
+
+  \[
+  \text{first11}(digits(s₁)) = digits(c₁) = cpf .
+  \]
+
+  Moreover `v₁raw = ε`.  
+
+* **Else‑branch** (`|c₁| > 11`).  
+  `cpf` receives the first eleven characters of `c₁`.  By the definition of
+  `first11` we obtain again `cpf = first11(digits(s₁))`.  The remainder
+  `v₁raw` is exactly the suffix `c₁[11:]`.  
+
+Both branches satisfy the same post‑condition
+
+\[
+\begin{aligned}
+\{\,|c₁|\le 11\lor|c₁|>11\,\}\;
+&\textbf{if }|c₁|\le 11\textbf{ then }…\textbf{ else }…\;
+\{\,cpf = \text{first11}(digits(s₁))\land
+      v₁raw = \begin{cases}
+                \varepsilon & |c₁|\le 11\\
+                c₁[11:]      & |c₁|>11
+              \end{cases}\,\}.
+\end{aligned}
+\tag{3}
+\]
+
+Applying the **(If)** rule with the two branch proofs yields the Hoare triple
+for step 3.
+
+--------------------------------------------------------------------
+### 4.4  Step 4 – truncating the first numeric value  
+
+The concrete statement `valor1 = truncate_decimals(valor1)` is abstractly
+
+\[
+v₁tr := \text{trunc}_{2}(v₁raw)
+\]
+
+and Lemma 2 gives the Hoare triple
+
+\[
+\{\,v₁raw = u\,\}\;v₁tr := \text{trunc}_{2}(u)\;
+\{\,v₁tr = \text{trunc}_{2}(v₁raw)\,\}.
+\tag{4}
+\]
+
+--------------------------------------------------------------------
+### 4.5  Step 5 – truncating the second numeric value  
+
+Exactly the same reasoning as step 4, with `c₂` instead of `v₁raw`:
+
+\[
+\{\,c₂ = w\,\}\;v₂tr := \text{trunc}_{2}(w)\;
+\{\,v₂tr = \text{trunc}_{2}(c₂)\,\}.
+\tag{5}
+\]
+
+--------------------------------------------------------------------
+### 4.6  Step 6 – conversion of the first value to a number  
+
+Python code:
+
+```python
+v1 = float(valor1) if valor1 else 0.0
+```
+
+Abstractly
+
+\[
+v₁ := \begin{cases}
+      \text{toNum}(v₁tr) & v₁tr \neq \varepsilon\\
+      0.0                & v₁tr = \varepsilon
+      \end{cases}
+\]
+
+Because the pre‑condition guarantees that `v₁tr` (if non‑empty) satisfies the
+syntax `^[0‑9]+(\.[0‑9]{0,2})?$`, the function `toNum` is defined and yields
+exactly the real number represented by the decimal string.  Hence we have the
+Hoare triple
+
+\[
+\{\,v₁tr = u\,\}\;v₁ := \text{toNum}(u)\;
+\{\,v₁ = \text{toNum}(v₁tr)\,\}.
+\tag{6}
+\]
+
+(When `u = ε` the assignment chooses `0.0`; this also satisfies the same
+post‑condition because `toNum(ε)` is defined to be `0.0` in the specification.)
+
+--------------------------------------------------------------------
+### 4.7  Step 7 – conversion of the second value  
+
+Identical to step 6:
+
+\[
+\{\,v₂tr = w\,\}\;v₂ := \text{toNum}(w)\;
+\{\,v₂ = \text{toNum}(v₂tr)\,\}.
+\tag{7}
+\]
+
+--------------------------------------------------------------------
+### 4.8  Step 8 – addition  
+
+`total = v1 + v2` corresponds to the abstract assignment `sum := v₁ + v₂`.  
+By the **(Assign)** rule we obtain
+
+\[
+\{\,v₁ = a \land v₂ = b\,\}\;sum := a+b\;
+\{\,sum = a+b\,\}.
+\tag{8}
+\]
+
+--------------------------------------------------------------------
+### 4.9  Step 9 and Step 10 – printing  
+
+Printing does not modify the program state; it only produces the required
+observable output.  The Hoare rule for `print` is simply
+
+\[
+\{\,\text{state}\,\}\;\texttt{print(...)}\;\{\,\text{state} \land
+\text{output} = \text{the printed string}\,\}.
+\]
+
+Using the definitions of `output₁` and `output₂` we obtain the two
+observations
+
+* `output₁ = "cpf "·cpf`;
+* `output₂ = format_two_dec(sum)`.
+
+Together they are exactly the two conjuncts of the post‑condition `Q`.
+
+--------------------------------------------------------------------
+### 4.10  Composition of the whole proof  
+
+We now glue the individual triples (1)–(10) with the **(Seq)** rule.
+The intermediate assertions are precisely the global invariant described in
+Section 4. After step 8 we have
+
+\[
+\begin{aligned}
+& cpf = \text{first11}(digits(s₁))\quad\land\\
+& v₁ = \text{toNum}\bigl(\text{trunc}_{2}(v₁raw)\bigr)\quad\land\\
+& v₂ = \text{toNum}\bigl(\text{trunc}_{2}(c₂)\bigr)\quad\land\\
+& sum = v₁ + v₂ .
+\end{aligned}
+\tag{I}
+\]
+
+Because `v₁raw` is either `ε` or the suffix `c₁[11:]`, we can rewrite the
+first numeric term as  
+
+\[
+\text{toNum}\bigl(\text{trunc}_{2}(\,c₁[11:]\;)\bigr)
+          = \text{toNum}\bigl(\text{trunc}_{2}(\,\text{clean}(s₁)[11:]\;)\bigr)
+\]
+
+which, together with the definition of `c₂ = clean(s₂)`, yields exactly the
+right‑hand side of the second conjunct of `Q`.
+
+Finally, the two `print` statements turn the logical facts of invariant (I)
+into the required external output.  By the **(Conseq)** rule we may weaken the
+intermediate invariant to the exact post‑condition `Q`.  Hence we have proved
+
+\[
+\{\,P\,\}\;\texttt{Program}\;\{\,Q\,\}.
+\]
+
+--------------------------------------------------------------------
+
+## 5.  Summary of the proof  
+
+| Symbol | Meaning | Proven by |
+|--------|---------|------------|
+| `clean(s)` | removes every character that is not a digit nor a single dot, preserving order | Lemma 1 (step 1 & 2) |
+| `trunc₂(s)` | keeps at most two digits after the dot | Lemma 2 (step 4 & 5) |
+| `cpf = first11(digits(s₁))` | extraction of the first eleven digits of the first line | step 3 |
+| `val₁ = toNum(trunc₂(clean(s₁)))` | numeric value of the first line after cleaning & truncation | steps 3–6 |
+| `val₂ = toNum(trunc₂(clean(s₂)))` | numeric value of the second line after cleaning & truncation | steps 2,5,7 |
+| `sum = val₁ + val₂` | addition of the two numbers | step 8 |
+| printed lines | `cpf` and `sum` formatted with two decimal digits | steps 9,10 |
+
+All the above statements are consequences of the Hoare triples derived for
+the individual statements and of the composition rules of Hoare logic.
+Consequently the whole program satisfies the specification **P ⇒ Q**.
+
+∎

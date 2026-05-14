@@ -1,0 +1,128 @@
+Below is a **Hoare‑logic specification** of the whole program (read‑operate‑print) written only with the **pre‑condition**  \(P\) and the **post‑condition** \(Q\).  
+All variables are written in the usual mathematical way; the program variable that finally holds the value that is printed is called **\(R\)** (for *result*).
+
+---
+
+### 1.  Notation that will be used  
+
+* \(\mathbb R\) – the set of real numbers.  
+* \([1..12] = \{1,2,\dots ,12\}\).  
+* \(M : [1..12]\times[1..12]\rightarrow\mathbb R\) – the input matrix.  
+* \(O\in\{S,M\}\) – the operation selector ( \(S\) = *Sum*, \(M\) = *Mean* ).  
+
+**Green‑area index set**  
+
+\[
+\begin{aligned}
+G \;:=\;&\{(11,c)\mid 1\le c\le 10\}\\
+      &\cup\{(10,c)\mid 2\le c\le 9\}\\
+      &\cup\{( 9,c)\mid 3\le c\le 8\}\\
+      &\cup\{( 3,c)\mid 4\le c\le 7\}\\
+      &\cup\{( 4,c)\mid 5\le c\le 6\}.
+\end{aligned}
+\]
+
+The cardinality of the set is
+
+\[
+|G| = 10+8+6+4+2 = 30 .
+\]
+
+**Sum over the green area**
+
+\[
+\mathrm{Sum}(M) \;=\; \sum_{(i,j)\in G} M[i,j].
+\]
+
+**Mean over the green area**
+
+\[
+\mathrm{Mean}(M) \;=\; \frac{1}{|G|}\,\sum_{(i,j)\in G} M[i,j]
+                    \;=\; \frac{1}{30}\,\sum_{(i,j)\in G} M[i,j].
+\]
+
+---
+
+### 2.  Hoare triple
+
+\[
+\boxed{\{P\}\;\; \texttt{program}\;\; \{Q\}}
+\]
+
+where **\(P\)** (pre‑condition) and **\(Q\)** (post‑condition) are defined below.
+
+---
+
+### 3.  Pre‑condition \(P\)
+
+\[
+\begin{aligned}
+P \;\equiv\;& 
+   O\in\{S,M\}                                     \;\land \\[2mm]
+   &\bigl(\forall i\in[1..12]\;\forall j\in[1..12]\;
+          M[i,j]\in\mathbb R \bigr)                \;\land \\[2mm]
+   &\text{the program has read exactly the 144 numbers that fill }M .
+\end{aligned}
+\]
+
+In words: the selector character is either **S** or **M** and the matrix
+contains 144 real values (the input has been read correctly).
+
+---
+
+### 4.  Post‑condition \(Q\)
+
+Let **\(R\)** be the value that the program finally prints (rounded to one
+decimal place – the rounding itself does not affect the logical
+specification).  Then
+
+\[
+\begin{aligned}
+Q \;\equiv\;& 
+   \bigl(O = S \;\Longrightarrow\; R = \mathrm{Sum}(M)\bigr) \\[2mm]
+   &\land\;
+   \bigl(O = M \;\Longrightarrow\; R = \mathrm{Mean}(M)\bigr) \\[2mm]
+   &\land\;
+   \bigl(R\in\mathbb R\bigr).
+\end{aligned}
+\]
+
+Equivalently, using a conditional expression:
+
+\[
+Q \;\equiv\; 
+   R = 
+   \begin{cases}
+      \displaystyle\sum_{(i,j)\in G} M[i,j]          & \text{if } O = S,\\[4mm]
+      \displaystyle\frac{1}{30}\sum_{(i,j)\in G} M[i,j] & \text{if } O = M .
+   \end{cases}
+\]
+
+Thus the program, starting from a state satisfying \(P\), terminates in a
+state satisfying \(Q\): it prints the **sum** of the 30 green‑area
+elements when the input character is **S**, and the **average** (sum
+divided by 30) when the character is **M**.
+
+---
+
+### 5.  Full Hoare specification (compact form)
+
+\[
+\boxed{
+\begin{array}{l}
+\{\,O\in\{S,M\}\ \land\ \forall i,j\;(1\le i,j\le12\;\Rightarrow\;M[i,j]\in\mathbb R)\,\}\\[1mm]
+\qquad\texttt{read }O;\;\texttt{read }M[1..12][1..12];\;
+\texttt{if }O=S\texttt{ then }R:=\sum_{(i,j)\in G}M[i,j]
+\texttt{ else }R:=\frac{1}{30}\sum_{(i,j)\in G}M[i,j];\\[1mm]
+\qquad\texttt{print }R\\[1mm]
+\}\; \{\,R = 
+\begin{cases}
+\sum\limits_{(i,j)\in G}M[i,j] & \text{if }O=S,\\[4mm]
+\frac{1}{30}\sum\limits_{(i,j)\in G}M[i,j] & \text{if }O=M
+\end{cases}
+\;\}
+\end{array}}
+\]
+
+This specification captures **exactly** the behaviour described in the
+natural‑language statement, using the formal notation of Hoare logic.

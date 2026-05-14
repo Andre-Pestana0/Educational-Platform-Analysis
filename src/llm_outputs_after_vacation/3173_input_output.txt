@@ -1,0 +1,14 @@
+[
+  {
+    "input": "2",
+    "output": "Dias terrestres para Jupiter = 8691\nData terrestre para Jupiter: 2044-10-07\nDias terrestres para Saturno = 21623\nData terrestre para Saturno: 2080-03-04"
+  },
+  {
+    "input": "10",
+    "output": "Dias terrestres para Jupiter = 43455\nData terrestre para Jupiter: 2139-12-13\nDias terrestres para Saturno = 108114\nData terrestre para Saturno: 2316-12-24"
+  },
+  {
+    "input": "50",
+    "output": "Dias terrestres para Jupiter = 217274\nData terrestre para Jupiter: 2616-11-06\nDias terrestres para Saturno = 540570\nData terrestre para Saturno: 3500-01-13"
+  }
+]

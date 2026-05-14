@@ -1,0 +1,188 @@
+Below is a **Hoare‑logic style specification** (pre‑condition / post‑condition) of a program that solves the “tetrahedron‑colouring’’ problem.  
+Only the logical description of the required computation is given – no concrete programming language syntax is used.
+
+--------------------------------------------------------------------
+### 1.  Notation
+
+* Let  
+
+\[
+\mathbb N = \{0,1,2,\dots\},\qquad  
+M = 1\,000\,007 .
+\]
+
+* For any integer \(x\) we write  
+
+\[
+x\bmod M \;:=\; \text{the remainder of the Euclidean division of }x\text{ by }M,
+\qquad 0\le x\bmod M < M .
+\]
+
+* For a finite sequence \(s = (s_1,\dots ,s_k)\) we denote  
+
+\[
+|s| = k,\qquad s_i\; \text{the \(i\)-th element.}
+\]
+
+* The **rotation group of a regular tetrahedron** has 12 elements.  
+Burnside’s lemma gives, for a given number of colours \(N\),
+
+\[
+\operatorname{col}(N)=\frac{N^{4}+11N^{2}}{12}\in\mathbb N .
+\tag{1}
+\]
+
+--------------------------------------------------------------------
+### 2.  Program variables
+
+| Symbol | Meaning |
+|--------|---------|
+| `L`    | Input list  \((\ell_1,\dots ,\ell_k,0)\) read from *stdin*. |
+| `i`    | Loop index, \(0\le i\le k\). |
+| `N`    | Current integer taken from the input list (`L[i]`). |
+| `R`    | Result computed for the current `N`. |
+| `O`    | Output list \((o_1,\dots ,o_k)\) written to *stdout*. |
+
+--------------------------------------------------------------------
+### 3.  Pre‑condition  \(P\)
+
+\[
+\boxed{
+\begin{aligned}
+P \;\equiv\; & L = (\ell_1,\dots ,\ell_k,0) \\
+             & \land\; k\ge 0 \\
+             & \land\; \forall j\in\{1,\dots ,k\}\;:\; 
+                     \ell_j\in\mathbb N\;\land\;1\le\ell_j\le 10^{4}.
+\end{aligned}}
+\tag{P}
+\]
+
+Thus the program receives a finite (possibly empty) sequence of **valid colour counts**
+terminated by a sentinel `0` that must **not** be processed.
+
+--------------------------------------------------------------------
+### 4.  Loop invariant  \(I\)
+
+For the while‑loop that reads the next `N`, computes `R` and prints it, the invariant is
+
+\[
+\boxed{
+\begin{aligned}
+I \;\equiv\; & 0\le i\le k \\
+             & \land\; \bigl(\forall j\in\{1,\dots ,i\}\;:\;
+                     o_j = \bigl(\operatorname{col}(\ell_j)\bigr)\bmod M\bigr) \\
+             & \land\; (N = 0 \;\lor\; (1\le N\le 10^{4})).
+\end{aligned}}
+\tag{I}
+\]
+
+*The first two conjuncts say:*  
+the first `i` inputs have already been processed **exactly** according to (1) and stored in the output list;  
+the third conjunct guarantees that the current value of `N` is either the terminating `0` or a legal colour count.
+
+--------------------------------------------------------------------
+### 5.  Body of the loop
+
+```
+while N ≠ 0 do
+    R := ((N^4 + 11·N^2) / 12) mod M
+    print R
+    read next N
+od
+```
+
+*Correctness of one iteration* (Hoare triple)
+
+\[
+\{ I \;\land\; N\neq 0 \}\;
+\text{body}
+\;
+\{ I\;[i:=i+1,\; o_{i+1}:=R] \}.
+\]
+
+*Proof sketch*  
+
+1. From the invariant we know that `N` satisfies `1 ≤ N ≤ 10⁴`.  
+2. By arithmetic in ℤ, the expression  
+
+   \[
+   \frac{N^{4}+11N^{2}}{12}
+   \]
+
+   is an integer (the numerator is always divisible by 12).  
+3. Setting  
+
+   \[
+   R = \Bigl(\frac{N^{4}+11N^{2}}{12}\Bigr) \bmod M
+   \]
+
+   yields exactly the value required for the next output element `o_{i+1}`.  
+4. After printing `R` the program reads the next integer from the input stream,
+   which becomes the new value of `N`.  
+5. Incrementing `i` and extending the output list with `R` preserves the invariant
+   because the newly produced output satisfies the definition in `I`.
+
+--------------------------------------------------------------------
+### 6.  Termination condition
+
+The loop terminates when the sentinel `0` is read.  
+Since the input list is finite (by the pre‑condition) and each iteration consumes
+exactly one element, the loop must eventually encounter the terminating `0`.  
+
+Formally:
+
+\[
+\exists m\le k\;.\; L_{m+1}=0 \;\land\; \text{after }m\text{ iterations } N=0.
+\]
+
+--------------------------------------------------------------------
+### 7.  Post‑condition  \(Q\)
+
+When the loop finishes (`N = 0`) the invariant gives the final state of the output list.
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\; & O = (o_1,\dots ,o_k) \\
+             & \land\; \forall j\in\{1,\dots ,k\}\;:\;
+                 o_j = \Bigl(\operatorname{col}(\ell_j)\Bigr)\bmod M .
+\end{aligned}}
+\tag{Q}
+\]
+
+In words: **for every input colour count \(\ell_j\) the program writes the
+number of inequivalent tetrahedron colourings (formula (1)) reduced modulo
+\(1\,000\,007\).**  
+
+--------------------------------------------------------------------
+### 8.  Full Hoare triple for the whole program
+
+\[
+\boxed{
+\{P\}\;
+\text{read }N:=\ell_1;\; i:=0;\;
+\text{while }N\neq 0\text{ do body od}\;
+\{Q\}
+}
+\tag{Hoare}
+\]
+
+The triple together with the invariant \(I\) proves **partial correctness**,
+and the finiteness of the input guarantees **total correctness** (termination).
+
+--------------------------------------------------------------------
+### 9.  Summary of the required mathematical function
+
+For a single input integer \(N\) (with \(1\le N\le10^{4}\))
+
+\[
+\boxed{
+\operatorname{Answer}(N) \;=\;
+\Bigl(\frac{N^{4}+11N^{2}}{12}\Bigr) \bmod 1\,000\,007 .
+}
+\tag{Ans}
+\]
+
+The program must output `Answer(N)` for each line of the input until the line
+containing `0`. This specification is expressed solely with pre‑ and post‑
+conditions suitable for a Hoare‑logic verification.

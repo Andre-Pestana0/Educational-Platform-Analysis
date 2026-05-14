@@ -1,0 +1,106 @@
+Below is a **Hoare‑style specification** of the whole program (the part that reads the two lines, extracts the numbers, builds the “cpf’’ and prints the required sum).  
+Only the *pre‑condition* **P** (what the caller must guarantee) and the *post‑condition* **Q** (what the program guarantees on termination) are given; the implementation is deliberately omitted.
+
+---
+
+## 1.  Notation that will be used in the specification  
+
+| Symbol | Meaning |
+|--------|---------|
+| `Σ = {‘0’,‘1’,…,’9’, ‘.’ } ∪ Γ`  | the alphabet of all possible input characters. `Γ` denotes the set of *non‑numeric* characters (anything that is not a digit nor ‘.’). |
+| `|x|` | length of a string `x`. |
+| `digits(x)` | the subsequence of `x` consisting **only** of the characters ‘0’…‘9’, **preserving the original order**. |
+| `dotpos(x)` | the (unique) position of the character ‘.’ in `x` if it exists, otherwise `⊥`. |
+| `clean(x)` | the string obtained from `x` after **removing every character that is not a digit nor a single decimal point**, while keeping the first (and only) decimal point that appears in the original order. Formally: <br>`clean(x) = d₁ d₂ … d_k` where each `d_i ∈ Σ` and <br> (1) the subsequence of digits in `clean(x)` is exactly `digits(x)`; <br> (2) if `dotpos(x) ≠ ⊥` then the unique ‘.’ occurring in `clean(x)` is the one that appears in `x` at position `dotpos(x)`. |
+| `trunc₂(y)` | “truncate *y* after two decimal places’’: <br>if `y` contains a decimal point, keep the part before the point, the point itself and **exactly the first two digits after the point**; discard any further digits. If there is no decimal point, `trunc₂(y)=y`. |
+| `toNum(z)` | the real number represented by the decimal string `z` (e.g. `toNum("123.45") = 123.45`). The function is total on strings that satisfy the syntax `^[0‑9]+(\.[0‑9]{0,2})?$`. |
+| `first11(d)` | the string formed by the **first eleven** characters of `d`. If `|d|<11` the pre‑condition (see below) guarantees that this never happens. |
+| `cpf = first11(digits(s₁))` | the *cpf* that must be printed. |
+| `val₁ = toNum( trunc₂( clean(s₁) ) )` | numeric value of the first line after cleaning and truncation. |
+| `val₂ = toNum( trunc₂( clean(s₂) ) )` | numeric value of the second line after cleaning and truncation. |
+| `sum = val₁ + val₂` | the required sum, printed with exactly two decimal digits. |
+
+All strings are **finite**; the empty string is denoted `ε`.
+
+---
+
+## 2.  Pre‑condition  **P**
+
+The program receives two input strings `s₁` and `s₂`.  
+
+\[
+\begin{aligned}
+P \equiv\;&
+\bigl(1 \le |s₁| \le 60\bigr)\ \land\ \bigl(1 \le |s₂| \le 60\bigr) \\
+&\land\ \bigl(\exists i\; 1\le i\le|s₁|\; s₁[i]\in\{‘0’,…,’9’\}\bigr)          \tag{at least one digit in the first line}\\
+&\land\ \bigl(\exists j\; 1\le j\le|s₂|\; s₂[j]\in\{‘0’,…,’9’\}\bigr)          \tag{at least one digit in the second line}\\
+&\land\ \bigl(\#\{i\mid s₁[i]=‘.’\}\le 1\bigr)\ \land\ \bigl(\#\{j\mid s₂[j]=‘.’\}\le 1\bigr) \tag{at most one decimal point per line}\\
+&\land\ \bigl(|digits(s₁)|\ge 11\bigr)                                     \tag{enough digits to extract the cpf}\\
+&\land\ \bigl(|digits(s₁)|\le 17\bigr)\ \land\ \bigl(|digits(s₂)|\le 17\bigr) \tag{after cleaning each number has ≤ 17 characters (including a possible dot)}\\
+\end{aligned}
+\]
+
+*Explanation.*  
+The first three conjuncts are the literal constraints from the statement (length, at least one digit, at most one ‘.’).  
+The fourth conjunct guarantees that `first11(digits(s₁))` is well‑defined.  
+The last two conjuncts reflect the bound *“the final number can have up to 17 characters (including decimal point)”* that the problem imposes after non‑numeric characters are removed.
+
+---
+
+## 3.  Post‑condition **Q**
+
+When the program terminates it must have produced two output lines:
+
+* line 1: the string `cpf` (exactly eleven digits, no other characters);
+* line 2: the decimal representation of `sum` with **exactly two digits after the decimal point** (rounded **down**, i.e. truncated).
+
+Formally:
+
+\[
+\begin{aligned}
+Q \equiv\;&
+\bigl|cpf\bigr| = 11\ \land\ \forall k\;(1\le k\le 11\;\Rightarrow\; cpf[k]\in\{‘0’,…,’9’\}) \\
+&\land\  cpf = first11\bigl(digits(s₁)\bigr) \\[4pt]
+&\land\ \bigl(sum = toNum\bigl(trunc₂(clean(s₁))\bigr) + toNum\bigl(trunc₂(clean(s₂))\bigr)\bigr)\\[4pt]
+&\land\ \text{the second output line is the decimal string } \\
+&\qquad\qquad \text{`format\_two\_dec(sum)` } \\
+&\qquad\qquad\text{where `format\_two\_dec` renders a rational number with exactly two decimal places,} \\
+&\qquad\qquad\text{adding trailing zeros if necessary (e.g. 5 → “5.00”).}
+\end{aligned}
+\]
+
+*Key points of the post‑condition*  
+
+* `cpf` is precisely the first 11 digits of the **digit‑only subsequence** of the first input line.  
+* `clean(sᵢ)` removes every non‑numeric character *except* the (single) decimal point, preserving its original position.  
+* `trunc₂` discards any digits that would appear **after the second digit** following the decimal point (the specification requires “any number after the second digit after the decimal point must be discarded”).  
+* `toNum` converts the resulting well‑formed decimal string to a real number; the sum of the two numbers is then printed with two decimal digits, never rounding up.
+
+---
+
+## 4.  Hoare triple for the whole program  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{Program}\;\; \{\,Q\,\}}
+\]
+
+where `Program` denotes the sequence of the following abstract steps (each of them can be proved correct separately by further Hoare triples):
+
+1. **Read** `s₁, s₂`.  
+2. `cpf ← first11(digits(s₁))`.  
+3. `v₁ ← toNum( trunc₂( clean(s₁) ) )`.  
+4. `v₂ ← toNum( trunc₂( clean(s₂) ) )`.  
+5. `sum ← v₁ + v₂`.  
+6. **Print** `"cpf "` `cpf` (newline) `format_two_dec(sum)` (newline).
+
+Each step respects the invariants described above, and together they satisfy the global Hoare triple shown.
+
+--- 
+
+### Remarks for an implementation
+
+* The **clean** operation can be implemented by scanning the input once, copying every digit to a buffer and copying the **first** ‘.’ encountered (if any) and then ignoring any subsequent ‘.’ characters.  
+* The **trunc₂** operation can be performed by locating the ‘.’ in the cleaned buffer and discarding everything after the second character that follows it.  
+* Because the pre‑condition guarantees that after cleaning a string has at most 17 characters, a 64‑bit integer (or a 128‑bit decimal library) is sufficient to hold the *scaled* integer representation `⌊value·10²⌋`, which makes the final addition exact and avoids floating‑point rounding.  
+
+The specification above captures **exactly** what the problem statement demands, using the mathematical notation customary in Hoare‑logic specifications.

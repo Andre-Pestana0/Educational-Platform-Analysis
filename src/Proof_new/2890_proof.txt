@@ -1,0 +1,277 @@
+**Proof of correctness of the Python program**  
+
+We prove, in Hoare‑logic style, that the program
+
+```text
+MOD = 1000007
+inv12 = inverso(12)                     # 12·inv12 ≡ 1 (mod MOD)
+
+for line in sys.stdin:
+    n = int(line.strip())
+    if n == 0:               # sentinel
+        break
+    result = ((11 * pow2(n) + pow4(n)) % MOD) * inv12 % MOD
+    print(result)
+```
+
+produces, for every input integer \(N\) ( \(1\le N\le10^{4}\) ) that appears before the final `0`,
+the value  
+
+\[
+\operatorname{Answer}(N)=\Bigl(\frac{N^{4}+11N^{2}}{12}\Bigr)\bmod M,
+\qquad M = 1\,000\,007 .
+\tag{A}
+\]
+
+The proof follows the Hoare‑logic outline given in the specification:
+
+* pre‑condition \(P\) – the whole input list,
+* loop invariant \(I\) – the part of the list already processed,
+* post‑condition \(Q\) – the whole output list is correct,
+* plus a termination argument.
+
+--------------------------------------------------------------------
+
+### 1.  Notation that will be used in the proof  
+
+* `M` denotes the constant `MOD = 1 000 007`.  
+* `inv12` is the value returned by `inverso(12)`. By definition of the
+  extended Euclidean algorithm  
+
+  \[
+  \exists\,x\; (12x + My = 1) \Longrightarrow 12\cdot\text{inv12}\equiv 1\pmod M .
+  \tag{1}
+  \]
+
+* `pow2(a) = (a·a) mod M`, `pow4(a) = (a·a·a·a) mod M`.  
+  Hence for any integer \(a\),
+
+  \[
+  \operatorname{pow2}(a) \equiv a^{2}\pmod M,\qquad
+  \operatorname{pow4}(a) \equiv a^{4}\pmod M .
+  \tag{2}
+  \]
+
+* For a list \(L=(\ell_1,\dots,\ell_k,0)\) we write  
+
+  \[
+  L[i] = \begin{cases}
+          \ell_{i+1} & 0\le i<k,\\
+          0         & i=k .
+        \end{cases}
+  \]
+
+--------------------------------------------------------------------
+
+### 2.  Lemmas required for the arithmetic part  
+
+| Lemma | Statement | Reason |
+|-------|-----------|--------|
+| **L1** | For every integer \(n\) with \(1\le n\le 10^{4}\) the integer \(\displaystyle\frac{n^{4}+11n^{2}}{12}\) is well‑defined (the numerator is a multiple of 12). | \(n^{2}\equiv 0\) or \(1\pmod 3\); a short case analysis shows that \(n^{4}+11n^{2}\equiv 0\pmod{12}\). |
+| **L2** | For such an \(n\),
+
+  \[
+  ((11\cdot\operatorname{pow2}(n)+\operatorname{pow4}(n))\bmod M)\cdot\text{inv12}
+  \equiv \Bigl(\frac{n^{4}+11n^{2}}{12}\Bigr)\bmod M .
+  \] | Using (2) we replace `pow2` and `pow4` by \(n^{2},n^{4}\) modulo \(M\).  
+  Let \(t = n^{4}+11n^{2}\). By Lemma L1 there exists an integer \(q\) such that \(t = 12q\).  
+  Multiplying both sides of \(t\equiv 12q\pmod M\) by `inv12` and using (1) yields  
+  \(t\cdot\text{inv12}\equiv q\pmod M\). The left‑hand side is exactly the expression computed by the program. |
+| **L3** | The expression `(( … ) % M) * inv12 % M` equals the value of `(( … ) * inv12) % M`. | The `%` operator is a homomorphism for multiplication: \((a\bmod M)\cdot b \bmod M = (a\cdot b)\bmod M\). |
+
+--------------------------------------------------------------------
+
+### 3.  Formal Hoare‑logic setting  
+
+* **Program variables** (as in the specification)
+
+| Symbol | Meaning |
+|--------|---------|
+| `L`    | input list \((\ell_1,\dots ,\ell_k,0)\) |
+| `i`    | loop index (how many numbers have already been processed) |
+| `N`    | the current integer read from the input stream |
+| `R`    | the integer printed for the current `N` |
+| `O`    | output list \((o_1,\dots ,o_k)\) built by the program |
+
+* **Pre‑condition** \(P\)
+
+\[
+P\;:\; L=(\ell_1,\dots ,\ell_k,0)\;\land\;k\ge 0\;\land\;
+\forall j\in[1,k]\;:\;1\le\ell_j\le10^{4}.
+\]
+
+* **Loop invariant** \(I\)
+
+\[
+\begin{aligned}
+I\;:\;& 0\le i\le k \\
+    &\land\bigl(\forall j\in[1,i]\;:\;o_j = \operatorname{col}(\ell_j)\bmod M\bigr)\\
+    &\land\bigl(N=0\;\lor\;(1\le N\le 10^{4})\bigr).
+\end{aligned}
+\]
+
+Recall \(\operatorname{col}(N)=\dfrac{N^{4}+11N^{2}}{12}\).
+
+* **Post‑condition** \(Q\)
+
+\[
+Q\;:\; O=(o_1,\dots ,o_k)\;\land\;
+\forall j\in[1,k]\;:\;o_j = \operatorname{col}(\ell_j)\bmod M .
+\]
+
+--------------------------------------------------------------------
+
+### 4.  Establishing the invariant before the first iteration  
+
+The program reads the first line, stores it in `N`, and sets `i := 0`.  
+Thus, right before the `while` test we have  
+
+* `i = 0`  ⇒  `0 ≤ i ≤ k`.  
+* No output has been produced yet, therefore the universal statement over
+  `j∈[1,i]` is vacuously true.  
+* By the pre‑condition, the first element of `L` is either a legal colour
+  count (`1 ≤ N ≤ 10⁴`) or the terminating `0`. Hence the third conjunct of
+  `I` holds.
+
+Consequently  
+
+\[
+\{P\}\; \text{initialisation}\; \{I\}
+\]
+
+is proved.
+
+--------------------------------------------------------------------
+
+### 5.  Preservation of the invariant (body of the loop)
+
+The body of the loop is the three statements
+
+```text
+R := ((11 * pow2(N) + pow4(N)) % MOD) * inv12 % MOD
+print R
+read next N
+```
+
+We prove the Hoare triple  
+
+\[
+\{I \land N\neq 0\}\;\text{body}\;\{I[i:=i+1,\;o_{i+1}:=R]\}.
+\tag{B}
+\]
+
+**Step 1 – computation of `R`.**  
+From `I` we know `1 ≤ N ≤ 10⁴`. By Lemma L2 we have  
+
+\[
+R = ((11\cdot\operatorname{pow2}(N)+\operatorname{pow4}(N))\bmod M)\cdot\text{inv12}
+    \bmod M
+  = \Bigl(\frac{N^{4}+11N^{2}}{12}\Bigr)\bmod M
+  = \operatorname{col}(N) \bmod M .
+\tag{3}
+\]
+
+Thus `R` is exactly the value required for the next output element.
+
+**Step 2 – printing `R`.**  
+The `print` statement does not change any program variable, therefore the
+state after printing is still described by the same assertions.
+
+**Step 3 – reading the next `N`.**  
+The `for`‑loop of the program reads the next line of the input stream.
+Because the input list `L` is finite and contains a single terminating `0`,
+the value read is either the next colour count \(\ell_{i+2}\) (which satisfies
+\(1\le\ell_{i+2}\le10^{4}\)) or the sentinel `0`. Hence after the read we have  
+
+\[
+N = 0 \;\lor\; (1\le N\le10^{4}),
+\]
+
+which is precisely the third conjunct of the invariant.
+
+**Step 4 – updating the index and the output list.**  
+After the three statements we set `i := i+1` and implicitly extend `O` with the
+new element `R`. Using (3) we obtain for the newly created element  
+
+\[
+o_{i+1}=R = \operatorname{col}(\ell_{i+1})\bmod M .
+\]
+
+All three conjuncts of `I` are therefore true with `i` replaced by `i+1`
+and `o_{i+1}` defined as above. This finishes the proof of (B).
+
+--------------------------------------------------------------------
+
+### 6.  Termination of the loop  
+
+The input list has length `k+1` (the extra `0`).  
+Each iteration consumes exactly one element of `L` (the current `N`) and
+increments `i`. Because `i` starts at `0` and can never exceed `k`,
+after at most `k` iterations the next element read is the sentinel `0`.  
+Consequently the loop condition `N != 0` becomes false and the loop stops.
+
+Formally, the variant function  
+
+\[
+V = k-i
+\]
+
+is a natural number that strictly decreases at every iteration
+(`i` is increased by one) and is bounded below by `0`.  
+Hence the while‑loop is guaranteed to terminate (total correctness).
+
+--------------------------------------------------------------------
+
+### 7.  Deriving the post‑condition  
+
+When the loop finishes we have `N = 0`.  
+By the invariant `I` (with `i = k`) we obtain
+
+* `0 ≤ k ≤ k` – trivial,
+* for every `j∈[1,k]`  
+
+  \[
+  o_j = \operatorname{col}(\ell_j)\bmod M ,
+  \]
+
+* the third conjunct of `I` holds because `N = 0`.
+
+Collecting the first two conjuncts gives exactly the post‑condition `Q`.  
+Thus we have proved  
+
+\[
+\{P\}\;\text{program}\;\{Q\}.
+\]
+
+--------------------------------------------------------------------
+
+### 8.  Summary of the mathematical function computed  
+
+For a single legal input integer \(N\) the program evaluates
+
+\[
+\operatorname{Answer}(N)
+   = ((11\cdot N^{2}+ N^{4}) \bmod M)\;\cdot\;\text{inv12} \bmod M
+   = \Bigl(\frac{N^{4}+11N^{2}}{12}\Bigr)\bmod M .
+\]
+
+Because `inv12` is the modular inverse of `12` modulo `M` (Lemma L1) and the
+numerator is always divisible by `12`, the two expressions are equal in
+\(\mathbb Z_M\).  Consequently the program prints, for each line before the
+final `0`, the number of inequivalent colourings of a regular tetrahedron
+with \(N\) colours, reduced modulo \(1\,000\,007\), as required by Burnside’s
+lemma (formula (1)).
+
+--------------------------------------------------------------------
+
+### 9.  Conclusion  
+
+We have exhibited a loop invariant that holds initially, is preserved by the
+body of the loop (using Lemmas L1–L3), and together with a decreasing variant
+guarantees termination.  When the loop ends the invariant yields exactly the
+post‑condition stipulated in the specification.  Therefore the Python program
+is **partially correct** with respect to the Hoare triple \(\{P\}\;{\tt program}\;\{Q\}\)
+and, because termination is also proved, it is **totally correct**.  
+
+Hence the program satisfies the formal specification of the tetrahedron‑colouring
+problem. ∎

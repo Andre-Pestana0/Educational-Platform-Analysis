@@ -1,0 +1,18 @@
+Description: 
+
+You have a huge paper you need to fold. It is N centimeters long, M centimeters wide and 1 millimeter tall. You can fold it perfectly along both axis. For any integers X and Y greater or equal to zero, if you fold it X times vertically and Y times horizontally, it will now be N/(X+1) centimeters long, M/(Y+1) centimeters wide and (X+1)×(Y+1) milimeters tall.
+
+You want to store your paper in a box. For any integer G, you can buy a box that can fit any paper no more than than G centimeters wide, no more than G centimeters long and no more than K milimeters tall, for G dollars. K is a number set by the store that sells the boxes and is the same for all the boxes that they sell.
+
+Now you want to know what is the least you can spend on a box to store your paper.
+
+Input: The input consists of three, integers, N, M (1≤N,M≤10^18) and K (1≤K≤10^5), as described above.
+
+Output: For each test case, print a line with an integer representing the maximum total number of points your team can get after buying the goals.
+
+Examples:
+- Example 1:
+  Input:
+600 400 7
+  Output:
+200

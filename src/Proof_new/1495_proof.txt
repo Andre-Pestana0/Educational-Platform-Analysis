@@ -1,0 +1,348 @@
+**Proof that the program prints the optimal number of points**  
+
+We prove the Hoare triple  
+
+\[
+\{P\}\;\;{\tt solve\_one\_case()}\;\;\{Q\}
+\]
+
+where  
+
+* \(P\) is the pre‑condition given in the statement,  
+* \(Q\) is the post‑condition “the printed value `ans` equals \(\operatorname{OPT}\)”.
+
+The program consists of three nested parts  
+
+1. a **reading loop** (`while idx < len(data): …`) that extracts one test case,  
+2. a **first scan** (`for _ in range(N): …`) that treats wins, draws and stores the “cost to win” of each loss,  
+3. a **second scan** (`for goals_needed in losses: …`) that greedily spends the remaining goals.
+
+The proof proceeds by giving a suitable invariant for each loop, showing that the
+invariant is established, preserved and finally implies the post‑condition.
+All reasoning is carried out inside a *single* test case; the outer `while`
+simply repeats the same argument for every case until EOF.
+
+--------------------------------------------------------------------
+
+### 1.  Notation that links the program to the specification  
+
+| program variable | mathematical meaning |
+|------------------|----------------------|
+| `N`              | the number of matches (given) |
+| `G` (after the first scan) | the amount of goals that are still **available** for the second scan |
+| `points`         | the total number of points earned **so far** (according to the rules) |
+| `losses` (list)  | for each lost match \(i\) the integer \(\ell_i = R_i-S_i+1\) – the *minimum* number of extra goals that would turn the loss into a win |
+| `goals_needed` (loop variable of the second scan) | one element of the sorted list \(\ell_{(1)}\le \ell_{(2)}\le\cdots\le\ell_{(m)}\) where \(m\) is the number of lost matches |
+
+For a match \(i\) let  
+
+\[
+d_i = R_i - S_i
+\qquad
+\text{(deficit, a non‑negative integer for a loss, 0 for a draw, negative for a win).}
+\]
+
+*If the match is a loss then \(\ell_i = d_i+1\).*
+
+--------------------------------------------------------------------
+
+### 2.  Invariant for the **first scan** (`for _ in range(N): …`)
+
+```
+I1(i)   ≡   0 ≤ i ≤ N   ∧
+          points = Σ_{j=1}^{i} pts(S_j , R_j) 
+                    – 2·c_draws(i)          (1)
+          G      = G₀ – c_draws(i)          (2)
+          losses = [ ℓ_j | 1≤j≤i ∧ d_j>0 ]   (3)
+```
+
+where  
+
+* \(G₀\) is the original budget read from the input,  
+* \(c\_{\text{draws}}(i)\) is the number of draws among the first \(i\) matches for which we have spent **one** goal (i.e. the branch `if G > 0:`).  
+
+Explanation of the three conjuncts  
+
+* (1) – each win contributes 3 points, each *un‑converted* draw contributes 1 point,
+  and each *converted* draw contributes 3 points; the difference
+  w.r.t. the “raw” points `pts(S_j,R_j)` is exactly \(-2\) per converted draw,
+  because a draw originally gives 1 point and after buying a goal it gives 3.  
+* (2) – we have spent exactly one goal for each converted draw, therefore the
+  remaining budget is reduced by `c_draws(i)`.  
+* (3) – the list `losses` contains precisely the values \(\ell_j = d_j+1\) of all
+  matches that have been lost among the first `i` matches; the order in the list
+  is the order of appearance, which is irrelevant for the invariant.
+
+---
+
+#### 2.1  Base case (`i = 0`)
+
+Before the loop starts `points = 0`, `G = G₀`, `losses = []`.  
+All three conjuncts hold trivially, thus `I1(0)` is true.
+
+#### 2.2  Preservation  
+
+Assume `I1(i)` holds before the iteration that processes match `i+1`.  
+Consider the three possibilities for the match:
+
+| case | program fragment | effect on `points`, `G`, `losses` | verification of `I1(i+1)` |
+|------|------------------|-----------------------------------|---------------------------|
+| **win** (`S > R`) | `points += 3` | `points` grows by `3 = pts(S,R)`; `G` unchanged; `losses` unchanged | (1) adds `pts(S,R)`; (2) unchanged; (3) unchanged |
+| **draw** (`S == R`) | *if* `G>0` **then** `G-=1 ; points+=3` *else* `points+=1` | – If we have a goal we spend it, `c_draws` grows by 1, `points` grows by 3 (instead of the original 1) → net change `+2` compared with `pts(S,R)=1`. <br>– If we have no goal, `points` grows by 1 = `pts(S,R)`. | – **Goal available**: `points` becomes `previous + 3 = previous + pts(S,R) + 2`.  The invariant (1) expects a subtraction of `2·c_draws`; since `c_draws` is increased by one, the term `‑2·c_draws` is also decreased by `2`, exactly compensating.  (2) subtracts one from `G`.  (3) unchanged. <br>– **No goal**: `c_draws` unchanged, `points` grows by `pts(S,R)`, (1) holds, (2) unchanged, (3) unchanged. |
+| **loss** (`S < R`) | `losses.append(R‑S+1)` | `points` unchanged (still `+0` for this match); `G` unchanged; a new element \(\ell = d+1\) is appended to `losses`. | (1) adds `pts(S,R)=0`.  (2) unchanged.  (3) now contains the new \(\ell\). |
+
+In each case the three conjuncts are re‑established, therefore `I1(i+1)` holds.
+
+#### 2.3  Termination of the first scan  
+
+When the loop finishes (`i = N`) we have  
+
+\[
+\begin{aligned}
+\text{points}_\text{pre} &=
+   \sum_{i=1}^{N}\!pts(S_i,R_i) \;+\;2\cdot c_{\text{draws}} ,\\[2mm]
+G_\text{pre} &= G_0 - c_{\text{draws}} .
+\end{aligned}
+\]
+
+All lost matches have been recorded in `losses` as the multiset  
+
+\[
+L = \bigl\{\,\ell_i = d_i+1 \mid d_i>0\,\bigr\}.
+\]
+
+Thus after the first scan we possess exactly the data that the greedy
+second scan needs:  
+
+* a budget `G_pre`,
+* a list `L` of the *costs to turn a loss into a win*,
+* the points already earned from wins and (possibly) converted draws.
+
+--------------------------------------------------------------------
+
+### 3.  Invariant for the **second scan** (`for goals_needed in losses: …`)
+
+Before the second scan we sort `losses`.  Let  
+
+\[
+\ell_{(1)}\le\ell_{(2)}\le\cdots\le\ell_{(m)}
+\]
+
+be the sorted elements (`m` is the number of losses).  
+
+Define the loop index `t` as the number of elements already processed
+(the loop variable `goals_needed` always points to the next element).
+
+```
+I2(t)  ≡   0 ≤ t ≤ m   ∧
+          points = points_pre + 3·t + d_extra   (4)
+          G      = G_pre   – Σ_{j=1}^{t} ℓ_{(j)} – g_extra   (5)
+          d_extra ∈ {0,1}   (6)
+          g_extra  ∈ {0,1}   (7)
+          (d_extra , g_extra) = (0,0)   if t = 0
+          (d_extra , g_extra) = (1,ℓ_{(t+1)}‑1)   if the loop terminated by the “draw” branch
+```
+
+Intuitively  
+
+* `t` matches have been **turned into wins** (cost `ℓ_{(j)}` each, +3 points).  
+* At most **one additional loss** may have been turned into a draw; this is
+  captured by `d_extra = 1` and `g_extra = ℓ_{(t+1)}‑1`.  
+* No other goals have been spent.
+
+---
+
+#### 3.1  Base case (`t = 0`)
+
+Before the `for`‑loop we have `points = points_pre`, `G = G_pre`,
+`d_extra = g_extra = 0`.  Hence `I2(0)` holds.
+
+#### 3.2  Preservation  
+
+Assume `I2(t)` holds at the start of an iteration and let  
+`goals_needed = ℓ_{(t+1)}` (the smallest not‑yet‑processed cost).
+
+* **Case A – we can afford a win** (`G ≥ ℓ_{(t+1)}`)  
+
+  The body executes  
+
+  ```
+  G -= ℓ_{(t+1)}
+  points += 3
+  ```
+
+  and possibly breaks if `G == 0`.  
+  After the update  
+
+  * `t` becomes `t+1`,
+  * `points` gains `+3`,
+  * `G` loses exactly `ℓ_{(t+1)}`,
+  * `d_extra` and `g_extra` stay `0`.  
+
+  Substituting `t←t+1` in (4)–(5) shows that `I2(t+1)` holds.
+
+* **Case B – we cannot afford a win but we can afford a draw**  
+  (`G == ℓ_{(t+1)}‑1`)  
+
+  The body executes  
+
+  ```
+  points += 1
+  break
+  ```
+
+  No goal is subtracted (the `elif` branch does **not** change `G`).  
+  After the break we have  
+
+  * `t` unchanged,
+  * `points` increased by `+1`,
+  * `G` unchanged,
+  * `d_extra = 1`, `g_extra = ℓ_{(t+1)}‑1`.  
+
+  Plugging these values into (4)–(5) yields exactly the state described in
+  the definition of `I2(t)` for the *termination* case, therefore the invariant
+  still holds.
+
+* **Case C – we cannot afford even a draw** (`G < ℓ_{(t+1)}‑1`)  
+
+  The body executes `break` without changing any variable.  The loop ends
+  with `d_extra = 0`, `g_extra = 0` and `I2(t)` remains true.
+
+Thus the invariant is preserved in every possible execution path.
+
+#### 3.3  Termination of the second scan  
+
+When the `for`‑loop finishes we are in one of the three situations described
+above.  Let `t*` be the final value of `t`.  The invariant tells us that
+
+\[
+\begin{aligned}
+\text{final points } &= \text{points\_pre} + 3t^{*} + d_{\text{extra}},\\
+\text{final budget } &= G_{\text{pre}} - \sum_{j=1}^{t^{*}}\ell_{(j)} - g_{\text{extra}} .
+\end{aligned}
+\tag{*}
+\]
+
+Because the list is sorted, any loss **not** processed yet needs at least
+\(\ell_{(t^{*}+1)}\) goals to become a win.  The two possibilities for the
+remaining budget are exactly those captured by `d_extra`:
+
+* If `G_pre - Σ_{j=1}^{t*} ℓ_{(j)} ≥ ℓ_{(t*+1)}` we would have entered *Case A*,
+  contradicting termination.  
+* If the remaining budget equals `ℓ_{(t*+1)}‑1` we are in *Case B* and we have
+  taken the *draw* of that loss (`d_extra = 1`).  
+* Otherwise the remaining budget is `< ℓ_{(t*+1)}‑1`; no further conversion is
+  possible (`d_extra = 0`).
+
+Consequently the value `points` after the second scan is **exactly** the
+maximum obtainable with the remaining budget `G_pre`.  
+
+--------------------------------------------------------------------
+
+### 4.  Lemma: Greedy conversion is optimal  
+
+*Lemma.*  
+Let a test case be fixed.  Let  
+
+* \(W\) be the set of matches already won (cost 0, value 3).  
+* \(D\) be the set of drawn matches.  
+* \(L\) be the multiset of losses together with their win‑costs \(\ell_i\).
+
+If we have a budget \(G\),
+
+1. spending a goal on a draw (turning it into a win) is never worse than
+   spending the same goal on any loss, because the *gain per goal* is
+   \(\frac{2}{1}=2\) points for a draw and at most \(\frac{3}{\ell_i}\le 2\) for a loss
+   (since \(\ell_i\ge 2\) for every loss).  
+   Hence an optimal solution first converts as many draws as possible,
+   i.e. uses `min(G,|D|)` goals on draws.
+
+2. After all possible draw‑conversions, the remaining budget must be spent on
+   losses.  Converting a loss \(i\) into a win costs \(\ell_i\) goals and yields
+   3 points; converting it into a draw costs \(\ell_i-1\) goals and yields 1
+   point.  Because the list \(\ell_i\) is sorted increasingly, any feasible
+   set of wins must consist of the *cheapest* \(\kappa\) losses for some
+   \(\kappa\).  If after buying those \(\kappa\) wins we still have exactly
+   \(\ell_{\kappa+1}-1\) goals left, buying a draw for the next loss is optimal;
+   otherwise no further point can be earned.
+
+The algorithm implemented in the program follows precisely this
+two‑step greedy rule, therefore it reaches the maximal possible value
+\(\operatorname{OPT}\).
+
+*Proof of the lemma.*  
+Consider any optimal allocation \(x = (x[1],\dots,x[N])\) satisfying the
+budget constraint \(\mathcal{B}(x)\).  
+
+*If a draw is left un‑converted while a loss receives at least one bought
+goal*, exchange one bought goal from that loss with the draw:
+the draw’s points increase from 1 to 3 (gain +2), the loss’s points can
+decrease by at most 2 (because spending one fewer goal can turn a win
+into a draw or a draw into a loss).  The total never decreases, contradicting
+optimality unless every draw that can be afforded has already been turned
+into a win.  
+
+*Now assume all possible draws are already turned into wins*.
+Let the remaining budget be \(G'\).  Suppose an optimal solution converts a
+loss \(i\) with cost \(\ell_i\) into a win while there exists another loss
+\(j\) with \(\ell_j < \ell_i\) that is **not** turned into a win.
+Swap the conversion: turn \(j\) into a win (cost \(\ell_j\)) and keep the
+budget for the rest unchanged.  Because \(\ell_j < \ell_i\) we spend fewer
+goals and still obtain the same +3 points, leaving at least one extra goal.
+That extra goal can only increase (or keep) the total points, again contradicting
+optimality.  Hence any optimal solution must win the cheapest losses first,
+i.e. exactly the prefix of the sorted list chosen by the program.
+
+If after winning the first \(\kappa\) cheapest losses we have
+\(G' = \ell_{\kappa+1}-1\) goals left, the only way to use them is to turn the
+next loss into a draw, giving exactly one extra point.  If fewer than
+\(\ell_{\kappa+1}-1\) goals remain, no further point can be earned.
+Thus the greedy construction yields the same total as any optimal allocation,
+proving \(\text{points}_{\text{final}} = \operatorname{OPT}\).
+
+∎
+
+
+
+--------------------------------------------------------------------
+
+### 5.  From invariants to the post‑condition  
+
+At the end of the program we print the variable `points`.  
+By the termination of the two inner loops we have the invariant `I2(t*)`
+with the final `t*`.  Lemma 4 tells us that the value described by `I2(t*)`
+coincides with \(\operatorname{OPT}\).  Consequently  
+
+\[
+\text{ans} = \text{points} = \operatorname{OPT}.
+\]
+
+`ans` is clearly a non‑negative integer, so the post‑condition  
+
+\[
+Q \equiv (\text{ans}\in\mathbb{N})\;\land\; (\text{ans}= \operatorname{OPT})
+\]
+
+holds.  The outer `while` merely repeats the same reasoning for each test
+case, therefore the Hoare triple
+
+\[
+\{P\}\;\;{\tt solve\_one\_case()}\;\;\{Q\}
+\]
+
+is proved.
+
+--------------------------------------------------------------------
+
+### 6.  Summary of the proof structure  
+
+| Program fragment | Loop invariant | Reason for preservation | What the invariant gives at termination |
+|------------------|----------------|--------------------------|------------------------------------------|
+| `for _ in range(N): …` | `I1(i)` (points, remaining `G`, list of loss‑costs) | case analysis on win / draw / loss (see §2.2) | After the scan we have the exact budget left for losses and a sorted list of the needed goals. |
+| `for goals_needed in losses:` | `I2(t)` (how many losses turned into wins, possible extra draw) | case analysis on `G ≥ ℓ`, `G == ℓ‑1`, `G < ℓ‑1` (see §3.2) | Gives the final number of points, which matches the optimum by Lemma 4. |
+| outer `while` (reading test cases) | trivial – each iteration starts with a fresh state satisfying `P`. | The body terminates and satisfies `Q` for the current case, then the loop repeats. | The whole program prints the optimal answer for **every** test case. |
+
+Thus the program is *partially correct* (it yields the right answer whenever it
+terminates) and *total* (the loops are bounded by `N ≤ 10⁵` and by the length of
+`losses`, hence they always terminate).  The Hoare triple is established,
+which completes the formal proof of correctness. ∎

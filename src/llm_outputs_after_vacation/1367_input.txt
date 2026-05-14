@@ -1,0 +1,45 @@
+1
+A 0 correct
+0
+
+
+2
+A 10 incorrect
+A 30 correct
+0
+
+
+6
+A 15 incorrect
+A 45 correct
+B 20 incorrect
+B 25 incorrect
+C 100 correct
+D 200 incorrect
+0
+
+
+7
+E 5 incorrect
+E 10 incorrect
+E 15 incorrect
+E 20 incorrect
+E 25 incorrect
+E 30 correct
+F 100 incorrect
+0
+
+
+4
+G 50 incorrect
+H 50 correct
+G 60 correct
+I 70 incorrect
+
+
+3
+J 10 incorrect
+K 20 incorrect
+L 30 incorrect
+0
+

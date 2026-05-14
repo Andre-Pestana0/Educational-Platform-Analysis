@@ -1,0 +1,26 @@
+[
+  {
+    "input": "1\nA 0 correct\n0\n",
+    "output": "1 0"
+  },
+  {
+    "input": "2\nA 10 incorrect\nA 30 correct\n0\n",
+    "output": "1 50"
+  },
+  {
+    "input": "6\nA 15 incorrect\nA 45 correct\nB 20 incorrect\nB 25 incorrect\nC 100 correct\nD 200 incorrect\n0\n",
+    "output": "2 165"
+  },
+  {
+    "input": "7\nE 5 incorrect\nE 10 incorrect\nE 15 incorrect\nE 20 incorrect\nE 25 incorrect\nE 30 correct\nF 100 incorrect\n0\n",
+    "output": "1 130"
+  },
+  {
+    "input": "4\nG 50 incorrect\nH 50 correct\nG 60 correct\nI 70 incorrect\n0\n",
+    "output": "2 130"
+  },
+  {
+    "input": "3\nJ 10 incorrect\nK 20 incorrect\nL 30 incorrect\n0\n",
+    "output": "0 0"
+  }
+]

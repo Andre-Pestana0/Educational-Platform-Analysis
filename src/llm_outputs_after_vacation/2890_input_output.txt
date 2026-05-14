@@ -1,0 +1,54 @@
+[
+  {
+    "input": "2",
+    "output": "5"
+  },
+  {
+    "input": "3",
+    "output": "15"
+  },
+  {
+    "input": "4",
+    "output": "36"
+  },
+  {
+    "input": "5",
+    "output": "75"
+  },
+  {
+    "input": "6",
+    "output": "141"
+  },
+  {
+    "input": "7",
+    "output": "245"
+  },
+  {
+    "input": "9",
+    "output": "621"
+  },
+  {
+    "input": "10",
+    "output": "925"
+  },
+  {
+    "input": "1000",
+    "output": "666669"
+  },
+  {
+    "input": "999",
+    "output": "833501"
+  },
+  {
+    "input": "9999",
+    "output": "684831"
+  },
+  {
+    "input": "10000",
+    "output": "706863"
+  },
+  {
+    "input": "1234",
+    "output": "196197"
+  }
+]

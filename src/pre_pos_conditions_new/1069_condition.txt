@@ -1,0 +1,104 @@
+Below is a **Hoare‑logic style specification** for the *single‑expression* routine that decides whether the parentheses in an input string are balanced.  
+All symbols are defined in the “Notation” section; the specification uses only the usual logical connectives, quantifiers and a few auxiliary functions.
+
+---
+
+## 1.  Notation  
+
+| Symbol | Meaning |
+|--------|---------|
+| `Σ` | The (finite) alphabet of printable ASCII characters.  In particular `(` ∈ Σ and `)` ∈ Σ. |
+| `s ∈ Σ*` | An input string (a finite sequence of characters). |
+| `|s|` | Length of `s` (number of characters). |
+| `s[i]` | The *i‑th* character of `s` (1‑based indexing). |
+| `Pref(s,i) = s[1] … s[i]` | The prefix of `s` that ends at position `i` (for `0 ≤ i ≤ |s|`). |
+| `open(s,i) = | { j | 1 ≤ j ≤ i ∧ s[j] = '(' } |` | Number of opening parentheses in the first `i` characters. |
+| `close(s,i) = | { j | 1 ≤ j ≤ i ∧ s[j] = ')' } |` | Number of closing parentheses in the first `i` characters. |
+| `Balanced(s)` | The *parentheses‑balance predicate*  
+
+\[
+Balanced(s) \;\; \stackrel{\text{def}}{=}\;\;
+\Bigl(\forall i\; (0 \le i \le |s| \;\Rightarrow\; open(s,i) \ge close(s,i))\Bigr)
+\;\wedge\;
+\bigl(open(s,|s|) = close(s,|s|)\bigr)
+\]
+
+| `out ∈ {"correct","incorrect"}` | The value that the routine prints for the given expression. |
+| `N ∈ \mathbb N` | Number of expressions supplied in the whole input file. |
+| `S = \langle s_1,\dots ,s_N\rangle` | The sequence of the `N` input strings (each line of the file). |
+| `R = \langle r_1,\dots ,r_N\rangle` | The sequence of output words produced, one per input line. |
+
+---
+
+## 2.  Specification for a **single** expression  
+
+### 2.1  Pre‑condition  
+
+\[
+\boxed{\; P_{\text{single}}(s) \;=\;
+\bigl(1 \le |s| \le 1000\bigr)\;\wedge\;
+\bigl(s \in \Sigma^{*}\bigr)
+\;}
+\]
+
+*The routine is invoked only with a non‑empty string of length at most 1000; the characters may be any printable ASCII symbols.*
+
+### 2.2  Post‑condition  
+
+Let `out` be the word printed by the routine.
+
+\[
+\boxed{\; Q_{\text{single}}(s,\text{out}) \;=\;
+\bigl(out = \text{``correct''} \;\Leftrightarrow\; Balanced(s)\bigr)
+\;}
+\]
+
+*The routine prints **“correct”** exactly when the input string satisfies the balance predicate defined above; otherwise it prints **“incorrect”**.*
+
+### 2.3  Hoare triple  
+
+\[
+\{\,P_{\text{single}}(s)\,\}\;\;\texttt{CheckParentheses}(s)\;\;\{\,Q_{\text{single}}(s,\text{out})\,\}
+\]
+
+---
+
+## 3.  Specification for the **whole program** (processing *N* lines)
+
+### 3.1  Pre‑condition  
+
+\[
+\boxed{\; P_{\text{prog}}(N,S) \;=\;
+\bigl(1 \le N \le 10\,000\bigr)\;\wedge\;
+\bigl(\forall k\;(1\le k\le N\;\Rightarrow\;1\le|s_k|\le 1000)\bigr)\;\wedge\;
+\bigl(S = \langle s_1,\dots ,s_N\rangle\bigr)
+\;}
+\]
+
+### 3.2  Post‑condition  
+
+\[
+\boxed{\; Q_{\text{prog}}(N,S,R) \;=\;
+\bigl(R = \langle r_1,\dots ,r_N\rangle\bigr)\;\wedge\;
+\bigl(\forall k\;(1\le k\le N\;\Rightarrow\;
+r_k = \text{``correct''} \Leftrightarrow Balanced(s_k))\bigr)
+\;}
+\]
+
+*The program produces a list `R` of exactly `N` words; the *k‑th* word is “correct’’ iff the *k‑th* input expression is balanced.*
+
+### 3.3  Hoare triple for the whole program  
+
+\[
+\{\,P_{\text{prog}}(N,S)\,\}\;\;\texttt{Main}()\;\;\{\,Q_{\text{prog}}(N,S,R)\,\}
+\]
+
+---
+
+## 4.  Informal reading of the specification  
+
+*For each line of the input file, the algorithm examines only the characters ‘(’ and ‘)’.  
+It maintains a counter that never becomes negative (no closing parenthesis without a preceding opening one) and that is zero at the end of the line (the total numbers of opening and closing parentheses coincide).  
+If both conditions hold, the algorithm outputs **“correct”**; otherwise it outputs **“incorrect”.**  
+
+The Hoare‑logic triples above capture exactly these requirements as pre‑ and post‑conditions.*

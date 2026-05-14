@@ -1,0 +1,146 @@
+Below is a **Hoare‑logic style specification** of the whole program (the “while‑program” that processes all test cases).  
+Only the *pre‑condition* (what must be true of the input) and the *post‑condition* (what must be true of the output) are given – the body of the program is left implicit.
+
+---
+
+### 1.  Notation used
+
+| Symbol | Meaning |
+|--------|---------|
+| \( \mathbb N\) | set of non‑negative integers (including 0) |
+| \( \mathbb N_{>0}\) | set of positive integers |
+| \( \mathbb R_{\ge 0}\) | set of non‑negative real numbers |
+| \( \mathit{name} \) | a string of at most 50 characters (product identifier) |
+| \( \operatorname{price}_i : \mathit{Names}_i \to \mathbb R_{\ge 0}\) | price function for test case \(i\) (maps every product name that appears in that case to its unit price) |
+| \( \operatorname{qty}_i : \mathit{Names}_i \to \mathbb N\) | desired quantity for a product in the shopping list of case \(i\) |
+| \( \sum_{k=1}^{K} e_k\) | ordinary finite sum |
+| \( \lfloor x\rfloor_{2}\) | “round‑to‑nearest‑cent‑value” of a real number \(x\) (i.e. keep exactly two decimal digits, as required by the output format) |
+| \( \text{format}(x) = \text{“R$ ”} \; \lfloor x\rfloor_{2}\) | the string printed for a monetary amount \(x\) (the literal “R$ ” followed by the value with two decimal places). |
+
+For each test case we write a sub‑index \(i\) ( \(1\le i\le N\) ) and for the data inside a case we use a second index ( \(j\) for the catalogue, \(k\) for the shopping list).
+
+---
+
+### 2.  Input model
+
+The whole input is a finite sequence  
+
+\[
+\mathcal I = \bigl(N,\; (M_i,\; \mathit{cat}_i,\; P_i,\; \mathit{list}_i)_{i=1}^{N}\bigr)
+\]
+
+where  
+
+* \( N\in\mathbb N_{>0}\) – number of test cases ( “trips” ),  
+
+* for each case \(i\)  
+
+  * \( M_i\in\mathbb N_{>0}\) – number of products that have a price,  
+
+  * \( \mathit{cat}_i = \bigl( (n_{i,1},p_{i,1}),\dots,(n_{i,M_i},p_{i,M_i})\bigr) \) – catalogue,  
+    with \( n_{i,j}\) a distinct product name and \(p_{i,j}\in\mathbb R_{\ge 0}\) its unit price,  
+
+  * \( P_i\in\mathbb N\) with \(1\le P_i\le M_i\) – number of different items Ms Parcinova wants to buy,  
+
+  * \( \mathit{list}_i = \bigl( (m_{i,1},q_{i,1}),\dots,(m_{i,P_i},q_{i,P_i})\bigr) \) – shopping list,  
+    with \( m_{i,k}\) a product name and \( q_{i,k}\in\mathbb N\) the desired quantity.
+
+From the catalogue we obtain the *price function* of case \(i\):
+
+\[
+\operatorname{price}_i(n_{i,j}) = p_{i,j}\qquad (j=1,\dots,M_i)
+\]
+
+and we define the *set of admissible names* for case \(i\) as  
+
+\[
+\mathit{Names}_i = \{\, n_{i,1},\dots,n_{i,M_i}\,\}.
+\]
+
+---
+
+### 3.  Pre‑condition
+
+\[
+\boxed{
+\begin{aligned}
+\mathit{Pre}(\mathcal I) \;\; \equiv\;\; &
+N\in\mathbb N_{>0}\ \land\\[2mm]
+&\forall i\in\{1,\dots,N\}\; \bigl(
+   M_i\in\mathbb N_{>0}\ \land\\
+   &\qquad\forall j\in\{1,\dots,M_i\}\; (n_{i,j}\in\mathit{String}_{\le 50}\ \land\ p_{i,j}\in\mathbb R_{\ge 0})\ \land\\
+   &\qquad\forall j\neq j' \; n_{i,j}\neq n_{i,j'}\ \land\\
+   &\qquad P_i\in\mathbb N\ \land\ 1\le P_i\le M_i\ \land\\
+   &\qquad\forall k\in\{1,\dots,P_i\}\; (m_{i,k}\in\mathit{String}_{\le 50}\ \land\ q_{i,k}\in\mathbb N)\ \land\\
+   &\qquad\forall k\in\{1,\dots,P_i\}\; m_{i,k}\in\mathit{Names}_i
+   \bigr)
+\end{aligned}}
+\]
+
+*In words*: the input consists of a positive number of test cases; each test case contains a non‑empty catalogue with distinct product names and non‑negative unit prices; the shopping list contains only names that appear in the catalogue and asks for a non‑negative integer quantity of each.
+
+---
+
+### 4.  Post‑condition
+
+Let  
+
+\[
+\operatorname{cost}_i \;=\; \sum_{k=1}^{P_i} q_{i,k}\;\operatorname{price}_i\bigl(m_{i,k}\bigr)
+\qquad\text{(total amount to be paid in case }i\text{)} .
+\]
+
+The program produces a sequence of strings  
+
+\[
+\mathcal O = \bigl( o_1,\dots,o_N \bigr)
+\]
+
+where each output line is exactly  
+
+\[
+o_i \;=\; \text{format}\bigl(\operatorname{cost}_i\bigr)
+     \;=\; \text{“R$ ”}\;\lfloor \operatorname{cost}_i \rfloor_{2}.
+\]
+
+Hence the **post‑condition** is
+
+\[
+\boxed{
+\begin{aligned}
+\mathit{Post}(\mathcal I,\mathcal O)\;\equiv\;&
+|\mathcal O| = N\ \land\\[1mm]
+&\forall i\in\{1,\dots,N\}\;
+   o_i = \text{“R$ ”}\;\bigl\lfloor
+          \sum_{k=1}^{P_i} q_{i,k}\;\operatorname{price}_i(m_{i,k})
+          \bigr\rfloor_{2}
+\end{aligned}}
+\]
+
+The rounding operator \(\lfloor\cdot\rfloor_{2}\) guarantees exactly two digits after the decimal point, as required by the statement (“with 2 places after the decimal point”).
+
+---
+
+### 5.  Hoare triple for the whole program
+
+Putting the pieces together, the formal specification of the required program is the Hoare triple  
+
+\[
+\boxed{\;\{\,\mathit{Pre}(\mathcal I)\,\}\;\; \textbf{Program} \;\; \{\,\mathit{Post}(\mathcal I,\mathcal O)\,\}\;}
+\]
+
+where  
+
+* the **state** before execution contains the input sequence \(\mathcal I\),  
+* the **state** after execution contains the output sequence \(\mathcal O\) (and no other observable data), and  
+* the program is required to **terminate** (the problem statement does not speak about non‑termination, so we assume total correctness).
+
+---
+
+### 6.  Remarks
+
+* The specification abstracts away from any particular parsing or data‑structure details; it only talks about the mathematical objects that the program must manipulate.  
+* The condition “\(m_{i,k}\in\mathit{Names}_i\)” in the pre‑condition guarantees that the price function is defined for every name appearing in the shopping list, making the sum in the post‑condition well‑defined.  
+* The rounding/formatting clause \(\lfloor\cdot\rfloor_{2}\) captures the required “two decimal places” output format without committing to a concrete string‑conversion routine.  
+
+With this Hoare‑logic specification, any implementation that respects the pre‑condition will be *correct* if, after termination, its output satisfies the post‑condition.

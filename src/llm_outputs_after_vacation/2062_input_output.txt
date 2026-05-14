@@ -1,0 +1,42 @@
+[
+  {
+    "input": "2\nHELLO WORLD",
+    "output": "HELLO WORLD"
+  },
+  {
+    "input": "2\nOBX URY",
+    "output": "OBI URI"
+  },
+  {
+    "input": "3\nOBI URU URAB",
+    "output": "OBI URI URAB"
+  },
+  {
+    "input": "4\nOBI URI ABCD XYZ",
+    "output": "OBI URI ABCD XYZ"
+  },
+  {
+    "input": "5\nABC OBA OBI URU URX",
+    "output": "ABC OBI OBI URI URI"
+  },
+  {
+    "input": "2\nA B",
+    "output": "A B"
+  },
+  {
+    "input": "2\nABCDEFGHIJKLMNOPQRST ABCDEFGHIJKLMNOPQRST",
+    "output": "ABCDEFGHIJKLMNOPQRST ABCDEFGHIJKLMNOPQRST"
+  },
+  {
+    "input": "5\nOBZ URZ OBU URU URA",
+    "output": "OBI URI OBI URI URI"
+  },
+  {
+    "input": "10\nOBX URY OBA URB OBI URI XYZ ABC OBR URC",
+    "output": "OBI URI OBI URI OBI URI XYZ ABC OBI URI"
+  },
+  {
+    "input": "2\nO U",
+    "output": "O U"
+  }
+]

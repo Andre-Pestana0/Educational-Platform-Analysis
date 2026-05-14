@@ -1,0 +1,118 @@
+**Hoare‑style formal specification**
+
+We denote  
+
+* input variables :  
+
+\[
+N,M\in \mathbb N ,\qquad K\in \mathbb N
+\]
+
+* auxiliary (internal) variables :  
+
+\[
+X,Y\in \mathbb N \qquad\text{(numbers of vertical and horizontal folds)}  
+\]
+
+* output variable :  
+
+\[
+G\in \mathbb N \qquad\text{(price of the cheapest box, i.e. the smallest admissible side length in cm)}
+\]
+
+* helper abbreviations  
+
+\[
+\begin{aligned}
+\ell (X) &:= \frac{N}{X+1}\quad &&\text{(length of the folded paper, in cm)}\\[2mm]
+w (Y)   &:= \frac{M}{Y+1}\quad &&\text{(width of the folded paper, in cm)}\\[2mm]
+h (X,Y) &:= (X+1)(Y+1)        &&\text{(height of the folded paper, in mm)}\\[2mm]
+\lceil x\rceil &:= \text{the smallest integer }\ge x .
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+### 1.  Preconditions  
+
+\[
+\boxed{
+\begin{aligned}
+P\; \equiv\;& 1\le N\le 10^{18}\;\land\;1\le M\le 10^{18}\;\land\;1\le K\le 10^{5} \\[1mm]
+&\land\; N,M,K\in\mathbb N .
+\end{aligned}}
+\]
+
+--------------------------------------------------------------------
+### 2.  Postcondition  
+
+The program must return the **minimum integer** \(G\) such that a pair of
+non‑negative fold counts \((X,Y)\) exists which makes the folded sheet
+fit inside a box of side length \(G\) cm and height limit \(K\) mm.
+
+Formally
+
+\[
+\boxed{
+\begin{aligned}
+Q\; \equiv\;& G\in\mathbb N \;\land\\[1mm]
+&\bigl(\exists X,Y\in\mathbb N\;.\;
+      \ell (X)\le G\;\land\; w(Y)\le G\;\land\; h(X,Y)\le K \bigr)\\[2mm]
+&\land\;
+\bigl(\forall G'\in\mathbb N\;.\; G'<G \;\Rightarrow\;
+      \neg\exists X,Y\in\mathbb N\;.\;
+          \ell (X)\le G'\;\land\; w(Y)\le G'\;\land\; h(X,Y)\le K \bigr) .
+\end{aligned}}
+\]
+
+The two conjuncts can be rewritten in a more compact optimisation
+form:
+
+\[
+\boxed{
+\begin{aligned}
+G \;=\; \min_{\,a,b\in\mathbb N\;,\;a\cdot b\le K}
+          \; \max\!\Bigl(\,\big\lceil \tfrac{N}{a}\big\rceil,
+                         \big\lceil \tfrac{M}{b}\big\rceil\Bigr)
+\qquad\text{where } a:=X+1,\;b:=Y+1 .
+\end{aligned}}
+\]
+
+Thus the postcondition states that the program returns exactly this
+minimum value.
+
+--------------------------------------------------------------------
+### 3.  Hoare triple  
+
+\[
+\boxed{\{P\}\;\; \texttt{solve}(N,M,K)\;\; \{Q\}}
+\]
+
+where `solve` reads the three integers, computes the integer \(G\)
+according to the definition above, and prints it.
+
+--------------------------------------------------------------------
+### 4.  Remarks on the specification  
+
+* The box can be bought for any integer price \(G\); the price equals the
+  maximal allowed side length in centimetres, therefore the cost is
+  directly the integer \(G\) we minimise.
+
+* The height restriction of the box is **fixed** to \(K\) mm for every
+  box, hence the only decision variables are the numbers of folds
+  \(X\) (vertical) and \(Y\) (horizontal).  
+  The condition \(h(X,Y) = (X+1)(Y+1)\le K\) guarantees that the folded
+  paper does not exceed the box height.
+
+* The ceiling operators appear because a box of side length \(G\) cm can
+  contain any paper whose length or width is **at most** \(G\) cm, even
+  if the exact length is a non‑integer number of centimetres.
+
+* The second conjunct of \(Q\) enforces *minimality*: no smaller integer
+  \(G'\) can satisfy the fitting condition, which is precisely the
+  optimisation goal of the problem.
+
+--------------------------------------------------------------------
+**Thus the program is formally specified by the Hoare triple above:
+any implementation that, given inputs satisfying \(P\), terminates
+producing an output that satisfies \(Q\) is a correct solution to the
+“fold‑and‑buy‑the‑cheapest‑box’’ problem.**

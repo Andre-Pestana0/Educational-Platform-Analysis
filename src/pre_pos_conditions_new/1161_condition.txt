@@ -1,0 +1,105 @@
+**Hoare‑style specification**
+
+We describe the whole program as a single command `C` that reads an *arbitrary* (possibly empty) finite list of test cases from the input stream until end‑of‑file, and writes a line for each test case.  
+The specification is written as a Hoare triple  
+
+\[
+\{\,P\,\}\; C\; \{\,Q\,\}
+\]
+
+where the pre‑condition `P` characterises the admissible input and the post‑condition `Q` describes the exact output that must be produced.
+
+---
+
+### 1. Auxiliary definitions  
+
+*Factorial*  
+
+\[
+\operatorname{fact}(x)=
+\begin{cases}
+1                     & x = 0\\[2mm]
+x\cdot\operatorname{fact}(x-1) & x>0
+\end{cases}
+\qquad (x\in\mathbb N)
+\]
+
+*Input list*  
+
+\[
+\mathit{In}= \langle (M_{1},N_{1}),\dots ,(M_{k},N_{k})\rangle 
+\qquad(k\ge 0)
+\]
+
+*Output list*  
+
+\[
+\mathit{Out}= \langle O_{1},\dots ,O_{k}\rangle
+\]
+
+*Domain of a test case*  
+
+\[
+\mathit{Dom}(M,N)\; \stackrel{\text{def}}{:=}\; 0\le M\le 20\ \land\ 0\le N\le 20
+\]
+
+---
+
+### 2. Pre‑condition `P`
+
+\[
+\boxed{
+P \;\equiv\; 
+\begin{aligned}
+&\text{The input stream contains a finite sequence } \mathit{In}= \langle (M_{1},N_{1}),\dots ,(M_{k},N_{k})\rangle ,\\
+&\qquad\text{where }k\ge 0\text{ and } \forall i\in\{1,\dots ,k\}\; \mathit{Dom}(M_{i},N_{i}) .
+\end{aligned}
+}
+\]
+
+In words: *the program is started with a well‑formed input consisting of zero or more test cases, each test case being a pair of integers between 0 and 20 inclusive*.
+
+---
+
+### 3. Post‑condition `Q`
+
+\[
+\boxed{
+Q \;\equiv\;
+\begin{aligned}
+&\text{The program terminates and writes exactly }k\text{ lines }\\
+&\qquad\text{such that } \forall i\in\{1,\dots ,k\}\\
+&\qquad\qquad O_{i}= \operatorname{fact}(M_{i})+\operatorname{fact}(N_{i}) .
+\end{aligned}
+}
+\]
+
+Equivalently, the output list satisfies  
+
+\[
+\mathit{Out}= \big\langle \operatorname{fact}(M_{1})+\operatorname{fact}(N_{1}),\;
+                \operatorname{fact}(M_{2})+\operatorname{fact}(N_{2}),\;
+                \dots ,\;
+                \operatorname{fact}(M_{k})+\operatorname{fact}(N_{k})\big\rangle .
+\]
+
+The specification also implicitly guarantees that the program does **not** overflow the representation of the result: the factorial of any integer ≤ 20 fits into a 64‑bit unsigned integer (the largest value is 20! = 2 432 902 008 176 640 000, which has 19 decimal digits), therefore the sum of two such values is at most 2 × 20! and still fits in the same range.  
+
+---
+
+### 4. Full Hoare triple
+
+\[
+\boxed{
+\{\,P\,\}\; \texttt{read\_until\_EOF\_and\_print\_sum\_of\_factorials}\; \{\,Q\,\}
+}
+\]
+
+where the command `read_until_EOF_and_print_sum_of_factorials` is the implementation that
+
+1. repeatedly reads a pair `(M,N)` until end‑of‑file,
+2. computes `fact(M)+fact(N)`,
+3. writes the result on its own line,
+4. then proceeds to the next pair.
+
+The triple states that **every** execution that starts with an input satisfying `P` will terminate and produce an output satisfying `Q`. This is the formal Hoare‑logic specification of the problem described in natural language.

@@ -68,7 +68,8 @@ def validate_problem(code):
 
 
 def main():
-    llm_output_dir = os.path.join(BASE_DIR, "llm_outputs")
+    # llm_output_dir = os.path.join(BASE_DIR, "llm_outputs")
+    llm_output_dir = os.path.join(BASE_DIR, "llm_outputs_after_vacation")
 
     all_mismatches = {}
 
@@ -76,7 +77,7 @@ def main():
         if file.endswith("_input.txt"):
             code = file.replace("_input.txt", "")
 
-            if code != "1893":
+            if code != "3173":
                 continue
 
             print(f"Processing file: {file} for code {code}")

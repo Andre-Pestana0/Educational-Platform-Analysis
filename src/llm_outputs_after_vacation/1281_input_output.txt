@@ -1,0 +1,30 @@
+[
+  {
+    "input": "1\n1\napple 1.00\n1\napple 1",
+    "output": "R$ 1.00"
+  },
+  {
+    "input": "1\n1\ncheap 0.333\n1\ncheap 3",
+    "output": "R$ 1.00"
+  },
+  {
+    "input": "1\n1\ntricky 0.335\n1\ntricky 3",
+    "output": "R$ 1.01"
+  },
+  {
+    "input": "1\n5\nitem1 123.45\nitem2 67.89\nitem3 0.01\nitem4 999.99\nitem5 250.00\n5\nitem1 1000\nitem2 2000\nitem3 50000\nitem4 3\nitem5 1",
+    "output": "R$ 262979.97"
+  },
+  {
+    "input": "1\n2\nproductnamewithfiftycharacterslong1234567890ABCDEF 10.55\na 0.99\n1\nproductnamewithfiftycharacterslong1234567890ABCDEF 2",
+    "output": "R$ 21.10"
+  },
+  {
+    "input": "1\n2\nbread 2.50\nmilk 1.20\n2\nbread 3\nmilk 2",
+    "output": "R$ 9.90"
+  },
+  {
+    "input": "1\n3\nwater 0.00\nsugar 0.10\nsalt 0.05\n3\nwater 10\nsugar 5\nsalt 2",
+    "output": "R$ 0.60"
+  }
+]

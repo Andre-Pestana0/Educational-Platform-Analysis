@@ -1,0 +1,317 @@
+**Proof of correctness in Hoare‑logic**  
+
+We prove the two Hoare triples that appear in the specification  
+
+\[
+\{P_{\text{single}}(s)\}\;{\tt CheckParentheses}(s)\;\{Q_{\text{single}}(s,\text{out})\}
+\qquad\text{and}\qquad
+\{P_{\text{prog}}(N,S)\}\;{\tt Main}()\;\{Q_{\text{prog}}(N,S,R)\}.
+\]
+
+The program that is analysed is the fragment that is executed for **one** line of the
+input (the body of the outer `for`‑loop).  
+All the other statements (reading the line, printing the answer, the outer loop) are
+treated afterwards.
+
+---------------------------------------------------------------------
+
+## 1.  The single‑expression routine  
+
+### 1.1  Variables and notation  
+
+* `expression`  – the string that we call \(s\) in the specification.  
+* `open_count` – an integer variable that we will relate to the difference  
+  \(\operatorname{open}(s,i)-\operatorname{close}(s,i)\).  
+* `wrong` – a Boolean flag that records whether a closing parenthesis has been seen
+  before a matching opening one.  
+
+The inner `for`‑loop iterates over the characters of `expression`.  
+Let  
+
+\[
+i\in\{0,\dots ,|s|\}
+\]
+
+denote the number of characters that have already been processed
+(the loop variable after the *i*‑th iteration, i.e. after the prefix
+\(\operatorname{Pref}(s,i)=s[1]\dots s[i]\) has been examined).
+
+---------------------------------------------------------------------
+
+### 1.2  Loop invariant  
+
+\[
+\boxed{I(i)\;:\;
+\begin{array}{l}
+\text{(a)}\;{\tt open\_count}= \operatorname{open}(s,i)-\operatorname{close}(s,i) \\[2pt]
+\text{(b)}\;{\tt wrong}= \bigl(\exists j\;(1\le j\le i\;\wedge\;
+\operatorname{close}(s,j)>\operatorname{open}(s,j))\bigr)
+\end{array}}
+\]
+
+Intuitively, (a) states that the counter always holds the *net* number of
+unmatched opening parentheses, and (b) states that `wrong` becomes true exactly
+when the prefix examined so far is *already* unbalanced (a closing parenthesis
+appears without a preceding opening one).
+
+---------------------------------------------------------------------
+
+### 1.3  Initialization  
+
+Before the first iteration we have `open_count = 0` and `wrong = False`.  
+For \(i=0\) the definitions give  
+
+\[
+\operatorname{open}(s,0)=\operatorname{close}(s,0)=0,
+\qquad
+\neg\exists j\;(1\le j\le 0\;\wedge\;\dots),
+\]
+
+hence both conjuncts of \(I(0)\) are true.  
+Therefore the invariant holds initially.
+
+---------------------------------------------------------------------
+
+### 1.4  Maintenance  
+
+Assume that \(I(i)\) holds at the start of an iteration and let the next
+character be \(c = s[i+1]\).
+
+* **Case `c == '('`**  
+
+  The program executes `open_count += 1`.  
+  Consequently  
+
+  \[
+  {\tt open\_count}_{\text{new}}
+   = \bigl(\operatorname{open}(s,i)-\operatorname{close}(s,i)\bigr)+1
+   = \operatorname{open}(s,i+1)-\operatorname{close}(s,i+1),
+  \]
+
+  because the only change in the prefix \(\operatorname{Pref}(s,i+1)\) is one
+  additional opening parenthesis.  
+  `wrong` is unchanged, and the condition in (b) cannot become true,
+  because an opening parenthesis never makes \(\operatorname{close}>\operatorname{open}\).
+  Hence \(I(i+1)\) holds.
+
+* **Case `c == ')'`**  
+
+  Two sub‑cases are distinguished by the program:
+
+  1. **`open_count == 0`**  
+     The program sets `wrong = True` and breaks out of the loop.  
+     The break makes the loop terminate with the current value of `i` (call it
+     \(i^{*}\)).  
+     Because `open_count` was 0 we have  
+     \(\operatorname{open}(s,i^{*})-\operatorname{close}(s,i^{*}) = 0\),
+     i.e. \(\operatorname{close}(s,i^{*})=\operatorname{open}(s,i^{*})\).
+     The new assignment `wrong = True` makes the existential statement in (b)
+     true (the very index \(i^{*}\) witnesses it).  Thus the invariant still
+     holds at the moment just before the break; after the break the loop does
+     not execute any further statements, so the invariant is preserved for the
+     final state of the loop.
+
+  2. **`open_count > 0`**  
+     The program executes `open_count -= 1`.  
+     Hence  
+
+     \[
+     {\tt open\_count}_{\text{new}}
+      = \bigl(\operatorname{open}(s,i)-\operatorname{close}(s,i)\bigr)-1
+      = \operatorname{open}(s,i+1)-\operatorname{close}(s,i+1),
+     \]
+
+     because the new character is a closing parenthesis.
+     `wrong` is unchanged; the predicate in (b) stays true exactly when it was
+     already true.  Therefore \(I(i+1)\) holds.
+
+* **Case `c` is any other printable character**  
+
+  The body of the loop does nothing, so both `open_count` and `wrong` keep
+  their values.  Because neither \(\operatorname{open}\) nor \(\operatorname{close}\)
+  changes, the invariant is trivially preserved.
+
+Thus in every possible execution path the invariant \(I(i)\) is maintained.
+
+---------------------------------------------------------------------
+
+### 1.5  Termination of the inner loop  
+
+The loop variable iterates over the finite sequence `expression`; by the
+pre‑condition \(|s|\le 1000\) the number of iterations is bounded, therefore the
+loop always terminates.  The `break` statement also leads to termination
+immediately.
+
+---------------------------------------------------------------------
+
+### 1.6  Post‑condition of the inner loop  
+
+When the loop finishes we are in one of two situations.
+
+* **The loop terminated normally** – we have processed the whole string,
+  i.e. \(i = |s|\).  
+  By the invariant \(I(|s|)\) we obtain  
+
+  \[
+  \begin{aligned}
+  {\tt open\_count} &= \operatorname{open}(s,|s|)-\operatorname{close}(s,|s|),\\[2pt]
+  {\tt wrong}      &= \bigl(\exists j\;(1\le j\le |s| \wedge
+                     \operatorname{close}(s,j)>\operatorname{open}(s,j))\bigr).
+  \end{aligned}
+  \tag{1}
+  \]
+
+* **The loop terminated by `break`** – the `break` occurs exactly when a
+  character `')'` is read while `open_count` is 0.  
+  At that moment the invariant (1) also holds (the `break` does not change the
+  values of the variables before leaving the loop).
+
+Consequently, after the loop we always have the equivalences
+
+\[
+\begin{aligned}
+{\tt wrong} &\iff \exists j\; (1\le j\le |s| \;\wedge\;
+                \operatorname{close}(s,j)>\operatorname{open}(s,j)),\\[2pt]
+{\tt open\_count}>0 &\iff
+      \operatorname{open}(s,|s|)>\operatorname{close}(s,|s|).
+\end{aligned}
+\tag{2}
+\]
+
+---------------------------------------------------------------------
+
+### 1.7  The final `if`  
+
+The program prints  
+
+```
+if wrong or open_count > 0:
+        print("incorrect")
+else:
+        print("correct")
+```
+
+Using (2) we obtain the logical equivalence  
+
+\[
+\bigl({\tt wrong}\lor {\tt open\_count}>0\bigr)
+   \;\;\Longleftrightarrow\;\;
+   \neg\Bigl(
+      \bigl(\forall i\;(0\le i\le |s| \Rightarrow
+                      \operatorname{open}(s,i)\ge \operatorname{close}(s,i))\bigr)
+      \;\land\;
+      \operatorname{open}(s,|s|)=\operatorname{close}(s,|s|)
+   \Bigr),
+\]
+
+i.e. the condition of the `if` is exactly the negation of the predicate
+`Balanced(s)`.  Therefore the program prints **“correct”** iff `Balanced(s)` holds,
+and **“incorrect”** otherwise.
+
+Thus the post‑condition  
+
+\[
+Q_{\text{single}}(s,\text{out})\; \equiv\;
+\bigl(\text{out} = \text{``correct''}\;\Leftrightarrow\;Balanced(s)\bigr)
+\]
+
+is satisfied.  Together with the initialization (`open_count = 0`,
+`wrong = False`) we have proved the Hoare triple
+
+\[
+\{P_{\text{single}}(s)\}\;{\tt CheckParentheses}(s)\;
+\{Q_{\text{single}}(s,\text{out})\}.
+\]
+
+---------------------------------------------------------------------
+
+## 2.  The whole program (processing *N* lines)
+
+The outer `for line in sys.stdin:` loop iterates over the *N* input lines.
+We now give a loop invariant that captures the specification for the
+already processed lines.
+
+### 2.1  Outer‑loop invariant  
+
+\[
+\boxed{J(k)\;:\;
+\begin{array}{l}
+\text{The first }k\text{ input strings }s_{1},\dots ,s_{k}
+\text{ have been read,}\\[2pt]
+\text{and the list }R_{k}= \langle r_{1},\dots ,r_{k}\rangle
+\text{ has been produced, where }\\[2pt]
+\forall i\;(1\le i\le k\;\Rightarrow\;
+      r_{i}= \text{``correct''}\;\Leftrightarrow\;Balanced(s_{i}))
+\end{array}}
+\]
+
+When the loop has processed `k` lines, `R_k` is exactly the sequence of
+answers required for those lines.
+
+### 2.2  Initialization  
+
+Before the first iteration `k = 0`; the list `R_0` is empty, and the universal
+statement in `J(0)` is vacuously true.  Hence `J(0)` holds.
+
+### 2.3  Maintenance  
+
+Assume `J(k)` holds at the start of an iteration.  
+The program reads the next line, stores it in `expression`, and executes the
+single‑expression routine proved correct in Section&nbsp;1.  
+By the Hoare triple for the routine we obtain
+
+\[
+r_{k+1}= \begin{cases}
+\text{``correct''} &\text{iff } Balanced(s_{k+1}),\\
+\text{``incorrect''}&\text{otherwise}.
+\end{cases}
+\]
+
+Appending this `r_{k+1}` to the already built list `R_k` yields the list
+`R_{k+1}` that satisfies the universal condition for indices \(1\ldots k+1\).
+Consequently `J(k+1)` holds.
+
+### 2.4  Termination  
+
+The outer loop iterates exactly over the `N` lines of the input file.
+Because the pre‑condition guarantees \(1\le N\le 10\,000\), the loop is bounded
+and therefore terminates after `N` iterations.
+
+### 2.5  Post‑condition  
+
+When the loop finishes we have `k = N`.  The invariant `J(N)` tells us that
+
+* the produced list `R = \langle r_{1},\dots ,r_{N}\rangle` has length `N`,
+* for every `i (1≤i≤N)`  
+  `r_i = "correct"`  iff  `Balanced(s_i)`.
+
+These two facts are precisely the two conjuncts of the program‑level
+post‑condition `Q_prog(N,S,R)`.  Hence
+
+\[
+\{P_{\text{prog}}(N,S)\}\;{\tt Main}()\;
+\{Q_{\text{prog}}(N,S,R)\}
+\]
+
+holds.
+
+---------------------------------------------------------------------
+
+## 3.  Summary  
+
+* **Inner loop invariant** `I(i)` guarantees that the counter `open_count`
+  always equals the difference between the number of opening and closing
+  parentheses seen so far, and that the Boolean flag `wrong` records whether a
+  prefix of the string is already unbalanced.
+* Using `I(i)` we proved that after the loop the condition
+  `wrong or open_count>0` is equivalent to the negation of the predicate
+  `Balanced(s)`.  Consequently the program prints “correct’’ exactly for
+  balanced strings – this establishes the Hoare triple for a single expression.
+* **Outer loop invariant** `J(k)` records that after processing `k` input lines
+  we have already produced the correct answers for those `k` strings.
+  The invariant is preserved by the call to the already‑proved single‑expression
+  routine, and it yields the required relation between the whole output list
+  `R` and the input list `S` when the loop terminates.
+
+Thus the whole Python program satisfies the Hoare‑logic specification
+given in the statement.  ∎

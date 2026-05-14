@@ -1,0 +1,56 @@
+1
+1
+apple 1.00
+1
+apple 1
+
+1
+1
+cheap 0.333
+1
+cheap 3
+
+1
+1
+tricky 0.335
+1
+tricky 3
+
+1
+5
+item1 123.45
+item2 67.89
+item3 0.01
+item4 999.99
+item5 250.00
+5
+item1 1000
+item2 2000
+item3 50000
+item4 3
+item5 1
+
+1
+2
+productnamewithfiftycharacterslong1234567890ABCDEF 10.55
+a 0.99
+1
+productnamewithfiftycharacterslong1234567890ABCDEF 2
+
+1
+2
+bread 2.50
+milk 1.20
+2
+bread 3
+milk 2
+
+1
+3
+water 0.00
+sugar 0.10
+salt 0.05
+3
+water 10
+sugar 5
+salt 2

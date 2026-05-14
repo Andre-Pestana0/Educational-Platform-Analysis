@@ -1,0 +1,25 @@
+[
+  {
+    "input": "abc+123",
+    "output": "correct"
+  },
+  {
+    "input": "(a)",
+    "output": "correct"
+  },
+  {
+    "input": ")a(",
+    "output": "incorrect"
+  },
+  {
+    "input": "((a+b)*(c-d))",
+    "output": "correct"
+  },
+  {
+    "input": "((a+b)*(c-d)",
+    "output": "incorrect"
+  },
+  {
+    "input": "a+b\n(a+b)\n(a+b\na+b)\n((()))",
+    "output": "correct\ncorrect\nincorrect\nincorrect\ncorrect"
+  },

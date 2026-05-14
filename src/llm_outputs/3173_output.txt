@@ -1,25 +1,14 @@
-Dias terrestres para Jupiter = 8693
-Data terrestre para Jupiter: 2044-10-10
+Dias terrestres para Jupiter = 8691
+Data terrestre para Jupiter: 2044-10-07
 Dias terrestres para Saturno = 21623
 Data terrestre para Saturno: 2080-03-04
 
-Dias terrestres para Jupiter = 17386
-Data terrestre para Jupiter: 2068-07-28
-Dias terrestres para Saturno = 43244
-Data terrestre para Saturno: 2139-05-16
+Dias terrestres para Jupiter = 43455
+Data terrestre para Jupiter: 2139-12-13
+Dias terrestres para Saturno = 108114
+Data terrestre para Saturno: 2316-12-24
 
-Dias terrestres para Jupiter = 26079
-Data terrestre para Jupiter: 2092-05-16
-Dias terrestres para Saturno = 64867
-Data terrestre para Saturno: 2198-07-28
-
-Dias terrestres para Jupiter = 43463
-Data terrestre para Jupiter: 2139-12-21
-Dias terrestres para Saturno = 108111
-Data terrestre para Saturno: 2316-12-21
-
-Dias terrestres para Jupiter = 217318
-Data terrestre para Jupiter: 2615-12-21
-Dias terrestres para Saturno = 540558
-Data terrestre para Saturno: 3500-12-21
-
+Dias terrestres para Jupiter = 217274
+Data terrestre para Jupiter: 2616-11-06
+Dias terrestres para Saturno = 540570
+Data terrestre para Saturno: 3500-01-13

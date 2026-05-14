@@ -1,0 +1,137 @@
+**Hoare‑style specification**  
+
+We denote by  
+
+* `String` – the set of all finite strings (UTF‑8 characters).  
+* `ℕ` – the set of natural numbers (including 0).  
+
+A *competition* (or *modality*) is a 4‑tuple  
+
+\[
+c_i = (\;d_i,\;g_i,\;s_i,\;b_i\;)\in\text{String}^4 ,
+\]
+
+where  
+
+* `d_i`  – description of the competition,  
+* `g_i`  – name of the gold‑medal country,  
+* `s_i`  – name of the silver‑medal country,  
+* `b_i`  – name of the bronze‑medal country.  
+
+The whole input is a finite sequence  
+
+\[
+I = \langle c_1 ,c_2 ,\dots ,c_n\rangle ,\qquad n\in\mathbb N .
+\]
+
+The program reads **exactly one** such sequence (the end of the file marks the end of the sequence).
+
+--------------------------------------------------------------------
+### 1.  Pre‑condition  \(P\)
+
+\[
+\begin{aligned}
+P \; \equiv\; & \bigl(0\le n \le 1000\bigr)                                        &&\text{(at most 1000 competitions)}\\[2mm]
+            & \land\;\forall i\in\{1,\dots ,n\}\;:\;
+                d_i\in\text{String}\;\land\;g_i\in\text{String}\;
+                \land\;s_i\in\text{String}\;\land\;b_i\in\text{String}           &&\text{all fields are strings}\\[2mm]
+            & \land\;\Bigl|\{\,c\mid \exists i\;(g_i=c\lor s_i=c\lor b_i=c)\,\}\Bigr|
+                \le 300                                                          &&\text{≤ 300 distinct countries}\\[2mm]
+            & \land\;\text{the input stream ends exactly after the line }b_n .     &&\text{EOF terminates the sequence}
+\end{aligned}
+\]
+
+--------------------------------------------------------------------
+### 2.  Auxiliary definitions used in the post‑condition  
+
+*The set of countries that appear in the input*  
+
+\[
+\mathcal C \;=\;\{\,c\mid \exists i\;(g_i=c\lor s_i=c\lor b_i=c)\,\}.
+\]
+
+*Counting functions* (for every \(c\in\mathcal C\))
+
+\[
+\begin{aligned}
+\operatorname{gold}(c)   &:= \bigl|\{\,i\mid g_i = c\,\}\bigr| ,\\[1mm]
+\operatorname{silver}(c) &:= \bigl|\{\,i\mid s_i = c\,\}\bigr| ,\\[1mm]
+\operatorname{bronze}(c) &:= \bigl|\{\,i\mid b_i = c\,\}\bigr| .
+\end{aligned}
+\]
+
+*Sorting order*  
+
+For two countries \(c,d\in\mathcal C\) we write  
+
+\[
+c \prec d \iff
+\begin{cases}
+\operatorname{gold}(c)   > \operatorname{gold}(d)   &\text{(more gold)}\\[1mm]
+\operatorname{gold}(c)   = \operatorname{gold}(d) \land
+\operatorname{silver}(c) > \operatorname{silver}(d) &\text{(more silver)}\\[1mm]
+\operatorname{gold}(c)   = \operatorname{gold}(d) \land
+\operatorname{silver}(c) = \operatorname{silver}(d) \land
+\operatorname{bronze}(c) > \operatorname{bronze}(d) &\text{(more bronze)}\\[1mm]
+\operatorname{gold}(c)   = \operatorname{gold}(d) \land
+\operatorname{silver}(c) = \operatorname{silver}(d) \land
+\operatorname{bronze}(c) = \operatorname{bronze}(d) \land
+c \;\text{lexicographically smaller than}\; d .
+\end{cases}
+\]
+
+Let  
+
+\[
+\mathsf{Sorted}(\mathcal C) = \langle c_{(1)},c_{(2)},\dots ,c_{(k)}\rangle 
+\]
+
+be the permutation of \(\mathcal C\) that respects the total order \(\prec\) (i.e.  
+\(c_{(1)}\prec c_{(2)}\prec\cdots\prec c_{(k)}\)).  
+\(k = |\mathcal C|\).
+
+--------------------------------------------------------------------
+### 3.  Post‑condition  \(Q\)
+
+The program produces an output stream \(O\) that consists of  
+
+\[
+O = \underbrace{\text{``Quadro de Medalhas''}\;\texttt{\textbackslash n}}_{\text{first line}}
+      \;\; \Vert\!\!\Vert_{j=1}^{k}
+          \bigl( c_{(j)}\;\texttt{ }\operatorname{gold}(c_{(j)})\;
+                 \texttt{ }\operatorname{silver}(c_{(j)})\;
+                 \texttt{ }\operatorname{bronze}(c_{(j)})\;
+                 \texttt{\textbackslash n}\bigr) .
+\]
+
+In words:
+
+* the first line of the output is exactly the literal string **“Quadro de Medalhas”** followed by a line break;
+* for every country \(c\in\mathcal C\) there is exactly one subsequent line that contains  
+
+  ```
+  <country‑name> <gold‑count> <silver‑count> <bronze‑count>
+  ```
+
+  separated by a single blank character;
+* the sequence of those lines is ordered according to the comparator \(\prec\) defined above (i.e. descending by gold, then silver, then bronze, and finally ascending by the country name).
+
+--------------------------------------------------------------------
+### 4.  Hoare triple
+
+\[
+\boxed{\;\{P\}\;\; \texttt{ScoreboardProgram}\;\; \{Q\}\;}
+\]
+
+where  
+
+* `ScoreboardProgram` reads the whole input stream, builds the set \(\mathcal C\) and the three counting maps `gold`, `silver`, `bronze`, sorts the countries with the comparator \(\prec\), and writes the output described in \(Q\).
+
+--------------------------------------------------------------------
+### 5.  Remarks (informal but useful)
+
+* The pre‑condition guarantees that the input is well‑formed (four lines per competition, no missing lines, and the file ends after the last bronze line).  
+* The post‑condition does **not** prescribe any particular algorithmic strategy (hash tables, arrays, etc.); it only describes the observable effect on the input–output behaviour.  
+* The bound “at most 300 countries and at most 1000 competitions” appears only in \(P\); any implementation that respects these limits satisfies the specification.  
+
+Thus the Hoare‑logic specification above completely captures, in mathematical notation, the required behaviour of the “Christmas Olympics medal table” program.

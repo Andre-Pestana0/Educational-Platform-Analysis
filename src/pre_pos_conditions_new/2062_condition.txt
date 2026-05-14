@@ -1,0 +1,121 @@
+**Hoare‑style specification**
+
+We describe the program that reads an integer `N` and a sequence of `N` words  
+`W = ⟨w₁ , … , w_N⟩` (each word consists only of capital letters ‘A’‑‘Z’) and
+produces a sequence `O = ⟨o₁ , … , o_N⟩` in which the only possible
+corrections are those required by the statement of the problem.
+
+---
+
+### 1.   Vocabulary
+
+* `ℕ` – the set of natural numbers (including 0).  
+* `Σ = { A,…,Z }` – alphabet of capital letters.  
+* For a word `x ∈ Σ⁺` we write `|x|` for its length, `x[i]` for its *i*‑th
+  character (1‑based indexing) and `x[1..k]` for the prefix of length `k`.  
+
+* **Correction function** `corr : Σ⁺ → Σ⁺`  
+
+\[
+\operatorname{corr}(x)=
+\begin{cases}
+\text{“OBI”} &\text{if }|x|=3 \land x[1..2]=\text{“OB”}\\[4pt]
+\text{“URI”} &\text{if }|x|=3 \land x[1..2]=\text{“UR”}\\[4pt]
+x            &\text{otherwise}
+\end{cases}
+\]
+
+(The only allowed errors are in the **last** letter of the words
+*OBI* and *URI*; therefore a word of length three whose first two letters
+are “OB’’ must be turned into “OBI”, and analogously for “UR”.)
+
+* The input sequence is denoted `W = ⟨ w₁ , … , w_N ⟩`.  
+* The output sequence is denoted `O = ⟨ o₁ , … , o_N ⟩`.
+
+---
+
+### 2.   Pre‑condition  **P**
+
+\[
+\boxed{
+\begin{aligned}
+P \;\equiv\;&\; 1 < N < 10\,000 \\[2pt]
+&\land\; \bigl(\forall i\;(1\le i\le N \;\Longrightarrow\; w_i \in \Sigma^{1..20})\bigr)
+\end{aligned}}
+\]
+
+*`N`* is the number of words (strictly between 1 and 10 000) and each
+`w_i` is a non‑empty word of at most 20 capital letters.
+
+---
+
+### 3.   Post‑condition  **Q**
+
+\[
+\boxed{
+\begin{aligned}
+Q \;\equiv\;&\; \bigl(\;|O| = N\;\bigr)                                          \\[4pt]
+&\land\; \bigl(\forall i\;(1\le i\le N \;\Longrightarrow\; o_i = \operatorname{corr}(w_i))\bigr)
+\end{aligned}}
+\]
+
+*The output contains exactly `N` words, and each output word `o_i`
+is the result of applying the correction function `corr` to the
+corresponding input word `w_i`.*
+
+---
+
+### 4.   Hoare triple for the whole program
+
+\[
+\boxed{\{\,P\,\}\;\; \textsf{CorrectText}(N,W)\;\; \{\,Q\,\}}
+\]
+
+where `CorrectText` is the (imperative) algorithm that:
+
+```
+read N
+read W[1..N]
+for i = 1 to N do
+    if |W[i]| = 3 and W[i][1..2] = "OB" then
+         O[i] ← "OBI"
+    else if |W[i]| = 3 and W[i][1..2] = "UR" then
+         O[i] ← "URI"
+    else
+         O[i] ← W[i]
+output O[1..N]
+```
+
+The loop invariant that justifies the above Hoare triple is
+
+\[
+I(k) \equiv
+\bigl(1\le k\le N+1\bigr)\;\land\;
+\bigl(\forall i\;(1\le i<k \;\Longrightarrow\; O[i]=\operatorname{corr}(W[i]))\bigr)
+\]
+
+*Initially* (`k = 1`) the invariant holds vacuously.  
+*Preservation* follows directly from the `if‑else` body, and
+*termination* (`k = N+1`) yields exactly the post‑condition `Q`.
+
+---
+
+### 5.   Summary (in pure mathematical notation)
+
+\[
+\begin{array}{l}
+\{\,1<N<10^4 \;\land\; \forall i\;(1\le i\le N \Rightarrow w_i\in\Sigma^{1..20})\,\}\\[2pt]
+\qquad\textsf{read }N,\;W\\[2pt]
+\qquad\textsf{for }i=1\text{ to }N\; \textsf{do } o_i := 
+\begin{cases}
+\text{“OBI”} &\text{if }|w_i|=3\land w_i[1..2]=\text{“OB”}\\
+\text{“URI”} &\text{if }|w_i|=3\land w_i[1..2]=\text{“UR”}\\
+w_i         &\text{otherwise}
+\end{cases}\\[2pt]
+\qquad\textsf{output }O\\[2pt]
+\{\,|O|=N\;\land\;\forall i\;(1\le i\le N\Rightarrow o_i=\operatorname{corr}(w_i))\,\}
+\end{array}
+\]
+
+This Hoare‑logic specification captures **exactly** the behaviour required by
+the natural‑language description of the problem.

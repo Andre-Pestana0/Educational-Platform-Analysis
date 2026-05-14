@@ -1,0 +1,301 @@
+**Answer – a Hoare‑logic proof that the program prints the 32‑bit “carry‑free” sum**  
+
+Below we give a *complete* proof sketch in the style of Hoare logic.  
+All the reasoning is done with the specification that you supplied in the
+question (the single‑addition triple and the loop invariant).  
+The proof shows that the program satisfies the outermost triple  
+
+\[
+\{\,\texttt{true}\,\}\;P\;\{\,\texttt{true}\,\}
+\]
+
+where *P* is the whole `for line in sys.stdin …` block, i.e. that the program
+conforms to the functional contract:
+
+*For every input line that contains two unsigned‑32‑bit numbers `a` and `b`,
+the program prints exactly one unsigned‑32‑bit number `c = a ⊕ b`.*
+
+---------------------------------------------------------------------
+
+## 1.  The program written as an imperative loop
+
+The Python fragment
+
+```python
+import sys
+
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    a, b = map(int, line.split())
+    print(a ^ b)
+```
+
+is equivalent (ignoring the `continue`‑statement) to the following
+while‑loop that makes the control‑flow explicit:
+
+```
+n := 0                         # number of already processed lines
+while (read line from sys.stdin) ≠ EOF do
+    line := strip(line)                     # 1
+    if line = "" then
+        skip                                 # 2 (continue)
+    else
+        a, b := map(int, split(line))        # 3
+        c    := a xor b                       # 4
+        print c                               # 5
+        n    := n+1                           # 6
+    fi
+od
+```
+
+All statements are *atomic* for the purpose of the Hoare proof
+(their internal Python details are hidden behind the abstract
+operations `strip`, `split`, `map`, `xor`, `print`).  
+The only *input* operation is the `read` that yields a pair `(a,b)` or
+the special value `EOF`.  
+
+---------------------------------------------------------------------
+
+## 2.  State variables and auxiliary predicates
+
+* `n ∈ ℕ` – number of lines already processed.
+* `a_k , b_k , c_k` – the values read/produced on the *k*‑th iteration,
+  for `0 ≤ k < n`.  (They are not stored in the program, but they are
+  useful for the invariant.)
+* `U₃₂(x) ≡ x ∈ 𝕌₃₂` – “`x` is a 32‑bit unsigned integer”.
+
+---------------------------------------------------------------------
+
+## 3.  Loop invariant
+
+\[
+\boxed{ I \; \equiv\;
+\forall k\;(0\le k < n).\;
+U₃₂(a_k) \land U₃₂(b_k) \land
+c_k = a_k \oplus b_k \land U₃₂(c_k)
+}
+\tag{Inv}
+\]
+
+*Intuition.*  After the loop has processed `n` lines, the invariant states
+exactly the functional contract for those `n` lines: each pair read was a
+valid 32‑bit unsigned word, the printed result was the XOR of the pair,
+and the result is itself a 32‑bit unsigned word.
+
+---------------------------------------------------------------------
+
+## 4.  Proof outline
+
+We prove the outermost triple by the *while‑rule* of Hoare logic:
+
+\[
+\frac{\{I\land B\}\;S\;\{I\}}{\{I\}\;\textbf{while}\;B\;\textbf{do}\;S\;\textbf{od}\;\{I\land\neg B\}}
+\]
+
+where  
+
+* `B` is the loop guard “the next read is **not** EOF”,  
+* `S` is the body of the loop, and  
+* `I` is the invariant (Inv).
+
+The outermost pre‑ and post‑conditions are `true`,
+so we only have to show that `I` holds initially and is preserved by the
+body.
+
+---------------------------------------------------------------------
+
+### 4.1  Initialization (`{true} n:=0 {I}`)
+
+```
+{ true }
+n := 0
+{ I }
+```
+
+*Proof.*  After the assignment `n:=0` there is **no** processed line,
+hence the universal quantifier in `I` has an empty domain and the
+predicate is true vacuously.  Therefore `I` holds.
+
+---------------------------------------------------------------------
+
+### 4.2  Preservation of the invariant
+
+We must prove
+
+\[
+\{\,I \land B\,\}\;S\;\{\,I\,\}
+\tag{Pres}
+\]
+
+where `S` is the body (statements 1–6).  
+The proof proceeds by case analysis on the `if` test.
+
+---
+
+#### 4.2.1  The `continue` branch (`line = ""`)
+
+The statements executed are
+
+```
+skip
+```
+
+(i.e. nothing changes).  
+Because the branch does **not** modify `n` or any of the variables
+`a_k,b_k,c_k`, the invariant `I` is unchanged and therefore still holds.
+Formally:
+
+```
+{ I ∧ line = "" }   skip   { I }
+```
+
+---
+
+#### 4.2.2  The normal branch (`line ≠ ""`)
+
+The executed statements are (3)–(6).  
+We treat them one by one, using the Hoare rules for assignment and the
+single‑addition specification that you gave.
+
+1. **Reading the line** – abstractly we have already assumed `B`,
+   i.e. the read succeeded and produced a pair `(a,b)`.  
+   By the **pre‑condition of the specification** we know  
+
+   \[
+   U₃₂(a) \land U₃₂(b)
+   \tag{P₁}
+   \]
+
+2. **Statement 3 – `a, b := map(int, split(line))`**  
+
+   This is a *simultaneous* assignment, which is handled by the
+   standard Hoare rule:
+
+   \[
+   \frac{\{\,P[a',b'/a,b]\}\;a:=a',\;b:=b'\;\{\,P\,\}}{}
+   \]
+
+   Instantiating `P` with `U₃₂(a)∧U₃₂(b)` we obtain
+
+   \[
+   \{\,U₃₂(a')\land U₃₂(b')\,\}\;a:=a';\;b:=b'\;\{\,U₃₂(a)\land U₃₂(b)\,\}
+   \]
+
+   Since `map(int, …)` returns exactly the numbers that have been read,
+   the antecedent holds by (P₁).  Hence after the assignment we still have
+   `U₃₂(a) ∧ U₃₂(b)`.
+
+3. **Statement 4 – `c := a xor b`**  
+
+   This is precisely the *single‑addition* triple that you wrote:
+
+   \[
+   \{\,U₃₂(a)\land U₃₂(b)\,\}\;c:=a\oplus b\;
+   \{\,c = a\oplus b \land U₃₂(c)\,\}
+   \tag{Add}
+   \]
+
+4. **Statement 5 – `print c`**  
+
+   Printing is a *pure output* operation; it does not modify any program
+   variable.  Hence the Hoare rule for “skip‑like” statements gives
+
+   \[
+   \{\,c = a\oplus b \land U₃₂(c)\,\}\;\text{print }c\;
+   \{\,c = a\oplus b \land U₃₂(c)\,\}
+   \]
+
+5. **Statement 6 – `n := n+1`**  
+
+   Adding one to `n` extends the range of the universal quantifier in the
+   invariant.  After the increment we must show that the invariant holds
+   for the *new* index `k = n` (the line just processed).
+
+   By the previous steps we have established
+
+   \[
+   U₃₂(a) \land U₃₂(b) \land c = a\oplus b \land U₃₂(c)
+   \tag{P₂}
+   \]
+
+   Define the *new* sequences  
+
+   \[
+   a_n := a,\qquad b_n := b,\qquad c_n := c.
+   \]
+
+   Then (P₂) is exactly the conjunct required for `k=n` in the invariant.
+   For all older indices `k < n` the invariant already held by the
+   induction hypothesis (the part of `I` that mentions only the first `n`
+   elements).  Consequently after the assignment `n:=n+1` we obtain
+
+   \[
+   \forall k\;(0\le k < n+1).\;
+   U₃₂(a_k) \land U₃₂(b_k) \land
+   c_k = a_k\oplus b_k \land U₃₂(c_k)
+   \]
+
+   i.e. the invariant `I` again holds.
+
+Putting the five sub‑proofs together we obtain
+
+\[
+\{\,I \land B \land \text{line}\neq ""\,\}\;
+\bigl(\text{3;4;5;6}\bigr)\;
+\{\,I\,\}
+\]
+
+and together with the `continue` branch we have proved (Pres).
+
+---------------------------------------------------------------------
+
+### 4.3  Termination condition (`I ∧ ¬B`)
+
+When the loop exits we have `¬B`, i.e. the *read* returned `EOF`.  
+No further statements are executed, so the final state satisfies the
+post‑condition `true`.  (The invariant does not need to be used for the
+post‑condition because the specification of the whole program is
+`{true} … {true}`.)  
+
+If one prefers a more *meaningful* post‑condition, we can state it as
+
+\[
+\forall k\;(0\le k < n).\;
+c_k = a_k\oplus b_k \land U₃₂(c_k)
+\]
+
+which follows directly from `I ∧ ¬B`.  This is exactly the functional
+contract described in Section 4 of the question.
+
+---------------------------------------------------------------------
+
+## 5.  Conclusion – the Hoare‑logic proof
+
+Summarising the steps:
+
+| Step | Hoare rule used | Reason |
+|------|-----------------|--------|
+| 1.   | **Assignment** (`n:=0`) | Establishes invariant vacuously |
+| 2.   | **While‑rule** with invariant `I` | Reduces whole proof to proving preservation |
+| 3.   | **Case analysis** on the `if` test | Handles both `continue` and normal branch |
+| 4.   | **Assignment** for `a,b` | Keeps `U₃₂(a)∧U₃₂(b)` |
+| 5.   | **Single‑addition triple** (`c:=a⊕b`) | Gives `c = a⊕b` and `U₃₂(c)` |
+| 6.   | **Skip** (`print c`) | Does not affect the invariant |
+| 7.   | **Assignment** (`n:=n+1`) | Extends the quantified range, adds the new
+   triple `(a_n,b_n,c_n)` to the invariant |
+| 8.   | **Consequence** (combine the two branches) | Gives preservation `{I∧B} S {I}` |
+| 9.   | **While‑rule** (again) | Yields `{I} while … {I ∧ ¬B}` |
+|10.   | **Initialisation** (`{true} n:=0 {I}`) | Gives `{true} P {true}` after discarding `I` |
+|11.   | **Rule of consequence** (`true ⇒ I`, `I ⇒ true`) | Final outer triple `{true} P {true}` |
+
+Thus we have a *complete Hoare‑logic derivation* that the program
+conforms to the specification:
+
+*For every input line that contains two unsigned‑32‑bit integers
+`a` and `b`, the program prints exactly one unsigned‑32‑bit integer
+`c = a ⊕ b`.*
+
+The proof uses only the given pre‑condition/post‑condition for a single
+addition and the invariant `I`; no other properties of Python are needed.

@@ -1,0 +1,30 @@
+[
+  {
+    "input": "ab12c3d4e5f6g7h8i9j0k1l2.3456\nmn3.2op4qr5st6",
+    "output": "cpf 12345678901\n123456789015.58"
+  },
+  {
+    "input": "abc12345678901xyz\n00000123",
+    "output": "cpf 12345678901\n12345679024.00"
+  },
+  {
+    "input": ".0012345678901\n7.89",
+    "output": "cpf 00123456789\n7.89"
+  },
+  {
+    "input": "1234567890123456.789\n9876543210.9999",
+    "output": "cpf 12345678901\n1234577766666667.77"
+  },
+  {
+    "input": "aaaaaaaaaaaaaaaaaaaaaaaaa1234567890123.45bbbbbbbbbbbbbbbbbbb\ncccccccccccccccccccccccccccccc9876543210987.65dddddddddddddd",
+    "output": "cpf 12345678901\n11111111101111.10"
+  },
+  {
+    "input": "12345678901.\n0",
+    "output": "cpf 12345678901\n12345678901.00"
+  },
+  {
+    "input": "1111111111122.33\n.99",
+    "output": "cpf 11111111111\n1111111111123.32"
+  }
+]

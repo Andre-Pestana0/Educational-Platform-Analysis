@@ -9,6 +9,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def load_description(code): 
     counter = 0  
     folders = [
+            "exercises_iniciante_descriptions",
             "exercises_ad-hoc_descriptions", 
             "exercises_string_descriptions", 
             "exercises_data-structures_descriptions", 
@@ -207,7 +208,9 @@ def save_output(code, output, output_dir):
 
  
 def code_logic(code_list):
-    base_prompt = load_base_prompt("test_generation_prompt_refined")
+    base_prompt = load_base_prompt("prompt_LLM_suggested")
+    # base_prompt = load_base_prompt("prompt")
+    # base_prompt = load_base_prompt("test_generation_prompt_refined")
 
     for code in code_list:
         description = load_description(code)
@@ -229,7 +232,7 @@ def code_logic(code_list):
         #     continue
 
         print(f"Code: {code}")
-        # print(f"Generated {len(inputs)} test cases.")
+
         print("-" * 40)
 
         save_io_files_simplified(code, llm_response)
@@ -295,19 +298,22 @@ def formal_specification_validation_logic(code_list):
 
     
 def main():
-    exercises_to_generate_solutions = [1024, 2839, 3248,1893]
+    exercises_to_generate_solutions = [1042, 1181, 1183, 1186, 1187, 1189, 1185, 1182, 1190, 1827, 2031, 3173]
     
     missing_conditions_group = [
-        1024, 2839, 3248,1893
+        1188
     ]
+    # missing_conditions_group = [
+    #     2890, 1492, 1161, 1068, 2018, 1281
+    # ]
    
     missing_proofs_group = [
-        3248
+        1188
     ]
 
-    # code_logic(exercises_to_generate_solutions)
+    code_logic(exercises_to_generate_solutions)
     # conditions_generation_logic(missing_conditions_group)
-    formal_specification_validation_logic(missing_proofs_group)
+    # formal_specification_validation_logic(missing_proofs_group)
 
     
 if __name__ == "__main__":

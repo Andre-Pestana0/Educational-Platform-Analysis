@@ -1,0 +1,18 @@
+[
+  {
+    "input": "1\npapel\npapel\n",
+    "output": "Sem ganhador"
+  },
+  {
+    "input": "2\npedra\npapel\nataque\npedra\n",
+    "output": "Jogador 2 venceu\nJogador 2 venceu"
+  },
+  {
+    "input": "3\npapel\npedra\npedra\nataque\npedra\nataque\n",
+    "output": "Jogador 1 venceu\nJogador 1 venceu\nJogador 1 venceu"
+  },
+  {
+    "input": "4\npapel\npapel\npedra\npapel\npapel\npedra\npapel\npapel\n",
+    "output": "Sem ganhador\nJogador 2 venceu\nJogador 1 venceu\nSem ganhador"
+  }
+]

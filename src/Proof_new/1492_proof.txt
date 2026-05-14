@@ -1,0 +1,433 @@
+## 1.  What has to be shown  
+
+We have to prove the **total‑correctness** of the whole Python program with respect to the
+Hoare‑logic specification that was given in the statement.
+
+* For a single test case \((A,B)\) we must show  
+
+\[
+\{\,1\le A\le B\le L\,\}\;\;{\tt countOnes}(A,B)\;\;
+\{\,R =\displaystyle\sum_{k=A}^{B}\operatorname{pop}(k)\,\}.
+\]
+
+* The program reads an arbitrary finite list of such pairs, calls the routine for
+each of them and prints the returned value, therefore the same triple has to hold
+for every line that is processed.
+
+The program itself is a thin wrapper around the helper routine  
+
+```
+def count_ones(n):      # 0 ≤ n ≤ L
+    @lru_cache(maxsize=None)
+    def go(i, acc, top):
+        …
+    go.cache_clear()
+    return go(55, 0, True)
+```
+
+Hence the proof is divided into two parts  
+
+1. **Correctness of `go`** – a recursive DP that enumerates all numbers
+   `0 … n` having a given prefix.  
+2. **From `go` to `count_ones` and finally to `countOnes(A,B)`** – using the
+   identity  
+
+   \[
+   \operatorname{F}(n)=\sum_{k=0}^{n}\operatorname{pop}(k)=
+   \texttt{count\_ones}(n) .
+   \]
+
+When both parts are established, the outer loop that reads the input lines is
+trivially correct (it only repeats a correct computation).
+
+--------------------------------------------------------------------
+
+## 2.  Specification of the auxiliary function `go`
+
+### 2.1  Notation used in the proof  
+
+* `n` – the argument of `count_ones`. Throughout the proof we keep it fixed.
+* `bit_i(n) = (n >> i) & 1` – the *i*‑th binary digit of `n` (0‑indexed, LSB
+  = 0).  
+* `Top(i,top)` – the logical condition *“the already‑chosen higher bits are
+  exactly the same as the corresponding bits of `n`”* :
+
+  \[
+  \text{Top}(i,\text{top}) \;\; \stackrel{\text{def}}{=}\;\;
+  \bigl(\text{top}= \text{True}\bigr) \Longleftrightarrow
+  \bigl(\forall j>i\;.\; \text{chosen}_j = \operatorname{bit}_j(n)\bigr).
+  \]
+
+  In the program `top` is a Boolean that is updated exactly according to this
+  definition.
+
+* `Acc(i,acc)` – the number of `1`‑bits that have already been fixed in the
+  already‑chosen higher positions:
+
+  \[
+  \text{Acc}(i,\text{acc}) \;\stackrel{\text{def}}{=}\;
+  \text{acc}= \sum_{j>i} \text{chosen}_j .
+  \]
+
+### 2.2  Intended meaning of `go`
+
+```
+go(i, acc, top)  ≡
+   Σ  (pop of a number)   over all numbers x whose binary representation
+   satisfies
+      – the bits higher than i are exactly the bits that have already been
+        fixed (the “chosen” bits);
+      – if top = True the prefix up to i must be ≤ the prefix of n,
+        otherwise it may be any (0/1) pattern;
+      – the number of 1‑bits already fixed equals acc .
+```
+
+Formally we define the **mathematical specification** of `go` :
+
+\[
+\begin{aligned}
+\mathsf{Spec}_{go}(i,acc,top) \; \equiv\;
+&\forall x\in[0,n]\;.\;
+   \bigl(\text{prefix}_{>i}(x)=\text{chosen}_{>i}\bigr) \land
+   \bigl(\text{top}= \text{True}\rightarrow
+          \text{prefix}_{\ge i}(x)\le\text{prefix}_{\ge i}(n)\bigr) \\
+&\qquad\Longrightarrow
+   \operatorname{pop}(x)=acc+\operatorname{pop}\bigl(x\bmod 2^{i+1}\bigr)
+\end{aligned}
+\]
+
+and the **value** returned by `go(i,acc,top)` is
+
+\[
+\mathsf{Val}_{go}(i,acc,top)=
+\sum_{\substack{x\in[0,n] \\ \text{prefix conditions above}}}
+   \operatorname{pop}(x).
+\tag{1}
+\]
+
+The **pre‑condition** of `go` is
+
+\[
+\mathsf{Pre}_{go}(i,acc,top)\;\equiv\;
+   -1\le i\le 55\;\land\;acc\in\mathbb N\;\land\;
+   \text{top}\in\{\text{True},\text{False}\}.
+\]
+
+The **post‑condition** we want to prove is
+
+\[
+\mathsf{Post}_{go}(i,acc,top,R)\;\equiv\;
+   R = \mathsf{Val}_{go}(i,acc,top).
+\tag{2}
+\]
+
+--------------------------------------------------------------------
+
+## 3.  Partial‑correctness of `go`
+
+We prove by **structural induction on `i`** that the body of `go` satisfies the
+Hoare triple  
+
+\[
+\boxed{\;\{\mathsf{Pre}_{go}(i,acc,top)\}\;{\tt go}(i,acc,top)\;
+       \{\mathsf{Post}_{go}(i,acc,top,R)\}\;}
+\tag{3}
+\]
+
+### 3.1  Base case `i == -1`
+
+```python
+if i == -1:
+    return acc
+```
+
+*Pre‑condition* guarantees `i = -1`.  
+When `i = -1` there are **no remaining bits** to decide, therefore the only
+number that satisfies the prefix constraints is the already‑fixed prefix
+itself; its pop‑count equals `acc`.  Consequently (1) reduces to a single term
+`acc`, and the statement `return acc` yields exactly that value.
+
+Hence `R = acc = \mathsf{Val}_{go}(-1,acc,top)` and (2) holds.
+
+### 3.2  Inductive step `i ≥ 0`
+
+Assume the induction hypothesis (IH) holds for all arguments with a *smaller*
+`i` (i.e. for `i‑1`).  
+Consider the body for a generic `i ≥ 0`:
+
+```python
+bit = (n >> i) & 1                # = bit_i(n)
+new_top = (not bit) and top       #  top stays True only if n_i = 0 and top was True
+ans = go(i-1, acc, new_top)       #  case “place a 0 at position i”
+
+if not top or bit:                #  we are allowed to place a 1
+    ans += go(i-1, acc+1, bool(bit) and top)
+return ans
+```
+
+#### 3.2.1  What the two recursive calls enumerate  
+
+* **Zero‑branch** (`new_top`) – we fix the current bit to `0`.  
+
+  *If `top` is True* we must respect the prefix of `n`; this is possible only
+  when `bit_i(n)=0`.  The expression  
+
+  \[
+  \text{new\_top}= (\neg\operatorname{bit}_i(n))\land\text{top}
+  \]
+
+  exactly captures the rule *“the new prefix is still equal to the prefix of
+  `n` iff the old prefix was equal (`top`) **and** the current bit of `n` is
+  0”*.  
+
+  *If `top` is False* we are already strictly smaller than `n`, therefore the
+  new prefix is also strictly smaller – `new_top` becomes `False`.  
+
+  The recursive call  
+
+  \[
+  \texttt{go}(i-1,acc,\text{new\_top})
+  \]
+
+  therefore enumerates **all numbers whose i‑th bit is 0** and whose higher
+  bits satisfy the original prefix constraints.
+
+* **One‑branch** – we fix the current bit to `1`.  
+
+  This branch is taken only when the resulting prefix does not exceed `n`,
+  i.e. when either we have already become smaller (`not top`) **or** the i‑th
+  bit of `n` itself is 1 (`bit`).  The guard  
+
+  \[
+  \texttt{if not top or bit:}
+  \]
+
+  is precisely the logical condition  
+
+  \[
+  \neg\text{Top}(i,\text{top})\;\lor\; \operatorname{bit}_i(n)=1 .
+  \]
+
+  The new value of `top` for the recursive call is  
+
+  \[
+  \text{bool(bit) and top}= \bigl(\operatorname{bit}_i(n)=1\bigr)\land\text{top},
+  \]
+
+  i.e. we stay *tight* with `n` only if we were tight before **and** `n` also
+  has a 1 at this position.  The accumulator is increased by one because we
+  have just placed a `1`:
+
+  \[
+  \texttt{go}(i-1,acc+1,\text{bool(bit) and top}).
+  \]
+
+  Consequently this call enumerates **all numbers whose i‑th bit is 1** and
+  whose higher bits respect the prefix constraints.
+
+Thus the two calls partition **exactly** the set of admissible numbers that are
+compatible with the current prefix.
+
+#### 3.2.2  Using the induction hypothesis
+
+By the IH, each recursive call returns the sum of `pop` over its own sub‑set,
+i.e.
+
+\[
+\begin{aligned}
+\texttt{go}(i-1,acc,\text{new\_top}) &=
+\!\!\!\sum_{\substack{x\in[0,n]\\
+   \text{prefix}_{>i}= \text{chosen}_{>i}\\
+   x_i=0}}
+   \operatorname{pop}(x)  \tag{4}\\[4pt]
+\texttt{go}(i-1,acc+1,\text{bool(bit) and top}) &=
+\!\!\!\sum_{\substack{x\in[0,n]\\
+   \text{prefix}_{>i}= \text{chosen}_{>i}\\
+   x_i=1}}
+   \operatorname{pop}(x). \tag{5}
+\end{aligned}
+\]
+
+Adding the two results (the `ans += …` line) yields the sum over **all**
+admissible numbers for the current arguments `(i,acc,top)`.  This sum is
+exactly the value prescribed in (1), therefore the assignment `return ans`
+establishes (2).
+
+Thus the Hoare triple (3) is proved for the inductive case.
+
+--------------------------------------------------------------------
+
+## 4.  Termination of `go`
+
+The only recursive call is `go(i-1, …)`.  The argument `i` is a non‑negative
+integer that strictly decreases at each call and is bounded below by `-1`.
+Consequently the recursion depth is at most `i+2 ≤ 57`.  Because the function
+is *total* on this well‑founded ordering, the recursion terminates for every
+legal triple `(i,acc,top)`.  The `@lru_cache` does not affect termination; it
+only guarantees that each distinct triple is evaluated at most once.
+
+Hence we have **total correctness** of `go`:
+
+\[
+\{\,\mathsf{Pre}_{go}\,\}\;\texttt{go}\;\{\,\mathsf{Post}_{go}\,\}
+\quad\text{and}\quad \texttt{go}\ \text{always terminates}.
+\tag{6}
+\]
+
+--------------------------------------------------------------------
+
+## 5.  From `go` to `count_ones`
+
+`count_ones` is defined as
+
+```python
+def count_ones(n):
+    @lru_cache(maxsize=None)
+    def go(i, acc, top):
+        …
+    go.cache_clear()
+    return go(55, 0, True)
+```
+
+* The call `go.cache_clear()` only removes memoisation entries; it does not
+  affect the logical meaning of the function.
+* The initial arguments are `i = 55`, `acc = 0`, `top = True`.  
+  Because `L = 10^{16} < 2^{54}`, the binary representation of any admissible
+  `n` uses at most 54 bits.  Using `i = 55` therefore adds a leading zero bit
+  that does not change the set of numbers enumerated – it merely forces the
+  algorithm to consider one extra (always‑zero) position, which is harmless.
+
+Applying the specification (2) with these arguments we obtain
+
+\[
+\begin{aligned}
+\texttt{count\_ones}(n)
+&= \mathsf{Val}_{go}(55,0,\text{True})   \\
+&= \sum_{x=0}^{n}\operatorname{pop}(x)   \qquad\text{(by the definition of the
+   prefix constraints when `top` is True)}\\
+&= \operatorname{F}(n).
+\end{aligned}
+\]
+
+Thus we have proved the Hoare triple for `count_ones` :
+
+\[
+\boxed{\;\{\,0\le n\le L\,\}\;\texttt{count\_ones}(n)\;
+       \{\,R = \operatorname{F}(n)\,\}\;}
+\tag{7}
+\]
+
+and termination follows from the termination of `go`.
+
+--------------------------------------------------------------------
+
+## 6.  Correctness of the public routine `countOnes(A,B)`
+
+The program does **not** contain a function literally called `countOnes`; the
+required operation is performed in the main loop:
+
+```python
+ans = count_ones(b) - count_ones(a - 1)
+print(ans)
+```
+
+Let us introduce the (implicit) wrapper
+
+```
+def countOnes(A,B):
+    return count_ones(B) - count_ones(A-1)
+```
+
+Assume the pre‑condition  
+
+\[
+\mathsf{Pre}(A,B) \equiv 1\le A\le B\le L .
+\]
+
+Because `A≥1`, the argument `A‑1` satisfies `0 ≤ A‑1 ≤ L`.  
+Applying (7) to both calls we obtain
+
+\[
+\begin{aligned}
+\texttt{count\_ones}(B) &= \operatorname{F}(B),\\
+\texttt{count\_ones}(A-1) &= \operatorname{F}(A-1).
+\end{aligned}
+\]
+
+Consequently
+
+\[
+\texttt{countOnes}(A,B) =
+\operatorname{F}(B)-\operatorname{F}(A-1)
+   = \sum_{k=A}^{B}\operatorname{pop}(k).
+\]
+
+The returned value is a non‑negative integer, therefore the post‑condition
+
+\[
+\mathsf{Post}(A,B,R) \equiv
+   R\in\mathbb N\ \land\ R = \sum_{k=A}^{B}\operatorname{pop}(k)
+\]
+
+holds.  Both calls to `count_ones` terminate, so the wrapper also terminates.
+Thus we have proved the required Hoare triple
+
+\[
+\boxed{\;\{\mathsf{Pre}(A,B)\}\;\texttt{countOnes}(A,B)\;
+       \{\mathsf{Post}(A,B,R)\}\;}
+\tag{8}
+\]
+
+which is exactly the specification given in the problem statement.
+
+--------------------------------------------------------------------
+
+## 7.  Whole‑program correctness (multiple test cases)
+
+The remaining part of the script is a simple **IO loop**:
+
+```python
+for line in sys.stdin:
+    line = line.strip()
+    if not line: continue
+    a, b = map(int, line.split())
+    ans = count_ones(b) - count_ones(a - 1)
+    print(ans)
+```
+
+*The loop invariant* is:
+
+> After processing the first `k` input lines, the program has printed the
+> correct answer for each of those lines.
+
+The invariant is established for `k = 0` (nothing printed yet).  
+Assuming it holds for `k`, the next line supplies a pair `(a,b)` that
+satisfies the pre‑condition (the problem guarantees that every test case
+conforms to it).  By (8) the expression `count_ones(b) - count_ones(a-1)` computes
+the correct `R_k+1`, which is immediately printed.  Hence the invariant holds
+for `k+1`.  When the `for` loop reaches EOF, the invariant tells us that *all*
+answers have been printed, and the program terminates.
+
+Therefore the complete program satisfies the specification of Section 3:
+
+\[
+\forall i\in\{1,\dots,m\}\;
+   \{\,\mathsf{Pre}(A_i,B_i)\,\}\;
+   \texttt{countOnes}(A_i,B_i)\;
+   \{\,R_i = \operatorname{F}(B_i)-\operatorname{F}(A_i-1)\,\}.
+\]
+
+--------------------------------------------------------------------
+
+## 8.  Summary of the proof
+
+| Component | Pre‑condition | Post‑condition | Termination |
+|-----------|---------------|----------------|-------------|
+| `go(i,acc,top)` | `-1≤i≤55, acc∈ℕ, top∈{T,F}` | returns the sum described in (1) | decreases `i` → finite |
+| `count_ones(n)` | `0≤n≤L` | returns `F(n)` | follows from termination of `go` |
+| `countOnes(A,B)` (wrapper) | `1≤A≤B≤L` | returns `∑_{k=A}^{B} pop(k)` | both calls to `count_ones` terminate |
+| Whole program (loop) | each input line respects the pre‑condition | prints the correct sum for each line | loop finishes after EOF |
+
+All three Hoare triples are proved, hence the **total‑correctness** of the
+provided Python program with respect to the given Hoare‑logic specification is
+established. ∎

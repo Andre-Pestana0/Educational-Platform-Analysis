@@ -1,0 +1,157 @@
+Below is a **Hoare‑logic style specification** of the core routine that solves the problem.  
+All symbols are defined in the *Mathematical Preliminaries* section, after which the
+pre‑condition, post‑condition and the Hoare triple are given.  
+The specification is deliberately **declarative** – it describes *what* must be
+computed, not *how*.
+
+---
+
+## 1.  Mathematical Preliminaries  
+
+* ℕ  – the set of non‑negative integers {0,1,2,…}.  
+* ℤ⁺ – the set of positive integers {1,2,…}.  
+
+*For a non‑negative integer* \(x\)
+
+* \(\operatorname{bit}_i(x) \;:=\; \big\lfloor \frac{x}{2^{\,i}} \big\rfloor \bmod 2\)   
+  (the i‑th binary digit of \(x\), i.e. the value of the i‑th bit, 0‑indexed).
+
+* \(\operatorname{pop}(x) \;:=\; \displaystyle\sum_{i=0}^{\lfloor\log_2 x\rfloor} \operatorname{bit}_i(x)\)   
+  (the number of 1‑bits in the binary representation of \(x\); for \(x=0\) we set
+  \(\operatorname{pop}(0)=0\)).
+
+* \(\operatorname{F}(n) \;:=\; \displaystyle\sum_{k=0}^{n} \operatorname{pop}(k)\)   
+  (total number of 1‑bits in all binary representations of the integers
+  \(0,1,\dots ,n\)).  
+  \(\operatorname{F}\) is a pure mathematical function; an implementation may
+  compute it by any algorithm (e.g. the well‑known “prefix‑ones” recurrence).
+
+* \(\operatorname{maxBit}(n) \;:=\; \lfloor\log_2 n\rfloor\) – the index of the most
+  significant bit of \(n\) (undefined for \(n=0\); we never use it on 0).
+
+* The constant  
+  \[
+  L := 10^{16}\; .
+  \]
+
+---
+
+## 2.  Specification of the elementary routine  
+
+### 2.1  Routine signature  
+
+```
+countOnes : ℤ⁺ × ℤ⁺ → ℕ
+```
+
+Given two positive integers `A` and `B`, the routine returns a non‑negative
+integer.
+
+### 2.2  Hoare triple  
+
+\[
+\boxed{
+\{\,\mathsf{Pre}(A,B)\,\}\;\; \texttt{countOnes}(A,B)\;\; \{\,\mathsf{Post}(A,B,R)\,\}
+}
+\]
+
+where  
+
+* **Pre‑condition**  
+
+  \[
+  \mathsf{Pre}(A,B) \; \equiv\;
+      A \in \mathbb{Z}^{+}\ \land\ B \in \mathbb{Z}^{+}\ \land\ 
+      1 \le A \le B \le L .
+  \]
+
+* **Post‑condition**  
+
+  Let \(R\) denote the value returned by the routine. Then  
+
+  \[
+  \mathsf{Post}(A,B,R) \; \equiv\;
+      R \in \mathbb{N}\ \land\ 
+      R = \sum_{k=A}^{B} \operatorname{pop}(k)
+      \;=\; \operatorname{F}(B) - \operatorname{F}(A-1) .
+  \]
+
+  (For \(A=1\) we define \(\operatorname{F}(0)=0\).)
+
+* **Total‑correctness**  
+
+  The triple is *total*: under the pre‑condition the routine is guaranteed to
+  terminate and to produce a value satisfying the post‑condition.
+
+---
+
+## 3.  Specification for the whole program (multiple test cases)
+
+The program reads an arbitrary finite sequence of lines until end‑of‑file.
+Each line contains a pair \((A_i,B_i)\).  
+For every line the program must output the value returned by `countOnes`.
+
+Formally, let the input be a finite list  
+
+\[
+\mathcal{I}= \bigl\langle (A_1,B_1),\dots,(A_m,B_m) \bigr\rangle .
+\]
+
+The program computes a list  
+
+\[
+\mathcal{O}= \bigl\langle R_1,\dots,R_m \bigr\rangle
+\]
+
+such that for every \(i\in\{1,\dots,m\}\)
+
+\[
+\{\,\mathsf{Pre}(A_i,B_i)\,\}\;\; \texttt{countOnes}(A_i,B_i)\;\; \{\,R_i = \operatorname{F}(B_i)-\operatorname{F}(A_i-1)\,\}.
+\]
+
+The program terminates after producing \(\mathcal{O}\).
+
+---
+
+## 4.  Remarks on the bounds  
+
+* Because \(B\le 10^{16}<2^{54}\), every integer in the interval has at most
+  54 binary digits.  
+  Consequently  
+
+  \[
+  0 \le R \le (B-A+1)\cdot 54 \le 10^{16}\cdot 54 = 5.4\times10^{17} < 2^{63},
+  \]
+
+  so the result comfortably fits into a signed 64‑bit integer; this fact can
+  be added as an auxiliary invariant if an implementation wishes to exploit it.
+
+* The specification uses only **pure mathematical functions** (`bit_i`, `pop`,
+  `F`). Any concrete algorithm (divide‑and‑conquer, DP on bits, memoised
+  recurrence, etc.) that terminates and returns the same value is a correct
+  implementation.
+
+---
+
+### Summary  
+
+The Hoare‑logic specification for the core computation is the triple  
+
+\[
+\boxed{
+\{\,1\le A\le B\le 10^{16}\,\}\;\texttt{countOnes}(A,B)\;
+\{\,\;R = \displaystyle\sum_{k=A}^{B}\operatorname{pop}(k)\;\}
+}
+\]
+
+which is equivalent to  
+
+\[
+R = \operatorname{F}(B)-\operatorname{F}(A-1),\qquad
+\operatorname{pop}(k)=\sum_{i=0}^{\lfloor\log_2 k\rfloor}
+\bigl\lfloor \tfrac{k}{2^{i}} \bigr\rfloor\bmod 2 .
+\]
+
+Any program that reads each test case, invokes a terminating routine satisfying
+the above triple, and prints the obtained \(R\) is **correct** with respect to
+the problem statement.

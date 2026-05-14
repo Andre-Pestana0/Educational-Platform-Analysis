@@ -1,0 +1,121 @@
+Below is a **Hoare‑logic style specification** for one test case of the problem (the whole input consists of a sequence of independent test cases, each of which must satisfy the same specification).  
+All symbols are written in standard mathematical notation; the program fragment that we are specifying is the (unspecified) algorithm that reads the data of one test case, computes the answer, and prints it.
+
+---
+
+### 1.  State variables  
+
+| Symbol | Meaning |
+|--------|---------|
+| `N`    | number of matches played (`1 ≤ N ≤ 10⁵`) |
+| `G`    | maximal number of goals that can be bought (`0 ≤ G ≤ 10⁶`) |
+| `S[i]` | goals scored by *our* team in match *i* before buying (`0 ≤ S[i] ≤ 100`) |
+| `R[i]` | goals received by *our* team in match *i* before buying (`0 ≤ R[i] ≤ 100`) |
+| `ans`  | integer printed by the program (the answer for this test case) |
+| `x[i]` | non‑negative integer: extra goals we decide to buy for match *i* (internal, not observable) |
+
+All arrays are indexed from `1` to `N`.
+
+---
+
+### 2.  Auxiliary definitions  
+
+\[
+\operatorname{pts}(a,b)=
+\begin{cases}
+3 & a>b\\[2mm]
+1 & a=b\\[2mm]
+0 & a<b
+\end{cases}
+\qquad\text{(points obtained from a match with scores }a\text{ – }b\text{).}
+\]
+
+For a vector \(x = (x[1],\dots ,x[N])\) define  
+
+\[
+\Phi(x)=\sum_{i=1}^{N}\operatorname{pts}\bigl(S[i]+x[i],\;R[i]\bigr)
+\]
+
+and the **budget constraint**
+
+\[
+\mathcal{B}(x)\; \equiv\; \sum_{i=1}^{N}x[i]\;\le\;G\quad\land\quad\forall i\; (x[i]\in\mathbb{N}).
+\]
+
+The **optimal value** for the test case is  
+
+\[
+\operatorname{OPT}\;=\;\max\{\,\Phi(x)\mid \mathcal{B}(x)\,\}.
+\]
+
+---
+
+### 3.  Pre‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+P\; \equiv\;& N\in\mathbb{N}\;\land\;1\le N\le 10^{5}\\
+          &\land\; G\in\mathbb{N}\;\land\;0\le G\le 10^{6}\\
+          &\land\; \bigl(\forall i\in\{1,\dots ,N\}\bigr)\;
+                \bigl(S[i]\in\mathbb{N}\;\land\;0\le S[i]\le 100\\
+          &\qquad\qquad\qquad\qquad\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+                \land\;R[i]\in\mathbb{N}\;\land\;0\le R[i]\le 100\bigr)
+\end{aligned}}
+\]
+
+The pre‑condition states exactly the limits given in the problem statement.
+
+---
+
+### 4.  Post‑condition  
+
+\[
+\boxed{
+\begin{aligned}
+Q\; \equiv\;& ans\in\mathbb{N}\\
+          &\land\; ans = \operatorname{OPT}
+\end{aligned}}
+\]
+
+In words: the program must output a non‑negative integer that equals the maximum total number of points obtainable after buying at most `G` goals.
+
+---
+
+### 5.  Hoare triple  
+
+\[
+\boxed{\{\,P\,\}\;\; \texttt{solve\_one\_case()} \;\; \{\,Q\,\}}
+\]
+
+`solve_one_case` denotes the whole (unspecified) algorithm that:
+
+1. reads `N`, `G`, and the `N` pairs `(S[i],R[i])`;
+2. computes an integer `ans`;
+3. prints `ans`.
+
+The triple asserts that **whenever the input satisfies the pre‑condition `P`, the algorithm terminates and prints a value that satisfies the post‑condition `Q`**.
+
+---
+
+### 6.  Remarks on the specification  
+
+* The variables `x[i]` are *existential* – they are introduced only to define the optimal value `OPT`.  
+* The specification does **not** prescribe how the algorithm reaches the optimum (e.g., greedy, dynamic programming, sorting of needed goals, etc.); it merely requires that the produced answer be exactly the optimum defined above.  
+* Because the input consists of many test cases terminated by EOF, the overall program satisfies  
+
+\[
+\bigwedge_{\text{each test case }c}\; \{P_c\}\; \texttt{solve\_one\_case}_c\; \{Q_c\},
+\]
+
+where `P_c` and `Q_c` are the instances of `P` and `Q` for the data of test case `c`.  
+
+---  
+
+Thus the formal Hoare‑logic specification for the problem is completely captured by the triple  
+
+\[
+\boxed{\{P\}\;\texttt{solve\_one\_case()}\;\{Q\}}
+\]
+
+with the definitions of `pts`, `Φ`, `ℬ`, and `OPT` given above.

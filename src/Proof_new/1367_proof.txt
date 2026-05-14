@@ -1,0 +1,288 @@
+**Answer – a Hoare‑logic proof that the program implements the specification**  
+
+Below we prove that the fragment that computes the score for a *single* test case
+(`score(L)`) satisfies the Hoare triple  
+
+\[
+\{\,\textbf{Pre}(L)\,\}\; \texttt{score(L)}\; \{\,\textbf{Post}(S,P,L)\,\}
+\]
+
+where the pre‑ and post‑conditions are exactly those given in the statement.
+The driver loop that repeatedly reads a value `n` and stops on `n==0` is
+outside the contract; we therefore concentrate on the body that is executed
+once for a fixed `n>0`.
+
+--------------------------------------------------------------------
+
+## 1.  Notation that links program variables to the mathematical model  
+
+| Program entity                     | Meaning in the specification |
+|------------------------------------|------------------------------|
+| `L = [(p₁,t₁,j₁), … ,(p_N,t_N,j_N)]` (the list of the `n` input lines) | the test‑case sequence `L` of the Hoare triple |
+| `status[p]` (a `complex` value)   | a *representation* of the two numbers  
+
+\[
+\bigl(\;t_{\text{fc}}(p,L)+20\cdot\text{WrongBefore}(p,L)\;,\;
+\text{WrongBefore}(p,L)\bigr)
+\]
+
+  i.e. its real part stores the penalty time for problem `p` (or `0` if `p`
+  is unsolved) and its imaginary part stores the number of wrong submissions
+  that have been seen **before** the first correct one. |
+| `soluções`                         | the variable that will become `S` |
+| `pontuação`                        | the variable that will become `P` |
+
+--------------------------------------------------------------------
+
+## 2.  Loop invariants  
+
+### 2.1  Invariant for the *submission* loop  
+
+```
+for _ in range(n):
+    … read (letra, t, julgamento) …
+    … update status …
+```
+
+Let `k` be the number of iterations already performed ( `0 ≤ k ≤ N` ).
+Define  
+
+\[
+L_k = \langle s_1,\dots ,s_k\rangle ,\qquad
+\mathsf{Solved}_k =\{p\mid \text{Correct}(p,L_k)\neq\varnothing\}.
+\]
+
+**Invariant I₁(k)**  
+
+> After the `k`‑th iteration  
+
+> 1. **Representation invariant** – for every problem identifier `p`  
+
+>    \[
+>    \operatorname{status}[p] \;=\;
+>    \bigl(t_{\text{fc}}(p,L_k)+20\cdot\text{WrongBefore}(p,L_k)\bigr)
+>    \;+\; i\;\text{WrongBefore}(p,L_k)
+>    \tag{1}
+>    \]
+
+>    (the real part is the penalty, the imaginary part is the number of
+>    wrong submissions already seen for `p`);
+> 2. **Domain invariant** – `status` contains a key for a problem `p` **iff**
+>    `p` occurs in the first `k` submissions;
+> 3. **No‑over‑write invariant** – because of the pre‑condition
+>    `|\text{Correct}(p,L)| ≤ 1`, at most one iteration will ever execute the
+>    *correct* branch for a given `p`.
+
+The invariant is true initially (`k=0`) because `status` is empty, hence (1) holds
+with the empty sum (both parts are `0`).
+
+*Preservation.*  
+Assume `I₁(k)` holds and we process the `(k+1)`‑st submission `s_{k+1}=(p,t,j)`.
+
+*Case `j = incorrect`*  
+
+```
+status[p] += 1j
+```
+
+Before the update `status[p]` satisfies (1) with
+`WrongBefore(p,L_k) = w`.  
+After the addition the imaginary part becomes `w+1` and the real part is
+unchanged, i.e.
+
+\[
+\operatorname{status}[p]_{\text{new}}=
+\bigl(t_{\text{fc}}(p,L_k)+20w\bigr) + i\,(w+1)
+\]
+
+Since `s_{k+1}` is an incorrect submission occurring **before** any correct
+submission (by definition of `FirstCorrect`), we have  
+
+\[
+t_{\text{fc}}(p,L_{k+1}) = t_{\text{fc}}(p,L_k),\qquad
+\text{WrongBefore}(p,L_{k+1}) = w+1 .
+\]
+
+Thus (1) holds for `L_{k+1}`.
+
+*Case `j = correct`*  
+
+```
+status[p] *= -1j * 20
+status[p] += t
+```
+
+Before the multiplication the invariant gives  
+
+\[
+\operatorname{status}[p] = 0 + i\,w\qquad
+\bigl(w =\text{WrongBefore}(p,L_k)\bigr)
+\]
+
+because a correct submission has never been seen for `p` (pre‑condition).  
+Multiplying by `-1j*20` yields  
+
+\[
+-1j\cdot 20\,(i w)=20w\;+\;i\,0 .
+\]
+
+The subsequent addition of `t` changes only the real part, giving  
+
+\[
+\operatorname{status}[p]_{\text{new}} = (t+20w) + i\,0 .
+\]
+
+Now `FirstCorrect(p,L_{k+1}) = k+1`, therefore  
+
+\[
+t_{\text{fc}}(p,L_{k+1}) = t,\qquad
+\text{WrongBefore}(p,L_{k+1}) = w .
+\]
+
+Consequently (1) again holds for `L_{k+1}`.
+
+All other entries of `status` are untouched, so the invariant is preserved.
+∎
+
+When the loop finishes (`k = N`) we obtain **Invariant I₁(N)**, i.e.
+
+\[
+\forall p\;.\;
+\operatorname{status}[p] = 
+\bigl(t_{\text{fc}}(p,L)+20\cdot\text{WrongBefore}(p,L)\bigr)
++ i\,\text{WrongBefore}(p,L). \tag{2}
+\]
+
+From (2) we directly get the useful corollary
+
+\[
+\operatorname{status}[p].\text{real} > 0 \iff p\in\mathsf{Solved}(L) .
+\tag{3}
+\]
+
+--------------------------------------------------------------------
+
+### 2.2  Invariant for the *aggregation* loop  
+
+```
+soluções = 0
+pontuação = 0
+for pontos in status.values():
+    if pontos.real > 0:
+        soluções += 1
+        pontuação += int(pontos.real)
+```
+
+Let `m` be the number of already inspected entries ( `0 ≤ m ≤ |status|` ) and
+let  
+
+\[
+\mathsf{Seen}_m = \{p\mid \text{the first }m\text{ values have been
+processed}\}.
+\]
+
+**Invariant I₂(m)**  
+
+> After examining `m` values  
+
+> 1. `soluções` equals \(|\mathsf{Seen}_m\cap\mathsf{Solved}(L)|\);
+> 2. `pontuação` equals \(\displaystyle\sum_{p\in\mathsf{Seen}_m\cap\mathsf{Solved}(L)}
+>      \bigl(t_{\text{fc}}(p,L)+20\cdot\text{WrongBefore}(p,L)\bigr)\).
+
+*Initialisation* (`m=0`) – both sums are empty, therefore `soluções = 0` and
+`pontuação = 0`; I₂(0) holds.
+
+*Preservation.*  
+Assume I₂(m) holds and the next value `pontos = status[p]` is examined.
+
+*If `pontos.real ≤ 0`* the body of the `if` is skipped; `p` is not solved,
+hence the two sums are unchanged – I₂(m+1) holds.
+
+*If `pontos.real > 0`* then, by (3), `p∈\mathsf{Solved}(L)`.  
+The body increments `soluções` by one and adds `int(pontos.real)` to
+`pontuação`.  Because `pontos.real` is exactly the integer
+\(t_{\text{fc}}(p,L)+20\cdot\text{WrongBefore}(p,L)\) (see (2)), the two sums
+are extended by the contribution of `p`.  Hence I₂(m+1) holds.
+
+When the loop terminates (`m = |status|`) we obtain I₂(|status|), i.e.
+
+\[
+\begin{aligned}
+S &= \text{soluções}=|\mathsf{Solved}(L)|,\\
+P &= \text{pontuação}= \sum_{p\in\mathsf{Solved}(L)}
+      \bigl(t_{\text{fc}}(p,L)+20\cdot\text{WrongBefore}(p,L)\bigr).
+\end{aligned} \tag{4}
+\]
+
+--------------------------------------------------------------------
+
+## 3  From invariants to the post‑condition  
+
+Equation (4) is precisely the definition of the two functions  
+
+\[
+S(L)=|\mathsf{Solved}(L)|,\qquad
+P(L)=\sum_{p\in\mathsf{Solved}(L)}\bigl(t_{\text{fc}}(p,L)+20\cdot\text{WrongBefore}(p,L)\bigr).
+\]
+
+Therefore after the two loops have finished the program has computed a pair
+`(soluções, pontuação)` that satisfies  
+
+\[
+S = S(L)\;\land\;P = P(L).
+\]
+
+The extra clause of the post‑condition, “\(S=0\Rightarrow P=0\)”, follows
+immediately because when `\mathsf{Solved}(L)=\varnothing` the sum in the
+definition of `P(L)` is empty, giving `P(L)=0`.
+
+--------------------------------------------------------------------
+
+## 4  Verification of the pre‑condition  
+
+The driver reads the integer `n` and then exactly `n` lines.  
+The problem statement guarantees that the input obeys all items of
+`\textbf{Pre}(L)`:
+
+* each line contains a letter `p∈\mathbb P`, an integer `t∈[0,300]`,
+  and a judgement `j∈J`;
+* the lines appear in chronological order (`t_1≤t_2≤…≤t_n`);
+* the test data respect “at most one correct per problem”.
+
+Consequently the list `L` built by the `for _ in range(n)` loop satisfies the
+pre‑condition required by the Hoare triple.
+
+--------------------------------------------------------------------
+
+## 5  Whole‑program reasoning (outer driver)  
+
+The outer `while True` loop only repeats the *score* computation for independent
+test cases and stops when the sentinel `n == 0` is read.  
+The sentinel case is excluded from the contract; each iteration where
+`n>0` invokes the fragment proven correct above.  Hence the complete program
+conforms to the specification.
+
+--------------------------------------------------------------------
+
+## 6  Conclusion  
+
+We have exhibited:
+
+* a loop invariant `I₁` that captures the exact mathematical meaning of the
+  `status` dictionary after each processed submission;
+* a second invariant `I₂` that shows how the final two integer variables are
+  accumulated from the information stored in `status`;
+* a step‑by‑step preservation argument for both invariants, using only the
+  operations performed by the program;
+* a derivation that the values printed (`soluções` and `pontuação`) are exactly
+  the functions `S(L)` and `P(L)` defined in the specification, and that the
+  extra implication `S=0 ⇒ P=0` holds automatically.
+
+Therefore the program **satisfies the Hoare triple**
+
+\[
+\{\,\textbf{Pre}(L)\,\}\; \texttt{score(L)}\;
+\{\,\textbf{Post}(S,P,L)\,\},
+\]
+
+i.e. it is a correct implementation of the required scoring routine. ∎
