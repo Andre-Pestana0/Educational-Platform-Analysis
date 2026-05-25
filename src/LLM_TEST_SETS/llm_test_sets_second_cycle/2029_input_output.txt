@@ -1,0 +1,26 @@
+[
+  {
+    "input": "1.00\n1.00",
+    "output": "ALTURA = 1.28\nAREA = 0.78"
+  },
+  {
+    "input": "10000.00\n100.00",
+    "output": "ALTURA = 1.27\nAREA = 7850.00"
+  },
+  {
+    "input": "1000.00\n12.54",
+    "output": "ALTURA = 8.10\nAREA = 123.43"
+  },
+  {
+    "input": "500.00\n15.97",
+    "output": "ALTURA = 2.50\nAREA = 200.00"
+  },
+  {
+    "input": "3.14\n1.13",
+    "output": "ALTURA = 3.14\nAREA = 1.00"
+  },
+  {
+    "input": "2000.00\n20.00",
+    "output": "ALTURA = 6.37\nAREA = 314.00"
+  }
+]

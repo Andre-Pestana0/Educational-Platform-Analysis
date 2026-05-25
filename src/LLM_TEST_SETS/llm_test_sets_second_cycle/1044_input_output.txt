@@ -1,0 +1,58 @@
+[
+  {
+    "input": "5 20",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "20 5",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "7 7",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "7 20",
+    "output": "Nao sao Multiplos"
+  },
+  {
+    "input": "-3 -9",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "-4 12",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "-5 13",
+    "output": "Nao sao Multiplos"
+  },
+  {
+    "input": "0 5",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "5 0",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "0 0",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "100000 2000000000",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "2147483647 2147483647",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "2147483647 0",
+    "output": "Sao Multiplos"
+  },
+  {
+    "input": "-2147483648 -1073741824",
+    "output": "Sao Multiplos"
+  }
+]

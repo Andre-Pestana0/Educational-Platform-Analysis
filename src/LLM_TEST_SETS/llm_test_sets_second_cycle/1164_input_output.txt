@@ -1,0 +1,26 @@
+[
+  {
+    "input": "1\n1",
+    "output": "1 nao eh perfeito"
+  },
+  {
+    "input": "1\n6",
+    "output": "6 eh perfeito"
+  },
+  {
+    "input": "2\n12\n496",
+    "output": "12 nao eh perfeito\n496 eh perfeito"
+  },
+  {
+    "input": "3\n100000000\n28\n7",
+    "output": "100000000 nao eh perfeito\n28 eh perfeito\n7 nao eh perfeito"
+  },
+  {
+    "input": "5\n6\n28\n496\n8128\n33550336",
+    "output": "6 eh perfeito\n28 eh perfeito\n496 eh perfeito\n8128 eh perfeito\n33550336 eh perfeito"
+  },
+  {
+    "input": "100\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n496\n8128\n33550336\n100000000\n99991",
+    "output": "1 nao eh perfeito\n2 nao eh perfeito\n3 nao eh perfeito\n4 nao eh perfeito\n5 nao eh perfeito\n6 eh perfeito\n7 nao eh perfeito\n8 nao eh perfeito\n9 nao eh perfeito\n10 nao eh perfeito\n11 nao eh perfeito\n12 nao eh perfeito\n13 nao eh perfeito\n14 nao eh perfeito\n15 nao eh perfeito\n16 nao eh perfeito\n17 nao eh perfeito\n18 nao eh perfeito\n19 nao eh perfeito\n20 nao eh perfeito\n21 nao eh perfeito\n22 nao eh perfeito\n23 nao eh perfeito\n24 nao eh perfeito\n25 nao eh perfeito\n26 nao eh perfeito\n27 nao eh perfeito\n28 eh perfeito\n29 nao eh perfeito\n30 nao eh perfeito\n31 nao eh perfeito\n32 nao eh perfeito\n33 nao eh perfeito\n34 nao eh perfeito\n35 nao eh perfeito\n36 nao eh perfeito\n37 nao eh perfeito\n38 nao eh perfeito\n39 nao eh perfeito\n40 nao eh perfeito\n41 nao eh perfeito\n42 nao eh perfeito\n43 nao eh perfeito\n44 nao eh perfeito\n45 nao eh perfeito\n46 nao eh perfeito\n47 nao eh perfeito\n48 nao eh perfeito\n49 nao eh perfeito\n50 nao eh perfeito\n51 nao eh perfeito\n52 nao eh perfeito\n53 nao eh perfeito\n54 nao eh perfeito\n55 nao eh perfeito\n56 nao eh perfeito\n57 nao eh perfeito\n58 nao eh perfeito\n59 nao eh perfeito\n60 nao eh perfeito\n61 nao eh perfeito\n62 nao eh perfeito\n63 nao eh perfeito\n64 nao eh perfeito\n65 nao eh perfeito\n66 nao eh perfeito\n67 nao eh perfeito\n68 nao eh perfeito\n69 nao eh perfeito\n70 nao eh perfeito\n71 nao eh perfeito\n72 nao eh perfeito\n73 nao eh perfeito\n74 nao eh perfeito\n75 nao eh perfeito\n76 nao eh perfeito\n77 nao eh perfeito\n78 nao eh perfeito\n79 nao eh perfeito\n80 nao eh perfeito\n81 nao eh perfeito\n82 nao eh perfeito\n83 nao eh perfeito\n84 nao eh perfeito\n85 nao eh perfeito\n86 nao eh perfeito\n87 nao eh perfeito\n88 nao eh perfeito\n89 nao eh perfeito\n90 nao eh perfeito\n91 nao eh perfeito\n92 nao eh perfeito\n93 nao eh perfeito\n94 nao eh perfeito\n95 nao eh perfeito\n496 eh perfeito\n8128 eh perfeito\n33550336 eh perfeito\n100000000 nao eh perfeito\n99991 nao eh perfeito"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "input": "3 6\n0 0\n",
+    "output": "possible"
+  },
+  {
+    "input": "1 2\n0 0\n",
+    "output": "impossible"
+  },
+  {
+    "input": "2 4\n0 0\n",
+    "output": "impossible"
+  },
+  {
+    "input": "4 8\n0 0\n",
+    "output": "impossible"
+  },
+  {
+    "input": "5 10\n0 0\n",
+    "output": "impossible"
+  },
+  {
+    "input": "3 6\n5 17\n200 350\n100 600\n6 14\n99 200\n0 10000\n0 0\n",
+    "output": "possible\npossible\npossible\nimpossible\nimpossible\npossible\nimpossible"
+  }
+]

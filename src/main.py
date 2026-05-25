@@ -9,18 +9,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def load_description(code): 
     counter = 0  
     folders = [
-            "exercises_iniciante_descriptions",
-            "exercises_ad-hoc_descriptions", 
-            "exercises_string_descriptions", 
-            "exercises_data-structures_descriptions", 
-            "exercises_math_descriptions", 
-            "exercises_data-structures_descriptions" 
+            "Iniciante",
+            "Ad-HOC",
+            "Strings",
+            "Data-Structures_Libraries",
+            "Mathematics"
         ]
 
     for each_folder in folders:
         file_path = os.path.join(
             BASE_DIR,
-            "all_exercises_descriptions",
+            "challenges_specification",
             each_folder,
             f"{code}.txt"
         )
@@ -43,6 +42,7 @@ def load_description(code):
 def load_base_prompt(prompt_name: str) -> str:
     file_path = os.path.join(
         BASE_DIR,
+        "PROMPTS",
         f"{prompt_name}.txt"
     )
     
@@ -56,11 +56,12 @@ def load_base_prompt(prompt_name: str) -> str:
     
 def load_exercise(code):
     
-    exercises_folders = ["Iniciante", "Ad-HOC", "Data-Structures & Libraries", "Mathematics", "Strings"]
+    exercises_folders = ["Iniciante", "Ad-HOC", "Data-Structures_Libraries", "Mathematics", "Strings"]
     
     for folder in exercises_folders:
         file_path = os.path.join(
             BASE_DIR,
+            "challenges_implementation",
             folder,
             f"{code}.py"
         )
@@ -74,65 +75,7 @@ def load_exercise(code):
                 content = file_exercise.read()
                 return content
 
-
-def clean_json_response(response: str) -> str:
-    response = response.strip()
-
-    # Remove accidental markdown fences
-    if response.startswith("```"):
-        parts = response.split("```")
-        if len(parts) >= 2:
-            response = parts[1]
-
-    return response.strip()
-
-def parse_llm_json(response: str):
-    try:
-        cleaned = clean_json_response(response)
-        data = json.loads(cleaned)
-
-        if not isinstance(data, list):
-            raise ValueError("Response is not a list")
-
-        inputs = []
-        outputs = []
-
-        for item in data:
-            if "input" not in item or "output" not in item:
-                raise ValueError("Missing keys in JSON object")
-
-            inputs.append(item["input"])
-            outputs.append(item["output"])
-
-        if len(inputs) == 0:
-            raise ValueError("No test cases generated")
-
-        return inputs, outputs
-
-    except Exception as e:
-        print("JSON parsing failed:", e)
-        print("Raw response:\n", response)
-        return None, None
-
-
-def save_io_files(code, inputs, outputs):
-    output_dir = os.path.join(BASE_DIR, "llm_outputs")
-    os.makedirs(output_dir, exist_ok=True)
-
-    input_path = os.path.join(output_dir, f"{code}_input.txt")
-    output_path = os.path.join(output_dir, f"{code}_output.txt")
-
-    # Save all inputs separated by blank line
-    with open(input_path, "w", encoding="utf-8") as f:
-        for inp in inputs:
-            f.write(inp + "\n\n")
-
-    # Save all outputs separated by blank line
-    with open(output_path, "w", encoding="utf-8") as f:
-        for out in outputs:
-            f.write(out + "\n\n")
-
-def save_io_files_simplified(code, text_to_save):
+def save_io_files(code, text_to_save):
     output_dir = os.path.join(BASE_DIR, "llm_outputs_after_vacation")
     os.makedirs(output_dir, exist_ok=True)
 
@@ -144,7 +87,10 @@ def save_io_files_simplified(code, text_to_save):
 
             
 def save_pre_post_conditions(code, conditions):
-    output_dir = os.path.join(BASE_DIR, "pre_pos_conditions_new")
+    output_dir = os.path.join(
+        BASE_DIR,
+        "PRE_POS",
+        "pre_pos_newly_generated")
     os.makedirs(output_dir, exist_ok=True)
 
     condition_path = os.path.join(output_dir, f"{code}_condition.txt")
@@ -153,7 +99,10 @@ def save_pre_post_conditions(code, conditions):
         f.write(conditions)
 
 def save_formal_proof(code, proof):
-    output_dir = os.path.join(BASE_DIR, "Proof_new")
+    output_dir = os.path.join(
+        BASE_DIR,
+        "PROOFS",
+        "proof_newly_generated")
     os.makedirs(output_dir, exist_ok=True)
 
     proof_path = os.path.join(output_dir, f"{code}_proof.txt")
@@ -198,19 +147,15 @@ def generate_examples(prompt: str) -> str:
     print("API call successful.")
     response = completion.choices[0].message.content
     return response
-    
-def save_output(code, output, output_dir):
-    output_dir = os.path.join(BASE_DIR, "llm_outputs")
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f"{code}.txt")
-    with open(output_path, "w", encoding="utf-8") as output_file:
-        output_file.write(output)
-
  
-def code_logic(code_list):
-    base_prompt = load_base_prompt("prompt_LLM_suggested")
-    # base_prompt = load_base_prompt("prompt")
-    # base_prompt = load_base_prompt("test_generation_prompt_refined")
+def test_generation_logic(code_list):
+    prompt_list = [
+        "test_generation_prompt_v1",
+        "test_generation_prompt_v2",
+        "test_generation_prompt_v3_LLM"
+    ]
+    
+    base_prompt = load_base_prompt(prompt_list[0])
 
     for code in code_list:
         description = load_description(code)
@@ -223,20 +168,10 @@ def code_logic(code_list):
         llm_response = generate_examples(full_prompt)
         
         print(f"Got response, which is:\n{llm_response}")
-        # print(f"This is the raw LLM response for code {code}:\n{llm_response}\n")
-
-        # inputs, outputs = parse_llm_json(llm_response)
-
-        # if inputs is None:
-        #     print(f"Skipping {code} due to invalid JSON.\n")
-        #     continue
-
         print(f"Code: {code}")
-
         print("-" * 40)
 
-        save_io_files_simplified(code, llm_response)
-        # save_io_files(code, inputs, outputs)
+        save_io_files(code, llm_response)
 
 def conditions_generation_logic(code_list):
     base_prompt = load_base_prompt("condition_generation_prompt")
@@ -262,7 +197,6 @@ def load_conditions(code):
     file_path = os.path.join(
         BASE_DIR,
         "pre_pos_conditions_new",
-        # "pre_pos_conditions",
         f"{code}_condition.txt"
     )
 
@@ -298,22 +232,21 @@ def formal_specification_validation_logic(code_list):
 
     
 def main():
-    exercises_to_generate_solutions = [1042, 1181, 1183, 1186, 1187, 1189, 1185, 1182, 1190, 1827, 2031, 3173]
-    
-    missing_conditions_group = [
+    exercises_to_generate_solutions = [ 
+     1188
+    ]
+       
+    exercises_to_generate_conditions = [
         1188
     ]
-    # missing_conditions_group = [
-    #     2890, 1492, 1161, 1068, 2018, 1281
-    # ]
    
-    missing_proofs_group = [
+    exercises_to_generate_proofs = [
         1188
     ]
 
-    code_logic(exercises_to_generate_solutions)
-    # conditions_generation_logic(missing_conditions_group)
-    # formal_specification_validation_logic(missing_proofs_group)
+    test_generation_logic(exercises_to_generate_solutions)
+    conditions_generation_logic(exercises_to_generate_conditions)
+    formal_specification_validation_logic(exercises_to_generate_proofs)
 
     
 if __name__ == "__main__":

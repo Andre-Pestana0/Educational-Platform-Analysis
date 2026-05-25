@@ -1,0 +1,22 @@
+[
+  {
+    "input": "1 1\nfechou",
+    "output": "0"
+  },
+  {
+    "input": "1 1\nclicou",
+    "output": "2"
+  },
+  {
+    "input": "5 3\nfechou\nfechou\nfechou",
+    "output": "2"
+  },
+  {
+    "input": "5 6\nfechou\nfechou\nfechou\nclicou\nclicou\nclicou",
+    "output": "5"
+  },
+  {
+    "input": "2 5\nfechou\nfechou\nclicou\nclicou\nclicou",
+    "output": "3"
+  },
+]

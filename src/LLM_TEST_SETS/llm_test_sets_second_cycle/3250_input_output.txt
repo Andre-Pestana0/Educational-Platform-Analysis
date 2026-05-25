@@ -1,0 +1,70 @@
+[
+  {
+    "input": "10 5 5 3 4",
+    "output": "0"
+  },
+  {
+    "input": "20 1 11 10 0",
+    "output": "1"
+  },
+  {
+    "input": "15 12 2 0 5",
+    "output": "2"
+  },
+  {
+    "input": "10 2 9 3 1",
+    "output": "5"
+  },
+  {
+    "input": "20 10 13 4 6",
+    "output": "use the stairs"
+  },
+  {
+    "input": "5 5 1 3 2",
+    "output": "2"
+  },
+  {
+    "input": "10 8 2 5 3",
+    "output": "2"
+  },
+  {
+    "input": "10 2 9 0 0",
+    "output": "use the stairs"
+  },
+  {
+    "input": "1000000 1 1000000 999999 1",
+    "output": "1"
+  },
+  {
+    "input": "1000000 500000 500010 3 2",
+    "output": "5"
+  },
+  {
+    "input": "20 5 15 0 3",
+    "output": "use the stairs"
+  },
+  {
+    "input": "20 15 5 4 0",
+    "output": "use the stairs"
+  },
+  {
+    "input": "30 5 20 5 5",
+    "output": "3"
+  },
+  {
+    "input": "30 5 21 5 5",
+    "output": "use the stairs"
+  },
+  {
+    "input": "1 1 1 0 0",
+    "output": "0"
+  },
+  {
+    "input": "10 8 6 2 1",
+    "output": "2"
+  },
+  {
+    "input": "10 1 10 10 1",
+    "output": "use the stairs"
+  }
+]

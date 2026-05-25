@@ -1,0 +1,42 @@
+[
+  {
+    "input": "0",
+    "output": "VOLUME = 0.000"
+  },
+  {
+    "input": "1",
+    "output": "VOLUME = 4.189"
+  },
+  {
+    "input": "2",
+    "output": "VOLUME = 33.510"
+  },
+  {
+    "input": "0.1",
+    "output": "VOLUME = 0.004"
+  },
+  {
+    "input": "0.001",
+    "output": "VOLUME = 0.000"
+  },
+  {
+    "input": "10000",
+    "output": "VOLUME = 4188786666666.667"
+  },
+  {
+    "input": "-2",
+    "output": "VOLUME = -33.510"
+  },
+  {
+    "input": "-0.5",
+    "output": "VOLUME = -0.524"
+  },
+  {
+    "input": "5.5",
+    "output": "VOLUME = 696.909"
+  },
+  {
+    "input": "0.6203",
+    "output": "VOLUME = 1.000"
+  }
+]

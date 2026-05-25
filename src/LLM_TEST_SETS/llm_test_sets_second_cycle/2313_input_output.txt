@@ -1,0 +1,34 @@
+[
+  {
+    "input": "1 2 3",
+    "output": "Invalido"
+  },
+  {
+    "input": "4 5 6",
+    "output": "Valido-Escaleno\nRetangulo: N"
+  },
+  {
+    "input": "5 12 13",
+    "output": "Valido-Escaleno\nRetangulo: S"
+  },
+  {
+    "input": "5 5 8",
+    "output": "Valido-Isoceles\nRetangulo: N"
+  },
+  {
+    "input": "7 7 7",
+    "output": "Valido-Equilatero\nRetangulo: N"
+  },
+  {
+    "input": "1 1 1",
+    "output": "Valido-Equilatero\nRetangulo: N"
+  },
+  {
+    "input": "99999 99999 99999",
+    "output": "Valido-Equilatero\nRetangulo: N"
+  },
+  {
+    "input": "1 2 99999",
+    "output": "Invalido"
+  }
+]

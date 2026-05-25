@@ -1,0 +1,22 @@
+[
+  {
+    "input": "caw caw\ncaw caw\ncaw caw",
+    "output": "0\n0\n0"
+  },
+  {
+    "input": "*--\n-*- \n--*\ncaw caw\n*--\n-*- \n--*\ncaw caw\n*--\n-*- \n--*\ncaw caw",
+    "output": "7\n7\n7"
+  },
+  {
+    "input": "-*-\ncaw caw\n*--\n--*\ncaw caw\n*--\n-*- \ncaw caw",
+    "output": "2\n5\n6"
+  },
+  {
+    "input": "--*\n--*\n--*\ncaw caw\n*--\ncaw caw\n-*- \ncaw caw",
+    "output": "3\n4\n2"
+  },
+  {
+    "input": "*--\n*--\n-*- \ncaw caw\ncaw caw\n*--\n*--\n*--\n-*- \n--*\ncaw caw",
+    "output": "10\n0\n15"
+  }
+]

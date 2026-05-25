@@ -1,0 +1,19 @@
+Perimetro = 12.0
+
+Area = 10.5
+
+Area = 11.0
+
+Perimetro = 1.2
+
+Area = 0.0
+
+Area = 12.5
+
+Perimetro = 3000000.0
+
+Area = 1500000000000.0
+
+Area = 20.0
+
+Perimetro = 10.0

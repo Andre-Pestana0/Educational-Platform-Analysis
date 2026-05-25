@@ -3,19 +3,6 @@ import subprocess
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-def load_test_cases(file_path):
-    if not os.path.exists(file_path):
-        return []
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read().strip()
-
-    # Split by blank line
-    cases = content.split("\n\n")
-    return [case.strip() for case in cases if case.strip()]
-
-
 def run_python_file(file_path, test_input):
     try:
         result = subprocess.run(
@@ -68,23 +55,19 @@ def validate_problem(code):
 
 
 def main():
-    # llm_output_dir = os.path.join(BASE_DIR, "llm_outputs")
     llm_output_dir = os.path.join(BASE_DIR, "llm_outputs_after_vacation")
 
     all_mismatches = {}
+    validation_list = [2029]
 
     for file in os.listdir(llm_output_dir):
         if file.endswith("_input.txt"):
             code = file.replace("_input.txt", "")
 
-            if code != "3173":
+            if int(code) not in validation_list:
                 continue
 
             print(f"Processing file: {file} for code {code}")
-    
-            # if int(code) < 3253 or int(code) > 3255:
-            #     continue
-
             mismatches = validate_problem(code)
 
             if mismatches:
@@ -104,20 +87,20 @@ def main():
         print(f"\nProblem {code} failed {len(mismatches)} test(s):")
 
         for m in mismatches:
-            print("\n---")
+        #     print("\n---")
 
-            if not isinstance(m, dict):
-                print("Unexpected error format:")
-                print(m)
-                continue
+        #     if not isinstance(m, dict):
+        #         print("Unexpected error format:")
+        #         print(m)
+        #         continue
 
-            if m.get("type") == "count_mismatch":
-                print("Count mismatch error:")
-                print(f"Inputs: {m['input_count']}")
-                print(f"Outputs: {m['output_count']}")
-                continue
+        #     if m.get("type") == "count_mismatch":
+        #         print("Count mismatch error:")
+        #         print(f"Inputs: {m['input_count']}")
+        #         print(f"Outputs: {m['output_count']}")
+        #         continue
 
-            # print(f"Test #{code} teve um problema")
+            print(f"Test #{code} teve um problema")
             print(f"Test #{m.get('test_number', '?')}")
             print("Input:")
             print(m.get("input", "N/A"))

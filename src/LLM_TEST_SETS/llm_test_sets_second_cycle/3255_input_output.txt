@@ -1,0 +1,26 @@
+[
+  {
+    "input": "1\nO 1",
+    "output": "0 0 0"
+  },
+  {
+    "input": "1\nE 2",
+    "output": "2 1 2"
+  },
+  {
+    "input": "1\nI 4",
+    "output": "1 4 2"
+  },
+  {
+    "input": "1\nO 15",
+    "output": "2 1 4"
+  },
+  {
+    "input": "1\nI 30",
+    "output": "2 1 6"
+  },
+  {
+    "input": "4\nO 13\nE 15\nI 30\nO 1",
+    "output": "7 16 20"
+  }
+]

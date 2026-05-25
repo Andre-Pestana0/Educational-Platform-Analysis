@@ -1,0 +1,46 @@
+[
+  {
+    "input": "11",
+    "output": "Sao Paulo"
+  },
+  {
+    "input": "21",
+    "output": "Rio de Janeiro"
+  },
+  {
+    "input": "32",
+    "output": "Juiz de Fora"
+  },
+  {
+    "input": "19",
+    "output": "Campinas"
+  },
+  {
+    "input": "27",
+    "output": "Vitoria"
+  },
+  {
+    "input": "31",
+    "output": "Belo Horizonte"
+  },
+  {
+    "input": "61",
+    "output": "Brasilia"
+  },
+  {
+    "input": "71",
+    "output": "Salvador"
+  },
+  {
+    "input": "99",
+    "output": "DDD nao cadastrado"
+  },
+  {
+    "input": "0",
+    "output": "DDD nao cadastrado"
+  },
+  {
+    "input": "-1",
+    "output": "DDD nao cadastrado"
+  }
+]

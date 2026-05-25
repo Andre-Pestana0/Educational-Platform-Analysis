@@ -1,0 +1,42 @@
+[
+  {
+    "input": "10 3 4",
+    "output": "NAO FORMA TRIANGULO"
+  },
+  {
+    "input": "5 3 2",
+    "output": "NAO FORMA TRIANGULO"
+  },
+  {
+    "input": "5 5 5",
+    "output": "TRIANGULO ACUTANGULO\nTRIANGULO EQUILATERO"
+  },
+  {
+    "input": "7 7 5",
+    "output": "TRIANGULO ACUTANGULO\nTRIANGULO ISOSCELES"
+  },
+  {
+    "input": "5 5 7.0710678118654755",
+    "output": "TRIANGULO RETANGULO\nTRIANGULO ISOSCELES"
+  },
+  {
+    "input": "9 5 5",
+    "output": "TRIANGULO OBTUSANGULO\nTRIANGULO ISOSCELES"
+  },
+  {
+    "input": "6 7 8",
+    "output": "TRIANGULO ACUTANGULO"
+  },
+  {
+    "input": "3 4 5",
+    "output": "TRIANGULO RETANGULO"
+  },
+  {
+    "input": "10 6 5",
+    "output": "TRIANGULO OBTUSANGULO"
+  },
+  {
+    "input": "0.1 0.1 0.1",
+    "output": "TRIANGULO ACUTANGULO\nTRIANGULO EQUILATERO"
+  }
+]

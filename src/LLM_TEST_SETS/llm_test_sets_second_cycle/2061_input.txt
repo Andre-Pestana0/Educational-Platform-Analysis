@@ -1,0 +1,25 @@
+1 1
+fechou
+
+1 1
+clicou
+
+5 3
+fechou
+fechou
+fechou
+
+5 6
+fechou
+fechou
+fechou
+clicou
+clicou
+clicou
+
+2 5
+fechou
+fechou
+clicou
+clicou
+clicou

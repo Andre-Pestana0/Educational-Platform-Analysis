@@ -1,0 +1,38 @@
+[
+  {
+    "input": "0 1 1 1 1",
+    "output": "Jogador 2 ganha!"
+  },
+  {
+    "input": "0 1 100 1 0",
+    "output": "Jogador 1 ganha!"
+  },
+  {
+    "input": "1 100 100 0 1",
+    "output": "Jogador 1 ganha!"
+  },
+  {
+    "input": "1 2 2 0 0",
+    "output": "Jogador 1 ganha!"
+  },
+  {
+    "input": "0 1 2 0 0",
+    "output": "Jogador 1 ganha!"
+  },
+  {
+    "input": "1 1 2 0 0",
+    "output": "Jogador 2 ganha!"
+  },
+  {
+    "input": "0 2 2 0 0",
+    "output": "Jogador 2 ganha!"
+  },
+  {
+    "input": "1 100 100 0 0",
+    "output": "Jogador 1 ganha!"
+  },
+  {
+    "input": "1 100 99 0 0",
+    "output": "Jogador 2 ganha!"
+  }
+]

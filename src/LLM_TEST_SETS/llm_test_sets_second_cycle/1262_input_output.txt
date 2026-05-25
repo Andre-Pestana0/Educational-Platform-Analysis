@@ -1,0 +1,26 @@
+[
+  {
+    "input": "R\n1",
+    "output": "1"
+  },
+  {
+    "input": "W\n1",
+    "output": "1"
+  },
+  {
+    "input": "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\n1",
+    "output": "50"
+  },
+  {
+    "input": "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR\n10",
+    "output": "5"
+  },
+  {
+    "input": "WWWWRRRRWWRR\n2",
+    "output": "9"
+  },
+  {
+    "input": "RWRWRWRWRW\n10",
+    "output": "10"
+  }
+]
