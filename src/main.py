@@ -61,7 +61,7 @@ def load_exercise(code):
     for folder in exercises_folders:
         file_path = os.path.join(
             BASE_DIR,
-            "challenges_implementation",
+            "challenge_implementation",
             folder,
             f"{code}.py"
         )
@@ -174,7 +174,7 @@ def test_generation_logic(code_list):
         save_io_files(code, llm_response)
 
 def conditions_generation_logic(code_list):
-    base_prompt = load_base_prompt("condition_generation_prompt")
+    base_prompt = load_base_prompt("pre_pos_generation_prompt")
 
     for code in code_list:
         description = load_description(code)
@@ -194,19 +194,27 @@ def conditions_generation_logic(code_list):
         save_pre_post_conditions(code, llm_response)
 
 def load_conditions(code):
-    file_path = os.path.join(
-        BASE_DIR,
-        "pre_pos_conditions_new",
-        f"{code}_condition.txt"
-    )
-
-    with open(file_path, "r", encoding="utf-8") as file_condition:
-        content = file_condition.read()
-        return content
+    exercises_folders = ["pre_pos_conditions_first", "pre_pos_conditions_first"]
     
+    for folder in exercises_folders:
+        file_path = os.path.join(
+            BASE_DIR,
+            "PRE_POS",
+            folder,
+            f"{code}_condition.txt"
+        )
+        
+        if not os.path.exists(file_path):
+            print(f"File not found for code {code} in folder {folder}: {file_path}")
+            continue
+
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as file_exercise:
+                content = file_exercise.read()
+                return content
     
 def formal_specification_validation_logic(code_list):
-    base_prompt = load_base_prompt("final_verification_prompt")
+    base_prompt = load_base_prompt("proof_generation_prompt")
 
     for code in code_list:
         exercise = load_exercise(code)

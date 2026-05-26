@@ -1,0 +1,334 @@
+**Proof of correctness (Hoare‑logic style) for the program**
+
+```python
+import sys
+
+data = sys.stdin.read().split()
+idx = 0
+
+def next_token():
+    global idx
+    token = data[idx]
+    idx += 1
+    return token
+
+N = int(next_token())
+
+for _ in range(N):
+    total = 0.0
+    M = int(next_token())
+
+    products = {}
+    for _ in range(M):
+        name = next_token()
+        price = float(next_token())
+        products[name.lower()] = price
+
+    P = int(next_token())
+    for _ in range(P):
+        name = next_token()
+        quantity = int(next_token())
+        if name.lower() in products:
+            total += products[name.lower()] * quantity
+
+    print(f"R$ {total:.2f}")
+```
+
+---------------------------------------------------------------------
+
+## 1.  Specification (pre‑ and post‑conditions)
+
+### 1.1  Vocabulary
+
+* `data` – list of tokens (strings) obtained from the whole input.  
+* `idx` – index of the next token that has not yet been consumed (`0 ≤ idx ≤ |data|`).  
+* `N` – number of test cases.  
+* For the *i‑th* test case (`1 ≤ i ≤ N`)
+
+  * `M_i` – number of products that are defined.
+  * `product_i[j] = (name_{i,j}, price_{i,j})` for `1 ≤ j ≤ M_i`.  
+    `price_{i,j}` is a non‑negative real number.
+  * `P_i` – number of purchase lines.
+  * `purchase_i[k] = (name_{i,k}, qty_{i,k})` for `1 ≤ k ≤ P_i`.  
+    `qty_{i,k}` is a non‑negative integer.
+  * `price_i(name)` – the price of `name` in the product table of test case *i*,
+    defined iff there exists a `j` with `name_{i,j}.lower() = name.lower()`.
+
+* `total_i` – the value printed for test case *i*.
+
+### 1.2  Pre‑condition  
+
+```
+P0 : 0 ≤ idx = 0 ≤ |data|
+      ∧ data is a sequence of tokens that can be parsed as
+
+        N  (integer ≥ 0)
+        for each i = 1..N
+            M_i (integer ≥ 0)
+            M_i pairs (string, real)          -- product_i
+            P_i (integer ≥ 0)
+            P_i pairs (string, integer)       -- purchase_i
+```
+
+In words: the input is well‑formed; there are enough tokens for every
+`next_token()` call that will be executed.
+
+### 1.3  Post‑condition  
+
+```
+Q0 :  for every i = 1..N
+        total_i = Σ_{k=1..P_i}
+                     ( if name_{i,k}.lower() ∈ products_i
+                       then price_i(name_{i,k}) * qty_{i,k}
+                       else 0 )
+      and the program has printed, in order,
+          "R$ {total_i:.2f}"   (one line per i)
+```
+
+Thus the program outputs exactly the sum of the prices of the purchased
+items that are present in the product list of the same test case.
+
+---------------------------------------------------------------------
+
+## 2.  Small building block: `next_token`
+
+```
+{ idx < |data| }  token = next_token()  { token = data[idx₀] ∧ idx = idx₀+1 }
+```
+
+*Proof.* By definition of `next_token` it reads `data[idx]`, stores it in the
+local variable `token` and increments `idx`. The body is a single atomic
+statement, so the Hoare triple holds.
+
+---------------------------------------------------------------------
+
+## 3.  Loop invariants
+
+We prove the three loops one after the other.  
+All proofs use the rule of **consequence** (strengthening the invariant
+or weakening the post‑condition) and the **composition** rule for sequential
+commands.
+
+### 3.1  Outer loop (over the `N` test cases)
+
+```
+for _ in range(N):   # body B_out
+```
+
+**Invariant** `I_out(k)` – after the loop has executed `k` iterations (`0 ≤ k ≤ N`):
+
+* `idx` points to the first token of test case `k+1` (or to the end of input if `k = N`);
+* for every `i ≤ k` the line printed for test case `i` satisfies the specification
+  (i.e. equals `total_i` defined above).
+
+Formally  
+
+```
+I_out(k) ≜
+   (0 ≤ k ≤ N) ∧
+   (idx = pos(k+1)) ∧                     -- pos(t) = index of the first token of test case t
+   (∀ i·1≤i≤k → printed(i) = "R$ {total_i:.2f}")
+```
+
+*Initialization* (`k = 0`): before the first iteration `idx = 0 = pos(1)`,
+no line has been printed yet, therefore `I_out(0)` holds.
+
+*Maintenance*: assume `I_out(k)` holds at the beginning of the `(k+1)`‑st iteration.
+The body `B_out` (the whole “process one test case” code) is proved to
+produce exactly the line required for test case `k+1` and to leave `idx`
+at the start of the next test case (`pos(k+2)`). Hence after executing
+`B_out` we obtain `I_out(k+1)`.
+
+*Termination*: the loop stops when `k = N`. At that point `I_out(N)` gives
+
+```
+∀ i·1≤i≤N → printed(i) = "R$ {total_i:.2f}"
+```
+
+which is precisely the required part of the post‑condition `Q0`.
+
+Thus the outer loop is correct once we can show the correctness of its
+body `B_out`. The body consists of three *nested* statements, each of
+which will be proved separately.
+
+---------------------------------------------------------------------
+
+## 4.  Inner product‑definition loop
+
+Inside `B_out` we have
+
+```python
+products = {}
+for _ in range(M):
+    name = next_token()
+    price = float(next_token())
+    products[name.lower()] = price
+```
+
+### 4.1  Invariant `I_prod(j)`
+
+```
+I_prod(j) ≜
+   (0 ≤ j ≤ M) ∧
+   (products = { name_{i,ℓ}.lower() ↦ price_{i,ℓ} | 1 ≤ ℓ ≤ j })
+```
+
+*Initialization*: before the first iteration `j = 0`,
+`products` is `{}` – the empty dictionary – so `I_prod(0)` holds.
+
+*Maintenance*: assume `I_prod(j)` holds at the start of an iteration.
+The body reads the next two tokens (`name_{i,j+1}` and `price_{i,j+1}`) and
+stores `price_{i,j+1}` under the key `name_{i,j+1}.lower()`. Consequently the
+dictionary now contains exactly the first `j+1` pairs, i.e. `I_prod(j+1)`.
+
+*Termination*: when the loop ends we have `j = M`. Hence
+
+```
+products = { name_{i,ℓ}.lower() ↦ price_{i,ℓ} | 1 ≤ ℓ ≤ M }
+```
+
+which is exactly the product table required for the `i`‑th test case.
+
+---------------------------------------------------------------------
+
+## 5.  Purchase‑processing loop
+
+After the product table has been built we execute
+
+```python
+total = 0.0
+for _ in range(P):
+    name = next_token()
+    quantity = int(next_token())
+    if name.lower() in products:
+        total += products[name.lower()] * quantity
+```
+
+### 5.1  Invariant `I_purch(l)`
+
+```
+I_purch(l) ≜
+   (0 ≤ l ≤ P) ∧
+   total = Σ_{k=1..l}
+              ( if name_{i,k}.lower() ∈ products
+                then products[name_{i,k}.lower()] * qty_{i,k}
+                else 0 )
+```
+
+*Initialization*: before the first iteration `l = 0` and `total = 0.0`,
+hence `I_purch(0)` holds.
+
+*Maintenance*: assume `I_purch(l)` holds at the beginning of an iteration.
+The body reads `name_{i,l+1}` and `qty_{i,l+1}`.
+Two cases:
+
+1. `name_{i,l+1}.lower() ∈ products` – the `if` branch is taken and we add
+   `products[name] * qty` to `total`. The sum in the invariant is extended
+   with exactly that term.
+2. otherwise – the `if` branch is skipped; the sum is extended with `0`.
+
+In both cases the invariant becomes `I_purch(l+1)`.
+
+*Termination*: after the last iteration we have `l = P`. Consequently
+
+```
+total = Σ_{k=1..P}
+          ( if name_{i,k}.lower() ∈ products
+            then price_i(name_{i,k}) * qty_{i,k}
+            else 0 )
+```
+
+which is precisely the `total_i` defined in the specification.
+
+---------------------------------------------------------------------
+
+## 6.  Putting the pieces together – correctness of the body `B_out`
+
+We now compose the three proven pieces:
+
+1. **Read `M`** – by `next_token` we obtain `M` and increase `idx` correctly.
+2. **Product loop** – using invariant `I_prod` we obtain a dictionary
+   `products` that contains exactly the `M` pairs of the current test case.
+3. **Read `P`** – again a correct `next_token`.
+4. **Purchase loop** – using invariant `I_purch` we obtain the value `total`
+   that satisfies the definition of `total_i`.
+5. **Print** – the statement
+
+   ```python
+   print(f"R$ {total:.2f}")
+   ```
+
+   prints the string `"R$ "` followed by `total` rounded to two decimal
+   places. Because `total` already equals the mathematically exact sum,
+   the printed line is exactly the required line for this test case.
+
+Thus the Hoare triple for the body of the outer loop is proved:
+
+```
+{ I_out(k) ∧ idx = pos(k+1) }
+   B_out
+{ I_out(k+1) }
+```
+
+---------------------------------------------------------------------
+
+## 7.  Whole‑program proof
+
+We now apply the **rule of iteration** for the outer loop, using invariant
+`I_out(k)` proved correct in Section 3.
+
+*Pre‑condition* `P0` guarantees that `idx = 0 = pos(1)` and that the input
+conforms to the grammar, therefore `I_out(0)` holds.
+
+By the iteration rule we obtain after the loop terminates (`k = N`)
+
+```
+I_out(N) ≜
+   (∀ i·1≤i≤N → printed(i) = "R$ {total_i:.2f}")
+```
+
+which is exactly the post‑condition `Q0`.
+
+Hence we have derived the Hoare triple
+
+```
+{ P0 }  whole_program  { Q0 }
+```
+
+which states that **whenever the input satisfies the syntactic
+pre‑condition, the program terminates and prints, for each test case,
+the correct total amount**.
+
+---------------------------------------------------------------------
+
+## 8.  Remarks on the proof
+
+* **Floating‑point arithmetic** – the program uses Python `float`.  
+  The Hoare proof assumes exact real arithmetic; the specification of the
+  output format (`{total:.2f}`) matches Python’s rounding mode, so the
+  printed decimal representation is the one required by the post‑condition.
+* **Case‑insensitivity** – the program stores and looks up product names
+  using `str.lower()`. The invariant `I_prod` and the condition in the
+  purchase loop are written with the same `lower()` operation, guaranteeing
+  that the lookup behaves exactly as the specification demands.
+* **Termination** – all three loops iterate a known non‑negative integer
+  (`N`, `M`, `P`) that is read from the input, therefore each loop terminates
+  after a finite number of steps. By the composition rule the whole program
+  terminates.
+
+---------------------------------------------------------------------
+
+## 9.  Conclusion
+
+Using Hoare logic we have exhibited:
+
+* a **global pre‑condition** describing the well‑formed input,
+* a **global post‑condition** describing the required output,
+* suitable **loop invariants** for each `for` loop,
+* a step‑by‑step demonstration that the invariants are established,
+  preserved, and lead to the desired post‑condition when the loops finish,
+* and finally a composition of the three loops that yields the overall
+  correctness statement `{P0} program {Q0}`.
+
+Therefore the Python program is **correct with respect to the given
+specification**. ∎
