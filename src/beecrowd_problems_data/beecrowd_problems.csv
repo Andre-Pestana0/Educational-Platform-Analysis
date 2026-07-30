@@ -1,0 +1,2427 @@
+#,Nome,Categoria,Favorito,Resolvidos,Nível,col_6
+1000,,Hello World!,Iniciante,,468.488,5
+1001,,Extremamente Básico,Iniciante,,673.167,4
+1002,,Área do Círculo,Iniciante,,502.208,4
+1003,,Soma Simples,Iniciante,,480.045,1
+1004,,Produto Simples,Iniciante,,452.173,1
+1005,,Média 1,Iniciante,,408.805,2
+1006,,Média 2,Iniciante,,371.956,1
+1007,,Diferença,Iniciante,,385.921,1
+1008,,Salário,Iniciante,,362.537,2
+1009,,Salário com Bônus,Iniciante,,327.844,2
+1010,,Cálculo Simples,Iniciante,,302.453,3
+1011,,Esfera,Iniciante,,282.752,2
+1012,,Área,Iniciante,,262.909,2
+1013,,O Maior,Iniciante,,256.918,3
+1014,,Consumo,Iniciante,,267.467,1
+1015,,Distância Entre Dois Pontos,Iniciante,,266.270,1
+1016,,Distância,Iniciante,,231.266,1
+1017,,Gasto de Combustível,Iniciante,,239.931,1
+1018,,Cédulas,Iniciante,,222.695,4
+1019,,Conversão de Tempo,Iniciante,,230.816,1
+1020,,Idade em Dias,Iniciante,,228.705,2
+1021,,Notas e Moedas,Iniciante,,150.422,6
+1022,,TDA Racional,Estruturas e Bibliotecas,,15.917,4
+1023,,Estiagem,Estruturas e Bibliotecas,,7.506,10
+1024,,Criptografia,Strings,,33.291,5
+1025,,Onde está o Mármore?,Estruturas e Bibliotecas,,13.530,8
+1026,,Carrega ou não Carrega?,Ad-Hoc,,22.791,5
+1027,,Onda Crítica,Paradigmas,,1.425,9
+1028,,Figurinhas,Matemática,,26.298,3
+1029,,"Fibonacci, Quantas Chamadas?",Paradigmas,,22.971,4
+1030,,A Lenda de Flavious Josephus,Ad-Hoc,,15.172,4
+1031,,Crise de Energia,Ad-Hoc,,6.539,4
+1032,,O Primo de Josephus,Ad-Hoc,,3.878,6
+1033,,Quantas Chamadas Recursivas?,Paradigmas,,1.834,6
+1034,,Festival de Estátuas de Gelo,Paradigmas,,4.792,8
+1035,,Teste de Seleção 1,Iniciante,,217.877,2
+1036,,Fórmula de Bhaskara,Iniciante,,191.555,3
+1037,,Intervalo,Iniciante,,205.356,3
+1038,,Lanche,Iniciante,,211.489,1
+1039,,Flores de Fogo,Geometria Computacional,,10.476,5
+1040,,Média 3,Iniciante,,151.566,5
+1041,,Coordenadas de um Ponto,Iniciante,,168.479,3
+1042,,Sort Simples,Iniciante,,160.360,2
+1043,,Triângulo,Iniciante,,140.228,2
+1044,,Múltiplos,Iniciante,,167.475,2
+1045,,Tipos de Triângulos,Iniciante,,126.978,4
+1046,,Tempo de Jogo,Iniciante,,130.524,2
+1047,,Tempo de Jogo com Minutos,Iniciante,,98.023,9
+1048,,Aumento de Salário,Iniciante,,135.853,2
+1049,,Animal,Iniciante,,109.959,3
+1050,,DDD,Iniciante,,149.342,2
+1051,,Imposto de Renda,Iniciante,,107.270,2
+1052,,Mês,Iniciante,,134.150,2
+1053,,Desenho Contínuo,Grafos,,163,10
+1054,,Sapo Dinâmico,Paradigmas,,1.324,7
+1055,,Soma Permutada Elegante,Paradigmas,,1.138,7
+1056,,Fatores e Múltiplos,Grafos,,684,9
+1057,,Chegando Junto,Grafos,,569,8
+1058,,Zonas de Ataque Independentes,Paradigmas,,254,8
+1059,,Números Pares,Iniciante,,162.535,1
+1060,,Números Positivos,Iniciante,,139.209,1
+1061,,Tempo de um Evento,Iniciante,,62.271,3
+1062,,Trilhos,Estruturas e Bibliotecas,,9.581,5
+1063,,Trilhos Novamente... Traçando Movimentos,Estruturas e Bibliotecas,,4.496,4
+1064,,Positivos e Média,Iniciante,,125.868,2
+1065,,Pares entre Cinco Números,Iniciante,,120.891,1
+1066,,"Pares, Ímpares, Positivos e Negativos",Iniciante,,120.592,1
+1067,,Números Ímpares,Iniciante,,131.664,2
+1068,,Balanço de Parênteses I,Estruturas e Bibliotecas,,26.341,5
+1069,,Diamantes e Areia,Estruturas e Bibliotecas,,24.938,3
+1070,,Seis Números Ímpares,Iniciante,,112.988,1
+1071,,Soma de Impares Consecutivos I,Iniciante,,119.234,2
+1072,,Intervalo 2,Iniciante,,109.985,1
+1073,,Quadrado de Pares,Iniciante,,115.514,1
+1074,,Par ou Ímpar,Iniciante,,108.869,2
+1075,,Resto 2,Iniciante,,101.736,2
+1076,,Desenhando Labirintos,Grafos,,6.181,3
+1077,,Infixa para Posfixa,Estruturas e Bibliotecas,,5.857,5
+1078,,Tabuada,Iniciante,,129.048,1
+1079,,Médias Ponderadas,Iniciante,,90.195,1
+1080,,Maior e Posição,Iniciante,,111.451,2
+1081,,DFSr - Hierarquia de Profundidade,Grafos,,3.107,5
+1082,,Componentes Conexos,Grafos,,5.797,5
+1083,,LEXSIM - Avaliador Lexico e Sintático,Estruturas e Bibliotecas,,1.309,7
+1084,,Apagando e Ganhando,Paradigmas,,4.159,8
+1085,,Babel,Grafos,,1.273,8
+1086,,O Salão do Clube,Ad-Hoc,,1.746,7
+1087,,Dama,Ad-Hoc,,19.643,4
+1088,,Bolhas e Baldes,Estruturas e Bibliotecas,,5.715,6
+1089,,Loop Musical,Ad-Hoc,,11.662,2
+1090,,Set,Ad-Hoc,,222,10
+1091,,Divisão da Nlogônia,Ad-Hoc,,11.993,1
+1092,,Maior Subseqüência Crescente,Ad-Hoc,,463,9
+1093,,Vampiros,Matemática,,2.881,3
+1094,,Experiências,Iniciante,,82.959,3
+1095,,Sequencia IJ 1,Iniciante,,85.501,1
+1096,,Sequencia IJ 2,Iniciante,,71.922,1
+1097,,Sequencia IJ 3,Iniciante,,70.449,1
+1098,,Sequencia IJ 4,Iniciante,,49.631,2
+1099,,Soma de Ímpares Consecutivos II,Iniciante,,70.999,1
+1100,,Movimentos do Cavalo,Grafos,,3.991,5
+1101,,Sequência de Números e Soma,Iniciante,,79.616,4
+1102,,Ataque Fulminante,Geometria Computacional,,146,10
+1103,,Alarme Despertador,Ad-Hoc,,19.426,4
+1104,,Troca de Cartas,Ad-Hoc,,7.054,4
+1105,,Sub-prime,Ad-Hoc,,5.840,5
+1106,,Dragster,Paradigmas,,340,7
+1107,,Escultura à Laser,Ad-Hoc,,3.533,4
+1108,,Torres de Telefonia Celular,Geometria Computacional,,198,9
+1109,,Burlando a Maratona,Ad-Hoc,,116,10
+1110,,Jogando Cartas Fora,Estruturas e Bibliotecas,,19.619,3
+1111,,Desrugenstein,Grafos,,742,7
+1112,,Schweisen,Estruturas e Bibliotecas,,1.033,9
+1113,,Crescente e Decrescente,Iniciante,,88.968,1
+1114,,Senha Fixa,Iniciante,,105.774,1
+1115,,Quadrante,Iniciante,,78.679,1
+1116,,Dividindo X por Y,Iniciante,,70.714,1
+1117,,Validação de Nota,Iniciante,,75.144,1
+1118,,Várias Notas Com Validação,Iniciante,,54.621,3
+1119,,A Fila de Desempregados,Estruturas e Bibliotecas,,3.616,4
+1120,,Revisão de Contrato,Strings,,15.977,5
+1121,,Robô Colecionador,Ad-Hoc,,2.737,4
+1122,,Livro-Caixa,Ad-Hoc,,780,7
+1123,,Desvio de Rota,Grafos,,3.302,4
+1124,,Elevador,Geometria Computacional,,3.715,8
+1125,,Fórmula 1,Ad-Hoc,,2.435,3
+1126,,Guerra nas Estrelas,Geometria Computacional,,190,9
+1127,,Plágio Musical,Ad-Hoc,,802,8
+1128,,Ir e Vir,Grafos,,4.358,4
+1129,,Leitura Ótica,Ad-Hoc,,13.380,1
+1130,,Jogo da Velha,Ad-Hoc,,302,10
+1131,,Grenais,Iniciante,,52.443,1
+1132,,Múltiplos de 13,Iniciante,,69.419,1
+1133,,Resto da Divisão,Iniciante,,67.560,3
+1134,,Tipo de Combustível,Iniciante,,76.361,1
+1135,,Colônia de Formigas,Grafos,,1.515,8
+1136,,Bingo!,Ad-Hoc,,3.887,4
+1137,,Pontos Cocirculares,Geometria Computacional,,500,8
+1138,,Contagem de Dígitos,Matemática,,1.773,8
+1139,,Necessidades Elétricas,Ad-Hoc,,58,10
+1140,,Flores Florescem da França,Ad-Hoc,,9.394,4
+1141,,Cultivando Strings,Strings,,1.240,10
+1142,,PUM,Iniciante,,70.727,1
+1143,,Quadrado e ao Cubo,Iniciante,,64.722,1
+1144,,Sequência Lógica,Iniciante,,54.634,1
+1145,,Sequência Lógica 2,Iniciante,,55.602,2
+1146,,Sequências Crescentes,Iniciante,,56.720,3
+1147,,Fuga do Cavalo,Ad-Hoc,,1.679,6
+1148,,Países em Guerra,Grafos,,6.213,5
+1149,,Somando Inteiros Consecutivos,Iniciante,,39.225,1
+1150,,Ultrapassando Z,Iniciante,,40.604,1
+1151,,Fibonacci Fácil,Iniciante,,75.839,2
+1152,,Estradas Escuras,Grafos,,7.299,5
+1153,,Fatorial Simples,Iniciante,,80.759,1
+1154,,Idades,Iniciante,,68.402,1
+1155,,Sequência S,Iniciante,,46.315,2
+1156,,Sequência S II,Iniciante,,41.359,2
+1157,,Divisores I,Iniciante,,58.701,1
+1158,,Soma de Ímpares Consecutivos III,Iniciante,,42.507,1
+1159,,Soma de Pares Consecutivos,Iniciante,,45.747,2
+1160,,Crescimento Populacional,Iniciante,,42.640,5
+1161,,Soma de Fatoriais,Matemática,,25.783,5
+1162,,Organizador de Vagões,Estruturas e Bibliotecas,,8.629,5
+1163,,Angry Ducks,Matemática,,2.427,7
+1164,,Número Perfeito,Iniciante,,58.170,2
+1165,,Número Primo,Iniciante,,65.826,2
+1166,,"Torre de Hanoi, Novamente!",Paradigmas,,2.617,2
+1167,,Acampamento de Férias,Estruturas e Bibliotecas,,2.998,5
+1168,,LED,Strings,,46.975,3
+1169,,Trigo no Tabuleiro,Matemática,,9.937,4
+1170,,Blobs,Matemática,,17.090,3
+1171,,Frequência de Números,Ad-Hoc,,23.760,3
+1172,,Substituição em Vetor I,Iniciante,,107.534,1
+1173,,Preenchimento de Vetor I,Iniciante,,95.702,1
+1174,,Seleçao em Vetor I,Iniciante,,85.485,3
+1175,,Troca em Vetor I,Iniciante,,88.788,2
+1176,,Fibonacci em Vetor,Iniciante,,67.058,3
+1177,,Preenchimento de Vetor II,Iniciante,,71.720,1
+1178,,Preenchimento de Vetor III,Iniciante,,63.008,2
+1179,,Preenchimento de Vetor IV,Iniciante,,57.173,2
+1180,,Menor e Posição,Iniciante,,86.981,3
+1181,,Linha na Matriz,Iniciante,,72.789,3
+1182,,Coluna na Matriz,Iniciante,,62.982,2
+1183,,Acima da Diagonal Principal,Iniciante,,59.889,4
+1184,,Abaixo da Diagonal Principal,Iniciante,,44.265,2
+1185,,Acima da Diagonal Secundária,Iniciante,,41.182,2
+1186,,Abaixo da Diagonal Secundária,Iniciante,,40.431,3
+1187,,Área Superior,Iniciante,,42.853,3
+1188,,Área Inferior,Iniciante,,33.228,1
+1189,,Área Esquerda,Iniciante,,31.154,2
+1190,,Área Direita,Iniciante,,35.095,1
+1191,,Recuperação da Árvore,Grafos,,3.626,5
+1192,,O jogo Matemático de Paula,Ad-Hoc,,14.011,2
+1193,,Conversão entre Bases,Matemática,,5.639,3
+1194,,"Prefixa, Infixa e Posfixa",Grafos,,3.346,3
+1195,,Árvore Binária de Busca,Grafos,,8.720,5
+1196,,WERTYU,Ad-Hoc,,5.368,5
+1197,,Volta à Faculdade de Física,Matemática,,13.875,1
+1198,,O Bravo Guerreiro Hashmat,Matemática,,13.298,5
+1199,,Conversão Simples de Base,Matemática,,6.105,3
+1200,,Operações em ABP I,Grafos,,4.278,4
+1201,,Operações em ABP II,Grafos,,2.346,7
+1202,,Festival das Noites Brancas,Matemática,,1.480,7
+1203,,Pontes de São Petersburgo,Paradigmas,,1.620,7
+1204,,"Myachowski, o Futebol Russo",Geometria Computacional,,139,9
+1205,,Cerco a Leningrado,Grafos,,1.262,7
+1206,,Desafio de São Petersburgo,Ad-Hoc,,335,9
+1207,,Os Benefícios da Vodka,Grafos,,402,9
+1208,,As dinastias de São Petersburgo,Grafos,,217,7
+1209,,Festas de São Petersburgo,Ad-Hoc,,971,9
+1210,,Produção Ótima de Ótima Vodka,Paradigmas,,821,5
+1211,,Lista Telefônica Econômica,Estruturas e Bibliotecas,,4.728,5
+1212,,Aritmética Primária,Matemática,,7.697,8
+1213,,Ones,Matemática,,3.280,5
+1214,,Acima da Média,Matemática,,10.151,3
+1215,,Primeiro Dicionário de Andy,Estruturas e Bibliotecas,,4.368,6
+1216,,Getline One,Ad-Hoc,,8.283,4
+1217,,Getline Two - Frutas,Ad-Hoc,,5.387,4
+1218,,Getline Three - Calçados,Ad-Hoc,,3.667,4
+1219,,Flores Coloridas,Matemática,,3.094,5
+1220,,A Viagem,Matemática,,1.229,7
+1221,,Primo Rápido,Matemática,,16.383,6
+1222,,Concurso de Contos,Strings,,5.191,6
+1223,,Tobogan de Bolinhas,Geometria Computacional,,679,8
+1224,,Cartões,Paradigmas,,1.540,8
+1225,,Coral Perfeito,Ad-Hoc,,1.663,3
+1226,,Elevador Espacial,Paradigmas,,462,8
+1227,,Perdido na Noite,Grafos,,421,7
+1228,,Grid de Largada,Ad-Hoc,,3.611,3
+1229,,Combate ao Câncer,Paradigmas,,458,7
+1230,,Integral,Matemática,,124,10
+1231,,Palavras,Paradigmas,,216,7
+1232,,Ciclo de Rubik,Matemática,,363,7
+1233,,Estrela,Matemática,,1.368,6
+1234,,Sentença Dançante,Strings,,18.888,3
+1235,,De Dentro para Fora,Strings,,14.966,5
+1236,,Compactação de Nulos e Brancos,Estruturas e Bibliotecas,,852,8
+1237,,Comparação de Substring,Strings,,7.095,6
+1238,,Combinador,Strings,,23.647,3
+1239,,Atalhos Bloggo,Strings,,6.715,3
+1240,,Encaixa ou Não I,Matemática,,10.699,2
+1241,,Encaixa ou Não II,Strings,,19.294,2
+1242,,Ácido Ribonucleico Alienígena,Estruturas e Bibliotecas,,2.093,4
+1243,,O Quão Fácil é...,Strings,,2.866,7
+1244,,Ordenação por Tamanho,Estruturas e Bibliotecas,,13.725,4
+1245,,Botas Perdidas,Ad-Hoc,,9.912,5
+1246,,Estacionamento,Ad-Hoc,,1.444,7
+1247,,Guarda Costeira,Matemática,,5.680,2
+1248,,Plano de Dieta,Strings,,4.519,2
+1250,,KiloMan,Ad-Hoc,,4.375,2
+1251,,Diga-me a Frequência,Estruturas e Bibliotecas,,5.057,6
+1252,,Sort! Sort!! e Sort!!!,Estruturas e Bibliotecas,,4.045,7
+1253,,Cifra de César,Strings,,26.097,3
+1254,,Substituição de Tag,Strings,,2.287,4
+1255,,Frequência de Letras,Strings,,12.884,3
+1256,,Tabelas Hash,Estruturas e Bibliotecas,,8.769,3
+1257,,Array Hash,Strings,,10.658,3
+1258,,Camisetas,Estruturas e Bibliotecas,,7.706,4
+1259,,Pares e Ímpares,Estruturas e Bibliotecas,,20.360,3
+1260,,Espécies de Madeira,Estruturas e Bibliotecas,,4.711,5
+1261,,Pontos de Feno,Estruturas e Bibliotecas,,4.573,2
+1262,,Leitura Múltipla,Strings,,4.819,2
+1263,,Aliteração,Strings,,6.358,3
+1264,,Um Problema Fácil!,Matemática,,589,7
+1265,,DJ da Computação,Paradigmas,,330,6
+1266,,Tornado!,Ad-Hoc,,2.298,7
+1267,,Biblioteca Pascal,Ad-Hoc,,4.852,3
+1268,,Missão Impossível,Geometria Computacional,,53,8
+1269,,ICPC Ataca Novamente,Paradigmas,,152,7
+1270,,Fibra Óptica,Grafos,,171,8
+1271,,Onde estão meus Genes,Ad-Hoc,,915,5
+1272,,Mensagem Oculta,Strings,,14.324,3
+1273,,Justificador,Strings,,7.943,3
+1274,,P-Networks,Estruturas e Bibliotecas,,233,5
+1275,,Light Up,Grafos,,59,8
+1276,,Faixa de Letras,Strings,,2.122,3
+1277,,Pouca Frequência,Strings,,4.924,6
+1278,,Justificador II,Strings,,5.098,1
+1279,,Ano Bissexto ou Ano não Bissexto,Matemática,,4.318,6
+1280,,Amigos,Matemática,,214,9
+1281,,Ida à Feira,Estruturas e Bibliotecas,,10.893,3
+1282,,Organizando Pacotes,Paradigmas,,288,7
+1283,,Caixas e Pedras,Paradigmas,,108,5
+1284,,Digitando no Telefone Celular,Strings,,968,6
+1285,,Dígitos Diferentes,Ad-Hoc,,5.788,3
+1286,,Motoboy,Paradigmas,,5.356,5
+1287,,Processador Amigável de Inteiros,Strings,,2.737,8
+1288,,Canhão de Destruição,Paradigmas,,3.331,5
+1289,,Qual é a Probabilidade?,Matemática,,514,7
+1290,,Caixas Muito Especiais,Ad-Hoc,,324,7
+1291,,Será Isso Integração?,Geometria Computacional,,961,5
+1292,,Problema com um Pentágono,Geometria Computacional,,1.448,4
+1293,,Romeu e Julieta!,Geometria Computacional,,163,7
+1294,,A Maior e Menor Caixa,Geometria Computacional,,582,7
+1295,,Problema dos Pares Mais Próximos,Geometria Computacional,,2.419,9
+1296,,Medianas,Geometria Computacional,,1.042,5
+1297,,Proteção do Meio Ambiente,Matemática,,277,10
+1298,,Corrija o Labirinto,Grafos,,314,5
+1299,,Jogo de Mosaicos,Paradigmas,,117,7
+1300,,Horas e Minutos,Ad-Hoc,,4.438,2
+1301,,Produto do Intervalo,Estruturas e Bibliotecas,,2.064,6
+1302,,Juntando Casais,Grafos,,234,8
+1303,,Spurs Rocks,Estruturas e Bibliotecas,,2.823,9
+1304,,Velocidade Média,Matemática,,987,6
+1305,,Arredondamento por Valor de Corte,Strings,,2.497,3
+1306,,Numerando Estradas,Matemática,,2.329,3
+1307,,Tudo o que Você Precisa é Amor,Matemática,,2.553,4
+1308,,Guerreiros Etruscos Nunca Jogam Xadrez,Matemática,,2.773,5
+1309,,Formatação Monetária,Matemática,,3.138,4
+1310,,Lucro,Paradigmas,,5.689,4
+1311,,Companheiros de Exército,Ad-Hoc,,687,7
+1312,,Empilhamento de Bolas,Paradigmas,,940,6
+1313,,Dicionário Portuñol,Strings,,188,9
+1314,,Labirintos de Cerca Viva,Grafos,,497,8
+1315,,Não tão Convexo,Geometria Computacional,,143,10
+1317,,"Eu Odeio SPAM, Mas Algumas Pessoas Amam",Grafos,,573,4
+1318,,Bilhetes Falsos,Ad-Hoc,,9.530,3
+1319,,Garota Hiperativa,Paradigmas,,183,9
+1320,,Metrô Engenhoso,Ad-Hoc,,142,5
+1321,,Jollo,Ad-Hoc,,837,6
+1322,,Desejos das Crianças,Grafos,,301,9
+1323,,Feynman,Matemática,,8.790,1
+1324,,Bóson de Higgs,Matemática,,56,10
+1325,,Mapas Bolha,Paradigmas,,157,4
+1326,,Química,Estruturas e Bibliotecas,,347,9
+1327,,Drop Out,Ad-Hoc,,351,5
+1328,,Vá com Calma,Grafos,,68,6
+1329,,Cara ou Coroa,Ad-Hoc,,18.166,2
+1330,,A Terra Herdada por Tio Tom,Grafos,,391,8
+1331,,Blocos,Ad-Hoc,,135,10
+1332,,Um-Dois-Três,Strings,,17.359,2
+1333,,Os Doces de Candy,Ad-Hoc,,48,6
+1334,,Poluição Elétrica,Grafos,,64,10
+1335,,Recuperação de Arquivos,Strings,,128,10
+1336,,Cerca do Jardim,Geometria Computacional,,87,8
+1337,,Poker do Rei,Ad-Hoc,,778,4
+1338,,It-Miha,Matemática,,171,9
+1339,,O Cubo Mágico do Avô,Ad-Hoc,,87,7
+1340,,Eu Posso Adivinhar a Estrutura de Dados!,Estruturas e Bibliotecas,,7.164,2
+1341,,Crianças em uma Grade,Strings,,490,8
+1342,,Dado,Ad-Hoc,,892,4
+1343,,Runner Pawns,Ad-Hoc,,136,6
+1344,,Parceiros de Telecomunicação,Grafos,,146,7
+1345,,Região Segura,Geometria Computacional,,47,10
+1346,,Brincadeira de Criança,Matemática,,62,10
+1347,,Mina Kriptonita,Matemática,,47,10
+1348,,X-Mart,Grafos,,181,7
+1349,,Efeito Ruído,Ad-Hoc,,217,5
+1350,,Esta Sentença é Falsa,Paradigmas,,109,6
+1351,,Supermercado,Ad-Hoc,,297,8
+1352,,Loteria Quadrada,Matemática,,71,8
+1353,,Super Poker,Matemática,,35,5
+1354,,"Um Quadrado Grande, Por Favor",Paradigmas,,25,5
+1355,,Compressor,Strings,,40,10
+1356,,Júpiter Ataca!,Estruturas e Bibliotecas,,252,7
+1357,,Em Braille,Ad-Hoc,,1.332,2
+1358,,Cortando Extremidades,Geometria Computacional,,43,10
+1359,,Taxa de Divisão de Terreno,Ad-Hoc,,66,9
+1360,,Truque de Mágica,Ad-Hoc,,186,5
+1361,,Desenhando o Edifício,Ad-Hoc,,614,4
+1362,,Minha Camiseta Me Serve,Grafos,,1.986,6
+1363,,Competição de Placas de Carros,Ad-Hoc,,144,8
+1364,,Emoticons :-),Strings,,649,8
+1365,,Procurando Assentos,Paradigmas,,602,7
+1366,,Jogo de Varetas,Ad-Hoc,,3.462,2
+1367,,Ajude!,Strings,,3.944,3
+1368,,Cubos Coloridos,Ad-Hoc,,216,8
+1369,,Gerente de Espaço,Ad-Hoc,,302,10
+1370,,Regata de Cientistas,Geometria Computacional,,84,9
+1371,,Fechem as Portas!,Matemática,,2.684,3
+1372,,Doces,Paradigmas,,683,5
+1373,,Sequências de DNA,Strings,,468,8
+1374,,Eletricidade,Ad-Hoc,,281,6
+1375,,Painel de Posições,Ad-Hoc,,1.389,6
+1376,,Irmãos,Matemática,,304,6
+1377,,Recuperador de Arquivos,Strings,,164,9
+1378,,Triângulos Isósceles,Geometria Computacional,,631,9
+1379,,Problema com Mediana e Média,Ad-Hoc,,4.792,1
+1380,,Crescimento das Populações de Bacilos,Matemática,,556,8
+1381,,Equações Diofantinas,Matemática,,650,7
+1382,,"Elementar, meu Caro Watson!",Estruturas e Bibliotecas,,1.202,6
+1383,,Sudoku,Ad-Hoc,,9.866,6
+1384,,Sapo Preguiçoso,Grafos,,239,7
+1385,,Recuperação de Relatório,Strings,,133,8
+1386,,Códigos Ambíguos,Strings,,46,10
+1387,,Og,Ad-Hoc,,13.133,1
+1388,,Onde Estão as Bolhas?,Estruturas e Bibliotecas,,292,10
+1389,,O Problema do Sapateiro Viajante,Grafos,,182,9
+1390,,Bases,Matemática,,63,9
+1391,,Quase Menor Caminho,Grafos,,1.778,7
+1392,,Conta de Luz,Matemática,,259,6
+1393,,Lajotas Hexagonais,Matemática,,3.289,2
+1394,,Hooligan,Grafos,,740,8
+1395,,Números e Operações,Paradigmas,,23,5
+1396,,Hoje tem Prova da Cris!,Paradigmas,,991,6
+1397,,Jogo do Maior,Ad-Hoc,,13.586,1
+1398,,Oceano Profundo! Faça-o Raso!!,Matemática,,1.015,6
+1399,,Transformador de Matriz,Matemática,,433,9
+1400,,Jogo - Contando,Matemática,,950,5
+1401,,Gerando Permutações Ordenadas Rapidamente,Estruturas e Bibliotecas,,2.575,4
+1402,,Será Que Indiana Jones Chega Lá?,Grafos,,112,8
+1403,,Meu Avô é Famoso,Ad-Hoc,,1.470,4
+1404,,MegaDamas,Ad-Hoc,,432,6
+1405,,O Problema da Parada,Estruturas e Bibliotecas,,126,10
+1406,,Jukebox,Strings,,42,10
+1407,,Loteria de Fim de Semana,Ad-Hoc,,790,4
+1408,,Mário,Paradigmas,,477,7
+1409,,Zak Galou,Grafos,,432,9
+1410,,Ele Está Impedido!,Ad-Hoc,,4.005,3
+1411,,Encolhendo Polígonos,Geometria Computacional,,115,9
+1412,,Cadeado com Segredo,Paradigmas,,146,9
+1413,,Apresse-se!,Grafos,,138,10
+1414,,Copa do Mundo,Ad-Hoc,,2.387,3
+1415,,Galou Está de Volta!,Grafos,,92,6
+1416,,Placar do ICPC,Paradigmas,,210,9
+1417,,Liga da Justiça,Grafos,,92,7
+1418,,Outra Crise,Ad-Hoc,,169,3
+1419,,Bakugan,Ad-Hoc,,1.352,5
+1420,,Contando os Segundos,Ad-Hoc,,122,8
+1421,,Tic-Tac-Toe?,Ad-Hoc,,148,9
+1422,,Bactérias,Matemática,,213,9
+1423,,A aventura de Super Mario,Grafos,,231,8
+1424,,Problema Fácil de Rujia Liu?,Estruturas e Bibliotecas,,2.886,8
+1425,,Presente?!,Estruturas e Bibliotecas,,944,8
+1426,,Coloque Tijolos na Parede,Ad-Hoc,,2.444,2
+1427,,O Problema da Scrooge Co.,Grafos,,227,10
+1428,,Procurando Nessy,Ad-Hoc,,2.247,1
+1429,,Fatorial de Novo!,Matemática,,5.164,1
+1430,,Composição de Jingles,Estruturas e Bibliotecas,,5.654,2
+1431,,Níveis de Klingon,Ad-Hoc,,209,9
+1432,,Strings Binárias Triple-Free,Paradigmas,,187,7
+1433,,O Clube da Divisão,Matemática,,98,10
+1434,,Patrulheiros Romanos,Matemática,,65,7
+1435,,Matriz Quadrada I,Iniciante,,29.114,2
+1436,,Jogo do Tijolo,Matemática,,8.020,2
+1437,,"Esquerda, Volver!",Ad-Hoc,,8.525,2
+1438,,Desempilhando Caixas,Ad-Hoc,,603,8
+1439,,Bora Bora,Estruturas e Bibliotecas,,289,8
+1440,,Praça de Alimentação,Ad-Hoc,,233,6
+1441,,Sequências de Granizo,Ad-Hoc,,3.753,4
+1442,,Desvio de Rua,Grafos,,757,8
+1443,,Engarrafamento,Ad-Hoc,,97,6
+1444,,Corrida dos Marrecos,Matemática,,1.049,4
+1445,,Quem Vai à Festa?,Grafos,,613,6
+1446,,Diagrama de Venn?,Geometria Computacional,,57,5
+1447,,Back to the Future,Grafos,,818,7
+1448,,Telefone Sem Fio,Strings,,2.167,9
+1449,,O Fantástico Jaspion,Estruturas e Bibliotecas,,2.454,3
+1450,,Os Joguinhos de Ramsés,Matemática,,78,9
+1451,,Teclado Quebrado,Estruturas e Bibliotecas,,3.088,6
+1452,,Gloud Computing,Estruturas e Bibliotecas,,1.391,2
+1454,,O País das Bicicletas,Grafos,,706,8
+1455,,Final do ICPC,Geometria Computacional,,269,10
+1456,,Brainfuck,Strings,,557,8
+1457,,Oráculo de Alexandria,Matemática,,3.822,1
+1458,,Campeonato de SMS,Strings,,276,8
+1459,,Foco,Ad-Hoc,,983,7
+1460,,Parreiral,Ad-Hoc,,255,9
+1461,,Caminhos Simétricos Ótimos,Grafos,,64,8
+1462,,Popularidade no Facebook,Grafos,,493,9
+1463,,Árvore Binária de Expressão,Grafos,,488,7
+1464,,Camadas de Cebola,Geometria Computacional,,1.089,8
+1465,,"Complexo, Difícil e Complicado",Matemática,,200,5
+1466,,Percurso em Árvore por Nível,Grafos,,4.521,3
+1467,,Zerinho ou Um,Ad-Hoc,,13.997,2
+1468,,Balão,Geometria Computacional,,282,10
+1469,,Chefe,Grafos,,1.936,9
+1470,,Máquina Dobradora,Ad-Hoc,,745,4
+1471,,Mergulho,Ad-Hoc,,7.297,3
+1472,,Triângulos,Ad-Hoc,,1.925,6
+1473,,Linhas de Contêiners,Paradigmas,,402,7
+1474,,Ônibus,Paradigmas,,1.098,7
+1475,,Remendo,Paradigmas,,848,4
+1476,,Caminhão,Grafos,,667,8
+1477,,"Homem, Elefante e Rato",Estruturas e Bibliotecas,,1.091,8
+1478,,Matriz Quadrada II,Iniciante,,22.232,1
+1479,,Ajude seu General,Grafos,,181,7
+1480,,O Famoso Campo Minado,Ad-Hoc,,138,10
+1481,,A Fazenda de Ostras de Zing Zhu,Matemática,,60,10
+1482,,Noite no Museu,Grafos,,453,9
+1483,,Jogo do Bicho,Ad-Hoc,,843,5
+1484,,Tecle & Some,Matemática,,132,7
+1485,,Roleta Turca,Paradigmas,,409,8
+1486,,Circuito Bioquímico Digital,Ad-Hoc,,1.428,4
+1487,,Six Flags,Paradigmas,,2.751,4
+1488,,Números Mágicos?,Matemática,,194,7
+1489,,Engenharia de Software,Grafos,,63,10
+1490,,Torres que Atacam,Grafos,,839,9
+1491,,Linguagem de Blogger,Strings,,68,10
+1492,,Contando Uns,Matemática,,951,5
+1493,,Abastecimento de Água Disjunto,Paradigmas,,251,7
+1494,,Onze,Paradigmas,,178,9
+1495,,Futebol,Ad-Hoc,,2.234,6
+1496,,"Suba os ""Ultras""",Ad-Hoc,,233,8
+1497,,Esconde-Esconde,Geometria Computacional,,153,10
+1498,,Inversão de Huffman,Grafos,,149,10
+1499,,Junte Dois Reinos,Grafos,,236,8
+1500,,Consultas Horríveis,Estruturas e Bibliotecas,,1.623,8
+1501,,Quantos Zeros e Quantos Dígitos?,Matemática,,314,9
+1502,,Travessia,Grafos,,33,10
+1503,,Maior Palíndromo Comum Você Deve Encontrar,Strings,,199,10
+1504,,Curo Railroad,Geometria Computacional,,34,5
+1505,,Curo Factories,Matemática,,54,10
+1506,,Rabito e Bones,Grafos,,23,5
+1507,,Subsequências,Estruturas e Bibliotecas,,3.173,7
+1508,,Raio Laser,Ad-Hoc,,25,5
+1509,,Contando Ambiguidades,Paradigmas,,98,10
+1510,,O Passeio Turístico,Paradigmas,,19,5
+1511,,Tabuleiro GCD,Estruturas e Bibliotecas,,219,10
+1512,,Azulejos,Matemática,,2.193,5
+1513,,Cavalo,Paradigmas,,537,9
+1514,,Competição,Ad-Hoc,,4.505,5
+1515,,Hello Galaxy,Ad-Hoc,,3.679,1
+1516,,Imagem,Strings,,2.898,3
+1517,,Maçãs,Paradigmas,,827,8
+1518,,Tartarugas,Ad-Hoc,,123,10
+1519,,Abreviações,Strings,,1.060,6
+1520,,Parafusos e Porcas,Estruturas e Bibliotecas,,3.214,6
+1521,,O Culpado,Ad-Hoc,,1.734,3
+1522,,Jogo das Pilhas,Paradigmas,,1.066,8
+1523,,Estacionamento Linear,Estruturas e Bibliotecas,,3.468,5
+1524,,Fila do Bandejão,Paradigmas,,1.835,4
+1525,,Gruntz,Grafos,,470,8
+1526,,Transportando Lanches,Matemática,,18,5
+1527,,Guildas,Estruturas e Bibliotecas,,1.555,6
+1528,,Cordas Emaranhadas,Ad-Hoc,,11,5
+1529,,"Max, o Louco",Grafos,,233,8
+1530,,Quantas Substrings?,Strings,,479,9
+1531,,Fibonacci de Novo!,Matemática,,635,10
+1532,,Arremesso de Bolas,Ad-Hoc,,1.062,4
+1533,,Detetive Watson,Ad-Hoc,,8.003,2
+1534,,Matriz 123,Iniciante,,24.104,1
+1535,,Números Casal-Solteirão-Solteirona,Estruturas e Bibliotecas,,122,10
+1536,,Libertadores,Ad-Hoc,,4.367,3
+1537,,Fila do Banco,Matemática,,1.078,4
+1538,,Sequência Alienígena,Estruturas e Bibliotecas,,461,5
+1539,,Empresa de Telecom,Grafos,,889,6
+1540,,Planejando a Energia,Ad-Hoc,,1.249,5
+1541,,Construindo Casas,Iniciante,,15.762,2
+1542,,Lendo Livros,Ad-Hoc,,4.669,5
+1543,,Quadro Premiado,Paradigmas,,260,7
+1544,,O Último Dígito Não-Zero,Matemática,,479,8
+1545,,Cartões II,Paradigmas,,281,9
+1546,,Feedback,Ad-Hoc,,11.673,1
+1547,,Adivinha,Ad-Hoc,,6.138,2
+1548,,Fila do Recreio,Estruturas e Bibliotecas,,16.053,2
+1549,,Dividindo a Coca,Geometria Computacional,,1.205,5
+1550,,Inversão,Grafos,,2.857,7
+1551,,Frase Completa,Strings,,8.685,4
+1552,,Resgate em Queda Livre,Grafos,,2.409,6
+1553,,Perguntas mais Frequentes,Ad-Hoc,,4.063,3
+1554,,Bilhar N+1,Matemática,,2.245,5
+1555,,Funções,Matemática,,18.815,1
+1556,,Removendo Letras,Strings,,1.642,8
+1557,,Matriz Quadrada III,Iniciante,,19.343,1
+1558,,Soma de Dois Quadrados,Ad-Hoc,,4.601,5
+1559,,2048,Ad-Hoc,,1.810,7
+1560,,Energia dos Triângulos,Geometria Computacional,,614,7
+1561,,Relógio Binário,Ad-Hoc,,1.280,3
+1562,,Escolhendo as Duplas,Grafos,,80,10
+1563,,O Grande Problema,Matemática,,161,10
+1564,,Vai Ter Copa?,Iniciante,,27.080,2
+1565,,Ligue os Pontos,Paradigmas,,43,10
+1566,,Altura,Estruturas e Bibliotecas,,6.387,8
+1567,,(2/3/4)-D Sqr/Rects/Cubes/Boxes?,Matemática,,289,5
+1568,,{soma+=i++} até N,Matemática,,494,10
+1569,,Sobe e Desce,Ad-Hoc,,425,9
+1570,,Um Dia na Terra da Matemática,Matemática,,172,10
+1571,,Um Quadrado & Triângulos Equiláteros,Geometria Computacional,,174,6
+1572,,O Torneio Surreal,Matemática,,47,10
+1573,,Fábrica de Chocolate,Ad-Hoc,,3.587,1
+1574,,Instruções do Robô,Ad-Hoc,,5.007,2
+1575,,Perseguindo Don Giovanni,Ad-Hoc,,36,10
+1576,,O Problema da Linha do Horizonte,Ad-Hoc,,239,9
+1577,,Polígonos Regulares Construtíveis,Matemática,,324,6
+1578,,Matriz de Quadrados,Ad-Hoc,,3.159,6
+1579,,Transporte de Painéis Solares,Paradigmas,,750,5
+1580,,Quid Est Veritas? Est Vir Qui Adest!,Matemática,,900,6
+1581,,Conversa Internacional,Strings,,10.690,2
+1582,,O Teorema de Pitágoras,Matemática,,4.105,5
+1583,,Contaminação,Grafos,,2.307,4
+1584,,Espertofone,Grafos,,149,9
+1585,,Fazendo Pandorgas,Matemática,,6.887,1
+1586,,Cabo de Guerra,Strings,,1.352,8
+1587,,BIT Park,Estruturas e Bibliotecas,,149,10
+1588,,Ajude a Federação,Ad-Hoc,,995,7
+1589,,Bob Conduite,Iniciante,,26.967,1
+1590,,Cuarenta e Dois,Paradigmas,,614,8
+1591,,Dia da Vovó,Ad-Hoc,,666,6
+1592,,Elias e Golias,Grafos,,242,9
+1593,,Função Binária,Ad-Hoc,,1.765,2
+1594,,Guloso,Estruturas e Bibliotecas,,421,7
+1595,,Humm.. Andar ou Correr.. Eis a Questão,Paradigmas,,899,6
+1596,,Torneio de Yusuf II,Paradigmas,,1,5
+1597,,Desmascarando o Empregado do Sultão,Paradigmas,,24,5
+1598,,O Verdadeiro Valor dos Tapetes,Paradigmas,,17,5
+1599,,Picos do Átlas,Paradigmas,,467,6
+1600,,O Gato do Zelador do Armazém,Paradigmas,,85,9
+1601,,Partição do Rebanho,Paradigmas,,42,10
+1602,,Hiperprimos,Paradigmas,,1.007,8
+1603,,Canais de Qanat,Paradigmas,,10,5
+1604,,Pair-voting no Conselho de Gueliz,Paradigmas,,52,7
+1605,,Montando Sua Própria Cáfila,Paradigmas,,20,5
+1606,,As Dicas de Ali Babá,Paradigmas,,407,6
+1607,,Avance as Letras,Strings,,6.919,2
+1608,,Bolos da Maria,Paradigmas,,1.986,1
+1609,,Contando Carneirinhos,Ad-Hoc,,5.633,4
+1610,,Dudu Faz Serviço,Grafos,,4.912,7
+1611,,Elevador Lotado,Paradigmas,,1.375,4
+1612,,Formiguinha,Ad-Hoc,,2.259,3
+1613,,Goemon em Apuros,Geometria Computacional,,347,10
+1614,,Ajude o Turista,Paradigmas,,159,7
+1615,,Insatisfação nas Eleições,Ad-Hoc,,991,3
+1616,,Baile de Formatura,Paradigmas,,399,6
+1617,,Caminho Seguro,Grafos,,108,7
+1618,,Colisão,Ad-Hoc,,4.154,4
+1619,,Diferença entre Datas,Ad-Hoc,,770,4
+1620,,Triangulação de Delaunay,Matemática,,1.753,4
+1621,,Labirinto,Grafos,,827,7
+1622,,Lâmpadas,Ad-Hoc,,330,6
+1623,,Linguagem,Matemática,,251,9
+1624,,Promoção,Matemática,,935,4
+1625,,Robocopia,Matemática,,2,5
+1626,,Maratona All FACE,Matemática,,121,10
+1627,,Último Dano,Ad-Hoc,,578,3
+1628,,ChessGuess,Grafos,,22,5
+1629,,DescompactaFACE,Strings,,709,3
+1630,,Estacas,Matemática,,1.786,1
+1631,,O Fantástico Bolo de Bobby,Geometria Computacional,,482,5
+1632,,Variações,Strings,,4.081,1
+1633,,SBC,Estruturas e Bibliotecas,,700,5
+1634,,Outra Loteria,Matemática,,228,5
+1635,,Resultado das Eleições,Matemática,,171,9
+1636,,Permutações Antimonotônicas Cíclicas,Paradigmas,,182,6
+1637,,Codificação Gamma de Elias,Paradigmas,,43,4
+1638,,Tamanho da Porção de Comida,Ad-Hoc,,41,9
+1639,,Gerando Números Aleatórios,Ad-Hoc,,545,3
+1640,,Reservando Hotéis,Estruturas e Bibliotecas,,231,9
+1641,,Restaurante e Pizzaria do Alfredo,Matemática,,1.561,3
+1642,,Teclado Quebrado,Paradigmas,,558,6
+1643,,Converter Quilômetros para Milhas,Paradigmas,,1.172,3
+1644,,Decifre o Texto,Matemática,,220,9
+1645,,El Dorado,Paradigmas,,851,6
+1646,,Floresta,Geometria Computacional,,56,10
+1647,,Um Jogo com Bolas de Gude,Matemática,,856,3
+1648,,Ajude Bob,Paradigmas,,87,9
+1649,,Ferramenta Irritante de Pintura,Paradigmas,,596,4
+1650,,Pintura Preto e Branco,Matemática,,495,3
+1651,,Cilindro,Geometria Computacional,,195,7
+1652,,Deli Deli,Ad-Hoc,,956,2
+1653,,Expressões,Grafos,,87,5
+1654,,Mercearia,Paradigmas,,467,9
+1655,,106 Milhas Para Chicago,Grafos,,1.617,6
+1656,,Doces do Dia das Bruxas,Matemática,,187,8
+1657,,Corretor Automático de Erros de Soletração,Ad-Hoc,,99,9
+1658,,Grupos Diedro,Matemática,,33,7
+1659,,Chamadas Econômicas,Paradigmas,,23,5
+1660,,Flavius Josephus Está de Volta,Matemática,,152,7
+1661,,Comércio de Vinhos na Gergóvia,Paradigmas,,2.022,5
+1662,,Quadrados Homogêneos,Matemática,,47,7
+1663,,Permutações Ambíguas,Ad-Hoc,,618,3
+1664,,Bullshit Bingo,Strings,,299,7
+1665,,Decorando a Parede,Geometria Computacional,,46,8
+1666,,Qualquer Tolo Consegue,Paradigmas,,72,7
+1667,,HTML,Strings,,634,9
+1668,,Ajude o Autor do Problema,Grafos,,34,5
+1669,,Todos os Discos Considerados,Grafos,,316,8
+1670,,Lógica Booleana,Ad-Hoc,,43,3
+1671,,Código,Grafos,,124,8
+1672,,Em Perigo,Paradigmas,,383,6
+1673,,Codificação Run-length,Estruturas e Bibliotecas,,514,7
+1674,,Fractran,Matemática,,16,5
+1675,,Construção de Procura Binária de Heap,Grafos,,137,10
+1676,,Precisa-se de Ajuda,Ad-Hoc,,519,5
+1677,,A Base de um Grafo,Grafos,,324,9
+1678,,Gerenciamento de Partição Fixa em Competição,Ad-Hoc,,10,5
+1679,,"Bebida, com Gelo",Geometria Computacional,,56,6
+1680,,Borda,Ad-Hoc,,213,4
+1681,,Dobra,Paradigmas,,18,5
+1682,,Código Genético,Paradigmas,,914,5
+1683,,Maior Retângulo em um Histograma,Estruturas e Bibliotecas,,574,7
+1684,,Maratona Doce,Ad-Hoc,,151,6
+1685,,Praça de Daniel,Paradigmas,,119,9
+1686,,Sequência de Palíndromos,Strings,,18,5
+1687,,Destrave o Celular,Paradigmas,,160,9
+1688,,Nim Intergalático,Matemática,,55,7
+1689,,Radares,Paradigmas,,556,7
+1690,,Soma de Sobconjuntos,Paradigmas,,862,7
+1691,,Super Circunferência,Ad-Hoc,,18,5
+1692,,Curo Ataque,Grafos,,45,10
+1693,,Apenas Outro Problema de Física,Geometria Computacional,,235,10
+1694,,Loteria,Matemática,,364,8
+1695,,Ordenando Árvores,Grafos,,145,9
+1696,,Brincando Com Operadores,Estruturas e Bibliotecas,,113,10
+1697,,Jaida e o Jogo Multiplicativo,Matemática,,720,9
+1698,,Metrô Brasileiro,Grafos,,24,5
+1699,,Jogo Entediante,Ad-Hoc,,310,8
+1700,,Antenas,Paradigmas,,228,10
+1701,,Sequência de Fibo,Estruturas e Bibliotecas,,145,9
+1702,,Colorindo Grafos,Grafos,,182,8
+1703,,Pulando Pedras,Matemática,,83,10
+1704,,Arrumando as Tarefas,Estruturas e Bibliotecas,,1.195,9
+1705,,Apaixonado por Binário,Matemática,,216,10
+1706,,Pontes Mágicas,Grafos,,451,6
+1707,,Jogo com Números,Paradigmas,,158,8
+1708,,Volta,Ad-Hoc,,4.660,3
+1709,,Baralho Embaralhado,Estruturas e Bibliotecas,,2.527,4
+1710,,Confederação,Ad-Hoc,,509,6
+1711,,Dona Minhoca,Grafos,,515,8
+1712,,Ecologia,Ad-Hoc,,199,10
+1713,,Teletransporte,Grafos,,428,7
+1714,,Letras,Ad-Hoc,,375,8
+1715,,Handebol,Ad-Hoc,,4.491,2
+1716,,RSA,Ad-Hoc,,1.036,7
+1717,,Corte,Ad-Hoc,,110,9
+1718,,Pizza do Vô Pepe,Ad-Hoc,,482,8
+1719,,Computadores Simples,Ad-Hoc,,184,8
+1720,,Sonho de Mondriaan,Paradigmas,,108,6
+1721,,Equidistância,Geometria Computacional,,66,9
+1722,,Quantos Fibs?,Matemática,,600,8
+1723,,Árvores Filogenéticas Herdadas,Grafos,,25,5
+1724,,Caminhada em um Grafo,Grafos,,57,6
+1725,,Quadtree II,Estruturas e Bibliotecas,,35,5
+1726,,Amigos,Strings,,272,7
+1727,,Copa Européia 2000,Paradigmas,,182,6
+1728,,"Difícil de Acreditar, Mas é Verdade!",Ad-Hoc,,1.465,3
+1729,,Média Não é Rápida o Suficiente!,Matemática,,256,6
+1730,,Global Roaming,Geometria Computacional,,55,4
+1731,,Frutas Avançadas,Ad-Hoc,,98,6
+1732,,Abelha Maja,Ad-Hoc,,397,4
+1733,,Vladimir o Vampiro,Grafos,,47,9
+1734,,Limite Encontrado,Matemática,,21,5
+1735,,Codifique a Árvore,Matemática,,226,6
+1736,,Decodifique a Árvore,Matemática,,44,9
+1737,,Etaoin Shrdlu,Strings,,535,4
+1738,,Rede de Fibra,Grafos,,926,6
+1739,,Sequência de Threebonacci,Ad-Hoc,,1.739,4
+1740,,Está Ordenado?,Estruturas e Bibliotecas,,97,10
+1741,,Notação Reversa de João,Ad-Hoc,,550,9
+1742,,Entrando em Confusão,Grafos,,40,10
+1743,,Máquina de Verificação Automatizada,Ad-Hoc,,8.193,1
+1744,,Pedras Pretas e Brancas,Paradigmas,,435,7
+1745,,Contando Substhreengs,Matemática,,403,6
+1746,,Dividindo os Nomes,Estruturas e Bibliotecas,,84,10
+1747,,Distribuição Igual,Grafos,,208,10
+1748,,Cerque Os Vegetais,Geometria Computacional,,50,9
+1749,,Colisão Galática,Grafos,,266,8
+1750,,Ajude o Cupido,Ad-Hoc,,434,6
+1751,,Alpinista Intrépido,Grafos,,396,6
+1752,,Jornada Pelo Reino,Grafos,,101,10
+1753,,Cavaleiros Da Tàvola Redonda,Ad-Hoc,,32,10
+1754,,A Sala do Tempo,Matemática,,446,6
+1755,,O Troco,Ad-Hoc,,595,7
+1756,,Algoritmo Genético,Matemática,,234,4
+1757,,Viagem Barril,Grafos,,250,7
+1758,,Pontos Extras,Ad-Hoc,,605,5
+1759,,Ho Ho Ho,Iniciante,,32.182,1
+1760,,Floco de Neve de Koch,Matemática,,1.485,2
+1761,,Decoração Natalina,Matemática,,1.788,1
+1762,,Trenós do Papai Noel,Estruturas e Bibliotecas,,213,8
+1763,,Tradutor do Papai Noel,Estruturas e Bibliotecas,,5.254,3
+1764,,Itinerário do Papai Noel,Grafos,,3.432,3
+1765,,Trapézios de Natal,Ad-Hoc,,1.454,2
+1766,,O Elfo das Trevas,Estruturas e Bibliotecas,,3.379,3
+1767,,Saco do Papai Noel,Paradigmas,,2.403,4
+1768,,Árvore de Natal,Strings,,5.765,1
+1769,,CPF 1,Ad-Hoc,,3.866,3
+1770,,Shuffle,Ad-Hoc,,609,3
+1771,,Cartelas de Bingo Aleatórias,Ad-Hoc,,189,5
+1772,,Embaralhamento de Bits,Ad-Hoc,,564,5
+1773,,Preso no Castelo,Grafos,,461,9
+1774,,Roteadores,Grafos,,3.941,3
+1775,,André e os Mentos,Paradigmas,,309,6
+1776,,Baile de Formatura,Matemática,,313,9
+1777,,Calçada da Fama,Paradigmas,,315,9
+1778,,Defesa ao Grafo,Grafos,,152,10
+1779,,Estimando a Média,Ad-Hoc,,1.084,5
+1780,,Formação de Robôs,Ad-Hoc,,100,9
+1781,,Guga e a String,Strings,,738,8
+1782,,Honorável Presente,Grafos,,83,9
+1783,,"Ih, Ferrou, um Buraco Negro!",Geometria Computacional,,608,3
+1784,,Jacutingas vs Jaburus,Paradigmas,,78,9
+1785,,Kaprekar,Matemática,,817,3
+1786,,CPF 2,Ad-Hoc,,1.858,3
+1787,,URI,Ad-Hoc,,1.408,5
+1788,,Brincando com Números,Paradigmas,,133,9
+1789,,A Corrida de Lesmas,Iniciante,,21.230,3
+1790,,Detectando Pontes,Grafos,,1.333,6
+1791,,Descobrindo uma Matriz,Ad-Hoc,,86,10
+1792,,Ataque Programado,Grafos,,290,8
+1793,,Escada Rolante,Ad-Hoc,,2.172,1
+1794,,Lavanderia,Ad-Hoc,,6.357,1
+1795,,Triângulo Trinomial,Matemática,,4.878,2
+1796,,Economia Brasileira,Ad-Hoc,,6.314,2
+1797,,Ferozes e Curiosos,Geometria Computacional,,215,9
+1798,,Cortando Canos,Paradigmas,,2.964,5
+1799,,O Rato no Labirinto,Grafos,,2.080,4
+1800,,Onde Estão Minhas Chaves,Ad-Hoc,,2.070,3
+1801,,Brincando com Números,Matemática,,236,8
+1802,,Catálogo de Livros,Ad-Hoc,,1.597,3
+1803,,Matring,Strings,,3.289,1
+1804,,Precisa-se de Matemáticos em Marte,Estruturas e Bibliotecas,,1.418,6
+1805,,Soma Natural,Matemática,,12.268,6
+1806,,Agente 004,Grafos,,261,7
+1807,,"Triângulo Trinomial, a Vingança",Matemática,,1.672,5
+1808,,O Retorno do Rei,Ad-Hoc,,1.706,3
+1809,,Agentes Secretos,Ad-Hoc,,40,5
+1810,,"Beverly Hills, Century City",Paradigmas,,50,9
+1811,,O Óscar Vai Para...,Ad-Hoc,,144,8
+1812,,Um Cluster Para Evitar Enchentes,Matemática,,31,5
+1813,,Anacrônico?,Grafos,,100,9
+1814,,DNA Storage?,Ad-Hoc,,72,8
+1815,,Drunk People?,Matemática,,132,8
+1816,,Vikings em Praga?,Ad-Hoc,,502,2
+1817,,Arqueólogos de Tsing Ling,Ad-Hoc,,28,5
+1818,,Centro de Convenções,Geometria Computacional,,2,5
+1819,,Estimando a Produção,Matemática,,11,5
+1820,,Grupos da Universidade de Sing Pil,Ad-Hoc,,32,5
+1821,,Miai Chinês,Grafos,,68,9
+1822,,Obras da China,Paradigmas,,80,2
+1823,,O Penúltimo Imperador,Grafos,,8,5
+1824,,Sapos de Tsé-Tsé,Ad-Hoc,,82,9
+1825,,Formigando,Geometria Computacional,,24,5
+1826,,A Linguagem é Infinita?,Grafos,,30,10
+1827,,Matriz Quadrada IV,Iniciante,,13.003,1
+1828,,Bazinga!,Iniciante,,18.201,4
+1829,,Jogo do Maior Número,Matemática,,810,7
+1830,,Caixas de Bombons,Matemática,,130,9
+1831,,Dia Difícil de Trabalho,Matemática,,198,9
+1832,,EBCDIC,Ad-Hoc,,441,3
+1833,,Decoração Natalina,Paradigmas,,209,8
+1834,,Vogons!,Geometria Computacional,,406,6
+1835,,Promessa de Campanha,Grafos,,1.793,5
+1836,,Pokémon!,Ad-Hoc,,1.567,3
+1837,,Prefácio,Iniciante,,13.434,7
+1838,,A Pedra Filosofal,Paradigmas,,384,7
+1839,,A Câmara Secreta,Matemática,,272,7
+1840,,O Prisioneiro de Azkaban,Ad-Hoc,,145,8
+1841,,O Cálice de Fogo,Matemática,,123,10
+1842,,A Ordem da Fênix,Strings,,138,9
+1843,,O Enigma do Príncipe,Paradigmas,,81,9
+1844,,As Relíquias da Morte,Geometria Computacional,,168,9
+1845,,Efílogo,Ad-Hoc,,1.375,8
+1846,,Numero Para Nome,Strings,,740,8
+1847,,Bem-vindos e Bem-vindas ao Inverno!,Iniciante,,17.063,4
+1848,,Corvo Contador,Iniciante,,13.291,3
+1849,,Dracarys!,Ad-Hoc,,1.018,6
+1850,,O Labirinto de Ninguém,Grafos,,229,7
+1851,,Como Treinar Seu Dragão,Estruturas e Bibliotecas,,681,6
+1852,,Lobos Stark,Paradigmas,,88,6
+1853,,O Jogo da Confiança de Daenerys,Strings,,103,10
+1854,,Inverno em Winterfell,Estruturas e Bibliotecas,,175,10
+1855,,Mapa do Meistre,Grafos,,2.865,3
+1856,,A Lista da Morte de Arya,Estruturas e Bibliotecas,,305,10
+1857,,Prelúdio de um Casamento Vermelho,Geometria Computacional,,50,10
+1858,,A Resposta de Theon,Iniciante,,17.469,2
+1859,,Arqueologia Congelante,Strings,,38,10
+1860,,A Caminhada da Vergonha de Cersei,Paradigmas,,237,7
+1861,,O Hall dos Assassinos,Estruturas e Bibliotecas,,3.584,5
+1862,,Casas de Westeros,Grafos,,1.014,6
+1863,,O Contra-ataque de Ramsay,Estruturas e Bibliotecas,,67,10
+1864,,Nossos Dias Nunca Voltarão,Iniciante,,15.915,2
+1865,,Mjölnir,Iniciante,,19.633,1
+1866,,Conta,Iniciante,,21.231,1
+1867,,Maior Número de Um Algarismo,Ad-Hoc,,2.354,4
+1868,,Espiral Quadrada,Strings,,1.198,2
+1869,,Base 32,Matemática,,1.629,5
+1870,,Ventiladores e Balões,Ad-Hoc,,1.168,2
+1871,,Zero vale Zero,Strings,,10.056,1
+1872,,Palíndromo Real,Matemática,,91,10
+1873,,Pedra-papel-tesoura-lagarto-Spock,Strings,,7.771,2
+1874,,Empurrando Blocos,Estruturas e Bibliotecas,,1.113,2
+1875,,Tribol,Geometria Computacional,,2.574,3
+1876,,Rabiola,Ad-Hoc,,627,2
+1877,,O Castelo de Neve de Sansa,Ad-Hoc,,708,3
+1878,,Torneios em Sequência,Paradigmas,,904,3
+1879,,Bridge,Ad-Hoc,,73,5
+1880,,Renzo e a Decoração Capicuânica,Ad-Hoc,,512,6
+1881,,Competição de Robótica,Ad-Hoc,,81,10
+1882,,Passeios Aleatórios pela Tailândia,Grafos,,6,5
+1883,,Fuga de Ayutthaya,Grafos,,283,9
+1884,,Lutando Contra os Rajasi,Ad-Hoc,,113,10
+1885,,Loteria Tailandesa,Ad-Hoc,,63,8
+1886,,Resguardando os Templos,Ad-Hoc,,146,6
+1887,,As Vias Férreas Kunming-Cingapura,Ad-Hoc,,53,10
+1888,,Os chedis de Kamphaeng Phet,Ad-Hoc,,34,9
+1889,,Treinando com as Larvas de Phuket,Ad-Hoc,,145,9
+1890,,Emplacando os Tuk-tuks,Ad-Hoc,,1.838,2
+1891,,Removendo Moedas no Kem Kradãn,Ad-Hoc,,214,6
+1892,,Calouro Vence Veterano?,Paradigmas,,938,9
+1893,,Fases da Lua,Ad-Hoc,,5.286,4
+1894,,Filogenia,Grafos,,32,5
+1895,,Jogo do Limite,Ad-Hoc,,1.371,3
+1896,,É Hora do Duelo!,Ad-Hoc,,684,5
+1897,,Jogo Esperto,Estruturas e Bibliotecas,,1.453,7
+1898,,Soma de Propina,Strings,,1.356,9
+1899,,Acerte o Alvo!,Ad-Hoc,,324,8
+1900,,Sequências Nulas,Paradigmas,,354,7
+1901,,Borboletas,Ad-Hoc,,2.663,5
+1902,,Sociedade Brasileira Casamenteira,Grafos,,632,6
+1903,,Cadeia Alimentar,Grafos,,327,10
+1904,,Par ou Ímpar 2.0,Matemática,,445,9
+1905,,Polícia e Ladrão,Grafos,,3.773,5
+1906,,Senhas de Collatz,Grafos,,97,9
+1907,,Coloração de Cenários de Jogos,Grafos,,2.128,5
+1908,,UFFS Multicampi,Grafos,,494,9
+1909,,Ajude Kiko,Matemática,,576,7
+1910,,Ajude Clotilde,Grafos,,1.627,7
+1911,,Ajude Girafales,Estruturas e Bibliotecas,,3.418,4
+1912,,Ajude Seu Madruga,Paradigmas,,2.642,8
+1913,,Ajude o Sr. Barriga,Paradigmas,,188,7
+1914,,De Quem é a Vez?,Iniciante,,13.869,2
+1915,,Ajude Chaves,Grafos,,253,10
+1916,,Banco de Horas de Jaiminho,Ad-Hoc,,149,5
+1917,,Ajude o Chapolin Colorado!,Ad-Hoc,,112,8
+1918,,Viagem para Acapulco,Ad-Hoc,,32,10
+1919,,Ajude Nhonho,Ad-Hoc,,236,2
+1920,,Fonte dos Desejos,Ad-Hoc,,280,5
+1921,,Guilherme e Suas Pipas,Matemática,,7.121,3
+1922,,Diego e o Jogo do Martelo,Paradigmas,,96,6
+1923,,Rerisson e o Churrasco,Grafos,,829,7
+1924,,Vitória e a Indecisão,Iniciante,,14.480,1
+1925,,Ordan e as Novinhas,Grafos,,156,9
+1926,,Marianne e os Primos Gêmeos,Matemática,,854,8
+1927,,Tapioca e a Chuva de Trufas,Paradigmas,,367,9
+1928,,Jogo da Memória,Grafos,,863,7
+1929,,Triângulo,Iniciante,,15.990,3
+1930,,Tomadas,Iniciante,,27.440,1
+1931,,Mania de Par,Grafos,,2.827,6
+1932,,Bolsa de Valores,Paradigmas,,1.821,7
+1933,,Tri-du,Iniciante,,19.947,1
+1934,,Quebra-cabeça,Ad-Hoc,,507,5
+1935,,Espiral,Ad-Hoc,,518,8
+1936,,Fatorial,Ad-Hoc,,5.246,1
+1937,,Guardiões Curiosos,Ad-Hoc,,122,10
+1938,,Praça do Retângulo,Geometria Computacional,,531,6
+1939,,Ominobox,Ad-Hoc,,32,10
+1940,,Jogo da Estratégia,Ad-Hoc,,3.727,3
+1941,,Palíndromo,Strings,,646,7
+1942,,Loteria,Ad-Hoc,,176,10
+1943,,Top N,Ad-Hoc,,8.657,1
+1944,,BRINDE FACE 2015,Estruturas e Bibliotecas,,3.103,4
+1945,,Simulador,Ad-Hoc,,481,3
+1946,,Pirâmide da Sorte,Matemática,,328,5
+1947,,Rota do Taxista,Grafos,,149,9
+1948,,Compilador,Grafos,,84,5
+1949,,Registrador de Deslocamento,Matemática,,29,10
+1950,,Spöhndriger,Grafos,,0,5
+1951,,Validador de Circuitos,Grafos,,113,7
+1952,,O Cavalo no Xadrez 3D,Grafos,,196,7
+1953,,Roberto e a Sala Desenfreada,Ad-Hoc,,2.429,2
+1954,,Caminhos Evolucionários Possíveis,Grafos,,93,10
+1955,,See World,Grafos,,1.090,5
+1956,,Acácias,Grafos,,485,8
+1957,,Converter para Hexadecimal,Iniciante,,15.071,1
+1958,,Notação Científica,Iniciante,,7.455,4
+1959,,Polígonos Regulares Simples,Iniciante,,13.234,3
+1960,,Numeração Romana para Números de Página,Iniciante,,10.054,2
+1961,,Pula Sapo,Iniciante,,16.580,2
+1962,,"Há Muito, Muito Tempo Atrás",Iniciante,,12.090,2
+1963,,O Filme,Iniciante,,15.188,2
+1964,,A Ira de Khan,Ad-Hoc,,116,10
+1965,,A Procura por Spock,Ad-Hoc,,41,10
+1966,,A Volta para Casa,Ad-Hoc,,377,9
+1967,,A Fronteira Final,Matemática,,764,6
+1968,,A Terra Desconhecida,Matemática,,118,10
+1969,,Generations,Matemática,,61,10
+1970,,Primeiro Contato,Paradigmas,,477,6
+1971,,Insurreição,Geometria Computacional,,140,10
+1972,,Nêmesis,Grafos,,781,7
+1973,,Jornada nas Estrelas,Iniciante,,8.081,7
+1974,,Além da Escuridão,Grafos,,22,5
+1975,,Pérolas,Estruturas e Bibliotecas,,604,8
+1976,,Matrizes,Paradigmas,,300,10
+1977,,Não Posso me Atrasar,Grafos,,516,7
+1978,,Câmeras,Paradigmas,,115,9
+1979,,Salas Separadas,Grafos,,719,6
+1980,,Embaralhando,Ad-Hoc,,2.649,6
+1981,,Embaralhando de Novo,Matemática,,336,9
+1982,,Novos Computadores,Geometria Computacional,,632,6
+1983,,O Escolhido,Iniciante,,13.048,2
+1984,,O Enigma do Pronalândia,Iniciante,,12.984,2
+1985,,MacPRONALTS,Iniciante,,17.581,1
+1986,,Perdido em Marte,Ad-Hoc,,1.211,1
+1987,,Divisibilidade Por 3,Ad-Hoc,,3.178,2
+1988,,Circuitos Turísticos,Grafos,,7,5
+1989,,Fazendo Nada,Matemática,,912,4
+1990,,Equilíbrio,Matemática,,95,9
+1991,,Fábrica de Pontes,Geometria Computacional,,41,10
+1992,,Ganhando Tempo,Matemática,,3,5
+1993,,Ele é Preguiçoso,Grafos,,124,9
+1994,,Imperialismo,Grafos,,137,8
+1995,,"Game, Set e Match",Matemática,,0,5
+1996,,Construção de Tendas,Paradigmas,,9,5
+1997,,Branco e Preto,Ad-Hoc,,494,2
+1998,,Awari 2.0,Ad-Hoc,,341,6
+1999,,Baile de Reconciliação,Matemática,,259,4
+2000,,Adeildo da Odonto,Strings,,161,10
+2001,,Bile,Matemática,,78,10
+2002,,Casa de Rogério,Grafos,,99,10
+2003,,Domingo de Manhã,Iniciante,,9.428,2
+2004,,Enisvaldo Com Fome,Ad-Hoc,,428,5
+2005,,Fracil Bolado,Ad-Hoc,,159,9
+2006,,Identificando o Chá,Iniciante,,33.548,1
+2007,,Falha Ao Cercar Legumes,Matemática,,173,9
+2008,,Expondo a Corrupção,Ad-Hoc,,276,6
+2009,,Apenas um Pouco Classificadas,Ad-Hoc,,48,7
+2010,,Mantenha Isso Energizado,Ad-Hoc,,165,8
+2011,,Impostos Galácticos,Ad-Hoc,,260,9
+2012,,Altura do Mapa,Ad-Hoc,,144,9
+2013,,No Máximo Duas Vezes,Ad-Hoc,,290,7
+2014,,Grupos Sanguineos,Ad-Hoc,,121,6
+2015,,Fatia do Bolo,Ad-Hoc,,142,7
+2016,,D como em Daedalus,Ad-Hoc,,429,4
+2017,,Seis Strings,Strings,,891,5
+2018,,Olimpíadas de Natal,Estruturas e Bibliotecas,,1.508,4
+2019,,"Cici, Cini e Cino",Ad-Hoc,,24,5
+2020,,Elfos e seus Códigos,Estruturas e Bibliotecas,,256,7
+2021,,Luzes de Natal,Ad-Hoc,,340,7
+2022,,Presentes de Natal,Estruturas e Bibliotecas,,891,5
+2023,,A Última Criança Boa,Strings,,2.839,4
+2024,,Empilhando Presentes,Paradigmas,,119,8
+2025,,Joulupukki,Strings,,1.411,5
+2026,,Árvore de Natal,Paradigmas,,1.257,5
+2027,,Aposta com Noel,Paradigmas,,940,5
+2028,,Sequência de Sequência,Iniciante,,8.832,5
+2029,,Reservatório de Mel,Iniciante,,9.809,1
+2030,,Pit Stop,Ad-Hoc,,129,7
+2031,,"Pedra, Papel, Ataque Aéreo",Iniciante,,9.801,2
+2032,,Jogo dos Oito,Grafos,,369,9
+2033,,Juros Sobre o Empréstimo,Matemática,,547,6
+2034,,Cantor,Matemática,,35,7
+2035,,Projetando Camisetas,Strings,,228,8
+2036,,Efeito Dominó,Paradigmas,,250,10
+2037,,A Lista,Ad-Hoc,,246,9
+2038,,Gerando DNA Alienígena,Grafos,,15,5
+2039,,Programadores Devem Aprender Teoria da Computação,Grafos,,13,5
+2040,,O Campeão,Estruturas e Bibliotecas,,611,6
+2041,,Sequência de Gödelito,Ad-Hoc,,406,5
+2042,,Fofão da Pérsia,Paradigmas,,89,10
+2043,,Montanha Alta,Geometria Computacional,,162,10
+2044,,Em Dívida,Matemática,,1.044,1
+2045,,Defendendo Alamo,Geometria Computacional,,68,10
+2046,,Entregadores de Steak,Grafos,,303,9
+2047,,Fly By Night,Estruturas e Bibliotecas,,54,5
+2048,,"Houston, Nós Temos Um Problema!",Grafos,,66,6
+2049,,Números de Ahmoc,Strings,,1.447,4
+2050,,Bar do Ramsey,Paradigmas,,44,6
+2051,,Mapas de Karnaugh I,Ad-Hoc,,63,6
+2052,,Mapas de Karnaugh II,Paradigmas,,3,5
+2053,,ET Phone Home,Paradigmas,,17,5
+2054,,Last Year at Marienbad,Ad-Hoc,,46,8
+2055,,"Lisp é Melhor que Java, C e C++",Strings,,10,5
+2056,,O Cubo,Grafos,,53,8
+2057,,Fuso Horário,Iniciante,,18.370,2
+2058,,Triângulos e Polígonos Regulares,Ad-Hoc,,7.985,1
+2059,,"Ímpar, Par ou Roubo",Iniciante,,14.103,2
+2060,,Desafio de Bino,Iniciante,,21.356,1
+2061,,As Abas de Péricles,Iniciante,,11.299,1
+2062,,OBI URI,Strings,,6.210,4
+2063,,Caçando Digletts,Matemática,,706,4
+2064,,Prant e a Indecisão,Estruturas e Bibliotecas,,233,9
+2065,,Fila do Supermercado,Estruturas e Bibliotecas,,3.726,4
+2066,,amelborP mU,Matemática,,334,3
+2067,,Jogo do Quadrado,Estruturas e Bibliotecas,,479,6
+2068,,Marcando um Encontro,Matemática,,151,6
+2069,,A Mesa Quadrada de Inês Venezuela,Matemática,,218,7
+2070,,Contando Sequências Boladas,Ad-Hoc,,119,10
+2071,,Banco do Faraó,Estruturas e Bibliotecas,,174,8
+2072,,Canhões de Anúbis,Paradigmas,,108,9
+2073,,Mercado do Cairo,Grafos,,160,6
+2074,,Variados Pratos da Linda Nefertiti,Estruturas e Bibliotecas,,21,5
+2075,,Zé Coquinho,Estruturas e Bibliotecas,,30,5
+2076,,Alocação Ótima de Commodities,Matemática,,176,9
+2077,,Los buses de Cartagena,Estruturas e Bibliotecas,,44,5
+2078,,Paz Verde! Hipocrisia Mundial!,Ad-Hoc,,27,5
+2079,,Produto de Guerra,Grafos,,83,7
+2080,,Seqüências de Röntgen,Paradigmas,,78,10
+2081,,"Sonhos, Acredite Neles!",Grafos,,142,10
+2082,,Viagens no Tempo,Grafos,,204,10
+2083,,Beira da Estrada,Geometria Computacional,,62,10
+2084,,Eleições,Matemática,,862,6
+2085,,Chapeuzinho Vermelho,Grafos,,72,8
+2086,,Ciclofaixa,Grafos,,159,6
+2087,,Conjuntos Bons e Ruins,Strings,,1.585,8
+2088,,Combate à Dengue,Grafos,,495,6
+2089,,Lanchonete,Paradigmas,,623,8
+2090,,Fui ao Mercado e Comprei...,Ad-Hoc,,251,8
+2091,,Número Solitário,Estruturas e Bibliotecas,,2.359,5
+2092,,Assistindo o Jogo,Estruturas e Bibliotecas,,71,10
+2093,,Fuja para Escapar,Strings,,129,10
+2094,,Flores,Geometria Computacional,,53,10
+2095,,Guerra,Paradigmas,,1.795,4
+2096,,Horácio e Seus Primos,Matemática,,104,7
+2097,,Nome para Número,Strings,,184,7
+2098,,Ilha do Tesouro,Grafos,,55,8
+2099,,Jogando Com Pedras,Paradigmas,,78,6
+2100,,Cinema de Xing Tzen Zu,Matemática,,280,4
+2101,,Combinações de Dias,Matemática,,120,5
+2102,,Contando em Chinês,Ad-Hoc,,501,5
+2103,,Harbin é Muita Grana!,Grafos,,228,7
+2104,,Lasers,Geometria Computacional,,50,8
+2105,,Monopólio,Paradigmas,,2,5
+2106,,Montagem,Paradigmas,,296,6
+2107,,As Pirâmides de Ecaterinburgo,Matemática,,34,5
+2108,,Contando Caracters,Strings,,3.808,4
+2109,,Duelo de Espiões,Paradigmas,,8,5
+2110,,Banho de Sol no Jardim,Estruturas e Bibliotecas,,39,10
+2111,,Entendendo o Sorobov,Estruturas e Bibliotecas,,339,4
+2112,,Escalonamento de Salas de Aula,Grafos,,9,5
+2113,,O Incidente de Sverdlovsk,Paradigmas,,0,5
+2114,,Poker,Matemática,,6,5
+2115,,Produção em Ecaterimburgo,Paradigmas,,1.162,6
+2116,,Diversão dos Alunos,Ad-Hoc,,1.464,2
+2117,,Mestre Me Ajude,Grafos,,70,10
+2118,,Qual a Sede?,Grafos,,79,10
+2119,,Goão e Escadas,Paradigmas,,34,10
+2120,,Tutores,Estruturas e Bibliotecas,,74,10
+2121,,Turismo em Ecaterimburgo,Grafos,,6,5
+2122,,Votação em Ecaterimburgo,Estruturas e Bibliotecas,,99,10
+2123,,A Lei Vai a Cavalo!,Ad-Hoc,,632,9
+2124,,Cardápio da Sra. Montagny!,Paradigmas,,86,6
+2125,,Construtores de Totens,Ad-Hoc,,32,10
+2126,,Procurando Subsequências,Iniciante,,5.108,2
+2127,,Sistema Cipoviário,Grafos,,339,8
+2128,,Demonstração de Honestidade!,Grafos,,99,10
+2129,,Fatorial,Matemática,,560,8
+2130,,Final Mundial de 2008,Grafos,,427,8
+2131,,Mesa da Sra. Montagny!,Grafos,,442,7
+2132,,Não é Mais Um Joguinho Canadense!,Strings,,260,5
+2133,,Números de Dinostratus,Matemática,,79,9
+2134,,Quem Vai Ser Reprovado?,Ad-Hoc,,809,5
+2135,,Recuperação,Matemática,,332,5
+2136,,Amigos do Habay,Estruturas e Bibliotecas,,4.398,4
+2137,,A Biblioteca do Senhor Severino,Strings,,8.960,1
+2138,,Dígito Mais Frequente,Ad-Hoc,,2.248,4
+2139,,Natal de Pedrinho,Iniciante,,6.681,2
+2140,,Duas Notas,Iniciante,,9.914,2
+2141,,P4 Simplificado,Ad-Hoc,,26,5
+2142,,Pegue o Pombo!,Ad-Hoc,,101,8
+2143,,A Volta do Radar,Iniciante,,5.180,3
+2144,,Bodybuilder,Ad-Hoc,,1.730,5
+2145,,A Vida Amorosa dos Números,Matemática,,157,8
+2146,,Senha,Iniciante,,13.124,1
+2147,,Galopeira,Iniciante,,10.965,2
+2148,,Banco de Dados,Matemática,,211,6
+2149,,Sequência do Tio Phill Bonati,Matemática,,1.627,4
+2150,,Vogais Alienígenas,Strings,,1.777,4
+2151,,Soco do Rulk,Ad-Hoc,,721,5
+2152,,"Pepe, Já Tirei a Vela!",Iniciante,,7.938,1
+2153,,Sanduicheiche,Strings,,950,4
+2154,,Derivada de Polinômios,Matemática,,990,3
+2155,,Os Icosaedros do Lagarto,Grafos,,82,9
+2156,,As Aventuras de Pak-man,Ad-Hoc,,321,4
+2157,,Sequência Espelho,Strings,,6.526,1
+2158,,Ajudando o Tio Cláudio,Geometria Computacional,,643,5
+2159,,Número Aproximado de Primos,Iniciante,,5.945,1
+2160,,Nome no Formulário,Iniciante,,11.963,4
+2161,,Raiz Quadrada de 10,Iniciante,,8.038,1
+2162,,Picos e Vales,Iniciante,,9.607,4
+2163,,O Despertar da Força,Iniciante,,8.707,4
+2164,,Fibonacci Rápido,Iniciante,,9.825,2
+2165,,Tuitando,Iniciante,,13.538,4
+2166,,Raiz Quadrada de 2,Iniciante,,7.222,1
+2167,,Falha do Motor,Iniciante,,14.364,2
+2168,,Crepúsculo em Portland,Iniciante,,5.505,1
+2169,,Ajude o Leonardo!,Paradigmas,,149,9
+2170,,Juros do Projeto,Matemática,,1.754,5
+2171,,Dividindo com Fink,Ad-Hoc,,526,2
+2172,,Evento,Iniciante,,10.833,1
+2174,,Coleção de Pomekon,Strings,,8.277,3
+2175,,Qual o Mais Rápido?,Ad-Hoc,,3.606,2
+2176,,Paridade,Iniciante,,9.426,1
+2177,,Rio 2016,Matemática,,415,8
+2178,,Lagoa Azul,Ad-Hoc,,283,6
+2179,,Batuke,Ad-Hoc,,591,6
+2180,,Viagem à Marte na Velocidade de Primo,Matemática,,1.932,2
+2181,,URI - Uireb Rhom uin Iavas,Paradigmas,,89,9
+2182,,Luciano e a Bicicletinha,Grafos,,162,10
+2183,,Batalha Final,Paradigmas,,131,10
+2184,,Pomekons,Grafos,,136,9
+2185,,Brincando com Pomekons,Estruturas e Bibliotecas,,211,8
+2186,,"Bino, Prant e a Indecisao",Estruturas e Bibliotecas,,64,10
+2187,,Bits Trocados,Ad-Hoc,,3.074,1
+2188,,Macaco-prego,Ad-Hoc,,1.087,6
+2189,,Quermesse,Ad-Hoc,,3.845,1
+2190,,Rede Ótica,Grafos,,462,7
+2191,,Saldo de Gols,Ad-Hoc,,718,8
+2192,,Somar ou Multiplicar,Ad-Hoc,,5,5
+2193,,Bagunça Afim,Geometria Computacional,,21,5
+2194,,Mensagens Antigas,Ad-Hoc,,26,5
+2195,,Chips Challenge,Ad-Hoc,,6,5
+2196,,Central do Café,Ad-Hoc,,99,4
+2197,,Fábrica de Máquinas,Ad-Hoc,,14,5
+2199,,Cuidando do Próprio Negócio,Ad-Hoc,,30,5
+2200,,Loucura da Múmia,Ad-Hoc,,11,5
+2201,,Pirâmides,Ad-Hoc,,7,5
+2202,,Remoção de Lixo,Ad-Hoc,,75,8
+2203,,Tempestade de Corvos,Iniciante,,3.943,4
+2204,,Pare A Bomba!,Matemática,,353,7
+2205,,Rangers de Asteroide,Ad-Hoc,,4,5
+2207,,Passeio de Ônibus,Ad-Hoc,,7,5
+2208,,Palavras de Fibonacci,Ad-Hoc,,41,7
+2209,,Infiltração,Ad-Hoc,,0,5
+2210,,Chaves,Ad-Hoc,,1,5
+2211,,Fluxo de Custo Mínimo,Ad-Hoc,,4,5
+2212,,Serviço de Quarto,Ad-Hoc,,1,5
+2213,,Uma Aposta Segura,Ad-Hoc,,8,5
+2214,,Caminho de Voo Mais Curto,Ad-Hoc,,3,5
+2215,,Stacking Plates,Ad-Hoc,,6,5
+2216,,Guerras de Aquisição,Ad-Hoc,,22,5
+2217,,Nove,Ad-Hoc,,1.461,3
+2218,,O Temível Evil-Son,Matemática,,1.081,1
+2219,,Passando Pelos PokeStops,Ad-Hoc,,208,7
+2220,,Ajudando Gust-Avô,Paradigmas,,311,8
+2221,,Batalha de Pomekons,Iniciante,,9.578,2
+2222,,Brincando com Conjuntos,Matemática,,1.924,8
+2223,,Inventário de Pomekon,Estruturas e Bibliotecas,,166,9
+2224,,Torneio de Pomekon,Paradigmas,,311,5
+2225,,Penalização,Grafos,,128,10
+2226,,Fabrica de Balões,Paradigmas,,53,10
+2227,,Aeroporto,Ad-Hoc,,2.018,4
+2228,,Caça ao Tesouro,Ad-Hoc,,314,8
+2229,,Dobradura,Ad-Hoc,,964,3
+2230,,Pedágio,Ad-Hoc,,625,7
+2231,,Temperatura Lunar,Ad-Hoc,,1.844,5
+2232,,Triângulo de Pascal,Matemática,,4.713,1
+2233,,Etiquetas Coloridas,Ad-Hoc,,945,5
+2234,,Cachorros-Quentes,Iniciante,,15.777,1
+2235,,Andando no Tempo,Iniciante,,13.831,1
+2236,,Batata Quente,Paradigmas,,231,10
+2237,,Containers,Ad-Hoc,,555,7
+2238,,Divisores,Matemática,,2.356,8
+2239,,Estatística Hexa,Estruturas e Bibliotecas,,157,9
+2240,,Fundindo Árvores,Estruturas e Bibliotecas,,374,7
+2241,,Go--,Estruturas e Bibliotecas,,816,4
+2242,,Huaauhahhuahau,Strings,,12.877,2
+2243,,Isósceles,Paradigmas,,1.937,4
+2244,,Jogos Olímpicos,Ad-Hoc,,127,10
+2245,,Kit de Encolhimento de Polígonos,Geometria Computacional,,71,10
+2246,,Ladrilhos,Grafos,,1.129,4
+2247,,Cofrinhos da Vó Vitória,Ad-Hoc,,2.330,2
+2248,,Estágio,Ad-Hoc,,1.202,3
+2249,,Número de Erdos,Ad-Hoc,,219,6
+2250,,Tetris,Ad-Hoc,,557,6
+2251,,Torres de Hanói,Ad-Hoc,,1.771,3
+2252,,Descobrindo Senha,Ad-Hoc,,845,5
+2253,,Validador de Senhas,Strings,,7.645,5
+2254,,"Bem-me-quer, Malmequer Japonês",Ad-Hoc,,105,6
+2255,,Self-Assembly,Ad-Hoc,,17,5
+2257,,Com Certeza Você se Congestiona,Ad-Hoc,,22,5
+2258,,Fatores,Ad-Hoc,,13,5
+2259,,Harvard,Ad-Hoc,,1,5
+2260,,Baixo Consumo,Ad-Hoc,,22,5
+2261,,Blocos de Mapa,Ad-Hoc,,22,5
+2262,,Matryoshka,Ad-Hoc,,20,5
+2263,,Baú de Pirata,Ad-Hoc,,5,5
+2265,,Em Cima de uma Árvore,Ad-Hoc,,4,5
+2266,,Bagagem,Ad-Hoc,,20,5
+2268,,Balanceamento de Guindaste,Ad-Hoc,,9,5
+2270,,Redução de Labirinto,Ad-Hoc,,3,5
+2272,,Planta de Processamento de Metais,Ad-Hoc,,10,5
+2275,,Esqui,Ad-Hoc,,5,5
+2276,,Vigilância,Ad-Hoc,,7,5
+2278,,Alcachofras Amalgamadas,Ad-Hoc,,7,5
+2279,,Asteroides,Ad-Hoc,,0,5
+2280,,Catering,Ad-Hoc,,7,5
+2281,,Cortando Queijo,Ad-Hoc,,12,5
+2282,,Evolução em Paralelo,Ad-Hoc,,0,5
+2283,,Teclando,Ad-Hoc,,0,5
+2284,,Fluxo em Tubos,Ad-Hoc,,4,5
+2285,,Palíndrome,Ad-Hoc,,312,6
+2286,,Par ou Ímpar,Ad-Hoc,,2.804,3
+2287,,Proteja sua Senha,Ad-Hoc,,653,5
+2288,,TV da Vovó,Ad-Hoc,,353,6
+2289,,Distância Hamming,Ad-Hoc,,676,5
+2290,,Números Apaixornados,Estruturas e Bibliotecas,,889,10
+2291,,Números Divinos,Matemática,,365,8
+2292,,Painel LED,Strings,,1.125,6
+2293,,Campo de Minhocas,Ad-Hoc,,3.815,3
+2294,,Duende Perdido,Ad-Hoc,,560,4
+2295,,Frota de Táxi,Ad-Hoc,,3.776,3
+2296,,Trilhas,Ad-Hoc,,1.220,5
+2297,,Bafo,Ad-Hoc,,2.277,2
+2298,,Mini-Poker,Ad-Hoc,,430,4
+2299,,Pedido de Desculpas,Paradigmas,,589,5
+2300,,Transmissão de Energia,Grafos,,979,5
+2301,,Vivo ou Morto,Ad-Hoc,,800,5
+2302,,Conversa não tão Secreta,Ad-Hoc,,220,9
+2303,,Margaridas,Ad-Hoc,,934,3
+2304,,Banco Imobiliário,Ad-Hoc,,1.949,2
+2305,,Colheita de Caju,Ad-Hoc,,463,6
+2306,,Escada Perfeita,Ad-Hoc,,450,4
+2307,,Jogo de Cartas,Ad-Hoc,,193,8
+2308,,Museu,Ad-Hoc,,101,10
+2309,,Truco,Ad-Hoc,,1.063,4
+2310,,Voleibol,Iniciante,,13.688,2
+2311,,Saltos Ornamentais,Iniciante,,9.497,2
+2312,,Quadro De Medalhas,Ad-Hoc,,5.242,3
+2313,,Qual Triângulo,Iniciante,,13.089,3
+2314,,Indentador,Strings,,114,7
+2315,,Diferença Fácil Entre Datas,Ad-Hoc,,1.011,2
+2316,,Autorama,Ad-Hoc,,308,6
+2317,,Lobo Mau,Ad-Hoc,,231,7
+2318,,Quadrado Mágico,Ad-Hoc,,436,8
+2319,,Penalidade Mínima,Ad-Hoc,,108,9
+2320,,Subsequência,Ad-Hoc,,41,5
+2321,,Detectando Colisões,Ad-Hoc,,1.523,5
+2322,,Peça Perdida,Ad-Hoc,,2.704,3
+2323,,Móbile,Ad-Hoc,,368,5
+2324,,Pastas,Ad-Hoc,,186,7
+2325,,Repositórios,Ad-Hoc,,353,6
+2326,,Sacoleiro,Ad-Hoc,,53,7
+2327,,Quadrados,Ad-Hoc,,1.149,4
+2328,,Chocolate,Ad-Hoc,,1.763,1
+2329,,Pão a Metro,Ad-Hoc,,744,6
+2330,,Telemarketing,Ad-Hoc,,367,6
+2331,,Uiquipédia,Ad-Hoc,,115,6
+2332,,Jogo do Labirinto,Ad-Hoc,,86,7
+2333,,Pizza,Ad-Hoc,,344,8
+2334,,Patinhos,Iniciante,,6.752,3
+2335,,O Desafio de Arquibaldo,Matemática,,107,9
+2336,,ABC,Strings,,601,7
+2337,,Pro Habilidade,Matemática,,414,4
+2338,,Morse,Estruturas e Bibliotecas,,1.546,4
+2339,,Aviões de Papel,Ad-Hoc,,6.651,1
+2340,,Feira de Bactérias,Ad-Hoc,,421,5
+2341,,Número de Envelopes,Ad-Hoc,,942,4
+2342,,Overflow,Ad-Hoc,,6.368,1
+2343,,Caçadores de Mitos,Ad-Hoc,,2.190,5
+2344,,Notas da Prova,Iniciante,,17.645,1
+2345,,Atribuindo Equipes,Ad-Hoc,,1.895,2
+2346,,De Volta para o Futuro,Ad-Hoc,,203,8
+2347,,Contando Subconjuntos Autorrotativos,Ad-Hoc,,140,7
+2348,,Encontros On-Line,Ad-Hoc,,416,2
+2349,,Robô Fazendeiro,Ad-Hoc,,850,2
+2350,,Jogo das Combinações,Ad-Hoc,,275,10
+2351,,Recompensas de Hotel,Ad-Hoc,,294,8
+2352,,Problema com a Internet,Ad-Hoc,,18,5
+2353,,Bem na Hora,Ad-Hoc,,474,5
+2354,,Mate o Lobisomem,Ad-Hoc,,322,8
+2355,,Brasil e Alemanha,Ad-Hoc,,1.559,4
+2356,,Bactéria I,Strings,,4.215,3
+2357,,Violência em Sildávia,Grafos,,272,9
+2358,,Bactéria II,Strings,,70,10
+2359,,Alocando Ambulâncias,Grafos,,398,9
+2360,,Centrais de Controle,Paradigmas,,32,10
+2361,,Entradas e Saídas,Paradigmas,,285,8
+2362,,Invasão Alienígena,Geometria Computacional,,1,5
+2363,,Brincando com Transformações,Paradigmas,,12,5
+2364,,Henrique,Paradigmas,,2,5
+2365,,Bolão do Brasileirão,Ad-Hoc,,154,6
+2366,,Maratona,Ad-Hoc,,1.455,5
+2367,,Competição de Chocolate,Ad-Hoc,,93,7
+2368,,Simulador,Ad-Hoc,,33,5
+2369,,Conta de Água,Ad-Hoc,,4.047,1
+2370,,Times,Estruturas e Bibliotecas,,1.286,3
+2371,,Batalha Naval,Ad-Hoc,,432,8
+2372,,Reunião,Grafos,,855,3
+2373,,Garçom,Ad-Hoc,,5.642,1
+2374,,Pneu,Ad-Hoc,,18.203,1
+2375,,Sedex,Ad-Hoc,,5.300,1
+2376,,Copa do Mundo,Ad-Hoc,,1.432,1
+2377,,Pedágio,Ad-Hoc,,5.051,1
+2378,,Elevador,Ad-Hoc,,2.533,2
+2379,,Dança Indígena,Ad-Hoc,,55,4
+2380,,Fusões,Estruturas e Bibliotecas,,1.100,4
+2381,,Lista de Chamada,Ad-Hoc,,8.364,1
+2382,,Sedex Marciano,Ad-Hoc,,1.759,3
+2383,,Altas Aventuras,Ad-Hoc,,64,5
+2384,,Tradutor Alienígena,Ad-Hoc,,120,7
+2385,,Multiplicação de Matrizes,Ad-Hoc,,1.056,6
+2386,,Telescópio,Ad-Hoc,,2.478,3
+2387,,Dentista,Ad-Hoc,,807,4
+2388,,Tacógrafo,Ad-Hoc,,5.782,1
+2389,,Floresta,Ad-Hoc,,202,7
+2390,,Escada Rolante,Ad-Hoc,,1.146,3
+2391,,Progressões Aritméticas,Ad-Hoc,,296,5
+2392,,Pulo do Sapo,Ad-Hoc,,1.193,3
+2393,,O Mar não está para Peixe,Ad-Hoc,,493,2
+2394,,Corrida 1,Ad-Hoc,,550,3
+2395,,Transporte de Contêineres,Ad-Hoc,,2.406,1
+2396,,Corrida,Ad-Hoc,,1.541,2
+2397,,Triângulos,Ad-Hoc,,1.643,5
+2398,,Caça ao Tesouro,Ad-Hoc,,258,3
+2399,,Campo Minado,Ad-Hoc,,2.618,2
+2400,,Balé,Ad-Hoc,,510,6
+2401,,Calculadora,Ad-Hoc,,789,6
+2402,,Selos,Ad-Hoc,,596,6
+2403,,Escalonamento Ótimo,Ad-Hoc,,325,5
+2404,,Reduzindo Detalhes em um Mapa,Grafos,,1.670,3
+2405,,Colorindo,Ad-Hoc,,464,3
+2406,,Expressões,Ad-Hoc,,1.270,5
+2407,,Quadrado Mágico,Ad-Hoc,,861,8
+2408,,Vice-Campeão,Ad-Hoc,,3.380,1
+2409,,Colchão,Ad-Hoc,,1.569,5
+2410,,Frequencia na Aula,Ad-Hoc,,2.280,4
+2411,,O Tabuleiro Esburacado,Ad-Hoc,,545,3
+2412,,Tarzan,Grafos,,403,6
+2413,,Busca na Internet,Ad-Hoc,,16.560,1
+2414,,Desafio do Maior Número,Ad-Hoc,,5.171,1
+2415,,Consecutivos,Ad-Hoc,,2.703,2
+2416,,Corrida,Ad-Hoc,,8.069,1
+2417,,Campeonato,Ad-Hoc,,3.089,1
+2418,,Carnaval,Ad-Hoc,,1.626,2
+2419,,Costa,Grafos,,2.005,3
+2420,,Guerra por Território,Ad-Hoc,,2.264,2
+2421,,Álbum de Fotos,Ad-Hoc,,476,7
+2422,,Soma das Casas,Ad-Hoc,,1.028,6
+2423,,Receita de Bolo,Ad-Hoc,,2.038,2
+2424,,Tira-teima,Ad-Hoc,,5.602,1
+2425,,Banco,Ad-Hoc,,288,7
+2426,,Bomba,Grafos,,111,6
+2427,,Chocolate,Ad-Hoc,,1.433,2
+2428,,Capital,Grafos,,829,2
+2429,,Rodovia,Grafos,,935,6
+2430,,Catálogo de Músicas,Ad-Hoc,,92,2
+2431,,Lençol,Ad-Hoc,,286,6
+2432,,Tiro ao Alvo,Ad-Hoc,,554,7
+2433,,Vende-se,Ad-Hoc,,281,6
+2434,,Saldo do Vovô,Ad-Hoc,,4.488,1
+2435,,Corrida,Ad-Hoc,,2.343,2
+2436,,Robô,Ad-Hoc,,793,2
+2437,,Distância de Manhattan,Ad-Hoc,,3.245,4
+2438,,Quadradinho de 8,Ad-Hoc,,405,7
+2439,,Cachecol da Vovó Vitória,Ad-Hoc,,201,5
+2440,,Famílias de Troia,Grafos,,1.561,5
+2441,,Janela,Ad-Hoc,,602,5
+2442,,Plantação,Ad-Hoc,,109,8
+2443,,Soma de Frações,Ad-Hoc,,2.011,2
+2444,,Volume da TV,Ad-Hoc,,2.240,2
+2445,,Polígono,Ad-Hoc,,203,4
+2446,,Troco,Paradigmas,,2.090,8
+2447,,Torneio,Ad-Hoc,,34,5
+2448,,Carteiro,Ad-Hoc,,1.502,5
+2449,,Fechadura,Ad-Hoc,,1.411,3
+2450,,Matriz Escada,Ad-Hoc,,2.969,4
+2451,,PacMan,Ad-Hoc,,1.513,1
+2452,,Semente,Ad-Hoc,,916,7
+2453,,Língua do P,Ad-Hoc,,3.181,4
+2454,,Flíper,Ad-Hoc,,12.102,1
+2455,,Gangorra,Ad-Hoc,,8.712,1
+2456,,Cartas,Ad-Hoc,,8.711,2
+2457,,Letras,Ad-Hoc,,2.639,3
+2458,,Setas,Ad-Hoc,,323,6
+2459,,Copa do Mundo,Ad-Hoc,,326,2
+2460,,Fila,Ad-Hoc,,4.024,5
+2461,,Blefe,Ad-Hoc,,215,9
+2462,,Voo,Ad-Hoc,,392,8
+2463,,Corredor,Ad-Hoc,,1.113,4
+2464,,Decifra,Ad-Hoc,,1.957,3
+2465,,Passa Bolinha,Ad-Hoc,,636,2
+2466,,Sinuca,Ad-Hoc,,1.635,1
+2467,,Frequência,Ad-Hoc,,111,10
+2468,,Mapa,Ad-Hoc,,165,6
+2469,,Notas,Ad-Hoc,,2.324,4
+2470,,Jogo da Memória,Ad-Hoc,,219,5
+2471,,Quadrado,Ad-Hoc,,740,3
+2472,,Tapetes,Ad-Hoc,,1.037,2
+2473,,Loteria,Ad-Hoc,,4.442,2
+2474,,Burlando o Sistema,Matemática,,99,9
+2475,,Confecção de Presentes,Paradigmas,,102,10
+2476,,Entregas do Noel,Grafos,,326,10
+2477,,Rede de Distribuição,Grafos,,10,5
+2478,,Acerte o Presente,Ad-Hoc,,885,5
+2479,,Ordenando a Lista de Crianças do Papai Noel,Ad-Hoc,,6.417,1
+2480,,Luzes Vermelhas,Paradigmas,,68,9
+2481,,É Uma Cilada Bino,Paradigmas,,108,10
+2482,,Etiquetas de Noel,Estruturas e Bibliotecas,,3.680,2
+2483,,Feliz Nataaal!,Iniciante,,13.743,1
+2484,,Abracadabra,Strings,,3.604,4
+2485,,Bicho da Goiaba,Grafos,,487,5
+2486,,C Mais ou Menos?,Iniciante,,5.716,3
+2487,,Do Lado Escuro do Código,Ad-Hoc,,50,9
+2488,,É Na Batida do Cavalo!,Estruturas e Bibliotecas,,136,5
+2489,,Flecha no Coelho,Matemática,,469,2
+2490,,Garoto Ixpertinho,Grafos,,215,9
+2491,,Habay e Robfilho – Os Fujões,Paradigmas,,38,5
+2492,,Ilhas Isoladas,Estruturas e Bibliotecas,,579,3
+2493,,Jogo do Operador,Iniciante,,2.542,6
+2494,,Canetas,Matemática,,256,8
+2495,,Onde Está Minha Caneta?,Estruturas e Bibliotecas,,587,7
+2496,,A Única Chance,Estruturas e Bibliotecas,,1.322,2
+2497,,Contando Ciclos,Matemática,,1.721,1
+2498,,Ajude Vânia,Paradigmas,,836,4
+2499,,Triângulo Interno,Matemática,,222,6
+2500,,William Xorando,Matemática,,136,9
+2501,,Fatores Permitidos,Paradigmas,,173,10
+2502,,Decifrando a Carta Criptografada,Iniciante,,2.571,5
+2503,,Corrida de Regularidade,Estruturas e Bibliotecas,,53,9
+2504,,Biorritmo,Ad-Hoc,,11,5
+2505,,Autopotencial,Matemática,,267,8
+2506,,Fila do SUS,Estruturas e Bibliotecas,,1.091,5
+2507,,Código de Hamming,Ad-Hoc,,26,5
+2508,,Guru da Sorte,Ad-Hoc,,699,4
+2509,,Editor Latex,Strings,,52,5
+2510,,Batmain,Iniciante,,5.584,2
+2511,,WWW,Ad-Hoc,,277,8
+2512,,O Jogo Reverse,Ad-Hoc,,32,5
+2513,,Xoringan,Ad-Hoc,,41,10
+2514,,Alinhamento Lunar,Matemática,,1.002,5
+2515,,Bolacha,Ad-Hoc,,496,8
+2516,,Corrida,Matemática,,1.155,3
+2517,,Desafio PoGro,Geometria Computacional,,82,6
+2518,,Escada do DINF,Geometria Computacional,,2.547,3
+2519,,Estratégia Campeã,Estruturas e Bibliotecas,,151,6
+2520,,O Último Analógimôn,Iniciante,,4.296,5
+2521,,Pergunte à Geógrafa,Geometria Computacional,,151,5
+2522,,Rede do DINF,Grafos,,499,7
+2523,,A Mensagem de Will,Iniciante,,6.946,2
+2524,,Balas de Morango,Paradigmas,,213,7
+2525,,Cacheiro Viajante,Geometria Computacional,,139,10
+2526,,Cardápio,Estruturas e Bibliotecas,,165,9
+2527,,Cheddar,Paradigmas,,158,10
+2528,,Cidade Proibida,Grafos,,705,6
+2529,,Circo das Pulgas,Grafos,,77,9
+2530,,Cola,Ad-Hoc,,392,5
+2531,,Compras em FdI,Estruturas e Bibliotecas,,875,8
+2532,,Demogorgon,Paradigmas,,681,6
+2533,,Estágio,Iniciante,,3.573,3
+2534,,Exame Geral,Iniciante,,8.137,2
+2535,,Feira de Adoção,Strings,,473,6
+2536,,FHBZMIPS,Ad-Hoc,,51,8
+2537,,GigaDrive,Estruturas e Bibliotecas,,175,7
+2538,,Ginásio,Estruturas e Bibliotecas,,309,9
+2539,,High Five,Estruturas e Bibliotecas,,450,8
+2540,,Impeachment do Líder,Iniciante,,6.202,4
+2541,,Ingrest,Geometria Computacional,,107,8
+2542,,Iu-Di-Oh!,Iniciante,,5.515,4
+2543,,Jogatina UFPR,Iniciante,,3.495,1
+2544,,Kage Bunshin no Jutsu,Iniciante,,4.924,4
+2545,,Manyfile,Grafos,,969,7
+2546,,Mesada,Estruturas e Bibliotecas,,311,8
+2547,,Montanha-Russa,Iniciante,,5.066,2
+2548,,Museu Virtual 3D,Ad-Hoc,,999,3
+2549,,Nomes de Usuários,Strings,,454,9
+2550,,Novo Campus,Grafos,,1.310,8
+2551,,Novo Recorde,Iniciante,,3.301,3
+2552,,PãodeQuejoSweeper,Iniciante,,6.605,2
+2553,,Passeio em FdI,Paradigmas,,228,7
+2554,,Pizza Antes de BH,Iniciante,,2.948,3
+2555,,Quiz Universitário,Paradigmas,,138,8
+2556,,Reinauguração do CEI,Ad-Hoc,,481,2
+2557,,R+L=J,Strings,,1.889,2
+2558,,Robô Aspirador,Grafos,,82,10
+2559,,Sexta-Feira 13,Estruturas e Bibliotecas,,81,10
+2560,,Surf Aquático,Estruturas e Bibliotecas,,459,9
+2561,,Tesouro,Geometria Computacional,,98,8
+2562,,Tipos Analógimôn,Grafos,,892,7
+2563,,Transfira Para o Professor,Paradigmas,,368,6
+2564,,Troca ou Não Troca,Ad-Hoc,,181,5
+2565,,Tubos de Ensaio,Ad-Hoc,,271,4
+2566,,Viagem Para BH,Grafos,,650,8
+2567,,Virus,Ad-Hoc,,1.983,2
+2568,,Ações,Ad-Hoc,,871,2
+2569,,A Bruxa do 7 x 1,Ad-Hoc,,1.360,4
+2570,,Californication,Ad-Hoc,,290,9
+2571,,Doador,Ad-Hoc,,131,9
+2572,,Escalação,Ad-Hoc,,175,10
+2573,,Caça ao Tesouro,Ad-Hoc,,92,10
+2574,,Lagoa Das Capivaras,Ad-Hoc,,106,9
+2575,,Árvore de Natal,Ad-Hoc,,153,9
+2576,,Invertendo Setas,Ad-Hoc,,318,8
+2577,,Jogo das Caixas,Ad-Hoc,,23,5
+2578,,Ontarama Meraini,Ad-Hoc,,53,9
+2579,,Nagol,Ad-Hoc,,784,5
+2580,,Mestre Pokémon Ho,Ad-Hoc,,9,5
+2581,,I am Toorg!,Iniciante,,7.599,1
+2582,,System of a Download,Iniciante,,7.322,2
+2583,,Chirrin Chirrion,Strings,,606,4
+2584,,Pentágono,Matemática,,962,4
+2585,,Dominó Incompleto,Grafos,,95,7
+2586,,Cubonacci,Ad-Hoc,,57,5
+2587,,Jetiqui,Strings,,1.516,1
+2588,,Jogo dos Palíndromos,Strings,,1.326,3
+2589,,Maior Distância Entre Primos Consecutivos,Matemática,,311,9
+2590,,Sete,Ad-Hoc,,2.065,7
+2591,,HameKameKa,Strings,,3.316,1
+2592,,VaiNaSort,Ad-Hoc,,1.398,2
+2593,,Eachianos I,Estruturas e Bibliotecas,,1.032,5
+2594,,Eachianos II,Estruturas e Bibliotecas,,1.285,3
+2595,,Cash Roial,Ad-Hoc,,202,6
+2596,,Xenlonguinho,Matemática,,1.695,2
+2597,,Xenlongão,Matemática,,415,5
+2598,,Colocando Radares,Matemática,,1.822,3
+2599,,Contando Radares,Paradigmas,,232,7
+2600,,Tustin e Seu Dado Novo,Ad-Hoc,,1.350,6
+2601,,Tustin e Seu Dado Antigo,Ad-Hoc,,139,7
+2602,,Select Básico,SQL,,41.736,4
+2603,,Endereço dos Clientes,SQL,,36.826,1
+2604,,Menores que 10 ou Maiores que 100,SQL,,33.064,2
+2605,,Representantes Executivos,SQL,,25.543,4
+2606,,Categorias,SQL,,23.048,3
+2607,,Cidades em Ordem Alfabética,SQL,,26.008,1
+2608,,Maior e Menor Preço,SQL,,23.045,1
+2609,,Produtos por Categorias,SQL,,21.291,6
+2610,,Valor Médio dos Produtos,SQL,,17.926,3
+2611,,Filmes de Ação,SQL,,18.391,4
+2613,,Filmes Baratos,SQL,,17.992,2
+2614,,Locações de Setembro,SQL,,14.215,5
+2615,,Expandindo o Negocio,SQL,,18.446,1
+2616,,Nenhuma Locação,SQL,,13.404,5
+2617,,Fornecedor Ajax SA,SQL,,15.024,1
+2618,,Produtos Importados,SQL,,13.458,3
+2619,,Super Luxo,SQL,,13.170,2
+2620,,Pedidos no Primeiro Semestre,SQL,,11.879,3
+2621,,Quantidades Entre 10 e 20,SQL,,12.327,3
+2622,,Pessoas Jurídicas,SQL,,13.907,1
+2623,,Categorias com Vários Produtos,SQL,,10.526,4
+2624,,Quantidades de Cidades por Clientes,SQL,,11.891,3
+2625,,Máscara de CPF,SQL,,7.692,4
+2626,,Turma do JB6,Iniciante,,1.891,4
+2627,,Bonde de Autômatos,Ad-Hoc,,81,10
+2628,,Caça ao Tesouro,Ad-Hoc,,39,10
+2629,,Rodoido,Ad-Hoc,,73,5
+2630,,Escala de Cinza,Iniciante,,4.019,2
+2631,,Formando Duplas,Grafos,,480,8
+2632,,Magic and Sword,Iniciante,,1.695,8
+2633,,Churras no Yuri,Estruturas e Bibliotecas,,4.324,2
+2634,,Em Prol da Ciência,Ad-Hoc,,17,5
+2635,,Navegador Web,Iniciante,,1.614,4
+2636,,3-RSA,Matemática,,458,9
+2637,,Casa do Batera,Grafos,,6,5
+2639,,Cluedo,Ad-Hoc,,8,5
+2640,,Missão Improvável,Geometria Computacional,,25,5
+2641,,Dinheiro por Nada,Ad-Hoc,,10,5
+2643,,Posterizar,Ad-Hoc,,14,5
+2644,,Replicate Replicate Rfplicbte,Ad-Hoc,,5,5
+2645,,Cenário,Ad-Hoc,,3,5
+2646,,Câmara Secreta no Monte Rushmore,Grafos,,383,4
+2648,,Tarot Sham Boast,Ad-Hoc,,9,5
+2650,,Construindo Muralhas,Ad-Hoc,,916,4
+2651,,Link Bolado,Strings,,3.552,4
+2652,,Quantas Árvores?,Grafos,,98,10
+2653,,Dijkstra,Iniciante,,5.430,2
+2654,,Godofor,Estruturas e Bibliotecas,,2.025,5
+2655,,Trilha Perigosa,Estruturas e Bibliotecas,,674,8
+2656,,Rhombus,Estruturas e Bibliotecas,,74,10
+2657,,Sensate,Grafos,,225,9
+2658,,Acordes Intergaláticos,Estruturas e Bibliotecas,,714,9
+2659,,Brincadeira,Ad-Hoc,,169,9
+2660,,Cigarras Periódicas,Matemática,,664,6
+2661,,Despojados,Matemática,,1.409,6
+2662,,Escala Musical,Ad-Hoc,,626,4
+2663,,Fase,Iniciante,,4.585,3
+2664,,Ginástica,Paradigmas,,1.079,4
+2665,,Hipercampo,Geometria Computacional,,561,7
+2666,,Imposto Real,Grafos,,784,3
+2667,,Jogo de Boca,Matemática,,2.353,3
+2668,,K-ésimo,Matemática,,138,9
+2669,,Laboratório de Biotecnologia,Strings,,314,10
+2670,,Máquina de Café,Iniciante,,12.401,3
+2671,,Decodificando o Texto,Estruturas e Bibliotecas,,105,9
+2672,,Máscara de Rede,Ad-Hoc,,68,6
+2673,,Resistores Série e Paralelo,Ad-Hoc,,44,8
+2674,,Super Primos: Ativar!,Matemática,,4.202,7
+2675,,Rouba Monte,Ad-Hoc,,268,6
+2676,,Cidade no Centro,Grafos,,231,6
+2677,,Par ou Ímpar,Paradigmas,,517,7
+2678,,Discagem de Voz,Strings,,759,5
+2679,,Sucessor Par,Ad-Hoc,,5.140,1
+2680,,Folha de Pagamentos,Matemática,,476,8
+2681,,Macacos da Torre de Hanoi,Matemática,,419,8
+2682,,Detector de Falhas,Ad-Hoc,,1.624,5
+2683,,Espaço de Projeto,Grafos,,1.081,5
+2684,,Ajude o Professor Webscript!!,Ad-Hoc,,35,10
+2685,,A Mudança,Iniciante,,2.841,2
+2686,,A Mudança Continua!!,Iniciante,,1.411,5
+2687,,Dominação Bacteriana,Grafos,,247,7
+2688,,Escolhendo um Lugar,Grafos,,17,5
+2689,,Jogo do Mião,Ad-Hoc,,148,4
+2690,,Nova Senha RA,Strings,,1.461,5
+2691,,O Matemático,Strings,,1.353,3
+2692,,Teclado Zoeiro,Strings,,1.380,4
+2693,,Van,Estruturas e Bibliotecas,,2.893,3
+2694,,Problema com a Calculadora,Strings,,6.299,1
+2695,,Arrumando Lajotas,Geometria Computacional,,65,10
+2697,,Sequencia Completa de Naebbirac,Strings,,430,7
+2698,,Dispositivo Assombrado,Estruturas e Bibliotecas,,130,10
+2699,,Enigma,Paradigmas,,308,6
+2700,,Angariando Fundos,Estruturas e Bibliotecas,,256,7
+2701,,Portas da Incerteza,Ad-Hoc,,61,8
+2702,,Escolha Difícil,Iniciante,,12.283,1
+2703,,Estradas Imperiais,Grafos,,423,10
+2704,,Sapo Saltador,Ad-Hoc,,112,8
+2705,,Mantenha Coberto,Ad-Hoc,,87,7
+2706,,Linearville,Grafos,,30,5
+2708,,Turistas no Parque Huacachina,Iniciante,,3.740,1
+2709,,As Moedas de Robbie,Iniciante,,2.793,9
+2710,,Jogo da Matriz,Ad-Hoc,,84,10
+2711,,Destravando o Celular,Matemática,,169,10
+2712,,Rodízio Veicular,Iniciante,,3.896,4
+2713,,O Mago é Implacável!,Paradigmas,,159,6
+2714,,Minha Senha Provisória,Strings,,2.573,2
+2715,,Dividindo os Trabalhos I,Iniciante,,1.576,7
+2716,,Dividindo os Trabalhos II,Paradigmas,,415,9
+2717,,Tempo do Duende,Iniciante,,8.844,1
+2718,,Luzes de Natal,Iniciante,,2.152,5
+2719,,Quantas Viagens Fará o Noel?,Ad-Hoc,,852,6
+2720,,Presentes Grandes,Estruturas e Bibliotecas,,1.602,7
+2721,,Indecisão das Renas,Iniciante,,4.326,3
+2722,,Pegadinha de Evergreen,Strings,,2.497,3
+2723,,Equilibrando Presentes,Paradigmas,,443,7
+2724,,Ajude Patatatitu,Iniciante,,781,4
+2725,,Vila Natalina,Grafos,,177,4
+2726,,Trenó Lotado,Matemática,,34,9
+2727,,Código Secreto,Iniciante,,3.246,3
+2728,,"Grace Hopper, a Vovó do Cobol",Strings,,1.851,6
+2729,,Lista de Compras,Estruturas e Bibliotecas,,6.906,4
+2730,,Pares Pareados,Ad-Hoc,,239,6
+2731,,Programação de Viagem,Grafos,,319,5
+2732,,Reino De Alice,Grafos,,223,6
+2733,,O Armário da Leitora,Ad-Hoc,,287,5
+2734,,Trocando Presentes,Estruturas e Bibliotecas,,335,10
+2735,,O Presente de Nina,Matemática,,58,8
+2736,,Números de Avalon,Ad-Hoc,,44,7
+2737,,Advogados,SQL,,8.801,6
+2738,,Concurso,SQL,,7.383,4
+2739,,Dia de Pagamento,SQL,,6.006,6
+2740,,Liga,SQL,,5.474,5
+2741,,Notas dos Alunos,SQL,,6.431,5
+2742,,O Multiverso de Richard,SQL,,5.324,5
+2743,,Quantidade de Caracteres,SQL,,6.411,3
+2744,,Senhas,SQL,,7.225,1
+2745,,Taxas,SQL,,6.368,3
+2746,,Virus,SQL,,6.946,1
+2747,,Saída 1,Iniciante,,16.759,1
+2748,,Saída 2,Iniciante,,15.302,1
+2749,,Saída 3,Iniciante,,10.929,2
+2750,,Saída 4,Iniciante,,9.255,1
+2752,,Saída 6,Iniciante,,7.123,1
+2753,,Saída 7,Iniciante,,11.444,1
+2754,,Saída 8,Iniciante,,8.828,1
+2755,,Saída 9,Iniciante,,11.142,2
+2756,,Saída 10,Iniciante,,12.805,1
+2757,,Entrada e Saída de Números Inteiros,Iniciante,,8.088,3
+2758,,Entrada e Saída de Números Reais,Iniciante,,7.419,4
+2759,,Entrada e Saída de Carácter,Iniciante,,10.847,2
+2760,,Entrada e Saída de String,Iniciante,,7.150,5
+2761,,Entrada e Saída de Vários Tipos,Iniciante,,2.306,6
+2762,,Entrada e Saída 6,Iniciante,,7.281,2
+2763,,Entrada e Saída CPF,Iniciante,,11.110,1
+2764,,Entrada e Saída de Data,Iniciante,,13.571,4
+2765,,Entrada e Saída com Virgula,Iniciante,,4.830,4
+2766,,Entrada e Saída Lendo e Pulando Nomes,Iniciante,,9.441,3
+2767,,Festa,Matemática,,270,7
+2768,,Grafo do Dabriel,Grafos,,734,7
+2769,,Linha de Montagem,Iniciante,,1.077,4
+2770,,Tamanho da Placa,Iniciante,,2.749,7
+2771,,Média,Ad-Hoc,,316,6
+2772,,Plantação,Ad-Hoc,,108,10
+2773,,Menor Caminho,Geometria Computacional,,249,7
+2774,,Precisão do Sensor,Iniciante,,1.277,4
+2775,,Preparando a Produção,Iniciante,,672,4
+2776,,Promoções,Ad-Hoc,,259,8
+2777,,Subsets do Dabriel,Matemática,,127,5
+2778,,Matriz do Dabriel,Paradigmas,,224,10
+2779,,Álbum da Copa,Iniciante,,4.707,1
+2780,,Basquete de Robôs,Iniciante,,12.684,1
+2781,,Câmara de Compensação,Grafos,,338,5
+2782,,Escadinha,Iniciante,,2.848,3
+2783,,Figurinhas da Copa,Iniciante,,3.265,2
+2784,,Ilhas,Grafos,,968,5
+2785,,Pirâmide,Iniciante,,911,4
+2786,,Piso da Escola,Iniciante,,6.184,1
+2787,,Xadrez,Iniciante,,16.461,1
+2788,,Aula,Ad-Hoc,,57,5
+2789,,Crise Hídrica,Ad-Hoc,,151,9
+2790,,Dados,Ad-Hoc,,280,5
+2791,,Feijão,Iniciante,,8.252,1
+2792,,Golnaldinho,Estruturas e Bibliotecas,,420,8
+2793,,HM,Ad-Hoc,,165,6
+2794,,Montes Claros,Ad-Hoc,,568,4
+2795,,Palíndromo,Ad-Hoc,,155,9
+2796,,Planta da Casa,Ad-Hoc,,315,10
+2797,,Aplicando Prova,Ad-Hoc,,217,6
+2798,,Lero-Lero da Mineira,Ad-Hoc,,63,10
+2799,,Coral Nortista,Paradigmas,,8,5
+2800,,Brincando de Consultas,Estruturas e Bibliotecas,,198,9
+2801,,Cifra Affine,Matemática,,87,9
+2802,,Dividindo Círculos,Iniciante,,2.206,5
+2803,,Estados do Norte,Ad-Hoc,,1.465,3
+2804,,Ferrovias,Grafos,,43,8
+2805,,Binarizando a Matriz,Estruturas e Bibliotecas,,127,5
+2806,,Ingredientes Típicos,Ad-Hoc,,83,10
+2807,,Iccanobif,Iniciante,,4.086,2
+2808,,Mais Cavalos,Iniciante,,2.864,3
+2809,,K-ésimo Caminho,Grafos,,63,10
+2810,,Combate à Dengue 2.0,Grafos,,39,9
+2811,,Sibi-Xor,Paradigmas,,42,10
+2812,,Laércio,Iniciante,,1.479,3
+2813,,Evitando Chuva,Iniciante,,1.831,4
+2814,,Música Alta,Ad-Hoc,,182,3
+2815,,Digitador Gago,Strings,,2.966,2
+2816,,Palíndromo do Dabriel,Grafos,,62,8
+2817,,Posto do Darlan,Matemática,,166,8
+2818,,Jogo Divertido,Paradigmas,,59,9
+2819,,Cartas Para o Noel,Matemática,,29,5
+2820,,Os Dígitos de Bruna,Matemática,,93,9
+2821,,Distribuição de Cartas,Estruturas e Bibliotecas,,89,5
+2822,,Meu Primeiro Grafinho,Matemática,,54,10
+2823,,Eearliest Deadline First,Iniciante,,600,4
+2824,,Pudim,Strings,,453,9
+2825,,L de Atreus!?,Strings,,129,8
+2826,,Léxico,Iniciante,,3.362,3
+2827,,Contador de Tokens,Strings,,247,8
+2828,,Anagramas,Matemática,,349,8
+2829,,"Maiúsculas, Por Quê?",Ad-Hoc,,307,6
+2830,,Copa,Ad-Hoc,,1.174,5
+2832,,Cápsulas,Ad-Hoc,,760,7
+2833,,Campeonato,Ad-Hoc,,613,3
+2834,,Fuga,Ad-Hoc,,158,4
+2835,,Elevador,Ad-Hoc,,567,3
+2836,,Wifi,Ad-Hoc,,76,9
+2837,,Sequência,Ad-Hoc,,206,7
+2838,,As Jóias do Infinito,Grafos,,73,7
+2839,,As Meias de Rangel,Matemática,,2.656,1
+2840,,Balão++,Geometria Computacional,,4.528,2
+2841,,Dabriel e Sua Festa,Paradigmas,,139,8
+2842,,Dabriel e Suas Strings,Paradigmas,,721,6
+2843,,"Escrita Rápida, a Competição",Ad-Hoc,,310,9
+2844,,"Escrita Rápida, o Duelo",Ad-Hoc,,388,3
+2845,,Festa no Polo Norte,Iniciante,,1.652,3
+2846,,Fibonot,Iniciante,,3.389,4
+2847,,"Papel, Tesoura, I Love You!",Ad-Hoc,,406,5
+2848,,Rangel e o Jogo do Vetor I,Estruturas e Bibliotecas,,727,6
+2849,,Rangel e o Jogo do Vetor II,Estruturas e Bibliotecas,,211,10
+2850,,Papagaio Poliglota,Iniciante,,3.913,4
+2851,,Desafio de Rangel,Ad-Hoc,,194,9
+2852,,Troca de Mensagens,Iniciante,,739,5
+2853,,Invenções de Bibika,Ad-Hoc,,162,7
+2854,,Árvore Genealógica,Grafos,,1.821,4
+2855,,Números de Sorte,Estruturas e Bibliotecas,,552,7
+2856,,Viagem do Pão de Queijo,Paradigmas,,122,7
+2857,,Fluxo nos Vagões,Estruturas e Bibliotecas,,204,7
+2858,,Tabuleiro Infinito,Ad-Hoc,,101,9
+2859,,Digit Root,Matemática,,185,9
+2860,,A Paz em Spar-Ta,Estruturas e Bibliotecas,,22,5
+2861,,A Saída,Iniciante,,6.138,1
+2862,,Inseto!,Iniciante,,7.554,1
+2863,,Umil Bolt,Iniciante,,5.791,4
+2864,,Qual é a Altura?,Matemática,,981,4
+2865,,Palíndromo Binário,Ad-Hoc,,78,8
+2866,,Criptotexto,Strings,,5.070,2
+2867,,Dígitos,Iniciante,,4.251,5
+2868,,Errrou!,Ad-Hoc,,1.758,1
+2869,,Falando em Divisor...,Matemática,,529,8
+2870,,Jogo do Mapa,Grafos,,36,8
+2871,,Colheita de Café,Ad-Hoc,,1.023,4
+2872,,Protocolo TCP/IP,Estruturas e Bibliotecas,,618,7
+2873,,Pirâmide,Matemática,,305,6
+2874,,Frase Binária,Ad-Hoc,,1.047,4
+2875,,Jogo Túnel,Ad-Hoc,,253,4
+2876,,Aventurando-se no Slackline,Ad-Hoc,,28,5
+2877,,Bolinhas de Gude,Paradigmas,,172,9
+2878,,Cortador de Pizza,Matemática,,411,8
+2879,,Desvendando Monty Hall,Iniciante,,4.931,1
+2880,,Enigma,Strings,,2.256,4
+2881,,Festival,Paradigmas,,280,8
+2882,,Gasolina,Paradigmas,,224,8
+2883,,Hipótese Policial,Grafos,,23,5
+2884,,Interruptores,Ad-Hoc,,907,5
+2885,,Juntando Capitais,Grafos,,62,7
+2886,,Kepler,Matemática,,80,10
+2887,,Linhas de Metrô,Grafos,,308,7
+2888,,Modificando SAT,Paradigmas,,29,5
+2889,,O Tasco é Sempre Vice!,Estruturas e Bibliotecas,,152,9
+2890,,Colorindo Tetraedros,Matemática,,354,5
+2891,,Um Problema com Final Feliz,Geometria Computacional,,198,6
+2892,,Treino No Velódromo,Matemática,,142,10
+2893,,Fibonac^{k}i,Estruturas e Bibliotecas,,429,6
+2894,,Vírus,Grafos,,43,9
+2895,,Velhas Balanças,Paradigmas,,117,9
+2896,,Aproveite a Oferta,Iniciante,,3.759,1
+2897,,Histórico de Comandos,Ad-Hoc,,222,5
+2898,,Olimpíadas,Ad-Hoc,,168,5
+2899,,Série de Tubos,Ad-Hoc,,68,5
+2900,,Jogo de Varetas,Ad-Hoc,,211,4
+2901,,Vôlei Marciano,Ad-Hoc,,26,5
+2902,,Rouba Monte,Ad-Hoc,,85,6
+2903,,Uma Pizza Simétrica,Matemática,,861,7
+2904,,Construindo um Campo,Ad-Hoc,,466,5
+2905,,Viagens Baratas,Ad-Hoc,,377,8
+2906,,Banco de Dados de Clientes,Strings,,776,3
+2907,,"Fuja, Polígono!",Ad-Hoc,,135,8
+2908,,Animais Fantásticos,Ad-Hoc,,125,10
+2909,,Coletando Frutos Rubro-Negros,Ad-Hoc,,44,5
+2910,,Desativação de Rodovias,Ad-Hoc,,354,8
+2911,,Cores de Tinta,Ad-Hoc,,222,8
+2912,,Eleição Comprometida,Ad-Hoc,,16,5
+2913,,KryptoLocker Comeu meu Trabalho de Casa,Ad-Hoc,,74,10
+2914,,Procurando pelo Fator de Risco,Ad-Hoc,,320,9
+2915,,Monte Maratona,Ad-Hoc,,554,2
+2916,,A Nota,Estruturas e Bibliotecas,,769,9
+2917,,Barbante,Paradigmas,,81,8
+2918,,Dígitos Inteligentes,Paradigmas,,172,9
+2919,,Melhor Ordem,Paradigmas,,389,7
+2920,,Número Pequeno,Paradigmas,,66,9
+2921,,Quadros Alienígenas,Paradigmas,,76,8
+2922,,Salas De Aula,Ad-Hoc,,500,5
+2923,,Birinho,Ad-Hoc,,597,4
+2924,,BigInt,Ad-Hoc,,547,4
+2925,,Sequência IccanobiF,Ad-Hoc,,225,5
+2926,,Então é Natal!,Ad-Hoc,,1.637,1
+2927,,Imprevistos Natalinos,Ad-Hoc,,902,2
+2928,,Cruzando Lagos,Ad-Hoc,,445,3
+2929,,Menor da Pilha,Estruturas e Bibliotecas,,2.693,8
+2930,,TCC da Depressão Natalino,Iniciante,,2.456,4
+2931,,Presentes Suspeitos,Ad-Hoc,,100,6
+2932,,Renas do Papai Noel,Paradigmas,,45,10
+2933,,Passeio de Trenó pela Terra,Grafos,,46,7
+2934,,Noel e Suas Renas,Paradigmas,,58,9
+2935,,DNA Élfico,Ad-Hoc,,25,5
+2936,,Quanta Mandioca?,Iniciante,,9.249,1
+2937,,Cobra Norato,Matemática,,9,5
+2938,,Jaçanã,Ad-Hoc,,171,7
+2939,,Casais,Matemática,,157,9
+2940,,Máquina do Tempo Quebrada,Ad-Hoc,,6,5
+2941,,Fibra Ótica,Grafos,,150,5
+2942,,Mistura de Bits,Ad-Hoc,,160,10
+2943,,Smider Pan,Ad-Hoc,,145,7
+2944,,Emergência em Manaus,Ad-Hoc,,61,10
+2945,,Monitor,Ad-Hoc,,50,6
+2946,,Dabriel e a Divisibilidade,Ad-Hoc,,492,9
+2947,,Gabarito,Ad-Hoc,,315,4
+2948,,Plantação de Açaí,Ad-Hoc,,114,10
+2949,,A Sociedade do Anel,Iniciante,,3.259,3
+2950,,As Duas Torres,Iniciante,,3.718,1
+2951,,O Retorno do Rei,Iniciante,,1.977,3
+2952,,A Vida Sustentável,Estruturas e Bibliotecas,,117,9
+2953,,Mais um Joguinho,Matemática,,287,2
+2954,,O Jogo,Strings,,330,6
+2955,,Truuuuuco!,Matemática,,32,5
+2956,,Derivada de 13 Variáveis,Matemática,,532,2
+2957,,Sir Vô,Ad-Hoc,,126,8
+2958,,O Rolê Bad Vibes,Estruturas e Bibliotecas,,1.327,2
+2959,,Credo com ParaTudo!,Grafos,,1.049,6
+2960,,Era Uma Vez…,Strings,,97,10
+2961,,"Ô, Que Tanto de Filme!",Estruturas e Bibliotecas,,350,5
+2962,,Arte Valiosa,Grafos,,712,9
+2963,,Bobo da Corte,Iniciante,,3.772,3
+2964,,Cruzamento Perigoso,Ad-Hoc,,19,5
+2965,,Delação Premiada,Grafos,,414,7
+2966,,Exibição de Peixes,Ad-Hoc,,20,5
+2967,,Florestas em Risco,Paradigmas,,94,10
+2968,,Hora da Corrida,Iniciante,,3.737,5
+2969,,Interplanetário,Grafos,,148,10
+2970,,Keep Calm e Venda Balões,Paradigmas,,40,7
+2971,,Jogo de Baralho,Ad-Hoc,,318,9
+2972,,Lançando Moedas,Ad-Hoc,,433,8
+2973,,Maratona Brasileira de Comedores de Pipoca,Paradigmas,,1.268,9
+2974,,Fechadura,Strings,,97,5
+2975,,Anel,Strings,,49,5
+2976,,Triângulos,Paradigmas,,7,5
+2977,,Romeu e Julieta,Grafos,,26,5
+2978,,Cartão,Matemática,,97,10
+2979,,Torre,Ad-Hoc,,14,5
+2980,,Jogo da Árvore,Grafos,,66,5
+2981,,Vamos Fechar,Matemática,,420,3
+2982,,A Greve para ou Continua?,Iniciante,,2.147,3
+2983,,Nem Tudo é Greve,Matemática,,271,8
+2984,,Assuntos Pendentes,Estruturas e Bibliotecas,,1.427,2
+2985,,Tobias Contra o Relógio,Ad-Hoc,,89,7
+2986,,Nem Tudo é Greve Versão Hard,Matemática,,361,1
+2987,,Balão de Honra,Iniciante,,11.425,1
+2988,,Campeonato Cearense,SQL,,2.843,4
+2989,,Departamentos e Divisões,SQL,,1.383,7
+2990,,CPF dos Empregados,SQL,,4.411,4
+2991,,Estatísticas dos Departamentos,SQL,,1.247,9
+2992,,Divisões Com Maiores Médias Salariais,SQL,,1.150,7
+2993,,Mais Frequente,SQL,,4.123,3
+2994,,Quanto Ganha um Médico?,SQL,,3.821,2
+2995,,A Mensagem do Sensor,SQL,,2.514,5
+2996,,Entrega de Pacotes,SQL,,2.295,5
+2997,,Pagamento dos Empregados,SQL,,1.302,9
+2998,,The Payback,SQL,,1.249,6
+2999,,Maior Sálario da Divisão,SQL,,1.003,5
+3001,,Update sem Where,SQL,,2.824,6
+3002,,Salve a Lilly!,Matemática,,129,5
+3003,,O Grupinho,Grafos,,48,5
+3004,,Envelopes,Matemática,,961,3
+3005,,Pilhas de Paralelepípedos,Ad-Hoc,,519,2
+3006,,Passeio em Copacabana,Ad-Hoc,,33,5
+3007,,Lucas e Frobenius,Matemática,,21,5
+3008,,Numeração com Fósforos,Ad-Hoc,,56,5
+3009,,Dominós,Ad-Hoc,,169,8
+3010,,Binários Ambíguos,Ad-Hoc,,37,5
+3011,,Quebra-Cabeça Algébrico,Ad-Hoc,,50,8
+3012,,Algorithm Teaching,Ad-Hoc,,40,1
+3013,,Construir a Casa Perfeita,Ad-Hoc,,16,5
+3014,,Reduzir a Desigualdade,Ad-Hoc,,29,5
+3015,,Estrelas Deslumbrantes,Ad-Hoc,,41,5
+3016,,Bolo de Fruta-Ovo,Ad-Hoc,,88,8
+3017,,Fabricando Esculturas,Ad-Hoc,,54,5
+3018,,Colando Fotos,Ad-Hoc,,49,5
+3019,,Manter ou Continuar?,Ad-Hoc,,19,5
+3020,,Melhore o SPAM,Ad-Hoc,,98,6
+3021,,Gafanhoto Saltitante,Ad-Hoc,,31,5
+3022,,Conheça seus Aliens,Ad-Hoc,,67,7
+3023,,Alavancar MDT,Ad-Hoc,,73,5
+3024,,Cordilheiras,Ad-Hoc,,475,1
+3025,,Coletor,Ad-Hoc,,19,5
+3026,,Número Inteiro Periódico,Matemática,,11,5
+3027,,Plano de Treino,Grafos,,16,5
+3028,,Bubble Reactor,Grafos,,2,5
+3029,,Função Composição,Matemática,,5,5
+3030,,Transformadores de Salto,Ad-Hoc,,2,5
+3031,,Xor Spanning Tree,Grafos,,1,5
+3032,,Tuplas do Produto,Ad-Hoc,,7,5
+3033,,Ajude Maria,Ad-Hoc,,51,9
+3034,,O Caso Douglas,Ad-Hoc,,561,2
+3035,,Fabrica de Peças,Ad-Hoc,,107,6
+3036,,Cor da Camisa,Matemática,,258,9
+3037,,Jogando Dardos Por Distância,Iniciante,,3.993,2
+3038,,Carta de Natal Criptografada,Strings,,1.746,4
+3039,,Brinquedos do Papai Noel,Iniciante,,3.530,2
+3040,,A Árvore de Natal,Iniciante,,4.732,1
+3041,,Distribuição de Artigos,Ad-Hoc,,194,3
+3042,,Desviando de Árvores de Natal,Iniciante,,1.019,7
+3043,,Festa Junina,Grafos,,96,5
+3044,,Manutenção,Grafos,,141,5
+3045,,Parque Jurássico,Estruturas e Bibliotecas,,115,5
+3046,,Dominó,Iniciante,,6.155,1
+3047,,A idade de Dona Mônica,Iniciante,,6.463,1
+3048,,Sequência Secreta,Ad-Hoc,,4.232,1
+3049,,Nota Cortada,Matemática,,2.187,1
+3050,,Distância Entre Amigos,Ad-Hoc,,851,3
+3051,,Soma,Paradigmas,,495,9
+3052,,Chuva,Ad-Hoc,,557,5
+3053,,Jogo Dos Copos,Iniciante,,3.358,4
+3054,,Matriz Super-legal,Ad-Hoc,,73,5
+3055,,Nota Esquecida,Iniciante,,7.550,1
+3056,,Ponto do Meio,Ad-Hoc,,569,4
+3057,,Detetive,Ad-Hoc,,77,5
+3058,,Supermercado,Ad-Hoc,,2.150,1
+3059,,Pares de Números,Ad-Hoc,,1.502,2
+3060,,Parcelamento Sem Juros,Ad-Hoc,,1.853,2
+3061,,Manchas de Pele,Grafos,,291,5
+3062,,Coleção de Upas,Ad-Hoc,,111,5
+3063,,Linhas de Ônibus,Ad-Hoc,,101,5
+3064,,Elástico,Geometria Computacional,,50,5
+3065,,Calculando,Iniciante,,1.735,4
+3067,,Dominó,Grafos,,115,5
+3068,,Meteoros,Iniciante,,1.991,5
+3069,,Sorvete,Estruturas e Bibliotecas,,414,6
+3070,,Autoestradas HyperspaceTM,Grafos,,3,5
+3071,,Melhor Ranking,Ad-Hoc,,15,5
+3072,,Namoro,Grafos,,8,5
+3073,,Vetores,Paradigmas,,0,5
+3074,,Consultas em Uma Array,Ad-Hoc,,47,5
+3075,,Cassinos e Viagem,Grafos,,12,5
+3076,,Exercício de História,Iniciante,,2.159,4
+3077,,Distribuindo Pequis,Ad-Hoc,,166,3
+3078,,Só o Ouro,Matemática,,285,8
+3079,,Rua Iluminada,Matemática,,22,5
+3080,,Proteja os Dados,Strings,,29,5
+3081,,Órbita,Geometria Computacional,,14,5
+3082,,Matador De Onça Mutante,Grafos,,56,10
+3083,,"Emreh, Liug E As Strings",Strings,,23,5
+3084,,Relógio Antigo,Iniciante,,3.595,5
+3085,,O Grande Dia,Ad-Hoc,,174,8
+3086,,O Cavaleiro Jedi Guilherme,Paradigmas,,27,5
+3087,,O Padawan Jorge,Ad-Hoc,,112,5
+3088,,Correção de Texto,Strings,,1.582,4
+3089,,Presentes de Natal,Iniciante,,1.443,7
+3090,,Campo de Batalha,Ad-Hoc,,386,6
+3091,,Resto 1.0,Iniciante,,6.525,1
+3092,,Truco da Galera 2.0,Ad-Hoc,,82,5
+3093,,Truco da Galera 1.0,Ad-Hoc,,769,1
+3094,,Truco da Galera 3.0,Ad-Hoc,,40,5
+3095,,Pudim dos Guerreiros,Paradigmas,,39,5
+3096,,Overflow,Matemática,,320,7
+3097,,Um Desafio Simples,Estruturas e Bibliotecas,,84,5
+3098,,Plíndromo,Paradigmas,,116,5
+3099,,O Problema do 7 x 1,Matemática,,103,5
+3100,,Os Dígitos da Sorte,Strings,,93,5
+3101,,Famílias Poligâmicas,Grafos,,46,5
+3102,,Kikoho,Matemática,,542,3
+3103,,Número da Sorte,Strings,,596,7
+3104,,Resto 2.0,Matemática,,674,10
+3105,,Dobrando Papel,Ad-Hoc,,126,10
+3106,,Competição de Códigos,Ad-Hoc,,1.564,2
+3107,,Pulo do Sapo,Paradigmas,,104,5
+3108,,Arremesse os BigOs!,Geometria Computacional,,10,5
+3109,,Trocando de Mesa,Ad-Hoc,,451,1
+3110,,Farcos e o Xorshift,Matemática,,9,5
+3111,,A Vitória de Jim,Ad-Hoc,,10,5
+3112,,Decodificação Ambígua,Ad-Hoc,,47,5
+3113,,Cadeado Insano,Ad-Hoc,,4,5
+3114,,Parkour,Paradigmas,,38,5
+3115,,Estradas,Grafos,,161,6
+3116,,Seguidores Impossíveis,Paradigmas,,9,5
+3117,,Atrasadinhos,Ad-Hoc,,963,2
+3118,,"Bactérias, Suas Loucas!",Strings,,166,5
+3119,,As Aventuras do Calango Atômico,Grafos,,83,5
+3120,,Jogada de Marketing,Ad-Hoc,,8,5
+3121,,Acionista Por um Dia,Ad-Hoc,,8,5
+3122,,Festa de Final de Ano,Ad-Hoc,,5,5
+3123,,Pedras do Gênesis,Ad-Hoc,,19,5
+3124,,"Minha Reforma, Minha Vida",Grafos,,76,5
+3125,,Princesa das Equações,Ad-Hoc,,1,5
+3126,,Lista de Treinamento,Ad-Hoc,,2.716,1
+3127,,Kampeonato de Feijão,Ad-Hoc,,13,5
+3128,,Regras do Cinema,Ad-Hoc,,571,5
+3129,,Figurinhas Repetidas,Ad-Hoc,,743,5
+3130,,Caixas Por Todo Lado,Ad-Hoc,,56,5
+3131,,Índice de Reputação,Ad-Hoc,,35,5
+3132,,DNA Alienígena,Ad-Hoc,,74,5
+3133,,Fila de Navios,Ad-Hoc,,153,5
+3134,,Balança Equilibrada,Ad-Hoc,,279,5
+3135,,Lista de Nomes,Ad-Hoc,,1.133,5
+3136,,Arquitetura de Pilha,Ad-Hoc,,248,5
+3137,,Páginas de um Livro,Ad-Hoc,,893,5
+3138,,Aniversário do Tobias,Matemática,,173,5
+3139,,Buscando Novos Seguidores,Estruturas e Bibliotecas,,1.799,5
+3140,,Copiando e Colando Código,Iniciante,,1.219,1
+3141,,Dúvida Etária,Strings,,1.091,5
+3142,,Excel Bugado,Iniciante,,1.499,1
+3143,,Fugindo do Celular,Strings,,127,5
+3144,,G de Grafo,Grafos,,931,5
+3145,,Uma Jornada Inesperada,Iniciante,,2.598,1
+3146,,Charadas no Escuro,Iniciante,,2.544,1
+3147,,A Batalha dos Cinco Exércitos,Iniciante,,2.394,1
+3148,,O Jardim,Estruturas e Bibliotecas,,85,4
+3149,,A Noiva do Trevo,Estruturas e Bibliotecas,,398,2
+3150,,O Esconderijo do Rambo,Grafos,,116,3
+3151,,O Iogurte Divino,Paradigmas,,71,3
+3152,,"Samuel, O Cafeicultor",Geometria Computacional,,701,3
+3153,,Fake News,Paradigmas,,235,7
+3154,,A Grande Festa,Matemática,,189,3
+3155,,Sócrates e suas Perguntas,Estruturas e Bibliotecas,,49,7
+3156,,Xadrez Galático,Geometria Computacional,,2,9
+3157,,Viva a Ciência!,Iniciante,,3.009,1
+3158,,O Bom Presidente,Grafos,,225,5
+3159,,Tijolão,Strings,,815,2
+3160,,Amigos,Estruturas e Bibliotecas,,1.831,3
+3161,,As Frutas Esquecidas,Iniciante,,1.117,1
+3162,,Comunicação Espacial,Iniciante,,1.402,4
+3163,,Controlador de Vôo,Estruturas e Bibliotecas,,1.615,2
+3164,,Fiscalizando Empresa,Iniciante,,59,5
+3165,,Primos Gêmeos,Matemática,,746,1
+3166,,Procurando Palavras na Diagonal Principal,Strings,,332,6
+3167,,Procurando Palavras na Diagonal Secundária,Strings,,159,6
+3168,,Aposta dos Gnomos,Ad-Hoc,,55,8
+3169,,Batendo em Retirada,Grafos,,74,5
+3170,,Bolinhas de Natal,Iniciante,,3.797,1
+3171,,Cordão de Led,Estruturas e Bibliotecas,,897,1
+3172,,Dali e Dila,Ad-Hoc,,25,10
+3173,,Estrela de Natal,Iniciante,,527,1
+3174,,Grupo de Trabalho do Noel,Iniciante,,2.375,1
+3175,,Os Presentes Do Noel,Ad-Hoc,,337,2
+3176,,Time de Duendes,Estruturas e Bibliotecas,,892,2
+3177,,Fábrica de Brinquedos do Papai Noel,Ad-Hoc,,40,8
+3178,,Avenida de Álamos,Paradigmas,,4,5
+3179,,Melhor Compressão de Todas,Matemática,,28,7
+3180,,Roubo de Código,Strings,,8,6
+3181,,Jantar,Iniciante,,29,3
+3182,,Planejamento de Evento,Matemática,,572,3
+3183,,Corrigindo os Bugs,Matemática,,4,8
+3184,,Obtendo Ouro,Geometria Computacional,,264,2
+3185,,Evidência Difícil,Matemática,,8,4
+3186,,Cache Introspectivo,Estruturas e Bibliotecas,,13,5
+3187,,Apenas Mais Alguns Triângulos!,Matemática,,10,7
+3188,,Lista Telefônica,Ad-Hoc,,121,5
+3189,,Cuckoo Hashing,Ad-Hoc,,31,5
+3190,,Estacionamento Ideal,Estruturas e Bibliotecas,,80,5
+3191,,Copiando DNA,Paradigmas,,3,5
+3192,,Círculo de Dívida,Paradigmas,,5,5
+3193,,Tanque Cheio?,Grafos,,19,5
+3194,,Bonecas Aninhadas,Grafos,,6,5
+3195,,Compradora Compulsiva,Paradigmas,,63,5
+3196,,Moogle,Paradigmas,,4,5
+3197,,Tiroteio,Paradigmas,,13,3
+3198,,Guia Turístico,Ad-Hoc,,2,5
+3199,,Jezzball,Ad-Hoc,,2,5
+3200,,Truque de Cartas,Ad-Hoc,,12,5
+3201,,Caixeiro Viajante,Estruturas e Bibliotecas,,6,5
+3202,,Whac-a-Mole,Ad-Hoc,,4,5
+3203,,Random Walking,Ad-Hoc,,4,5
+3204,,Honeycomb Walk,Iniciante,,372,1
+3205,,Nasty Hacks,Ad-Hoc,,86,5
+3206,,Batida de Robos,Ad-Hoc,,23,5
+3207,,Jogos Divertidos,Estruturas e Bibliotecas,,21,5
+3208,,O Criptógrafo Envergonhado,Iniciante,,478,5
+3209,,Tomadas Elétricas,Iniciante,,2.457,1
+3210,,O Pior Clima de Todos,Estruturas e Bibliotecas,,15,5
+3211,,Reino,Grafos,,6,5
+3212,,Decomposição do Colar,Ad-Hoc,,9,5
+3213,,Parque Infantil,Geometria Computacional,,12,5
+3214,,Refrigerante,Iniciante,,2.068,2
+3215,,Dinheiro Importa,Grafos,,289,3
+3216,,Teste Alérgico,Matemática,,17,6
+3217,,Chuva Caindo,Iniciante,,157,5
+3218,,Fuga Rápida,Grafos,,6,5
+3219,,Gokigen Naname,Ad-Hoc,,3,1
+3220,,Planejamento de Vôo,Grafos,,8,6
+3221,,Faróis,Grafos,,17,7
+3222,,Cifra Playfair,Ad-Hoc,,15,4
+3223,,Permutações de Código,Matemática,,6,4
+3224,,Aaah!,Iniciante,,3.066,5
+3225,,Ordenação dos Pães,Ad-Hoc,,274,5
+3226,,Seleção de Biscoito,Ad-Hoc,,8,5
+3227,,Doorman,Ad-Hoc,,197,5
+3228,,Eco-driving,Ad-Hoc,,1,5
+3229,,Resenhas de Comida,Iniciante,,53,5
+3230,,Senhores da Guerra Galácticos,Iniciante,,69,5
+3231,,Horror List,Iniciante,,136,5
+3232,,Infiltration,Iniciante,,20,5
+3233,,Suco,Iniciante,,26,5
+3234,,Kindergarten,Iniciante,,38,5
+3235,,Luggage,Iniciante,,70,5
+3236,,Sucessão,Grafos,,10,5
+3237,,Conectar,Grafos,,3,5
+3239,,Dirty Driving,Estruturas e Bibliotecas,,33,5
+3240,,Doodling,Ad-Hoc,,6,5
+3241,,Ajude um Candidato a PhD!,Iniciante,,1.573,5
+3247,,Robôs em uma Grade,Grafos,,165,5
+3248,,Mega Inversões,Estruturas e Bibliotecas,,251,1
+3249,,Death Knight Hero,Iniciante,,1.062,5
+3250,,Problema no Elevador,Iniciante,,816,1
+3251,,ls,Paradigmas,,40,5
+3252,,Reus da Floresta,Iniciante,,265,1
+3253,,Problemas com o Carro,Iniciante,,126,1
+3254,,Espaço Privado,Ad-Hoc,,7,1
+3255,,A Vez to Primo,Iniciante,,35,1
+3256,,Divisão Inimiga,Iniciante,,107,1
+3257,,Plantando Árvores,Matemática,,487,2
+3258,,Fervendo Vegetais,Iniciante,,189,4
+3259,,Truque Numérico,Matemática,,8,7
+3260,,Robert Hood,Geometria Computacional,,32,4
+3261,,Replicação de Vírus,Strings,,190,3
+3262,,Timebomb,Strings,,170,2
+3263,,Apague Com Segurança,Ad-Hoc,,498,2
+3264,,Pinball,Grafos,,7,8
+3265,,Reconstrução de Dança,Matemática,,0,7
+3266,,Dartboard,Matemática,,78,4
+3267,,Passeio no Penhasco,Iniciante,,29,6
+3268,,Lounges da Amanda,Grafos,,7,5
+3269,,Vigilância de Basin City,Grafos,,4,5
+3270,,Praça Catalã,Matemática,,124,5
+3271,,Jogo de Dados,Matemática,,130,5
+3272,,Cerimônia de Abertura,Matemática,,46,5
+3274,,Excursão,Paradigmas,,14,5
+3275,,Foto de Relógios,Strings,,16,5
+3276,,Quantos Quadrados?,Matemática,,9,5
+3277,,Trabalho na Estrada,Paradigmas,,7,5
+3278,,Passageiros de Trem,Ad-Hoc,,228,5
+3299,,Números Má Sorte Pequenos,Iniciante,,3.103,2
+3300,,Números Má Sorte Recarregados,Strings,,1.034,2
+3301,,Sobrinho do Meio,Iniciante,,5.515,1
+3302,,Resposta Certa,Iniciante,,4.355,1
+3303,,Palavrão,Iniciante,,6.393,1
+3304,,Alguma Sorte!,Matemática,,159,4
+3305,,Bispos Dominantes,Ad-Hoc,,109,3
+3306,,Consulta e Alteração,Iniciante,,458,2
+3307,,Decora o Rolê!,Ad-Hoc,,720,2
+3308,,Elevador,Matemática,,268,4
+3309,,Felizes são estes Números,Ad-Hoc,,233,4
+3310,,Gravity Boy,Strings,,177,2
+3311,,Hudinho e o seu Trabalho,Strings,,524,2
+3312,,Imberbe Matemático,Matemática,,573,2
+3313,,Jogo de Palavras,Strings,,289,4
+3314,,"Konfusa, a Colmeia!",Grafos,,28,7
+3315,,Língua do Computador,Ad-Hoc,,605,2
+3339,,Carina,Matemática,,497,3
+3340,,Estudante De Mestrado,Grafos,,19,8
+3341,,Grandmaster do Jogo do Caneco,Matemática,,43,10
+3342,,Keanu,Iniciante,,5.603,2
+3343,,Attack On Gasparini,Iniciante,,800,8
+3344,,Brute,Iniciante,,2.148,3
+3345,,O Passatempo de Ferdinacci,Matemática,,70,5
+3346,,Flutuação do PIB,Iniciante,,2.351,1
+3347,,Ancestralidade,Strings,,91,3
+3348,,Jogo das Aranhas,Iniciante,,577,3
+3349,,Armadura,Paradigmas,,67,3
+3350,,A Casa das Sete Mulheres,Grafos,,6,6
+3351,,Clickbait,Ad-Hoc,,150,4
+3352,,"Fuja comigo, Galileu!",Geometria Computacional,,0,5
+3353,,Araucárias e a Gralha Azul de Três Olhos,Strings,,11,6
+3354,,Joãozinho Vem Para o Sul,Matemática,,53,3
+3355,,Pinhões no Xadrez,Ad-Hoc,,51,3
+3356,,Reprodução Controlada,Grafos,,278,3
+3357,,Rico do Mate,Estruturas e Bibliotecas,,1.367,1
+3358,,Sobrenome Não é Fácil,Strings,,3.219,1
+3359,,Torres Antigas,Ad-Hoc,,13,5
+3360,,"Porque, Arte!",Ad-Hoc,,4,5
+3361,,Ciclistas contra Nuvens,Ad-Hoc,,5,5
+3362,,Faturamentos Diários,Ad-Hoc,,3,5
+3363,,Planos de Expedição,Ad-Hoc,,0,5
+3364,,Divisão de Campos,Ad-Hoc,,50,5
+3365,,Árvore Geradora,Ad-Hoc,,2,5
+3366,,Hamilton - O Musical,Ad-Hoc,,35,5
+3367,,Dinheiro Investido,Ad-Hoc,,37,5
+3368,,Unindo Pares,Ad-Hoc,,20,5
+3369,,KIARA é um Acrônimo Recursivo,Ad-Hoc,,140,5
+3370,,Saindo de Yharnam,Ad-Hoc,,5,5
+3371,,Caminho Mais Ordenado,Ad-Hoc,,8,5
+3372,,Sudoku,Ad-Hoc,,18,5
+3373,,Criptografia Da Vinci’s,Ad-Hoc,,15,5
+3374,,F de a e b até k,Ad-Hoc,,6,5
+3375,,Divisão Longa,Ad-Hoc,,41,5
+3376,,Sobreposição Parcial,Ad-Hoc,,22,5
+3377,,Geometria?! Por que não??,Ad-Hoc,,120,5
+3378,,Blocos indistinguíveis,Ad-Hoc,,15,5
+3379,,Chop Ahoy!,Ad-Hoc,,2,5
+3380,,Dá um tempo!,Ad-Hoc,,26,5
+3381,,Um por todos. Todos por tudo que existe,Ad-Hoc,,0,5
+3382,,Seja esperto!,Ad-Hoc,,4,5
+3383,,O jogo Tetris,Ad-Hoc,,4,5
+3384,,Blocos de Madeira,Ad-Hoc,,187,5
+3385,,Caminhe como um egípcio,Ad-Hoc,,17,5
+3386,,O Excelente Saara,Ad-Hoc,,3,5
+3387,,Johnny odeia a Teoria dos Números,Ad-Hoc,,10,5
+3388,,A Terra é Plana!,Ad-Hoc,,2,5
+3389,,The Double HeLiX,Ad-Hoc,,5,5
+3390,,Alpha de Grau k,Ad-Hoc,,0,5
+3391,,Ordene essa Fila,Ad-Hoc,,35,5
+3392,,João ainda não consegue somar,Ad-Hoc,,2,5
+3393,,Tudo Sobre o Três,Ad-Hoc,,5,5
+3394,,A Maçã de Newton,Ad-Hoc,,23,5
+3395,,O Relógio Euclidiano,Ad-Hoc,,5,5
+3396,,Chop Ahoy! Revisitado!,Ad-Hoc,,8,5
+3397,,Melhor do Multiverso,Ad-Hoc,,558,5
+3398,,Moeda Convertida,Ad-Hoc,,480,5
+3399,,Meu nome é Enésimo!,Ad-Hoc,,256,5
+3400,,Amigo não tão secreto assim,Ad-Hoc,,51,5
+3401,,Bicho da Goiaba Ataca Novamente,Ad-Hoc,,58,5
+3403,,Dengoso,Ad-Hoc,,19,5
+3404,,Estranho ou Engraçado,Ad-Hoc,,19,5
+3405,,Fatorial,Ad-Hoc,,353,5
+3406,,Gatas do Lincoln,Ad-Hoc,,32,5
+3407,,Hora do Café,Ad-Hoc,,306,5
+3408,,Ignore as Letras,Ad-Hoc,,202,5
+3409,,"Júnior, como seu tio come?",Ad-Hoc,,52,5
+3410,,Kebra Cabeça,Ad-Hoc,,23,5
+3411,,Lá vai tinta!,Ad-Hoc,,49,5
+3412,,Avaliações de Algoritmos,Ad-Hoc,,567,5
+3413,,Baita Desafio Complexo,Ad-Hoc,,23,5
+3414,,Chimambu,Ad-Hoc,,30,5
+3415,,Ditados,Ad-Hoc,,85,5
+3416,,Eu Quero Cafééé,Ad-Hoc,,1.673,5
+3417,,Falcatrua,Ad-Hoc,,25,5
+3418,,La Chaleur,Ad-Hoc,,36,5
+3419,,Kimi Räikkönen,Ad-Hoc,,191,5
+3420,,Torre de Cartas,Ad-Hoc,,221,5
+3421,,Infinita String de Dígitos,Ad-Hoc,,50,5
+3422,,José e a Súmula,Ad-Hoc,,792,5
+3423,,Gostos Peculiares,Ad-Hoc,,22,5
+3424,,Achando os Monótonos Não-Triviais Maximais,Ad-Hoc,,1.020,5
+3425,,Brincando com Pedras,Ad-Hoc,,12,5
+3426,,Cortes a Laser,Ad-Hoc,,11,5
+3427,,Deslocando Partículas,Ad-Hoc,,117,5
+3428,,Estourando Balões,Ad-Hoc,,494,5
+3429,,Forca Multidimensional,Ad-Hoc,,100,5
+3430,,Geometria Triangular,Ad-Hoc,,4,5
+3431,,Habilitando a Movimentação,Ad-Hoc,,49,5
+3432,,Interceptando Informações,Ad-Hoc,,1.633,5
+3433,,Jogando 23,Ad-Hoc,,264,5
+3435,,Listando Caminhos Tediosos,Ad-Hoc,,14,5
+3436,,Maratona de Amarelinha,Ad-Hoc,,7,5
+3437,,Números Virados,Ad-Hoc,,54,5
+3438,,Energia × Tempo,Ad-Hoc,,5,5
+3439,,Rota Crítica,Ad-Hoc,,21,5
+3440,,Amigos ou Inimigos?,Ad-Hoc,,100,5
+3442,,Pedindo dinheiro,Ad-Hoc,,15,5
+3443,,Jogo de tabuleiro,Ad-Hoc,,20,5
+3444,,Dobras da Cidade,Ad-Hoc,,54,5
+3445,,Passeios cotidianos,Ad-Hoc,,521,5
+3446,,Quadrados Vazios,Ad-Hoc,,77,5
+3447,,Árvore Preferida,Ad-Hoc,,18,5
+3448,,Detector de Ondas Gravitacionais,Ad-Hoc,,23,5
+3449,,Restaurante Italian Calzone & Pasta Corner,Ad-Hoc,,34,5
+3450,,Participando de uma Maratona,Ad-Hoc,,177,5
+3451,,Impressão Preguiçosa,Ad-Hoc,,5,5
+3452,,Labirinto em Parafuso,Ad-Hoc,,18,5
+3453,,Carlinhos Adora Problemas,Ad-Hoc,,188,5
+3454,,Alice no País do Jogo da Velha,Ad-Hoc,,1.355,5
+3455,,Banco Nacional de Questões,Ad-Hoc,,453,5
+3456,,Divisibilidade por 7,Ad-Hoc,,534,5
+3457,,Estimando Pedras no Pote,Ad-Hoc,,83,5
+3458,,Fabricação de Proteínas,Ad-Hoc,,51,5
+3459,,GoldMagikarp,Ad-Hoc,,21,5
+3460,,Hidratação na Ultramaratona,Ad-Hoc,,17,5
+3461,,Interferência em Luzes Hexagonais Lights,Ad-Hoc,,56,5
+3462,,Jogando Discos de Hanói,Ad-Hoc,,15,5
+3463,,Kempner et al. e suas Potências,Ad-Hoc,,54,5
+3464,,Latência na Rede,Ad-Hoc,,169,5
+3465,,Cimba,Ad-Hoc,,447,5
+3466,,Dados do Multiverso,Ad-Hoc,,42,5
+3467,,Esse é o meu lugar!,Ad-Hoc,,329,5
+3468,,"Faça mais, mas faça melhor!",Ad-Hoc,,448,5
+3469,,In Site,Ad-Hoc,,249,5
+3470,,Jogo do 8,Ad-Hoc,,83,5
+3471,,Kashmir,Ad-Hoc,,55,5
+3472,,Lá em cima do piano,Ad-Hoc,,74,2
+3473,,Alerte o próximo!,Ad-Hoc,,840,5
+3474,,Boa divisão,Ad-Hoc,,722,5
+3475,,Conversor,Ad-Hoc,,510,5
+3476,,A união faz a força!,Ad-Hoc,,205,5
+3477,,Baú Danificado,Ad-Hoc,,550,5
+3478,,Geiapan,Ad-Hoc,,210,5
+3479,,Horo e os copos,Ad-Hoc,,643,5
+3480,,Cadeiras Adjacentes,SQL,,923,2
+3481,,Classificando uma Árvore,SQL,,823,2
+3482,,Seguidores,SQL,,773,2
+3483,,Segundo Maior e Menor,SQL,,1.258,2
+3484,,Turma Dividida,Estruturas e Bibliotecas,,421,2
+3486,,Display Register,Ad-Hoc,,64,2
+3487,,Firmware - Substring Manipulation,Ad-Hoc,,86,5
+3488,,Binary/Hexadecimal Number Systems,Ad-Hoc,,188,1
+3489,,C++ Templates and STL Containers,Ad-Hoc,,58,5
+3490,,Ache a senha!,Iniciante,,263,1
+3491,,Bilhete codificado,Iniciante,,194,2
+3492,,Ranking turismo CE,SQL,,70,1
+3493,,Copos empilhados,Iniciante,,143,2
+3494,,Palavras transformadas,Iniciante,,89,2
+3495,,Gianzin Berranteiro,Iniciante,,232,2
+3496,,Promoção imperdível,Paradigmas,,53,2
+3498,,Pares especiais,Estruturas e Bibliotecas,,28,2
+3499,,"Bella, a cachorrinha sapeca",Iniciante,,158,2
+3500,,Inversão de Número,Iniciante,,246,3
+3501,,Maior número na matriz,Ad-Hoc,,31,2
+3502,,Montagem de looks,Matemática,,104,2
+3503,,Jogo dos números,Grafos,,7,1
+3504,,Frase palíndromo,Strings,,25,2
+3505,,Controle de Ingredientes,SQL,,12,2
