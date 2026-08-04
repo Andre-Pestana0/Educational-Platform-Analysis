@@ -3,23 +3,14 @@ Scraper: beecrowd - lista de todos os problemas
 URL alvo: https://judge.beecrowd.com/pt/problems/all
 
 Coleta as colunas:
-    #, NOME, CATEGORIA, FAVORITO, RESOLVIDOS, NÍVEL
+    ID, NAME, CATEGORY, SOLVED, LEVEL
 
 Requisitos:
     pip install playwright --break-system-packages
-    playwright install chromium
+    python3 -m playwright install
 
 Uso:
-    python scrape_beecrowd_problems.py --email SEU_EMAIL --password SUA_SENHA
-
-Observações importantes:
-- A página /pt/problems/all exige login (redireciona para /pt/login se não autenticado).
-- NUNCA deixe usuário/senha hardcoded no script; use argumentos de linha de
-  comando ou variáveis de ambiente (BEECROWD_EMAIL / BEECROWD_PASSWORD).
-- Os seletores de login/tabela abaixo foram escritos de forma defensiva
-  (múltiplos fallbacks), pois a estrutura exata do DOM pode mudar entre
-  versões da plataforma. Se algum seletor falhar, rode com --headless false
-  e --debug para inspecionar visualmente e ajustar.
+    python3 scrape_beecrowd_problems.py --email SEU_EMAIL --password SUA_SENHA
 """
 
 import argparse
@@ -34,7 +25,19 @@ BASE_URL = "https://judge.beecrowd.com"
 LOGIN_URL = f"{BASE_URL}/pt/login"
 PROBLEMS_URL = f"{BASE_URL}/pt/problems/all"
 
-EXPECTED_HEADERS = ["#", "Nome", "Categoria", "Favorito", "Resolvidos", "Nível"]
+# Mapeamento do texto exato do cabeçalho HTML para a coluna de saída desejada
+HEADER_MAP = {
+    "#": "ID",
+    "id": "ID",
+    "name": "Name",
+    "problem": "Name",
+    "title": "Name",
+    "category": "Category",
+    "solved": "Solved",
+    "level": "Level"
+}
+
+EXPECTED_HEADERS = ["ID", "Name", "Category", "Solved", "Level"]
 
 
 def log(msg, debug=False):
@@ -58,9 +61,7 @@ def dump_debug_artifacts(page, prefix):
 
 def find_first_visible(page, selectors, timeout_each=4000):
     """
-    Tenta cada seletor em ordem, esperando ativamente (não apenas checando
-    count() imediatamente) por ele ficar visível. Retorna o Locator do
-    primeiro que aparecer, ou None se nenhum aparecer dentro do timeout.
+    Tenta cada seletor em ordem, esperando ativamente por ele ficar visível.
     """
     for sel in selectors:
         try:
@@ -76,22 +77,11 @@ def do_login(page, email, password, debug=False):
     log(f"Navegando até {LOGIN_URL}", debug)
     page.goto(LOGIN_URL, wait_until="domcontentloaded")
 
-    # Site é uma SPA: dá tempo para o JS montar o formulário antes de
-    # procurar os inputs. wait_for_load_state pode retornar antes do form
-    # estar de fato renderizado, então também esperamos por "form" existir.
     try:
         page.wait_for_selector("form", timeout=15000)
     except PWTimeoutError:
-        log("Nenhum <form> apareceu em 15s — a página pode ter mudado de estrutura.", debug)
+        log("Nenhum <form> apareceu em 15s.", debug)
 
-    try:
-        page.wait_for_load_state("networkidle", timeout=15000)
-    except PWTimeoutError:
-        pass
-
-    # Seletores alternativos para o campo de email/usuário. Inclui
-    # variações por placeholder/aria-label em pt-BR, caso não haja
-    # name/id previsível (comum em apps Angular com formControlName).
     email_selectors = [
         "input#email",
         "input[name='email']",
@@ -113,27 +103,16 @@ def do_login(page, email, password, debug=False):
     email_input = find_first_visible(page, email_selectors)
     if email_input is None:
         dump_debug_artifacts(page, "login_debug")
-        raise RuntimeError(
-            "Não encontrei o campo de email na página de login. "
-            "Salvei login_debug.png e login_debug.html no diretório atual — "
-            "me envie o HTML relevante do formulário (a tag <input> do campo "
-            "de email/usuário) para eu ajustar o seletor. "
-            "Rode também com --no-headless para ver o navegador ao vivo."
-        )
+        raise RuntimeError("Não encontrei o campo de email na página de login.")
 
     password_input = find_first_visible(page, password_selectors)
     if password_input is None:
         dump_debug_artifacts(page, "login_debug")
-        raise RuntimeError(
-            "Não encontrei o campo de senha na página de login. "
-            "Salvei login_debug.png e login_debug.html no diretório atual — "
-            "me envie o HTML relevante do formulário para eu ajustar o seletor."
-        )
+        raise RuntimeError("Não encontrei o campo de senha na página de login.")
 
     email_input.fill(email)
     password_input.fill(password)
 
-    # Botão de submit: id confirmado é #submit-btn
     submit_selectors = [
         "#submit-btn",
         "button:has-text('Entrar')",
@@ -144,31 +123,22 @@ def do_login(page, email, password, debug=False):
     if submit_btn is not None:
         submit_btn.click()
     else:
-        # fallback: aperta Enter no campo de senha
         password_input.press("Enter")
 
-    # Espera navegação/pós-login. Ajuste a condição se necessário.
     try:
-        page.wait_for_load_state("networkidle", timeout=15000)
+        page.wait_for_url(lambda url: "/login" not in url, timeout=60000)
     except PWTimeoutError:
-        pass
-
-    if "/login" in page.url:
         dump_debug_artifacts(page, "login_debug_post_submit")
-        raise RuntimeError(
-            "Login parece ter falhado (ainda na página de login). "
-            "Verifique credenciais ou possível captcha/2FA."
-        )
-    log(f"Login OK, URL atual: {page.url}", debug)
+        raise RuntimeError("Tempo esgotado para o login. Verifique o reCAPTCHA ou credenciais.")
+
+    log(f"Login efetuado com sucesso. URL: {page.url}", debug)
 
 
 def extract_table_rows(page, debug=False):
     """
-    Extrai as linhas da tabela de problemas na página atual.
-    Retorna lista de dicts com as chaves EXPECTED_HEADERS.
+    Extrai as linhas relacionando cada célula (td) ao nome do seu cabeçalho (th),
+    ignorando a coluna 'Favorite'.
     """
-    # Espera a tabela carregar. Ajuste o seletor se a tabela tiver
-    # id/classe específica (ex: "table.problems-table").
     page.wait_for_selector("table", timeout=20000)
 
     tables = page.locator("table")
@@ -181,48 +151,59 @@ def extract_table_rows(page, debug=False):
         table = tables.nth(t_idx)
         header_cells = table.locator("thead tr th")
         if header_cells.count() == 0:
-            # alguns temas colocam o cabeçalho na primeira <tr> do <tbody>
             header_cells = table.locator("tr").first.locator("th, td")
 
-        headers = [h.inner_text().strip() for h in header_cells.all()]
-        log(f"Tabela {t_idx} headers: {headers}", debug)
+        col_index_map = {}
+        for idx, h in enumerate(header_cells.all()):
+            text = h.inner_text().strip().lower()
+            
+            # Pula a coluna Favorite explicitamente
+            if "favorite" in text:
+                continue
 
-        # Só processa tabelas que parecem ser a de problemas
-        if not any(h in headers for h in ["Nome", "Categoria", "Nível", "#"]):
-            continue
+            # Mapeia para a chave limpa esperada se existir no dicionário
+            for key, target_col in HEADER_MAP.items():
+                if key in text:
+                    col_index_map[idx] = target_col
+                    break
+
+        log(f"Tabela {t_idx} Mapeamento de colunas por índice: {col_index_map}", debug)
 
         body_rows = table.locator("tbody tr")
         if body_rows.count() == 0:
-            body_rows = table.locator("tr")  # fallback sem thead/tbody
+            body_rows = table.locator("tr")
 
         for r_idx in range(body_rows.count()):
             row = body_rows.nth(r_idx)
             cells = row.locator("td")
             if cells.count() == 0:
                 continue
-            values = [c.inner_text().strip() for c in cells.all()]
-            if not values or not values[0]:
-                continue
 
-            # Mapeia célula -> nome de coluna esperado, na ordem em que
-            # aparecem. Se o número de colunas não bater exatamente com
-            # EXPECTED_HEADERS, ainda assim guarda tudo com chaves
-            # genéricas col_0, col_1, ... para não perder dado.
+            all_cells = cells.all()
             row_dict = {}
-            for i, val in enumerate(values):
-                if i < len(EXPECTED_HEADERS):
-                    row_dict[EXPECTED_HEADERS[i]] = val
-                else:
-                    row_dict[f"col_{i}"] = val
-            rows_data.append(row_dict)
+
+            for idx, target_col in col_index_map.items():
+                if idx < len(all_cells):
+                    cell = all_cells[idx]
+                    
+                    # Se houver tag <a> dentro da célula, pega o texto interno do link
+                    link = cell.locator("a")
+                    if link.count() > 0:
+                        val = link.first.inner_text().strip()
+                    else:
+                        val = cell.inner_text().strip()
+
+                    row_dict[target_col] = val
+
+            if row_dict and any(row_dict.values()):
+                rows_data.append(row_dict)
 
     return rows_data
 
 
 def go_to_next_page(page, debug=False):
     """
-    Tenta clicar no botão/link de "próxima página" da paginação.
-    Retorna True se conseguiu avançar, False se não há mais páginas.
+    Tenta clicar no link/botão de próxima página da paginação.
     """
     next_selectors = [
         "a[rel='next']",
@@ -236,7 +217,6 @@ def go_to_next_page(page, debug=False):
     for sel in next_selectors:
         el = page.locator(sel).first
         if el.count() > 0:
-            # verifica se o elemento não está desabilitado
             is_disabled = el.evaluate(
                 "e => e.classList.contains('disabled') "
                 "|| e.getAttribute('aria-disabled') === 'true' "
@@ -249,13 +229,13 @@ def go_to_next_page(page, debug=False):
                 page.wait_for_load_state("networkidle", timeout=15000)
             except PWTimeoutError:
                 pass
-            time.sleep(1)  # pequena folga para re-render da tabela
+            time.sleep(1)
             return True
 
     return False
 
 
-def scrape_all_problems(email, password, headless=True, max_pages=None, debug=False):
+def scrape_all_problems(email, password, headless, max_pages=None, debug=False):
     all_rows = []
 
     with sync_playwright() as p:
@@ -298,15 +278,8 @@ def save_to_csv(rows, output_path):
         print("Nenhuma linha coletada; CSV não foi criado.")
         return
 
-    # Une todas as chaves possíveis mantendo a ordem esperada primeiro
-    fieldnames = list(EXPECTED_HEADERS)
-    for row in rows:
-        for k in row.keys():
-            if k not in fieldnames:
-                fieldnames.append(k)
-
     with open(output_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=EXPECTED_HEADERS)
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
@@ -317,17 +290,13 @@ def save_to_csv(rows, output_path):
 def main():
     parser = argparse.ArgumentParser(description="Scraper de problemas do beecrowd")
     parser.add_argument("--email", default=os.environ.get("BEECROWD_EMAIL"),
-                         help="Email de login (ou defina BEECROWD_EMAIL)")
+                        help="Email de login (ou defina BEECROWD_EMAIL)")
     parser.add_argument("--password", default=os.environ.get("BEECROWD_PASSWORD"),
-                         help="Senha de login (ou defina BEECROWD_PASSWORD)")
+                        help="Senha de login (ou defina BEECROWD_PASSWORD)")
     parser.add_argument("--output", default="beecrowd_problems.csv",
-                         help="Caminho do arquivo CSV de saída")
-    parser.add_argument("--headless", action="store_true", default=True,
-                         help="Rodar em modo headless (padrão: True)")
-    parser.add_argument("--no-headless", dest="headless", action="store_false",
-                         help="Abrir navegador visível (útil para debug)")
+                        help="Caminho do arquivo CSV de saída")
     parser.add_argument("--max-pages", type=int, default=None,
-                         help="Limitar número de páginas (para testes rápidos)")
+                        help="Limitar número de páginas (para testes rápidos)")
     parser.add_argument("--debug", action="store_true", help="Logs verbosos")
 
     args = parser.parse_args()
@@ -343,7 +312,7 @@ def main():
     rows = scrape_all_problems(
         email=args.email,
         password=args.password,
-        headless=args.headless,
+        headless=False,
         max_pages=args.max_pages,
         debug=args.debug,
     )
