@@ -22,10 +22,6 @@ def rename_java_files(directory: str):
         new_name = f"S_{number_id}.java"
         new_path = folder / new_name
         
-        # Skip if already using the target name
-        if file.name == new_name:
-            continue
-
         # Check if the target filename already exists
         if new_path.exists():
             print(f"Kept original: '{file.name}' ('{new_name}' already exists)")
