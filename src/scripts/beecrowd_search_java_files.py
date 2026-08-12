@@ -36,8 +36,8 @@ def process_repositories(base_path: str = ".") -> None:
             # Ensure the output directory exists
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Build new filename: Number_RepoName.java
-            new_file_name = f"{number}_{repo_name}{java_file.suffix}"
+            # Build new filename
+            new_file_name = f"S_{number}_{repo_name}{java_file.suffix}"
             destination = output_dir / new_file_name
 
             # Copy file to output directory
