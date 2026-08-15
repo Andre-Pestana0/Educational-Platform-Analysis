@@ -30,19 +30,23 @@ def process_repositories(base_path: str = ".") -> None:
     # Search recursively for all .java files inside the directory
     for java_file in base_dir.rglob("*.java"):
         # Extract digits from the filename
-        number = extract_digits(java_file.stem)
+        number_str = extract_digits(java_file.stem)
 
-        if number:
-            # Ensure the output directory exists
-            output_dir.mkdir(parents=True, exist_ok=True)
+        if number_str:
+            number = int(number_str)
+            
+            # Filtra apenas exercícios no intervalo de 1000 a 3505
+            if 1000 <= number <= 3505:
+                # Ensure the output directory exists
+                output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Build new filename
-            new_file_name = f"S_{number}_{repo_name}{java_file.suffix}"
-            destination = output_dir / new_file_name
+                # Build new filename
+                new_file_name = f"S_{number}_{repo_name}{java_file.suffix}"
+                destination = output_dir / new_file_name
 
-            # Copy file to output directory
-            shutil.copy2(java_file, destination)
-            print(f"Copied: {java_file.name} -> {destination.name}")
+                # Copy file to output directory
+                shutil.copy2(java_file, destination)
+                print(f"Copied: {java_file.name} -> {destination.name}")
 
     print("Process completed successfully!")
 
