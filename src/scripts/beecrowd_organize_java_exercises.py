@@ -1,11 +1,12 @@
 import os
+import re
 import shutil
 import pandas as pd
 
 # Path and folder configurations
 EXCEL_PATH = "beecrowd_problems_shared.xlsx"
 TARGET_DIR = "java_implementations"
-SEARCH_DIR_SUFFIX = "_Java"  # Searches folders containing or ending with '_Java' (e.g., Repository_Java, Solutions_Java)
+SEARCH_DIR_SUFFIX = "_Java"
 
 def find_and_copy_exercises():
     # 1. Ensure the target directory exists
@@ -28,7 +29,7 @@ def find_and_copy_exercises():
     # 3. Map all directories with '_Java' in their name within the current directory
     java_directories = [
         d for d in os.listdir(".") 
-        if os.path.isdir(d) and d != TARGET_DIR and (d.endswith(SEARCH_DIR_SUFFIX) or SEARCH_DIR_SUFFIX in d)
+        if os.path.isdir(d) and d != TARGET_DIR and SEARCH_DIR_SUFFIX in d
     ]
 
     print(f"Total exercises to check: {len(exercise_ids)}")
@@ -39,11 +40,13 @@ def find_and_copy_exercises():
     not_found_ids = []
 
     for ex_id in exercise_ids:
-        # Helper function to check if a filename matches the exercise ID
+        # Check if the ID exists as a standalone numeric token in the filename
+        # Pattern checks for boundary/non-digits around the ID (e.g. matches '1000.java', 'Main_1000.java', 'P-1000.java')
+        # Prevents '100' from matching '1000.java'
         def file_matches_id(filename):
             name_without_ext, _ = os.path.splitext(filename)
-            # Checks if ID exists as a standalone token or part of the name (e.g., 1000.java, Main_1000.java, P1000.java)
-            return ex_id in name_without_ext.split("_") or ex_id in name_without_ext.split("-") or ex_id in name_without_ext
+            tokens = re.split(r'[^0-9]', name_without_ext)
+            return ex_id in tokens
 
         # Pass 1: Check if the file is already inside the 'java_implementations' directory
         target_files = os.listdir(TARGET_DIR)
@@ -60,7 +63,6 @@ def find_and_copy_exercises():
         found_in_other_folder = False
 
         for java_dir in java_directories:
-            # Traverse through directory and subdirectories
             for root, _, files in os.walk(java_dir):
                 for file in files:
                     if file.endswith(".java") and file_matches_id(file):
