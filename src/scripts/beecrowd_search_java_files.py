@@ -9,25 +9,28 @@ def clean_repo_name(raw_name: str) -> str:
     return re.sub(r"[-_]master$", "", raw_name, flags=re.IGNORECASE)
 
 
-def extract_exercise_id(java_file: Path) -> str:
-    """Extracts the exercise ID from the filename or its parent directory hierarchy.
+def extract_exercise_id(java_file: Path, base_dir: Path) -> str:
+    """Extracts the exercise ID (EXACTLY 4 digits) from the filename or parent directories.
     
-    First inspects the filename itself for a 3-to-5 digit number. If absent (e.g., Main.java),
-    traverses up through the parent directories to locate an ID within the directory structure (e.g., folder '1000').
+    Stops searching parents once it reaches the base repository directory.
     """
-    # 1. Check the file name stem first
-    matches = re.findall(r"\b(\d{3,5})\b", java_file.stem)
+    # 1. Check the file name stem first (e.g., p1000.java, 1000_Solution.java)
+    matches = re.findall(r"(?:^|[^\d])(\d{4})(?:[^\d]|$)", java_file.stem)
     if matches:
         return matches[0]
-    
-    # 2. Fallback: Traverse parent directories up to the repository root
-    for parent in java_file.parents:
-        parent_matches = re.findall(r"\b(\d{3,5})\b", parent.name)
+
+    # 2. Traverse parent directories up to (and including) base_dir
+    for parent in [java_file.parent] + list(java_file.parents):
+        parent_matches = re.findall(r"(?:^|[^\d])(\d{4})(?:[^\d]|$)", parent.name)
         if parent_matches:
             return parent_matches[0]
             
-    # 3. Final fallback: First consecutive digits in the file stem
-    digits = re.findall(r"\d+", java_file.stem)
+        # Stop traversing higher than the repository root
+        if parent.resolve() == base_dir.resolve():
+            break
+
+    # 3. Final fallback: First sequence of exactly 4 digits in the file stem
+    digits = re.findall(r"\b\d{4}\b", java_file.stem)
     return digits[0] if digits else ""
 
 
@@ -50,12 +53,12 @@ def process_repositories(base_path: str = ".") -> None:
 
     # Search recursively for all .java files inside the directory
     for java_file in base_dir.rglob("*.java"):
-        # Extract ID from file path (checks file stem first, then parent directory hierarchy)
-        number_str = extract_exercise_id(java_file)
+        # Extract ID from file path (checks file stem first, then parent directory hierarchy up to base_dir)
+        number_str = extract_exercise_id(java_file, base_dir)
 
         if number_str:
             number = int(number_str)
-            
+
             # Filter exercises strictly within the 1000 to 3505 ID range
             if 1000 <= number <= 3505:
                 # Ensure the output directory exists
