@@ -1,14 +1,8 @@
-# List of BeeCrowd GitHub Repositories with Challengers Solutions
-
-[https://github.com/danieljcksn/beecrowd-solutions](https://github.com/danieljcksn/beecrowd-solutions)
+# List of BeeCrowd GitHub Repositories with Challengers Solutions in Java
 
 [https://github.com/eduardo-mior/URI-Online-Judge-Solutions](https://github.com/eduardo-mior/URI-Online-Judge-Solutions)
 
 [https://github.com/ManiruzzamanAkash/URI-Online-Judge-All-Problems-Solution](https://github.com/ManiruzzamanAkash/URI-Online-Judge-All-Problems-Solution)
-
-[https://github.com/petbccufscar/beecrowd](https://github.com/petbccufscar/beecrowd)
-
-[https://github.com/potigol/beecrowd](https://github.com/potigol/beecrowd)
 
 [https://github.com/diegoborbadev/beecrowd-solutions](https://github.com/diegoborbadev/beecrowd-solutions)
 
@@ -35,8 +29,6 @@
 [https://github.com/joaopioner1/exercise_URI_Java](https://github.com/joaopioner1/exercise_URI_Java)
 
 [https://github.com/sabira-khan/BeecrowdOnlineJudgeSolutions](https://github.com/sabira-khan/BeecrowdOnlineJudgeSolutions)
-
-[https://github.com/alexgaia98/uri-online-judge-challenges-in-java](https://github.com/alexgaia98/uri-online-judge-challenges-in-java)
 
 [https://github.com/Gustavo-Damaceno/Exercicios-URI-Online-Judge](https://github.com/Gustavo-Damaceno/Exercicios-URI-Online-Judge)
 
@@ -107,3 +99,11 @@
 [https://github.com/joaoalbertorsc/beeCrowd](https://github.com/joaoalbertorsc/beeCrowd)
 
 [https://github.com/vitoriagblima/beecrowd-java-beginner](https://github.com/vitoriagblima/beecrowd-java-beginner)
+
+# List of BeeCrowd GitHub Repositories with Challengers Solutions in others languages
+
+[https://github.com/danieljcksn/beecrowd-solutions](https://github.com/danieljcksn/beecrowd-solutions)
+
+[https://github.com/petbccufscar/beecrowd](https://github.com/petbccufscar/beecrowd)
+
+[https://github.com/potigol/beecrowd](https://github.com/potigol/beecrowd)
