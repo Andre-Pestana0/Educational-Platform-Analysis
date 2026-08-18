@@ -85,3 +85,25 @@
 [https://github.com/ismaelcardosojr/beecrowd-solutions](https://github.com/ismaelcardosojr/beecrowd-solutions)
 
 [https://github.com/johannfurtado/beecrowd-solutions](https://github.com/johannfurtado/beecrowd-solutions)
+
+[https://github.com/Pepenonepep/Programando_em_Java](https://github.com/Pepenonepep/Programando_em_Java)
+
+[https://github.com/greglixandrao/beecrowd-problemas](https://github.com/greglixandrao/beecrowd-problemas)
+
+[https://github.com/vicentejluz/desafios-programacao](https://github.com/vicentejluz/desafios-programacao)
+
+[https://github.com/ethior0/Beecrowd](https://github.com/ethior0/Beecrowd)
+
+[https://github.com/wasique-sh/beecrowd-exercises](https://github.com/wasique-sh/beecrowd-exercises)
+
+[https://github.com/RyanMazzeu/Programas_criados_em_Java](https://github.com/RyanMazzeu/Programas_criados_em_Java)
+
+[https://github.com/Alicelspires/Beecrowd-problems](https://github.com/Alicelspires/Beecrowd-problems)
+
+[https://github.com/FabioKenzo/java-isiflix](https://github.com/FabioKenzo/java-isiflix)
+
+[https://github.com/caio01/Beecrowd-Java](https://github.com/caio01/Beecrowd-Java)
+
+[https://github.com/joaoalbertorsc/beeCrowd](https://github.com/joaoalbertorsc/beeCrowd)
+
+[https://github.com/vitoriagblima/beecrowd-java-beginner](https://github.com/vitoriagblima/beecrowd-java-beginner)
