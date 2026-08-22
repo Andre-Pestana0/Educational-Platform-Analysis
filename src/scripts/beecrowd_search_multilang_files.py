@@ -6,7 +6,7 @@ from typing import Set
 import pandas as pd
 
 # Path and folder configurations
-MULTILANG_CSV_PATH = "beecrowd_multilang_solutions.csv"
+MISSING_CSV_PATH = "beecrowd_missing_solutions.csv"
 REPOS_DIR = "repos"
 OUTPUT_DIR = "found_multilang_implementations"
 
@@ -33,8 +33,8 @@ def get_repo_folder_name(root_path: str, base_repos_dir: str) -> str:
 def find_multilang_solutions() -> None:
     """Searches for unresolved problem IDs across multi-language source files in the repos folder."""
     # 1. Validate paths
-    if not os.path.exists(MULTILANG_CSV_PATH):
-        print(f"Error: CSV file '{MULTILANG_CSV_PATH}' not found.")
+    if not os.path.exists(MISSING_CSV_PATH):
+        print(f"Error: CSV file '{MISSING_CSV_PATH}' not found.")
         return
 
     if not os.path.exists(REPOS_DIR):
@@ -42,7 +42,7 @@ def find_multilang_solutions() -> None:
         return
 
     # 2. Read IDs from CSV
-    df = pd.read_csv(MULTILANG_CSV_PATH)
+    df = pd.read_csv(MISSING_CSV_PATH)
     if "ID" not in df.columns:
         print("Error: 'ID' column not found in the CSV file.")
         return
