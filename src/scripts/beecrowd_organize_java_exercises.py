@@ -7,6 +7,7 @@ import pandas as pd
 EXCEL_PATH = "beecrowd_problems_shared.xlsx"
 TARGET_DIR = "java_implementations"
 SEARCH_DIR_SUFFIX = "_Java"
+MISSING_CSV_PATH = "beecrowd_missing_solutions.csv"
 
 def find_and_copy_exercises():
     # 1. Ensure the target directory exists
@@ -41,8 +42,6 @@ def find_and_copy_exercises():
 
     for ex_id in exercise_ids:
         # Check if the ID exists as a standalone numeric token in the filename
-        # Pattern checks for boundary/non-digits around the ID (e.g. matches '1000.java', 'Main_1000.java', 'P-1000.java')
-        # Prevents '100' from matching '1000.java'
         def file_matches_id(filename):
             name_without_ext, _ = os.path.splitext(filename)
             tokens = re.split(r'[^0-9]', name_without_ext)
@@ -85,6 +84,12 @@ def find_and_copy_exercises():
         if not found_in_other_folder:
             not_found_ids.append(ex_id)
 
+    # 4. Generate CSV for missing IDs
+    if not_found_ids:
+        missing_df = pd.DataFrame({"ID": not_found_ids})
+        missing_df.to_csv(MISSING_CSV_PATH, index=False)
+        print(f"\n[INFO] Missing IDs saved to '{MISSING_CSV_PATH}'")
+
     # Final summary report
     print("\n" + "="*40)
     print("OPERATION SUMMARY")
@@ -94,7 +99,8 @@ def find_and_copy_exercises():
     print(f"Not found                 : {len(not_found_ids)}")
     
     if not_found_ids:
-        print(f"Missing IDs: {', '.join(not_found_ids)}")
+        print(f"Missing IDs count         : {len(not_found_ids)}")
+        print(f"Missing IDs file created  : {MISSING_CSV_PATH}")
 
 if __name__ == "__main__":
     find_and_copy_exercises()
